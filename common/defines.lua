@@ -235,10 +235,12 @@ NDiplomacy = {
 	PEACE_COST_CONVERSION = 1,					-- scaled with countrysize for forced conversion in peace.
 	PEACE_COST_RELEASE = 2, 						-- _DDEF_PEACE_COST_RELEASE_ Base Peace cost for releasing an annexed country (also increases with nr of provinces)
 	PEACE_COST_CONCEDE = 10, 						-- _DDEF_PEACE_COST_CONCEDE_ Base Peace cost for conceding defeat
-	PEACE_COST_GOLD_STEP = 1, 						-- _DDEF_PEACE_COST_GOLD_STEP_ Peace Cost for 1 month of income
+	PEACE_COST_GOLD_STEP = 5, 						-- _DDEF_PEACE_COST_GOLD_STEP_ Peace Cost for 1 loan size gold of giver
+	PEACE_COST_GOLD_MAX = 5,						-- Maximum loans of gold that can be demanded from giver in peace.																							 
 	PEACE_COST_ANNUL = 10, 							-- _DDEF_PEACE_COST_ANNUL_ Peace cost for annulment of treaties
 	PEACE_COST_CHANGE_GOVERNMENT = 50, 				-- _Peace cost for changing government form
-	PEACE_COST_TRADE_POWER = 60, 					-- Peace cost for demanding trade power
+	PEACE_COST_TRADE_POWER = 30, 					-- Peace cost for demanding trade power
+	PEACE_COST_STEER_TRADE = 60,					-- Peace cost for steering trade							  
 	PEACE_COST_INDEPENDANCE = 30, 					-- Peace cost for breaking free of union
 	PEACE_COST_ENFORCED_FLEET_BASING_RIGHTS = 25,   -- Peace cost for enforced fleet basing righs
 	PEACE_COST_ENFORCED_MILITARY_ACCESS = 15,       -- Peace cost for enforced military access
@@ -377,7 +379,11 @@ NDiplomacy = {
 	AUTODIPLO_TARGET_ALLIES_IMPROVECAP = 80,
 
 	AUTODIPLO_TARGET_THREATS_HOPELESS_LIMIT = -100,
-	AUTODIPLO_TARGET_THREATS_IMPROVECAP = 80
+	AUTODIPLO_TARGET_THREATS_IMPROVECAP = 80,
+	
+	KNOWLEDGE_SHARING_INSTITUTION_GROWTH_MONTHLY = 1.0,
+	KNOWLEDGE_SHARING_DURATION_YEARS = 10,
+	KNOWLEDGE_SHARING_COST_PERCENT_MONTHLY = 10.0,										   
 },
 
 NCountry = {
@@ -817,6 +823,15 @@ NCountry = {
 	HIGH_ARMY_PROFESSIONALISM_MAX_RANGE = 1.0,
 	ARMY_PROFESSIONALISM_PER_AGE = 0.2,
 	TRADING_POLICY_COOLDOWN_MONTHS  = 12,			-- Cooldown until you can change Trading Policy after selecting.
+	INNOVATIVENESS_FIRST_REACHED_TECH_LEVEL = 2.0,  -- Innovativeness bonus to first country (or countries) to reach a certain tech level.
+	INNOVATIVENESS_FIRST_PICKED_IDEA = 1.0,			-- Innovativeness bonus to first country (or countries) to pick an idea.
+	INNOVATIVENESS_BEHIND_IN_TECH_PENALTY = -0.03, 	-- Innovativeness penalty if behind neighbors in tech (and not ahead of time).
+	INNOVATIVENESS_ENABLE_ANY_BEHIND_IN_TECH_PENALTY = 0,	-- Enabled that if any tech is behind we apply the penalty. Turning this off will require you only to be ahead in one.
+	INNOVATIVENESS_ENABLE_PER_TECH_BEHIND_IN_TECH_PENALTY = 0, -- Enable that the penalty is applied for each tech we are behind in tech.
+	INNOVATIVENESS_AHEAD_OF_TIME_BONUS = 0.005, -- Bonus for being ahead of time in tech
+	INNOVATIVENESS_DAYS_AFTER_FIRST_PICK_VIABLE = 90, -- How many days you cna still get innov
+	INNOVATIVENESS_MAX = 100.0, -- Innovativeness Cap
+	
 },
 
 NEconomy = {
@@ -844,7 +859,7 @@ NEconomy = {
 	INCREASE_AUTONOMY_STEP = 25,
 	INCREASE_AUTONOMY_MAX = 75,
 	AUTONOMY_CHANGE_DURATION = 10950,			-- about 30 years
-	LAND_TECH_MAINTENANCE_IMPACT = 0.01, 			-- % each tech increases it.
+	LAND_TECH_MAINTENANCE_IMPACT = 0.02, 			-- % each tech increases it.
 	ADVISOR_COST = 1.0,								-- Advisor cost modifier
 	GOLD_INFLATION_THRESHOLD = 0.0,					-- _EDEF_GOLD_INFLATION_THRESHOLD_
 	GOLD_INFLATION = 0.5,							-- _EDEF_GOLD_INFLATION_
@@ -1105,6 +1120,9 @@ NMilitary = {
 	CREATE_JANISSARIES_MIL_COST = 10,				-- Cost to create janissaries (per unit)
 	JANISSARIES_HEATHEN_DEVELOPMENT_DIVISOR = 10,	-- How much development needed to raise one unit of janissaries
 	JANISSARIES_COOLDOWN_DAYS = 1825,				-- How many days we cooldown on creating janissaries
+	NAVAL_DOCTRINE_SAILORS_COST = 0.1,				-- Cost for switching naval doctrine (Share of sailors)
+	NAVAL_DOCTRINE_MIN_FORCE_LIMIT = 20,			-- Minimum naval force limit to be able to select a naval doctrine
+	LEAGUE_LEADER_CHANGE_SCORE_THRESHOLD = 1.5,		-- Score * factor needed for leader change (Compared to current leader)																							  																												 
 },
 
 NAI = {
@@ -1169,6 +1187,7 @@ NAI = {
 	OVER_FORCELIMIT_AVOIDANCE_FACTOR = 10, -- The higher this number is, the less willing the AI will be to exceed forcelimits
 	DESIRED_SURPLUS = 0.1, -- AI will aim for having at least this fraction of their income as surplus when they don't have large savings
 	DESIRED_DEFICIT = 0.01, -- AI will try to spend this fraction of their money above their target for long term savings.
+	EXTRA_SURPLUS_WHEN_NEEDING_BUILDINGS = 0.15, -- AI will aim for having at least this fraction of their income as additional surplus when they need buildings																																							 
 	MAX_SAVINGS = 60, -- AI will keep a maximum of this * their monthly income in long-term savings
 	ADVISOR_BUDGET_FRACTION = 0.3, -- AI will spend a maximum of this fraction of monthly income on advisor maintenance
 	CORRUPTION_BUDGET_FRACTION = 0.25, -- AI will spend a maximum of this fraction of monthly income on rooting out corruption
@@ -1334,6 +1353,7 @@ NAI = {
 	DIPLOMATIC_ACTION_OFFER_CONDOTTIERI_HIRING_MALUS_YEARS = 15, --Once AI has told all their friends about how mean a player is, they will refuse to hire condottieri for cash this long.
 	DIPLOMATIC_ACTION_OFFER_CONDOTTIERI_PARTICIPATION_FROM_CASUALTIES = 0.5, --Scaler for casulties caused by condottieri.
 	DIPLOMATIC_ACTION_ALLIANCE_ACCEPTANCE_MULT = 3.0, -- AI scoring for alliance based on willingness to accept it if offered to them
+	DIPLOMATIC_ACTION_KNOWLEDGE_SHARING_ACCEPTANCE_MULT = 3.0, -- AI scoring for knowledge sharing based on willingness to accept it if offered to them																																					
 	DIPLOMATIC_ACTION_SHAREMAP_REGION_SELF_VALUE_MULT = 1.5, -- AI scoring for sharing maps based on "interests in region" for map sharing.
 	DIPLOMATIC_ACTION_SHAREMAP_PRESTIGE_FACTOR = 0.5, --AI scoring for sharing maps factor for current prestige.
 	DIPLOMATIC_ACTION_FEDERATION_ACCEPTANCE_MULT = 3.0, -- AI scoring for alliance based on willingness to accept it if offered to them
@@ -1421,6 +1441,7 @@ NAI = {
 	DIPLOMATIC_ACTION_SUBSIDIES_INDEBTED_FACTOR = 20, -- AI scoring for giving subsidies to an ally in heavy debt
 	DIPLOMATIC_ACTION_SUBSIDIES_MIN_VALUE = 0.5, -- Minimum amount of subsidies that AI considers worthwhile
 	DIPLOMATIC_ACTION_TRADE_POWER_ACCEPTANCE_MULT = 3.0, -- AI scoring for transfer trade power based on willingness to accept it if offered to them
+	DIPLOMATIC_ACTION_STEER_TRADE_ACCEPTANCE_MULT = 3.0, -- AI scoring to retain trade steering based on willingness to accept it if offered to them																																				 
 	DIPLOMATIC_ACTION_TRADE_POWER_TRADE_INTEREST_FACTOR = 25, -- AI scoring for transfer trade power is increased by this if they have trade interest
 	DIPLOMATIC_ACTION_TRADE_POWER_THRESHOLD = 1.0, -- AI will not ask to transfer trade power unless value of shared nodes is at least this high
 	DIPLOMATIC_ACTION_TRADE_POWER_FACTOR = 25.0, -- AI scoring for transfer trade power is increased by this for each 1.0 value in shared nodes
@@ -1442,6 +1463,8 @@ NAI = {
 	GUARANTEE_DESIRE_TOO_MANY_RELATIONS = -50,				-- AI desire for guaranteeing when it has or will get too many relations. Multiplies with number of relations above limit.
 
 	INVADING_BRAVERY = 1.0,									-- If (defender strength) / (invader strength) > INVADING_BRAVERY, the AI won't attempt a naval invasion
+	INVADING_MIN_HOME_RATIO = 0.5,							-- AI will attempts to keep at least this much of its troops in home territories, always, assuming it can divide its stacks enough.
+	HOME_FLEET_MAX_RATIO = 0.85,							-- Maximum proportion of warships in home fleet.																																										 																				
 	TRADE_POLICY_PROPAGATE_RELIGION_SCORE = 50.0,				-- Score for propagate religion trade policy (if selectable)
 	TRADE_POLICY_PREPARING_FOR_WAR_PER_PROVINCE_SCORE = 6.0,	-- Score per enemy province while preparing war for attack bonus trade policy (if selectable)
 	TRADE_POLICY_AT_WAR_PER_PROVINCE_SCORE = 5.5,				-- Score per enemy province while preparing war for attack bonus trade policy (if selectable)
@@ -1449,7 +1472,7 @@ NAI = {
 	TRADE_POLICY_IMPROVE_RELATIONS_PER_COUNTRY_SCORE = 5.0,		-- Score per country with merchant for improve relations policy
 	TRADE_POLICY_SPY_OFFENCE_PER_COUNTRY_SCORE = 5.0,			-- Score per country with merchant for spy offence policy
 	DRILL_BONUS_WAR_READINESS = 0.08,							-- Bonus for war readiness of drilled units 
-	MONTHS_STOP_DRILLING_BEFORE_WAR = 3,						-- Month before a prepared war to stop drilling
+	MONTHS_STOP_DRILLING_BEFORE_WAR = 5,						-- Months before a prepared war to stop drilling
 	DRILLING_BUDGET_OF_SURPLUS = 0.75,							-- Max amount of surplus to be used for drilling
 	DRILLING_DEBT_SURPLUS_RATIO_THRESHOLD = 0.025,				-- AI will only consider drilling if Surplus / Debt ratio is above
 	DRILLING_ACCEPTABLE_THREAT_REDUCTION = 100,					-- Acceptable threat reduction for drilling
@@ -1458,7 +1481,9 @@ NAI = {
 	ADVISOR_PROMOTION_AGE_CUTOFF = 40,							-- AI will not promote advisors above this age
 	MIN_FORCE_LIMIT_SHARE_REGION_ASSIGN = 0.10,					-- AI will only assign armies larger that this to a region
 	MAX_ARMIES_NEW_REGION_ASSIGN_ALGORITHM = 0,					-- Max. amount of armies to use in new region assignment algorithm (fall back to old one)
-	MAX_TASKS_NEW_REGION_ASSIGN_ALGORITHM = 0					-- Max. amount of tasks to use in new region assignment algorithm (fall back to old one)
+	MAX_TASKS_NEW_REGION_ASSIGN_ALGORITHM = 0,					-- Max. amount of tasks to use in new region assignment algorithm (fall back to old one)
+
+	ELECTORAL_REFORMATION_CONVERT_TRESHOLD = 0.1				-- How much of an electors development needs to be a reformed religion for it to try and reform																																			
 },
 
 NGraphics = {
@@ -1758,7 +1783,7 @@ NReligion = {
 	NUMBER_OF_POSSIBLE_CARDINALS = 10,							-- Number of cardinals from said number of most successful provinces to be randomly picked from.
 	
 	MAX_CHURCH_POWER = 200,
-	ASPECT_ADD_COST = 100,										-- Cost in Church Power to remove an Aspect of Faith.
+
 	ASPECT_REMOVE_COST = 0,										-- Stabhit for removing an Aspect of Faith.
 	MAX_UNLOCKED_ASPECTS = 3,									-- Maximum number of Aspects of Faith the player can have unlocked at once.
 	CHURCH_POWER_RATE_SCALE = 0.1,								-- Scaling value for rate at which church power is gained.
