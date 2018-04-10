@@ -831,7 +831,7 @@ NCountry = {
 	INNOVATIVENESS_AHEAD_OF_TIME_BONUS = 0.005, -- Bonus for being ahead of time in tech
 	INNOVATIVENESS_DAYS_AFTER_FIRST_PICK_VIABLE = 90, -- How many days you cna still get innov
 	INNOVATIVENESS_MAX = 100.0, -- Innovativeness Cap
-	
+	MIN_HARSH_TREATMENT_COST = 5, -- Minimum harsh treatment cost
 },
 
 NEconomy = {
@@ -925,6 +925,7 @@ NEconomy = {
 	MAX_BUILDING_SLOTS = 12,						-- Maximum number of buildings slots, i.e. max buildings possible.
 	MAX_LD_FOR_CONSTRUCT_IN_SUBJECT = 50,			-- Maximum liberty desire at which an overlord can recruit regiments and build ships in a subject's glorious lands.
 	CONSTRUCT_IN_SUBJECT_TIME_MULTIPLIER = 1.25,
+	MIN_NEW_CACHED_STARTING_INCOME = 1.0,			-- Minimum historic starting income for newly created/released countries																											 
 },
 
 NMilitary = {
