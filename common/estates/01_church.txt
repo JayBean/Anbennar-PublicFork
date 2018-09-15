@@ -1,6 +1,3 @@
-# Anbennar Changes
-# Added Adventurer as another gov without estates
-
 estate_church =
 {
 	icon = 1
@@ -13,62 +10,26 @@ estate_church =
 	# Estate will always be removed when conquered by a different religion than previous owner
 	always_remove_on_religious_conquest = yes
 	
-	# They want to control at least this % of the country's non-overseas development, if # of home provinecs is above set amount
-	min_territory = 10 
-	min_provinces_to_want_territory = 10
-	wanted_territory_modifier = {
-		desc = EST_VAL_HINDU_CLERGY
-		trigger = {
-			religion = hinduism
-		}	
-		value = -5
-	}
-	wanted_territory_modifier = {
-		desc = EST_VAL_PAPAL_LANDS
-		trigger = {
-			tag = PAP
-		}	
-		value = -10
-	}
-	wanted_territory_modifier = {
-		desc = EST_VAL_CATHOLIC
-		trigger = {
-			religion = catholic
-			NOT = { tag = PAP }
-		}	
-		value = 5
-	}
-	wanted_territory_modifier = {
-		desc = EST_VAL_NEO_SUFISM
-		trigger = {
-			has_dlc = "Cradle of Civilization"
-			has_global_flag = neo_sufism
-			religion_group = muslim
-		}	
-		value = 5
-	}
-	wanted_territory_modifier = {
-		desc = EST_VAL_THEOCRACY
-		trigger = {
-			government = theocracy
-			NOT = { tag = PAP }
-		}	
-		value = 5
-	}
-
 	# If true, country will get estate
 	trigger = {
-		NOT = { government = merchant_republic }
-		NOT = { government = veche_republic }
-		NOT = { government = trading_city }
-		NOT = { government = siberian_native_council }
-		NOT = { government = native_council }
-		NOT = { government = revolutionary_republic }
+		if = {
+			limit = {
+				religion_group = dharmic
+			}
+			NOT = { has_estate = estate_brahmins }
+		}
+		NOT = { has_reform = merchants_reform }
+		NOT = { has_reform = veche_republic }
+		NOT = { has_reform = trading_city }
+		NOT = { has_reform = cossacks_reform }
+		NOT = { has_reform = siberian_tribe }
+		NOT = { government = native }
+		NOT = { has_reform = revolutionary_republic_reform }
 		
-		NOT = { government = adventurer }
+		NOT = { has_reform = adventurer_reform }
 		
 		OR = {
-			NOT = { government = celestial_empire }
+			NOT = { has_reform = celestial_empire }
 			has_dlc = "Mandate of Heaven"
 		}
 		OR = {
@@ -83,6 +44,9 @@ estate_church =
 	province_trigger = {
 		always = yes
 	}
+
+	# Is used to weigh importance compared to other estates
+	start_territory_weight = 25
 	
 	# Min autonomy in estate provinces
 	min_autonomy = 25
@@ -157,6 +121,13 @@ estate_church =
 		influence = -15
 	}
 	influence_modifier = {
+		desc = EST_VAL_CLERGY_ADMINISTRATORS
+		trigger = {
+			has_reform = clergy_in_administration_reform
+		}	
+		influence = 10
+	}
+	influence_modifier = {
 		desc = EST_VAL_VERY_HIGH_PATRIARCH_AUTHORITY
 		trigger = {
 			religion = orthodox
@@ -198,6 +169,9 @@ estate_church =
 			OR = {
 				has_disaster = estate_nobility_disaster
 				has_disaster = estate_burghers_disaster
+				has_disaster = estate_brahmins_disaster
+				has_disaster = estate_vaisyas_disaster
+				has_disaster = estate_jains_disaster
 			}
 		}
 		influence = -40
@@ -205,7 +179,7 @@ estate_church =
 	influence_modifier = {
 		desc = EST_VAL_CELESTIAL_EMPIRE
 		trigger = {
-			government = celestial_empire
+			has_reform = celestial_empire
 		}		
 		influence = -10
 	}
@@ -218,6 +192,13 @@ estate_church =
 			piety = 0.5
 			NOT = { piety = 0.75 }
 		}
+		loyalty = 5
+	}
+	loyalty_modifier = {
+		desc = EST_VAL_CLERGY_ADMINISTRATORS_LOY
+		trigger = {
+			has_reform = clergy_in_administration_reform
+		}	
 		loyalty = 5
 	}
 	loyalty_modifier = {
@@ -269,7 +250,7 @@ estate_church =
 	loyalty_modifier = {
 		desc = EST_VAL_FEUDAL_THEOCRACY
 		trigger = {
-			government = feudal_theocracy
+			has_reform = feudal_theocracy
 		}
 		loyalty = 5
 	}
@@ -286,6 +267,9 @@ estate_church =
 			OR = {
 				has_disaster = estate_nobility_disaster
 				has_disaster = estate_burghers_disaster
+				has_disaster = estate_brahmins_disaster
+				has_disaster = estate_vaisyas_disaster
+				has_disaster = estate_jains_disaster
 			}
 		}
 		loyalty = -20
@@ -324,7 +308,7 @@ estate_church =
 		desc = estate_gentry
 		trigger = {
 			OR = {
-				government = celestial_empire
+				has_reform = celestial_empire
 				culture_group = east_asian
 			}
 		}
@@ -594,6 +578,10 @@ estate_church =
 				limit = {
 					monthly_income = 25
 					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = theologian
@@ -601,29 +589,198 @@ estate_church =
 					culture = event_target:church_estate_province
 					religion = event_target:church_estate_province
 					location = event_target:church_estate_province
-					discount = yes
+					cost_multiplier = 0.5
 				}
 			}
 			else_if = {
 				limit = {
 					monthly_income = 25
 					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = theologian
 					skill = 3
-					discount = yes
+					cost_multiplier = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 3
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 3
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					has_saved_event_target = church_estate_province
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 3
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					NOT = { has_saved_event_target = church_estate_province }
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 3
 				}
 			}
 			else_if = {
 				limit = {
 					NOT = { monthly_income = 25 }
 					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = theologian
 					skill = 2
-					discount = yes
+					cost_multiplier = 0.5
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 2
+					cost_multiplier = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 2
+					cost_multiplier = 0.75
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 2
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					has_saved_event_target = church_estate_province
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = theologian
+					skill = 2
 					culture = event_target:church_estate_province
 					religion = event_target:church_estate_province
 					location = event_target:church_estate_province
@@ -633,11 +790,16 @@ estate_church =
 				limit = {
 					NOT = { monthly_income = 25 }
 					NOT = { has_saved_event_target = church_estate_province }
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
 				}
 				define_advisor = {
 					type = theologian
 					skill = 2
-					discount = yes
 				}
 			}
 			add_estate_influence_modifier = {
@@ -683,6 +845,10 @@ estate_church =
 				limit = {
 					monthly_income = 25
 					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = inquisitor
@@ -690,29 +856,198 @@ estate_church =
 					culture = event_target:church_estate_province
 					religion = event_target:church_estate_province
 					location = event_target:church_estate_province
-					discount = yes
+					cost_multiplier = 0.5
 				}
 			}
 			else_if = {
 				limit = {
 					monthly_income = 25
 					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = inquisitor
 					skill = 3
-					discount = yes
+					cost_multiplier = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 3
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 3
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					has_saved_event_target = church_estate_province
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 3
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+				}
+			}
+			else_if = {
+				limit = {
+					monthly_income = 25
+					NOT = { has_saved_event_target = church_estate_province }
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 3
 				}
 			}
 			else_if = {
 				limit = {
 					NOT = { monthly_income = 25 }
 					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
 				}
 				define_advisor = {
 					type = inquisitor
 					skill = 2
-					discount = yes
+					cost_multiplier = 0.5
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 80
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 2
+					cost_multiplier = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					has_saved_event_target = church_estate_province
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 2
+					cost_multiplier = 0.75
+					culture = event_target:church_estate_province
+					religion = event_target:church_estate_province
+					location = event_target:church_estate_province
+					
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					NOT = { has_saved_event_target = church_estate_province }
+					estate_influence = {
+						estate = estate_church
+						influence = 60
+					}
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 80
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 2
+					cost_multiplier = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { monthly_income = 25 }
+					has_saved_event_target = church_estate_province
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
+				}
+				define_advisor = {
+					type = inquisitor
+					skill = 2
 					culture = event_target:church_estate_province
 					religion = event_target:church_estate_province
 					location = event_target:church_estate_province
@@ -722,11 +1057,16 @@ estate_church =
 				limit = {
 					NOT = { monthly_income = 25 }
 					NOT = { has_saved_event_target = church_estate_province }
+					NOT = {
+						estate_influence = {
+							estate = estate_church
+							influence = 60
+						}
+					}
 				}
 				define_advisor = {
 					type = inquisitor
 					skill = 2
-					discount = yes
 				}
 			}
 			add_estate_influence_modifier = {
