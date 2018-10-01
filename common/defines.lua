@@ -550,6 +550,7 @@ NCountry = {
 	CULTURE_COST_DIFF_ORIGINAL = -50,				-- Difference in cost in percent to convert to original culture.
 	CULTURE_COST_DIFF_ADJACENT = -25,				-- Difference in cost in percent to convert to adjacent culture.
 	CULTURE_COST_DIFF_PRIMARY = 0,					-- Difference in cost in percent to convert to primary culture.
+	CULTURE_MIN_DEVELOPMENT_TO_PROMOTE = 20,		-- Minimum development required to promote the culture.																								  
 	MONARCH_DEATH_STABILITY_PENALTY = 1,			-- Stab hit on monarch death
 	MONARCH_DEATH_LEADER_STABILITY_PENALTY = 1,		-- Stab hit on monarch death when a leader
 	MONARCH_DEATH = 4, 								-- _CDEF_MONARCH_DEATH_
@@ -782,6 +783,7 @@ NCountry = {
 	SIPHON_INCOME_LIBERTY = 10,
 	DIVERT_TRADE_FRACTION = 1,
 	RETURN_LAND_LIBERTY_MULTIPLIER = 2.5,
+	COT_DOWNGRADE_LIBERTY_DESIRE = 10,								   
 	SEIZE_TERRITORY_LIBERTY_MULTIPLIER = 5,
 	SEIZE_TERRITORY_LIBERTY_THRESHOLD = 50,
 	GRANT_PROVINCE_LIBERTY_MULTIPLIER = 0.5,
@@ -967,6 +969,7 @@ NMilitary = {
 	FORT_DEVASTATION_IMPACT = -10,				-- multiplied by fortlevel/max fortlevel in area per year.
 	REVANCHISM_DEVASTATION_IMPACT = -0.02,			-- 100 revanschism is -2 a year.
 	SURRENDER_DEVASTATION_IMPACT = -3.4,
+	CONTROL_DEVASTATION_IMPACT = -6,				-- devastation recovery given by control																			 
 
 	DEVASTATION_DEVELOPMENT_SCALE = 5,
 
@@ -1510,6 +1513,9 @@ NAI = {
 	INVASION_ARMY_LOOKUP_INTERVAL_ON_FAILURE = 15,				-- If AI fails to find an army for an invasion it will try again in this number of days
 	CHARTER_COMPANY_BASE_RELUCTANCE = -3,						-- Base reluctance to giving away provinces in charter company diplo action
 	CHARTER_COMPANY_DEVELOPMENT_RELUCTANCE = 3,				-- How much development needed to add one reluctance
+
+	WAR_WARSCORE_TO_JOIN = -100,								-- Minimum warscore for the AI to join a call for arms
+	WAR_MIN_WARSCORE_TO_JOIN = -25,								-- Starting warscore for the AI to join a call for arms																						   
 },
 
 NGraphics = {
