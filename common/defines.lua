@@ -397,8 +397,8 @@ NCountry = {
 	EXPLOIT_MIL_MANPOWER = 6,
 	EXPLOIT_COOLDOWN_MONTHS = 240,
 
-	SIBERIAN_FRONTIER_DAILY_BASE = 5,		-- monthly..
-	SIBERIAN_FRONTIER_DAILY_RANGE = 11,
+	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- monthly..
+	SIBERIAN_FRONTIER_DAILY_RANGE = 5,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
 	FORCE_SEPPUKU_POWER_MULTIPLIER = 5,				-- Times victim's stats
 	SHOGUN_INTERACTIONS_DURATION = 10,				-- Years
