@@ -17,6 +17,8 @@ NGame = {
 	MAX_TRADING_CITIES = 75,				-- Max is 100
 	MAX_CUSTOM_COUNTRIES = 75,				-- Max is 100
 	MAX_OBSERVERS = 10,						-- Max is 100
+
+	SIZE_LIMIT_FOR_ISLANDS = 25000			-- Threshold in pixels to define what is an island and what is a continent	
 },
 
 NDiplomacy = {
@@ -386,9 +388,11 @@ NDiplomacy = {
 	KNOWLEDGE_SHARING_COST_PERCENT_MONTHLY = 10.0,
 	SCORNFUL_INSULT_PRESTIGE_COST = 5.0,
 
-
 	CHARTER_COMPANY_BASE_COST = 1000,
 	CHARTER_COMPANY_MINIMUM_COST = 100,
+
+	GOOD_RELATIONS = 100,
+	GREAT_RELATIONS = 150,
 },
 
 NCountry = {
@@ -756,6 +760,10 @@ NCountry = {
 	LIBERTY_DESIRE_DEVELOPED_IN_SUBJECT = -5,   	-- Liberty desire decrease from overlord developing province in subject.
 	LOST_INDEPENDANCE_WAR_LIBERTY_DESIRE = -50,		-- How much liberty desire is decreased when an independance war ends
 
+	MIN_LIBERTY_DESIRE = 0,							-- Min total (effective) liberty desire
+	MAX_LIBERTY_DESIRE = 100,						-- Max total (effective) liberty desire
+	MIN_LIBERTY_DESIRE_INFLUENCE = -100,			-- Min influence of a single modifier (e.g. paid of debt)
+	MAX_LIBERTY_DESIRE_INFLUENCE = 100000,			-- Max influence of a single modifier (e.g. seized province)
 
 	MAX_CROWN_COLONIES = 4,							-- How many province a country can hold in a colonial region before creating a colonial nation
 	RIVAL_TECH_THRESHOLD = 0.5,						-- Difference in tech group cost modifiers
@@ -1536,7 +1544,6 @@ NAI = {
 	INVASION_ARMY_LOOKUP_INTERVAL_ON_FAILURE = 15,				-- If AI fails to find an army for an invasion it will try again in this number of days
 	CHARTER_COMPANY_BASE_RELUCTANCE = -3,						-- Base reluctance to giving away provinces in charter company diplo action
 	CHARTER_COMPANY_DEVELOPMENT_RELUCTANCE = 3,				-- How much development needed to add one reluctance
-
 	WAR_WARSCORE_TO_JOIN = -100,								-- Minimum warscore for the AI to join a call for arms
 	WAR_MIN_WARSCORE_TO_JOIN = -25,								-- Starting warscore for the AI to join a call for arms
 	ARMY_DISTANCE_SCORE_IMPACT = 0.5,							-- Army <-> province distance impact on province evaluation
@@ -1684,7 +1691,8 @@ NGraphics = {
 
 	MAX_TRADE_NODE_FLAGS_SHOWN = 5,					-- -1 is unlimited
 	SHOW_TRADE_MODIFIERS_IN_TRADE_MAP_MODE = 1,		-- 1 = true, 0 = false
-	END_OF_COMBAT_GFX = 1
+	END_OF_COMBAT_GFX = 1,
+	MAX_MAPMODE_COLOR_UPDATE_DELAY_MS = 200,
 },
 
 NGui = {
@@ -1698,6 +1706,7 @@ NGui = {
 
 NEngine = {
 	EVENT_PROCESS_OFFSET = 20, 						-- Events are checked every X day per character or province (1 is ideal, but CPU heavy)
+	TRIGGER_PROFILING_SAMPLING_RATE = 1000,			-- Sampling rate for trigger profiling (Every nth call is recorded)
 },
 
 NMacroBuildColors = {
