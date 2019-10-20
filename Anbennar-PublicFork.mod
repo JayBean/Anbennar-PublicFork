@@ -13,6 +13,7 @@ replace_path="common/province_names"
 replace_path="common/government_names"
 replace_path="common/disasters"
 replace_path="common/rebel_types"
+replace_path="common/units"
 
 replace_path="events"
 replace_path="missions"
