@@ -1,5 +1,5 @@
-name="Anbennar-FoxFondue"
-path="mod/Anbennar-FoxFondue"
+name="AnbennarFoxFondue"
+path="mod/AnbennarFoxFondue"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
