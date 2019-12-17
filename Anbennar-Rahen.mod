@@ -1,5 +1,5 @@
 name="Anbennar-Rahen-Dreamer"
-path="mod/Anbennar-rahen-build=dreamer"
+path="mod/Anbennar-rahen-build-dreamer"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
