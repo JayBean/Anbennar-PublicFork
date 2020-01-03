@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="AnbennarFoxFondue"
+path="mod/AnbennarFoxFondue"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
