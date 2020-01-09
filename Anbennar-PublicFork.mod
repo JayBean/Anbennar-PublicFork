@@ -1,5 +1,5 @@
-name="Anbennar-Rahen-Dreamer"
-path="mod/Anbennar-rahen-build-dreamer"
+name="Anbennar-Rahen"
+path="mod/anbennar-eu4-rahen-build-biegeltoren"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
