@@ -22,4 +22,7 @@ replace_path="history/diplomacy"
 
 replace_path="history/wars"
 replace_path="history/provinces"
+
+replace_path="gfx/loadingscreens"
+
 picture="anbennar.jpg"
