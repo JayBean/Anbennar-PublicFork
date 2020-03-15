@@ -1,5 +1,5 @@
-name="Anbennar-Aeriic"
-path="mod/Anbennar-Aeriic"
+name="Anbennar-PublicFork"
+path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
