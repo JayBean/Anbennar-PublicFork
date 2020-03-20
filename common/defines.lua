@@ -514,12 +514,12 @@ NCountry = {
 
 	EXPLORE_COAST_EVENT_CHANCE = 2,			-- Chance (in %) of getting an event when exploring coasts
 	MIN_TECH_FOR_CIRCUMNAVIGATE = 9,			-- Must have this level of dip tech to circumnavigate the globe
-	CIRCUMNAVIGATION_PROVINCE_1 = 1468,			-- Provinces for circumnavigation (coast of gambia)
-	CIRCUMNAVIGATION_PROVINCE_2 = 1539,			-- Provinces for circumnavigation (magellan strait)
-	CIRCUMNAVIGATION_PROVINCE_3 = 1697,			-- Provinces for circumnavigation (hawaii sea)
-	CIRCUMNAVIGATION_PROVINCE_4 = 1398,			-- Provinces for circumnavigation (hawaii sea)
-	CIRCUMNAVIGATION_PROVINCE_5 = 1446,			-- Provinces for circumnavigation (hawaii sea)
-	CIRCUMNAVIGATION_PROVINCE_6 = 1460,			-- Provinces for circumnavigation (cape of good hope)
+	CIRCUMNAVIGATION_PROVINCE_1 = 1502,			-- Provinces for circumnavigation (coast of gambia)
+	CIRCUMNAVIGATION_PROVINCE_2 = 1684,			-- Provinces for circumnavigation (magellan strait)
+	CIRCUMNAVIGATION_PROVINCE_3 = 1358,			-- Provinces for circumnavigation (hawaii sea)
+	CIRCUMNAVIGATION_PROVINCE_4 = 1446,			-- Provinces for circumnavigation (hawaii sea)
+	CIRCUMNAVIGATION_PROVINCE_5 = 1460,			-- Provinces for circumnavigation (hawaii sea)
+	CIRCUMNAVIGATION_PROVINCE_6 = 1467,			-- Provinces for circumnavigation (cape of good hope)
 
 	MIN_DEV_FOR_OLD_GREAT_POWER = 100,					-- Countries with less development than this cannot be considered Great Powers
 
