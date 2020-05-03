@@ -79,9 +79,8 @@ province_event = { # Orcish slaves in $Provincename$
 				}
 			}
 		}
-		NOT = {
-			has_province_modifier = command_orc_slaves
-		}
+		has_orcish_minority_trigger = no
+		has_orcish_majority_trigger = no
 		NOT = {
 			OR = {
 				trade_goods = cloth
@@ -152,14 +151,622 @@ province_event = { # Orcish slaves in $Provincename$
 	}
 
 	option = { # 
-		name = the_command.1.a
+		name = the_command.2.a
 		ai_chance = {
 			factor = 1
 		}
 		add_permanent_province_modifier = {
-			name = command_orc_slaves
-			duration = -1
+			name = orcish_slave_boom
+			duration = 3650
 		}
 		add_orcish_minority_size_effect = yes
+		small_decrease_of_orcish_tolerance_effect = yes
+	}
+}
+
+country_event = { # The rule of [ROOT.Monarch.GetName]
+	id = the_command.3
+	title = the_command.3.t
+	desc = the_command.3.d
+	picture = SEJM_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		tag = R62
+		has_reform = hobgoblin_stratocracy_reform
+	}
+
+	option = { # The time of the Wolf has come
+		name = the_command.3.a
+		ai_chance = {
+			factor = 1
+		}
+		trigger = {
+			NOT = {
+				dynasty = "Boarborn"
+				dynasty = "Lionborn"
+			}
+		}
+		
+		add_faction_influence = {
+			faction = hob_wolf_command
+			influence = 10
+		}
+		add_ruler_modifier = {
+			name = command_rule_of_the_wolf
+			duration = -1
+		}
+	}
+
+	option = { # The time of the Boar has come
+		name = the_command.3.b
+		ai_chance = {
+			factor = 1
+		}
+		trigger = {
+			NOT = {
+				dynasty = "Wolfborn"
+				dynasty = "Lionborn"
+			}
+		}
+		
+		add_faction_influence = {
+			faction = hob_boar_command
+			influence = 10
+		}
+		add_ruler_modifier = {
+			name = command_rule_of_the_boar
+			duration = -1
+		}
+	}
+
+	option = { # The time of the Lion has come
+		name = the_command.3.c
+		ai_chance = {
+			factor = 1
+		}
+		trigger = {
+			NOT = {
+				dynasty = "Boarborn"
+				dynasty = "Wolfborn"
+			}
+		}
+		
+		add_faction_influence = {
+			faction = hob_lion_command
+			influence = 10
+		}
+		add_ruler_modifier = {
+			name = command_rule_of_the_lion
+			duration = -1
+		}
+	}
+}
+
+#############################
+#	Pushing Orc Slaves		#
+#############################
+
+country_event = { # Thunderfist Movement Menu
+	id = the_command.100
+	title = the_command.100.t
+	desc = the_command.100.d
+	picture = WESTERNISATION_eventPicture
+
+	is_triggered_only = yes
+	
+	immediate = {
+		
+		hidden_effect = {
+		
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = thunderfist_candidate_1
+				set_province_flag = thunderfist_candidate_1
+			}
+		
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					NOT = {
+						has_province_flag = thunderfist_candidate_1
+					}
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = thunderfist_candidate_2
+				set_province_flag = thunderfist_candidate_2
+			}		
+
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					NOT = {
+						has_province_flag = thunderfist_candidate_1
+						has_province_flag = thunderfist_candidate_2
+					}
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = thunderfist_candidate_3
+				set_province_flag = thunderfist_candidate_3
+			}
+		
+		}
+	}
+
+	option = { # Choose first
+		name = the_command.100.a
+		trigger = {
+			any_owned_province = {
+				has_province_flag = thunderfist_candidate_1
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		add_country_modifier = {
+			name = hobgoblin_thunderfist_shamans
+			duration = 3650
+		}
+		event_target:thunderfist_candidate_1 = {
+			area = {
+				cede_province = R63
+				remove_core = R62
+			}
+		}
+		R63 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = thunderfist_candidate_1 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R63
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = thunderfist_candidate_1
+					}
+					clr_province_flag = thunderfist_candidate_1
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = thunderfist_candidate_2
+				clr_province_flag = thunderfist_candidate_3
+			}
+		}
+		
+		close_single_menu = yes
+	}
+
+	option = { # Choose second
+		name = the_command.100.b
+		trigger = {
+			any_owned_province = {
+				has_province_flag = thunderfist_candidate_2
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		add_country_modifier = {
+			name = hobgoblin_thunderfist_shamans
+			duration = 3650
+		}
+		event_target:thunderfist_candidate_2 = {
+			area = {
+				cede_province = R63
+				remove_core = R62
+			}
+		}
+		R63 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = thunderfist_candidate_2 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R63
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = thunderfist_candidate_2
+					}
+					clr_province_flag = thunderfist_candidate_2
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = thunderfist_candidate_1
+				clr_province_flag = thunderfist_candidate_3
+			}
+		}
+		
+		close_single_menu = yes
+	}
+
+	option = { # Choose third
+		name = the_command.100.c
+		trigger = {
+			any_owned_province = {
+				has_province_flag = thunderfist_candidate_3
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		add_country_modifier = {
+			name = hobgoblin_thunderfist_shamans
+			duration = 3650
+		}
+		event_target:thunderfist_candidate_3 = {
+			area = {
+				cede_province = R63
+				remove_core = R62
+			}
+		}
+		R63 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = thunderfist_candidate_3 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R63
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				change_culture = PREV
+				change_religion = PREV
+				add_core = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = thunderfist_candidate_3
+					}
+					clr_province_flag = thunderfist_candidate_3
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = thunderfist_candidate_1
+				clr_province_flag = thunderfist_candidate_2
+			}
+		}
+		
+		close_single_menu = yes
+	}
+	
+	option = {
+		name = the_command.100.d
+		highlight = yes
+		
+		close_single_menu = yes
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = thunderfist_candidate_1
+				clr_province_flag = thunderfist_candidate_2
+				clr_province_flag = thunderfist_candidate_3
+			}
+		}
+	}
+}
+
+country_event = { # Bloodsong Movement Menu
+	id = the_command.101
+	title = the_command.101.t
+	desc = the_command.101.d
+	picture = WESTERNISATION_eventPicture
+
+	is_triggered_only = yes
+	
+	immediate = {
+		
+		hidden_effect = {
+		
+		
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = bloodsong_candidate_1
+				set_province_flag = bloodsong_candidate_1
+			}
+		
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					NOT = {
+						has_province_flag = bloodsong_candidate_1
+					}
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = bloodsong_candidate_2
+				set_province_flag = bloodsong_candidate_2
+			}		
+
+			random_owned_area = {
+				limit = {
+					superregion = rahen_superregion
+					area_for_scope_province = { type = all owned_by = ROOT }
+					NOT = {
+						has_province_flag = bloodsong_candidate_1
+						has_province_flag = bloodsong_candidate_2
+					}
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								tag = R62
+								is_subject_of = R62
+							}
+						}
+					}
+				}
+				save_event_target_as = bloodsong_candidate_3
+				set_province_flag = bloodsong_candidate_3
+			}
+		
+		}
+	}
+
+	option = { # Choose first
+		name = the_command.100.a
+		trigger = {
+			any_owned_province = {
+				has_province_flag = bloodsong_candidate_1
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		add_country_modifier = {
+			name = hobgoblin_bloodsong_advance_guard
+			duration = 3650
+		}
+		event_target:bloodsong_candidate_1 = {
+			area = {
+				cede_province = R64
+				remove_core = R62
+			}
+		}
+		R64 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = bloodsong_candidate_1 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R64
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = bloodsong_candidate_1
+					}
+					clr_province_flag = bloodsong_candidate_1
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = bloodsong_candidate_2
+				clr_province_flag = bloodsong_candidate_3
+			}
+		}
+		
+		close_single_menu = yes
+	}
+
+	option = { # Choose second
+		name = the_command.100.b
+		trigger = {
+			any_owned_province = {
+				has_province_flag = bloodsong_candidate_2
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		event_target:bloodsong_candidate_2 = {
+			area = {
+				cede_province = R64
+				remove_core = R62
+			}
+		}
+		R64 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = bloodsong_candidate_2 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R64
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = bloodsong_candidate_2
+					}
+					clr_province_flag = bloodsong_candidate_2
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = bloodsong_candidate_1
+				clr_province_flag = bloodsong_candidate_3
+			}
+		}
+		
+		close_single_menu = yes
+	}
+
+	option = { # Choose third
+		name = the_command.100.c
+		trigger = {
+			any_owned_province = {
+				has_province_flag = bloodsong_candidate_3
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+		
+		event_target:bloodsong_candidate_3 = {
+			area = {
+				cede_province = R64
+				remove_core = R62
+			}
+		}
+		R64 = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = bloodsong_candidate_3 }
+				}
+				cede_province = R62
+				add_core = R62
+				remove_core = R64
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { has_province_flag = hobgoblin_has_orcish_minority }
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 1
+			}
+			random_owned_area = { set_province_flag = hobgoblin_has_orcish_minority }
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_flag = bloodsong_candidate_3
+					}
+					clr_province_flag = bloodsong_candidate_3
+				}
+			}
+		}
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = bloodsong_candidate_1
+				clr_province_flag = bloodsong_candidate_2
+			}
+		}
+		
+		close_single_menu = yes
+	}
+	
+	option = {
+		name = the_command.101.d
+		highlight = yes
+		
+		close_single_menu = yes
+		hidden_effect = {
+			every_owned_province = {
+				clr_province_flag = bloodsong_candidate_1
+				clr_province_flag = bloodsong_candidate_2
+				clr_province_flag = bloodsong_candidate_3
+			}
+		}
 	}
 }
