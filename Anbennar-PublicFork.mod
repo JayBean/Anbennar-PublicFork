@@ -1,5 +1,5 @@
-name="Anbennar-Biegeltoren"
-path="mod/Anbennar-anbennar-eu4-fork-biegeltoren"
+name="Anbennar-PublicFork"
+path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.29.*.*"
@@ -13,7 +13,6 @@ replace_path="common/province_names"
 replace_path="common/government_names"
 replace_path="common/disasters"
 replace_path="common/rebel_types"
-replace_path="common/units"
 
 replace_path="events"
 replace_path="missions"
