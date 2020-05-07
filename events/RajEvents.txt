@@ -94,6 +94,10 @@ province_event = {
 			custom_tooltip = claiming_the_shogunate_tooltip
 		}
 		hidden_effect = {
+			country_event = {
+				id = rahenraj.1001
+				days = 5
+			}
 			if = {
 				limit = {
 					exists = FROM
@@ -262,6 +266,8 @@ province_event = {
 		hidden_effect = { #stip all reformation modifiers from the former Raja
 			FROM = {
 				rahen_remove_harimraj_reforms_effect = yes
+				remove_country_modifier = raj_opened_senapti_ranks
+				remove_country_modifier = raj_closed_senapti_ranks
 			}
 		}
 	}
@@ -280,7 +286,20 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 				is_subject_of_type = great_daimyo_vassal
 				OR = {
 					NOT = { num_of_cities = 2 }
-					NOT = { ruler_culture = west_harimari ruler_culture = east_harimari }
+					AND = {
+						overlord = {
+							has_country_modifier = raj_closed_senapti_ranks
+							culture_group = harimari
+						}
+						NOT = { ruler_culture = royal_harimari ruler_culture = east_harimari }
+					}
+					AND = {
+						overlord = {
+							has_country_modifier = raj_closed_senapti_ranks
+							culture_group_is_human = yes
+						}
+						NOT = { ruler_is_human = yes }
+					}
 				}
 			}
 			AND = {
@@ -376,7 +395,23 @@ country_event = { #This is a hidden event that just does the original effect
 	
 	trigger = {
 		is_subject_of_type = daimyo_vassal
-		OR = { ruler_culture = west_harimari ruler_culture = east_harimari }
+		if = {
+			limit = { overlord = { has_country_modifier = raj_closed_senapti_ranks } }
+			OR = {
+				AND = {
+					overlord = {
+						culture_group = harimari
+					}
+					OR = { ruler_culture = royal_harimari ruler_culture = east_harimari }
+				}
+				AND = {
+					overlord = {
+						culture_group_is_human = yes
+					}
+					ruler_is_human = yes
+				}
+			}
+		}
 		NOT = { has_country_modifier = jamindar_promotion_rejected }
 		NOT = { has_country_modifier = senapti_recently_demoted }
 		num_of_cities = 2
@@ -384,19 +419,19 @@ country_event = { #This is a hidden event that just does the original effect
 		OR = {
 			overlord = {
 				num_of_subjects = 100
-				NOT = { great_daimyo_vassal = 12 }
+				NOT = { great_daimyo_vassal = 14 }
 			}
 			overlord = {
 				num_of_subjects = 70
-				NOT = { great_daimyo_vassal = 10 }
+				NOT = { great_daimyo_vassal = 12 }
 			}
 			overlord = {
 				num_of_subjects = 50
-				NOT = { great_daimyo_vassal = 8 }
+				NOT = { great_daimyo_vassal = 10 }
 			}
 			overlord = {
 				num_of_subjects = 35
-				NOT = { great_daimyo_vassal = 6 }
+				NOT = { great_daimyo_vassal = 8 }
 			}
 			overlord = {
 				num_of_subjects = 25
@@ -413,7 +448,15 @@ country_event = { #This is a hidden event that just does the original effect
 					is_subject_of_type = daimyo_vassal
 					NOT = { has_country_modifier = jamindar_promotion_rejected }
 					NOT = { has_country_modifier = senapti_recently_demoted }
-					NOT = { num_of_cities = 2 }
+					num_of_cities = 2
+					if = {
+						limit = { overlord = { has_country_modifier = raj_closed_senapti_ranks culture_group = harimari } }
+						OR = { ruler_culture = royal_harimari ruler_culture = east_harimari }
+					}
+					if = {
+						limit = { overlord = { has_country_modifier = raj_closed_senapti_ranks culture_group_is_human = yes } }
+						ruler_is_human = yes
+					}
 					NOT = { tag = ROOT }
 					variable_arithmetic_trigger = {
 						export_to_variable = {
@@ -491,14 +534,42 @@ country_event = { #Tell the Raj that there is a new potential Senpati
 country_event = { #If a Senapti ruler isn't a harimari
 	id = rahenraj.5
 	title = rahenraj.5.t
-	desc = rahenraj.5.d
 	picture = COURT_eventPicture
+	
+	desc = {
+		trigger = {
+			overlord = {
+				primary_culture = harimari
+			}
+		}
+		desc = rahenraj.5.da
+	}
+	desc = {
+		trigger = {
+			overlord = {
+				culture_group_is_human = yes
+			}
+		}
+		desc = rahenraj.5.db
+	}
 	
 	trigger = {
 		has_reform = great_jamindar_reform
-		NOT = {
-			ruler_culture = west_harimari
-			ruler_culture = east_harimari
+		OR = {
+			AND = {
+				overlord = {
+					has_country_modifier = raj_closed_senapti_ranks
+					culture_group = harimari
+				}
+				NOT = { ruler_culture = royal_harimari ruler_culture = east_harimari }
+			}
+			AND = {
+				overlord = {
+					has_country_modifier = raj_closed_senapti_ranks
+					culture_group_is_human = yes
+				}
+				NOT = { ruler_is_human = yes }
+			}
 		}
 	}
 	is_triggered_only = yes
@@ -514,42 +585,64 @@ country_event = { #If a Senapti ruler isn't a harimari
 		ai_chance = { factor = 5 }
 		name = rahenraj.5.b
 		
-		if = {
-			limit = { overlord = { primary_culture = west_harimari } }
-			define_ruler = {
-				culture = west_harimari
-				claim = 50
-				male = yes
+		hidden_effect = {
+			export_to_variable = {
+				which = rajCulture
+				value = primary_culture
+				who = overlord
 			}
 		}
-		else_if = {
-			limit = { overlord = { primary_culture = east_harimari } }
-			define_ruler = {
-				culture = east_harimari
-				claim = 50
-				male = yes
-			}
+		
+		define_ruler = {
+			culture = variable:rajCulture
+			claim = 50
+			male = yes
 		}
 	}
 }
 country_event = { #If a Raj subject has an heir that isn't a harimari
 	id = rahenraj.6
 	title = rahenraj.6.t
-	desc = rahenraj.6.d
 	picture = COURT_eventPicture
+	
+	desc = {
+		trigger = {
+			overlord = {
+				primary_culture = harimari
+			}
+		}
+		desc = rahenraj.6.da
+	}
+	desc = {
+		trigger = {
+			overlord = {
+				culture_group_is_human = yes
+			}
+		}
+		desc = rahenraj.6.db
+	}
 	
 	trigger = {
 		OR = {
 			has_reform = jamindar_reform
 			has_reform = great_jamindar_reform
 		}
+		overlord = { has_country_modifier = raj_closed_senapti_ranks }
 		OR = {
-			ruler_culture = west_harimari
-			ruler_culture = east_harimari
-		}
-		NOT = {
-			heir_culture = west_harimari
-			heir_culture = east_harimari
+			AND = {
+				overlord = {
+					culture_group = harimari
+				}
+				OR = { ruler_culture = royal_harimari ruler_culture = east_harimari }
+				NOT = { heir_culture = royal_harimari heir_culture = east_harimari }
+			}
+			AND = {
+				overlord = {
+					culture_group_is_human = yes
+				}
+				ruler_is_human = yes
+				NOT = { heir_is_human = yes }
+			}
 		}
 	}
 	is_triggered_only = yes
@@ -565,23 +658,19 @@ country_event = { #If a Raj subject has an heir that isn't a harimari
 		ai_chance = { factor = 5 }
 		name = rahenraj.5.b
 		
-		if = {
-			limit = { ruler_culture = west_harimari }
-			define_heir = {
-				culture = west_harimari
-				claim = 50
-				male = yes
-				no_consort_with_heir = yes
+		hidden_effect = {
+			export_to_variable = {
+				which = rajCulture
+				value = primary_culture
+				who = overlord
 			}
 		}
-		else_if = {
-			limit = { ruler_culture = east_harimari }
-			define_heir = {
-				culture = east_harimari
-				claim = 50
-				male = yes
-				no_consort_with_heir = yes
-			}
+		
+		define_heir = {
+			culture = variable:rajCulture
+			claim = 50
+			male = yes
+			no_consort_with_heir = yes
 		}
 	}
 }
@@ -2118,6 +2207,8 @@ country_event = { #Collapse of the Raj
 			rahen_remove_harimraj_reforms_effect = yes
 			set_country_flag = rahen_corrupt_court_completed
 			clr_country_flag = reformed_rahen_court
+			remove_country_modifier = raj_opened_senapti_ranks
+			remove_country_modifier = raj_closed_senapti_ranks
 		}
 	}
 }
@@ -3262,6 +3353,8 @@ country_event = { #Collapse of the Raj
 			rahen_remove_harimraj_reforms_effect = yes
 			set_country_flag = rahen_corrupt_court_completed
 			clr_country_flag = reformed_rahen_court
+			remove_country_modifier = raj_opened_senapti_ranks
+			remove_country_modifier = raj_closed_senapti_ranks
 		}
 	}
 }
@@ -3316,5 +3409,152 @@ country_event = { #Control over [rahenraj_slipping_vassal.GetName] slipping away
 		name = rahenraj.201.a
 		
 		event_target:rahenraj_slipping_vassal = { grant_independence = yes }
+	}
+}
+
+
+#####################################
+### General Raj Management Extras ###
+#####################################
+
+country_event = {
+	id = rahenraj.1000
+	title = rahenraj.1000.t
+	desc = rahenraj.1000.d
+	picture = COURT_eventPicture
+
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			AND = {
+				is_subject_of_type = daimyo_vassal
+				NOT = { has_reform = jamindar_reform }
+			}
+			AND = {
+				is_subject_of_type = great_daimyo_vassal
+				NOT = { has_reform = great_jamindar_reform }
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				is_subject_of_type = daimyo_vassal
+				NOT = { has_reform = jamindar_reform }
+			}
+			add_government_reform = jamindar_reform
+		}
+		else = {
+			add_government_reform = great_jamindar_reform
+		}
+	}
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.1000.a
+	}
+}
+#Open or Closed Senapti Ranks?
+country_event = {
+	id = rahenraj.1001
+	title = rahenraj.1001.t
+	desc = rahenraj.1001.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Only our own can be Senapti
+		ai_chance = { factor = 20 }
+		name = rahenraj.1001.b
+		trigger = { OR = { culture_group = harimari culture_group_is_human = yes } }
+		add_country_modifier = {
+			name = raj_closed_senapti_ranks
+			duration = -1
+		}
+		custom_tooltip = rahen_close_senapti_ranks_tt
+		hidden_effect = {
+			if = {
+				limit = { OR = { primary_culture = royal_harimari primary_culture = east_harimari } }
+				every_subject_country = {
+					limit = { OR = { ruler_culture = royal_harimari primary_culture = east_harimari } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_closed_senapti_a
+					}
+				}
+				every_subject_country = {
+					limit = { NOT = { ruler_culture = royal_harimari primary_culture = east_harimari } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_closed_senapti_b
+					}
+				}
+			}
+			if = {
+				limit = { culture_group_is_human = yes }
+				every_subject_country = {
+					limit = { ruler_is_human = yes }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_closed_senapti_a
+					}
+				}
+				every_subject_country = {
+					limit = { NOT = { ruler_is_human = yes } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_closed_senapti_b
+					}
+				}
+			}
+		}
+	}
+	option = { #Open Senapti ranks to all
+		ai_chance = { factor = 1 }
+		name = rahenraj.1001.a
+		add_country_modifier = {
+			name = raj_opened_senapti_ranks
+			duration = -1
+		}
+		custom_tooltip = rahen_open_up_senapti_ranks_tt
+		hidden_effect = {
+			if = {
+				limit = { OR = { primary_culture = royal_harimari primary_culture = east_harimari } }
+				every_subject_country = {
+					limit = { OR = { ruler_culture = royal_harimari primary_culture = east_harimari } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_opened_up_senapti_b
+					}
+				}
+				every_subject_country = {
+					limit = { NOT = { ruler_culture = royal_harimari primary_culture = east_harimari } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_opened_up_senapti_a
+					}
+				}
+			}
+			if = {
+				limit = { culture_group_is_human = yes }
+				every_subject_country = {
+					limit = { ruler_is_human = yes }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_opened_up_senapti_b
+					}
+				}
+				every_subject_country = {
+					limit = { NOT = { ruler_is_human = yes } }
+					add_opinion = {
+						who = ROOT
+						modifier = rahen_raja_opened_up_senapti_a
+					}
+				}
+			}
+		}
 	}
 }
