@@ -29,7 +29,6 @@ country_event = {
 	immediate = {
 		hidden_effect = { set_global_flag = federation_crisis_religious }
 		hidden_effect = { set_global_flag = federation_crisis }
-		hidden_effect = { REB = { set_variable = { FedWar = 0 } } }
 	}
 	
 	option = {
@@ -179,7 +178,7 @@ country_event = {
 	fire_only_once = yes
 	hidden = yes
 	mean_time_to_happen = {
-		years = 2
+		years = 1
 	}
 	
 	trigger = {
@@ -240,15 +239,15 @@ country_event = {
 	
 	immediate = {
 		#For Loca
-		random_known_country = {
+		random_country = {
 			limit = { has_country_flag = kodave_leader }
 			save_event_target_as = kodaveLeader
 		}
-		random_known_country = {
+		random_country = {
 			limit = { has_country_flag = yukel_leader }
 			save_event_target_as = yukelLeader
 		}
-		random_known_country = {
+		random_country = {
 			limit = { has_country_flag = enuuk_leader }
 			save_event_target_as = enuukLeader
 		}
@@ -293,7 +292,7 @@ country_event = {
 	#Don't
 	option = {
 		name = fed_religious.8.a
-		ai_chance = { factor = 80 }
+		ai_chance = { factor = 0 } #Should be 80, 0 for test purpose
 	}
 }
 # The Great Betrayal - Our Delegation and Head Priest has been assassinated!
@@ -314,7 +313,7 @@ country_event = {
 	#The Kodave followers wanted only one thing : War!
 	option = {
 		name = fed_religious.9.a
-		ai_chance = {  factor = 100 } }
+		ai_chance = {  factor = 100 }
 		every_known_country = {
 			limit = { has_country_flag = enuuk_faction }
 			country_event = { id = fed_religious.10 days = 10 random = 20 } #They killed our faction delegation
@@ -329,11 +328,10 @@ country_event = {
 		}
 		country_event = { id = fed_religious.14 days = 150 }
 		hidden_effect = {
-			every_known_country = {
-				limit = { OR = { has_country_flag = enuuk_faction has_country_flag = kodave_faction } }
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
 				country_event = { id = fed_religious.13 days = 90 random = 30 }
 			}
-			country_event = { id = fed_religious.13 days = 90 random = 30 }
 		}
 	}
 }
@@ -480,6 +478,7 @@ country_event = {
 				limit = { has_country_flag = yukel_leader }
 				save_event_target_as = yukelLeader
 			}
+			set_global_flag = fed_religious_war
 		}
 	}
 	
@@ -494,7 +493,7 @@ country_event = {
 				form_coalition_against = event_target:kodaveLeader
 			}
 			every_known_country = {
-				limit = { has_country_flag = kodave_faction }
+				limit = { has_country_flag = kodave_faction NOT = { has_country_flag = kodave_leader } }
 				create_guarantee = event_target:kodaveLeader
 			}
 			declare_war_with_cb = {
@@ -509,7 +508,7 @@ country_event = {
 					form_coalition_against = event_target:yukelLeader
 				}
 				every_known_country = {
-					limit = { has_country_flag = yukel_faction }
+					limit = { has_country_flag = yukel_faction NOT = { has_country_flag = yukel_leader } }
 					create_guarantee = event_target:yukelLeader
 				}
 				declare_war_with_cb = {
@@ -525,7 +524,7 @@ country_event = {
 					form_coalition_against = event_target:enuukLeader
 				}
 				every_known_country = {
-					limit = { has_country_flag = enuuk_faction }
+					limit = { has_country_flag = enuuk_faction NOT = { has_country_flag = enuuk_leader } }
 					create_guarantee = event_target:enuukLeader
 				}
 				declare_war_with_cb = {
@@ -537,7 +536,7 @@ country_event = {
 	}
 }
 
-#Victory on our enemy!
+#Victory of our Religion
 country_event = {
 	id = fed_religious.15
 	title = fed_religious.15.t
@@ -545,23 +544,641 @@ country_event = {
 	picture = FORT_eventPicture
 	
 	fire_only_once = yes
-	hidden = yes
+	major = yes
 	
 	trigger = {
-		has_country_modifier = lake_federation_member
-		OR = {
-			has_country_flag = kodave_leader
-			has_country_flag = yukel_leader
-			has_country_flag = enuuk_leader
-		}
-		
+		check_variable = { FedWarWin = 1 }
+		NOT = { has_global_flag = end_first_religious_war }
+		federation_religious_war_victory = yes
 	}
 	
 	option = {
 		name = fed_religious.15.a
 		ai_chance = {  factor = 100 }
-		
+		lake_federation_gain_5_points = yes
+		add_prestige = 25
+		add_country_modifier = {
+			name = victor_fed_religious_war
+			duration = -1
+		}
+		remove_country_modifier = lake_strike_hard
+		remove_country_modifier = lake_attrition_war
+		if = {
+			limit = { has_country_flag = enuuk_leader }
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member religion = enuuk_followers }
+				add_country_modifier = {
+					name = victor_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = 25
+				lake_federation_gain_2_points = yes
+			}
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member NOT = { religion = enuuk_followers } }
+				add_country_modifier = {
+					name = loser_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = -25
+				lake_federation_lose_2_points = yes
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = yukel_leader }
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member religion = yukel_followers }
+				add_country_modifier = {
+					name = victor_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = 25
+				lake_federation_gain_2_points = yes
+			}
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member NOT = { religion = yukel_followers } }
+				add_country_modifier = {
+					name = loser_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = -25
+				lake_federation_lose_2_points = yes
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = kodave_leader }
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member religion = kodave_followers }
+				add_country_modifier = {
+					name = victor_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = 25
+				lake_federation_gain_2_points = yes
+			}
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member NOT = { religion = kodave_followers } }
+				add_country_modifier = {
+					name = loser_fed_religious_war
+					duration = -1
+				}
+				remove_country_modifier = lake_strike_hard
+				remove_country_modifier = lake_attrition_war
+				add_prestige = -25
+				lake_federation_lose_2_points = yes
+			}
+		}
+		hidden_effect = { every_country = { limit = { has_country_modifier = lake_federation_member } country_event = { id = fed_religious.17 days = 60 } } }
+		federation_triunic_goddess_apostle = yes
+		hidden_effect = { clr_global_flag = federation_crisis_religious }
+		hidden_effect = { clr_global_flag = federation_crisis }
+		hidden_effect = { set_global_flag = last_federation_crisis }
 	}
 }
 
+#Religious War Stalemate
+country_event = {
+	id = fed_religious.16
+	title = fed_religious.16.t
+	desc = fed_religious.16.d
+	picture = FORT_eventPicture
+	
+	fire_only_once = yes
+	major = yes
+	
+	trigger = {
+		has_global_flag = fed_religious_war
+		NOT = { has_global_flag = end_first_religious_war }
+		has_country_modifier = lake_federation_member
+		OR = {
+			has_country_flag = yukel_leader
+			has_country_flag = kodave_leader
+			has_country_flag = enuuk_leader
+		}
+		OR = {
+			is_variable_equal = { which = FedWarWin value = 1 }
+			is_variable_equal = { which = FedWarWin value = 0 }
+		}
+		federation_religious_war_stalemate = yes
+	}
+	
+	option = {
+		name = fed_religious.16.a
+		ai_chance = {  factor = 100 }
+		every_country = {
+			limit = { has_country_modifier = lake_federation_member }
+			add_prestige = -5
+			remove_country_modifier = lake_strike_hard
+			remove_country_modifier = lake_attrition_war
+			hidden_effect = { country_event = { id = fed_religious.17 days = 60 } }
+		}
+		federation_triunic_goddess_apostle = yes
+		hidden_effect = { clr_global_flag = federation_crisis }
+		hidden_effect = { set_global_flag = last_federation_crisis }
+	}
+}
+
+#The Cost of War
+country_event = {
+	id = fed_religious.17
+	title = fed_religious.17.t
+	desc = fed_religious.17.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	immediate = {
+		hidden_effect = { set_global_flag = end_first_religious_war }
+	}
+	
+	option = {
+		name = fed_religious.17.a
+		ai_chance = {  factor = 100 }
+		add_country_modifier = {
+			name = lake_cost_of_war
+			duration = 5475
+		}
+		add_yearly_manpower = -0.5
+		add_years_of_income = -0.5
+	}
+}
+
+#Amidst the Chaos - Big event about a new goddess signaling it's presence through a priest of our religion
+country_event = {
+	id = fed_religious.18
+	title = fed_religious.18.t
+	desc = fed_religious.18.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Embrace this new religion
+	option = {
+		name = fed_religious.18.a
+		ai_chance = {  factor = 100 }
+		add_stability = -1
+		hidden_effect = {
+			if = {
+				limit = { religion = yukel_followers }
+				set_country_flag = old_yukel
+			}
+			else_if = {
+				limit = { religion = kodave_followers }
+				set_country_flag = old_kodave
+			}
+			else_if = {
+				limit = { religion = enuuk_followers }
+				set_country_flag = old_enuuk
+			}
+		}
+		change_religion = kalyin_worshippers
+		capital_scope = { change_religion = kalyin_worshippers }
+		every_known_country = {
+			limit = { has_country_modifier = lake_federation_member }
+			country_event = { id = fed_religious.19 days = 30 random = 30 }
+		}
+		add_country_modifier = {
+			name = lake_kalyin_faith
+			duration = 9125
+		}
+		lake_federation_lose_5_points = yes
+		hidden_effect = { set_global_flag = kalyin_enabled }
+		hidden_effect = { set_country_flag = kalyin_leader }
+		hidden_effect = { country_event = { id = fed_religious.20 days = 180 } }
+	}
+	
+	#Kill the priest
+	option = {
+		name = fed_religious.18.b
+		ai_chance = {  factor = 0 }
+	}
+}
+
+#The True Goddess
+country_event = {
+	id = fed_religious.19
+	title = fed_religious.19.t
+	desc = fed_religious.19.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Convert!
+	option = {
+		name = fed_religious.19.a
+		ai_chance = { 
+			factor = 50
+			
+			modifier = {
+				factor = 4
+				religion = yukel_followers
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { religion = yukel_followers }
+				set_country_flag = old_yukel
+			}
+			else_if = {
+				limit = { religion = kodave_followers }
+				set_country_flag = old_kodave
+			}
+			else_if = {
+				limit = { religion = enuuk_followers }
+				set_country_flag = old_enuuk
+			}
+		}
+		change_religion = kalyin_worshippers
+		capital_scope = { change_religion = kalyin_worshippers }
+		add_country_modifier = {
+			name = lake_kalyin_faith
+			duration = 9125
+		}
+	}
+	
+	#That's Heresy!
+	option = {
+		name = fed_religious.19.b
+		ai_chance = { 
+			factor = 50
+			
+			modifier = {
+				factor = 4
+				religion = kodave_followers
+			}
+		}
+		add_stability = 2
+	}
+}
+
+#The Great Fracture - A debate between Kodave and Kalyin followers escalate in the countryside of event_target, hundreds are killed, we ask for reparation
+country_event = {
+	id = fed_religious.20
+	title = fed_religious.20.t
+	desc = fed_religious.20.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+		any_known_country = {
+			religion = kodave_followers
+		}
+	}
+	
+	immediate = {
+		hidden_effect = { set_global_flag = federation_crisis_religious_2 }
+		hidden_effect = { set_global_flag = federation_crisis }
+		hidden_effect = {
+			random_known_country = {
+				limit = { religion = kodave_followers }
+				save_event_target_as = kodaveCountry
+				random_owned_province = {
+					save_event_target_as = kodaveVillage
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = fed_religious.20.a
+		ai_chance = { factor = 100 }
+		event_target:kodaveCountry = {
+			country_event = { id = fed_religious.21 days = 30 }
+		}
+	}
+}
+
+#Outrageous Demand - They ask reparation for the fight
+country_event = {
+	id = fed_religious.21
+	title = fed_religious.21.t
+	desc = fed_religious.21.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	immediate = {
+		hidden_effect = { set_country_flag = anti_kalyin_leader }
+	}
+	
+	#Fuck them
+	option = {
+		name = fed_religious.21.a
+		ai_chance = { factor = 100 }
+		FROM = {
+			country_event = { id = fed_religious.22 days = 30 }
+		}
+	}
+}
+
+#We need to ready our troop, Kalyin can't let this happen
+country_event = {
+	id = fed_religious.22
+	title = fed_religious.22.t
+	desc = fed_religious.22.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Fuck them more
+	option = {
+		name = fed_religious.22.a
+		ai_chance = { factor = 100 }
+		add_yearly_manpower = 1
+		every_known_country = {
+			limit = { has_country_modifier = lake_federation_member }
+			country_event = { id = fed_religious.23 days = 30 random = 60 }
+		}
+		country_event = { id = fed_religious.24 days = 120 }
+	}
+}
+
+
+#The Specter of War once again shine
+country_event = {
+	id = fed_religious.23
+	title = fed_religious.23.t
+	desc = fed_religious.23.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#For Kalyin
+	option = {
+		name = fed_religious.23.a
+		ai_chance = { factor = 100 }
+		trigger = { religion = kalyin_worshippers }
+		add_prestige = 5
+		add_stability = 1
+	}
+	
+	#Fuck the Usuper
+	option = {
+		name = fed_religious.23.b
+		ai_chance = { factor = 100 }
+		trigger = { NOT = { religion = kalyin_worshippers } }
+		add_prestige = 5
+		add_stability = 1
+	}
+}
+
+
+
+#Kalyin Will
+country_event = {
+	id = fed_religious.24
+	title = fed_religious.24.t
+	desc = fed_religious.24.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_country = {
+				limit = { has_country_flag = anti_kalyin_leader }
+				save_event_target_as = antiKalyin
+			}
+		}
+	}
+	
+	#For Kalyin
+	option = {
+		name = fed_religious.24.a
+		ai_chance = { factor = 100 }
+		custom_tooltip = kalyin_will_tooltip
+		hidden_effect = {
+			form_coalition_against = event_target:antiKalyin
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member religion = kalyin_worshippers }
+				form_coalition_against = event_target:antiKalyin
+			}
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member OR = { religion = kodave_followers religion = enuuk_followers religion = yukel_followers } NOT = { has_country_flag = anti_kalyin_leader } }
+				create_guarantee = event_target:antiKalyin
+			}
+			declare_war_with_cb = {
+				who = event_target:antiKalyin
+				casus_belli = cb_federation_religious_war_kalyin
+			}
+			set_global_flag = second_federation_religious_war
+		}
+	}
+}
+
+#We Prevail
+country_event = {
+	id = fed_religious.25
+	title = fed_religious.25.t
+	desc = fed_religious.25.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	immediate = {
+		hidden_effect = {
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				remove_country_modifier = victor_fed_religious_war
+				remove_country_modifier = loser_fed_religious_war
+				clr_country_flag = anti_kalyin_leader
+				clr_country_flag = kalyin_leader
+			}
+			clr_global_flag = second_federation_religious_war
+			hidden_effect = { clr_global_flag = federation_crisis }
+			hidden_effect = { set_global_flag = last_federation_crisis }
+		}
+	}
+	
+	#For Kalyin
+	option = {
+		name = fed_religious.25.a
+		ai_chance = { factor = 100 }
+		trigger = { religion = kalyin_worshippers }
+		every_owned_province = { change_religion = kalyin_worshippers }
+		lake_federation_gain_10_points = yes
+		add_stability = 3
+		add_prestige = 50
+		add_country_modifier = {
+			name = victor_fed_religious_war
+			duration = -1
+		}
+		every_known_country = {
+			limit = { religion = kalyin_worshippers has_country_modifier = lake_federation_member }
+			capital_scope = { change_religion = kalyin_worshippers }
+			every_owned_province = {
+				random = {
+					chance = 80
+					change_religion = kalyin_worshippers
+				}
+			}
+			add_prestige = 25
+			add_stability = 1
+			lake_federation_gain_5_points = yes
+			add_country_modifier = {
+				name = victor_fed_religious_war
+				duration = -1
+			}
+		}
+		every_known_country = {
+			limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
+			change_religion = kalyin_worshippers
+			capital_scope = { change_religion = kalyin_worshippers }
+			add_stability = -1
+			add_prestige = -25
+			lake_federation_lose_5_points = yes
+			add_country_modifier = {
+				name = loser_fed_religious_war
+				duration = -1
+			}
+		}
+	}
+	
+	#Kill the Usupers
+	option = {
+		name = fed_religious.25.a
+		ai_chance = { factor = 100 }
+		trigger = { NOT = { religion = kalyin_worshippers } }
+		lake_federation_gain_10_points = yes
+		add_stability = 3
+		add_prestige = 50
+		add_country_modifier = {
+			name = victor_fed_religious_war
+			duration = -1
+		}
+		every_known_country = {
+			limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
+			add_prestige = 25
+			add_stability = 1
+			lake_federation_gain_5_points = yes
+			every_owned_province = { change_religion = yukel_followers }
+			add_country_modifier = {
+				name = victor_fed_religious_war
+				duration = -1
+			}
+		}
+		every_known_country = {
+			limit = { has_country_modifier = lake_federation_member religion = kalyin_worshippers }
+			if = {
+				limit = { has_country_flag = old_yukel }
+				change_religion = yukel_followers
+				every_owned_province = {
+					random = {
+						chance = 90
+						change_religion = yukel_followers
+					}
+				}
+			}
+			else_if = {
+				limit = { has_country_flag = old_enuuk }
+				change_religion = enuuk_followers
+				every_owned_province = {
+					random = {
+						chance = 90
+						change_religion = enuuk_followers
+					}
+				}
+			}
+			else_if = {
+				limit = { has_country_flag = old_kodave }
+				change_religion = kodave_followers
+				every_owned_province = {
+					random = {
+						chance = 90
+						change_religion = kodave_followers
+					}
+				}
+			}
+			add_stability = -1
+			add_prestige = -25
+			lake_federation_lose_5_points = yes
+			add_country_modifier = {
+				name = loser_fed_religious_war
+				duration = -1
+			}
+		}
+	}
+}
+
+#Second Religious War Stalemate
+country_event = {
+	id = fed_religious.26
+	title = fed_religious.26.t
+	desc = fed_religious.26.d
+	picture = FORT_eventPicture
+	
+	fire_only_once = yes
+	major = yes
+	
+	trigger = {
+		has_global_flag = second_federation_religious_war
+		has_country_modifier = lake_federation_member
+		OR = {
+			has_country_flag = anti_kalyin_leader
+			has_country_flag = kalyin_leader
+		}
+		is_in_war = no
+	}
+	
+	#Religious Peace, At last
+	option = {
+		name = fed_religious.26.a
+		ai_chance = { factor = 100 }
+		every_country = {
+			limit = { has_country_modifier = lake_federation_member }
+			add_war_exhaustion = 5
+			remove_country_modifier = victor_fed_religious_war
+			remove_country_modifier = loser_fed_religious_war		
+		}
+	}
+}
 
