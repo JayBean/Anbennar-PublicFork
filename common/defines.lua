@@ -432,8 +432,8 @@ NCountry = {
 	EXPLOIT_COOLDOWN_MONTHS = 240,
 
 	MONTHS_FOR_MAX_MP_ALERT = 3,
-	
-	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- monthly..
+
+	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- monthly..	anbennar ver this and bottom
 	SIBERIAN_FRONTIER_DAILY_RANGE = 3,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
 	FORCE_SEPPUKU_POWER_MULTIPLIER = 5,				-- Times victim's stats
@@ -551,7 +551,7 @@ NCountry = {
 	PARLIAMENT_CHANCE_OF_DECISION = 10,			-- % Chance debate is ended after PARLIAMENT_DEBATE_DURATION
 
 	ALLOW_FEMALE_GENERALS = 0,
-	FEMALE_ADVISOR_CHANCE = 10,						-- If Women in History is enabled, chance of an advisor (or general if permitted) spawning as female
+	FEMALE_ADVISOR_CHANCE = 2,						-- If Women in History is enabled, chance of an advisor (or general if permitted) spawning as female
 	MAX_IDEA_GROUPS_FROM_SAME_CATEGORY = 0.5,
 
 	RANDOM_LUCKY_BASE_WEIGHT = 100,					-- Base weight given to each nation when rolling for random lucky
@@ -560,7 +560,8 @@ NCountry = {
 	RANDOM_LUCKY_SLOW_TECH_PENALTY = 0.33,			-- Extra penalty on tech groups with more than 75% penalty when rolling for random lucky (lower = more penalty)
 
 	PLAYER_CAN_MOVE_FIXED_CAPITAL = 1,				-- Controls whether player can move capital even if capital is fixed
-	DEVELOPMENT_ON_CONTINENT_FOR_NEW_CAPITAL = 0.5,	-- How many percent of your development needs to be on the other continent to move your capital there
+	DEVELOPMENT_ON_CONTINENT_FOR_NEW_CAPITAL = 0.0,	-- How many percent of your development needs to be on the other continent to move your capital there
+
 
 	EXPLORE_COAST_EVENT_CHANCE = 2,			-- Chance (in %) of getting an event when exploring coasts
 	MIN_TECH_FOR_CIRCUMNAVIGATE = 9,			-- Must have this level of dip tech to circumnavigate the globe
