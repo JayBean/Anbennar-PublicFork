@@ -6,6 +6,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME1"
 	desc = "trade_company_events.EVTDESC1"
 	picture = BORDER_TENSION_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -58,6 +59,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME2"
 	desc = "trade_company_events.EVTDESC2"
 	picture = COLONIZATION_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -112,6 +114,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME3"
 	desc = "trade_company_events.EVTDESC3"
 	picture = COLONIZATION_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -151,6 +154,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME5"
 	desc = "trade_company_events.EVTDESC5"
 	picture = BORDER_TENSION_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -164,6 +168,21 @@ province_event = {
 	}
 	
 	is_mtth_scaled_to_size = 1
+	
+	immediate = {
+		hidden_effect = {
+			random_neighbor_province = {
+				limit = {
+					NOT = { owned_by = ROOT }
+					is_owned_by_trade_company = yes
+					NOT = { is_core = ROOT }
+					NOT = { is_claim = ROOT }
+				}
+				save_event_target_as = target_province
+				owner = { save_event_target_as = enemy_country }
+			}
+		}
+	}
 	
 	mean_time_to_happen = {
 		months = 300
@@ -192,13 +211,8 @@ province_event = {
 	option = {	# Endorse their behavior
 		name = "trade_company_events.EVTOPTB5"
 		ai_chance = { factor = 50 }
-		random_neighbor_province = {
-			limit = {
-				NOT = { owned_by = ROOT }
-				is_owned_by_trade_company = yes
-				NOT = { is_core = ROOT }
-				NOT = { is_claim = ROOT }
-			}
+		goto = target_province
+		event_target:target_province = {
 			add_claim = ROOT
 		}
 	}
@@ -210,6 +224,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME6"
 	desc = "trade_company_events.EVTDESC6"
 	picture = REFORM_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -219,6 +234,22 @@ province_event = {
 			is_owned_by_trade_company = yes
 			owner = {
 				NOT = { alliance_with = ROOT }
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_neighbor_province = {
+				limit = {
+					NOT = { owned_by = ROOT }
+					is_owned_by_trade_company = yes
+					owner = {
+						NOT = { alliance_with = ROOT }
+					}
+				}
+				save_event_target_as = target_province
+				owner = { save_event_target_as = enemy_country }
 			}
 		}
 	}
@@ -266,23 +297,13 @@ province_event = {
 	option = {	# Support the governor
 		name = "trade_company_events.EVTOPTB6"
 		ai_chance = { factor = 50 }
-		random_neighbor_province = {
-			limit = {
-				NOT = { owned_by = ROOT }
-				is_owned_by_trade_company = yes
-				owner = {
-					NOT = { alliance_with = ROOT }
-				}
-			}
+		owner = {
 			tooltip = {
-				owner = {
-					add_opinion = {
-						modifier = beheaded_governor
-						who = ROOT
-					}
-				}
+				reverse_add_opinion = {who = event_target:enemy_country modifier = beheaded_governor}
 			}
-			hidden_effect = {
+		}
+		hidden_effect = {
+			event_target:target_province = {
 				province_event = { id = trade_company_events.7 days = 1 }
 			}
 		}
@@ -295,6 +316,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME7"
 	desc = "trade_company_events.EVTDESC7"
 	picture = WOUNDED_SOLDIERS_eventPicture
+	goto = from
 	
 	is_triggered_only = yes
 	
@@ -315,6 +337,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME8"
 	desc = "trade_company_events.EVTDESC8"
 	picture = REFORM_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -349,20 +372,29 @@ province_event = {
 		}
 	}
 
+	immediate = {
+		hidden_effect = {
+			random_neighbor_province = {
+				limit = {
+					NOT = { owned_by = ROOT }
+					NOT = { is_core = ROOT }
+					NOT = { is_claim = ROOT }
+					owner = {
+						NOT = { alliance_with = ROOT }
+						NOT = { truce_with = ROOT }
+						NOT = { is_subject_of = ROOT }
+					}
+				}
+				save_event_target_as = claim_province
+			}
+		}
+	}
+
 	option = {	# Go ahead and claim it
 		name = "trade_company_events.EVTOPTA8"
+		goto = claim_province
 		ai_chance = { factor = 50 }
-		random_neighbor_province = {
-			limit = {
-				NOT = { owned_by = ROOT }
-				NOT = { is_core = ROOT }
-				NOT = { is_claim = ROOT }
-				owner = {
-					NOT = { alliance_with = ROOT }
-					NOT = { truce_with = ROOT }
-					NOT = { is_subject_of = ROOT }
-				}
-			}
+		event_target:claim_province = {
 			add_claim = ROOT
 			set_province_flag = claimed_for_trade_company
 		}
@@ -392,6 +424,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME9"
 	desc = "trade_company_events.EVTDESC9"
 	picture = LIBERUM_VETO_eventPicture
+	goto = claim_province
 	
 	is_triggered_only = yes
 	
@@ -400,17 +433,30 @@ province_event = {
 		is_owned_by_trade_company = yes
 		any_neighbor_province = {
 			has_province_flag = claimed_for_trade_company
-			owner = {
-				NOT = { war_with = ROOT }
-			}
+			owner = { NOT = { war_with = ROOT } }
 			NOT = { owned_by = ROOT }
 			is_claim = ROOT
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_neighbor_province = {
+				limit = {
+					NOT = { owned_by = ROOT }
+					has_province_flag = claimed_for_trade_company
+					is_claim = ROOT
+					owner = { NOT = { war_with = ROOT } }
+				}
+				save_event_target_as = claim_province
+			}
 		}
 	}
 
 	option = {	# Renew the promise
 		name = "trade_company_events.EVTOPTA9"
 		ai_chance = { factor = 30 }
+		goto = root
 		trigger = {
 			NOT = { has_province_flag = renewed_promise }
 		}
@@ -432,12 +478,7 @@ province_event = {
 		}
 		clr_province_flag = renewed_promise
 		hidden_effect = {
-			random_neighbor_province = {
-				limit = {
-					NOT = { owned_by = ROOT }
-					has_province_flag = claimed_for_trade_company
-					is_claim = ROOT
-				}
+			event_target:claim_province = {
 				clr_province_flag = claimed_for_trade_company
 			}
 		}
@@ -445,6 +486,7 @@ province_event = {
 	option = {	# Ignore their concerns
 		name = "trade_company_events.EVTOPTC9"
 		ai_chance = { factor = 30 }
+		goto = root
 		add_province_modifier = {
 			name = trade_company_greatly_upset
 			duration = 3650
@@ -452,12 +494,7 @@ province_event = {
 		clr_province_flag = trade_company_claimer
 		clr_province_flag = renewed_promise
 		hidden_effect = {
-			random_neighbor_province = {
-				limit = {
-					NOT = { owned_by = ROOT }
-					has_province_flag = claimed_for_trade_company
-					is_claim = ROOT
-				}
+			event_target:claim_province = {
 				clr_province_flag = claimed_for_trade_company
 			}
 		}
@@ -470,6 +507,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME10"
 	desc = "trade_company_events.EVTDESC10"
 	picture = HARBOUR_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -523,6 +561,7 @@ province_event = {
 	title = "trade_company_events.EVTNAME11"
 	desc = "trade_company_events.EVTDESC11"
 	picture = ELECTION_REPUBLIC_eventPicture
+	goto = root
 	
 	trigger = {
 		is_owned_by_trade_company = yes
@@ -555,10 +594,9 @@ province_event = {
 		name = "trade_company_events.EVTOPTA11"
 		ai_chance = { factor = 75 }
 		owner = {
-			add_country_modifier = {
-				name = trade_company_trouble
-				duration = 1825
-			}
+			add_adm_power = -50
+			add_dip_power = -50
+			add_mil_power = -50
 		}
 	}
 	option = {	# It is not our problem
@@ -567,6 +605,12 @@ province_event = {
 		add_province_modifier = {
 			name = trade_company_greatly_upset
 			duration = 3650
+		}
+		owner = {
+			add_country_modifier = {
+				name = trade_company_trouble
+				duration = 1825
+			}
 		}
 	}
 }
