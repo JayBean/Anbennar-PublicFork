@@ -99,7 +99,7 @@ NDiplomacy = {
 	MAX_FREE_CITIES = 12,
 	MIN_NUM_ELECTORS_FOR_REMOVE_ELECTORATE = 2,		-- Limit is inclusive.
 	HRE_PRINCE_AUTHORITY_THRESHOLD = 25,			-- Threshold below which you lose IA, and above which you gain it
-	IMPERIAL_AUTHORITY_FROM_PRINCES = 0.1,			-- Scales to threshold
+	IMPERIAL_AUTHORITY_FROM_PRINCES = 0.075,			-- Scales to threshold
 	HRE_FOREIGN_CONTROL_PENALTY = -0.005,			-- Each foreign-controlled province in the empire (owned or vassalised) lowers IA by this amount
 	HRE_HERETIC_PENALTY = -0.01,					-- Per heretic prince (halved by Peace of Westphalia)
 	LACK_OF_ELECTORS_HIT = -0.1,					-- Also applied to vassalized electors
@@ -417,9 +417,9 @@ NDiplomacy = {
 	FORCE_JOIN_HRE_AUTHORITY_PER_DEVELOPMENT = 0.1,
 	FORCE_JOIN_HRE_YEARS_BOUND_BY_TREATY = 50,
 
-	HRE_AUTHORITY_JOIN_EMPIRE = 10,
+	HRE_AUTHORITY_JOIN_EMPIRE = 5,
 	HRE_AUTHORITY_LEAVE_EMPIRE = -10,
-	HRE_AUTHORITY_PROVINCE_JOIN = 0.5,
+	HRE_AUTHORITY_PROVINCE_JOIN = 0.1,
 
 	IMPERIAL_REALM_WAR_IA_COST = 25.0,				-- How much IA the Realm War CB costs.
 	IMPERIAL_REALM_WAR_MONTHS = 60,					-- How many months the CB will be available
@@ -501,7 +501,7 @@ NCountry = {
 	ESTATE_INFLUENCE_PER_DEV = 0.5,
 	ESTATE_MAX_INFLUENCE_FROM_DEV = 100.0,
 	ESTATE_MIN_DISTRIBUTED_CROWNLAND = 30.0, 	-- Minimum of crownland when distributing land at start
-	ESTATE_CROWNLAND_INFLUENCE = 75.0,			-- Crownland has n% influence, this is modified by absolutism.
+	ESTATE_CROWNLAND_INFLUENCE = 60.0,			-- Crownland has n% influence, this is modified by absolutism.
 	ESTATE_START_CROWNLAND_INFLUENCE = 10.0,	-- Crownland has n% influence at start of a new game.
 	ESTATE_CROWNLAND_FROM_DEV = 0.2,			-- How much crownland you gain from developing a province.
 
@@ -2099,7 +2099,7 @@ NReligion = {
 	APPOINT_CARDINAL_TOTAL_FACTOR = 2,						-- Factor to the number of total cardinals for the cost formula
 	APPOINT_CARDINAL_COUNTRY_FACTOR = 20,					-- Factor to the number of cardinals in the target country for the cost formula
 	APPOINT_CARDINAL_MINIMUM_COST = 25.0,					-- Minimum cost to appoint a cardinal
-	PICK_GOLDEN_BULL_COST = 200,							-- Integer cost for pick a golden bull
+	PICK_GOLDEN_BULL_COST = 400,							-- Integer cost for pick a golden bull
 
 	REFORM_DESIRE_PROV_CONVERSION_SPEED_MODIFIER = 1,
 },
