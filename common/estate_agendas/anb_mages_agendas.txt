@@ -138,7 +138,7 @@ estate_mages_relations_with_pro_mage_countries = {
 		any_known_country = {
 			has_estate = estate_mages
 			estate_loyalty = {
-				estate = estate_burghers
+				estate = estate_mages
 				loyalty = 60
 			}
 			NOT = { war_with = ROOT }
@@ -155,7 +155,7 @@ estate_mages_relations_with_pro_mage_countries = {
 			limit = {
 				has_estate = estate_mages
 				estate_loyalty = {
-					estate = estate_burghers
+					estate = estate_mages
 					loyalty = 60
 				}
 				NOT = { war_with = ROOT }
@@ -461,21 +461,16 @@ estate_mages_conquer_damestear = {
 			random_owned_province = {
 				limit = {
 					trade_goods = damestear
-
-					any_neighbor_province = {
-						owned_by = root
-					}
-					area_for_scope_province = {
-						type = all
-						NOT = { owned_by = root }
-						is_empty = no
-					}
 				}
 				save_event_target_as = agenda_province
 			}
 			random_owned_province = {
 				limit = {
 					trade_goods = damestear
+
+					any_neighbor_province = {
+						owned_by = root
+					}
 				}
 				save_event_target_as = agenda_province
 			}
@@ -636,21 +631,16 @@ estate_mages_conquer_precursor_relics = {
 			random_owned_province = {
 				limit = {
 					trade_goods = precursor_relics
-
-					any_neighbor_province = {
-						owned_by = root
-					}
-					area_for_scope_province = {
-						type = all
-						NOT = { owned_by = root }
-						is_empty = no
-					}
 				}
 				save_event_target_as = agenda_province
 			}
 			random_owned_province = {
 				limit = {
 					trade_goods = precursor_relics
+
+					any_neighbor_province = {
+						owned_by = root
+					}
 				}
 				save_event_target_as = agenda_province
 			}
@@ -2138,11 +2128,19 @@ estate_mages_condottieri_rivals = {
 #Get allies
 estate_mages_ally_pro_mage_countries = {
 	can_select = {
-		NOT = { num_of_allies = 3 }
-		NOT = { num_of_subjects = 3 }
 		is_at_war = no
 		num_of_free_diplomatic_relations = 1
-		NOT = { has_country_modifier = foreign_contacts }
+		any_known_country = {
+			has_estate = estate_mages
+			estate_loyalty = {
+				estate = estate_mages
+				loyalty = 60
+			}
+			NOT = { war_with = ROOT }
+			NOT = { is_rival = ROOT }
+			has_opinion = { who = ROOT value = -50 }
+			NOT = { alliance_with = ROOT }
+		}
 	}
 	selection_weight = {
 		factor = 1
@@ -2153,66 +2151,59 @@ estate_mages_ally_pro_mage_countries = {
 		}
 	}
 	pre_effect = {
-		set_variable = {
-			which = estate_nobles_get_allies_variable
-			value = 0
-		}
-		if = {
+		random_known_country = {
 			limit = {
-				OR = {
-					NOT = { num_of_allies = 1 }
-					AND = {
-						num_of_subjects = 2
-						NOT = { num_of_allies = 2 }
-					}
-					AND = {
-						NOT = { num_of_allies = 2 }
-						NOT = { num_of_free_diplomatic_relations = 2 }
-					}
+				has_estate = estate_mages
+				estate_loyalty = {
+					estate = estate_mages
+					loyalty = 60
 				}
+				NOT = { war_with = ROOT }
+				NOT = { is_rival = ROOT }
+				has_opinion = { who = ROOT value = -50 }
+				NOT = { alliance_with = ROOT }
 			}
-			set_variable = {
-				which = estate_nobles_get_allies_variable
-				value = 1
-			}
-		}
-		else = {
-			set_variable = {
-				which = estate_nobles_get_allies_variable
-				value = 2
-			}
+			save_event_target_as = agenda_country
 		}
 	}
 	fail_if = {
-		is_free_or_tributary_trigger = no
+		event_target:agenda_country = {
+			OR = {
+				war_with = ROOT
+				exists = no
+			}
+		}
+	}
+	invalid_trigger = {
+		event_target:agenda_country = {
+			NOT = { has_estate = estate_mages }
+		}
+	}
+	provinces_to_highlight = {
+		is_capital_of = event_target:agenda_country
 	}
 	task_requirements = {
-		if = {
-			limit = {
-				check_variable = {
-					which = estate_nobles_get_allies_variable
-					value = 2
-				}
+		alliance_with = event_target:agenda_country
+	}
+	task_requirements = {
+		any_ally = {
+			has_estate = estate_mages
+			estate_loyalty = {
+				estate = estate_mages
+				loyalty = 60
 			}
-			num_of_allies = 3
-		}
-		else = {
-			num_of_allies = 2
 		}
 	}
 	task_completed_effect = {
 		add_estate_loyalty = {
-			estate = estate_nobles
+			estate = estate_mages
 			loyalty = 10
 		}
-		add_country_modifier = {
-			name = foreign_contacts
-			duration = 3650
-		}
+		add_dip_power = 50
 	}
     failing_effect = {
         add_estate_loyalty_modifier = {
-            estate = estate_nobles
+            estate = estate_mages
 			desc = EST_VAL_AGENDA_DENIED
 			loyalty = -5
 			duration = 7300
@@ -2220,314 +2211,155 @@ estate_mages_ally_pro_mage_countries = {
     }
 }
 
-#Protect Brethren in X (religion)
-estate_mages_protect_brethren = {
-	can_select = {
-		is_free_or_tributary_trigger = yes
-		is_at_war = no
-		any_neighbor_country = {
-			NOT = { religion = root }
-		}
-		any_owned_province = {
-			any_neighbor_province = {
-				NOT = { owned_by = root }
-				is_city = yes
-				religion = root
-				has_discovered = root
-				owner = {
-					is_free_or_tributary_trigger = yes
-					NOT = { religion = root }
-					NOT = { religion = confucianism }
-					NOT = { is_subject_of = root }
-					NOT = { overlord_of = root }
-					NOT = { alliance_with = root }
-					NOT = { ROOT = { truce_with = prev } }
-					OR = {
-						is_part_of_hre = no
-						NOT = { hre_reform_passed = landfriede }
-						ROOT = { is_part_of_hre = no }
-					}
-				}
-				NOT = { religion = secondary }
-			}
-		}
-	}
+#Develop Damestear province in y
+estate_mages_develop_damestear_in_y = {
 	selection_weight = {
-		factor = 2
-		modifier = {
-			factor = 2
-			has_idea_group = religious_ideas
-		}
-		modifier = {
-			factor = 0.25
-			any_country = {
-				coalition_target = root
-			}
+		factor = 1
+	}
+	can_select = {
+		any_owned_province = {
+			trade_goods = damestear
 		}
 	}
 	pre_effect = {
 		random_owned_province = {
 			limit = {
-				any_neighbor_province = {
-					NOT = { owned_by = root }
-					is_city = yes
-					religion = root
-					has_discovered = root
-					owner = {
-						is_free_or_tributary_trigger = yes
-						NOT = { religion = root }
-						NOT = { religion = confucianism }
-						NOT = { is_subject_of = root }
-						NOT = { overlord_of = root }
-						NOT = { alliance_with = root }
-						NOT = { ROOT = { truce_with = prev } }
-						OR = {
-							is_part_of_hre = no
-							NOT = { hre_reform_passed = landfriede }
-							ROOT = { is_part_of_hre = no }
-						}
-					}
-					NOT = { religion = secondary }
-				}
+				trade_goods = damestear
 			}
-			random_neighbor_province = {
-				limit = {
-					NOT = { owned_by = root }
-					is_city = yes
-					religion = root
-					has_discovered = root
-					owner = {
-						is_free_or_tributary_trigger = yes
-						NOT = { religion = root }
-						NOT = { religion = confucianism }
-						NOT = { is_subject_of = root }
-						NOT = { overlord_of = root }
-						NOT = { alliance_with = root }
-						NOT = { ROOT = { truce_with = prev } }
-						OR = {
-							is_part_of_hre = no
-							NOT = { hre_reform_passed = landfriede }
-							ROOT = { is_part_of_hre = no }
-						}
-					}
-					NOT = { religion = secondary }
-				}
-				save_event_target_as = agenda_province
-				owner = { save_event_target_as = agenda_country }
-			}
+			save_event_target_as = agenda_province
 		}
-	}
-	immediate_effect = {
-		if = {
-			limit = {
-				event_target:agenda_province = {
-					OR = {
-						AND = {
-							NOT = { is_claim = root }
-							NOT = { is_core = root }
-						}
-						any_neighbor_province = {
-							owned_by = event_target:agenda_country
-							NOT = { is_claim = root }
-							NOT = { is_core = root }
-							religion = root
-						}
+		event_target:agenda_province = {
+			if = {
+				limit = {
+					check_variable = {
+						which = province_adm_var
+						value = 1
 					}
+				}
+				set_variable = {
+					which = province_adm_var
+					value = 0
 				}
 			}
-			event_target:agenda_province = {
-				if = {
-					limit = {
-						NOT = { is_claim = root }
-						NOT = { is_core = root }
-					}
-					add_claim = root
-				}
-				every_neighbor_province = {
-					limit = {
-						owned_by = event_target:agenda_country
-						NOT = { is_claim = root }
-						NOT = { is_core = root }
-						religion = root
-					}
-					add_claim = root
-				}
+			export_to_variable = {
+				which = province_adm_var
+				value = trigger_value:base_tax
+			}
+			change_variable = {
+				which = province_adm_var
+				value = 2
 			}
 		}
 	}
 	provinces_to_highlight = {
 		province_id = event_target:agenda_province
 	}
-	task_requirements = {
-		event_target:agenda_province = {
-			custom_trigger_tooltip = {
-				tooltip = owned_by_country_of_root_religion
-				owner = {
-					religion = root
-				}
-			}
-			hidden_trigger = { religion = root }
-		}
-	}
 	fail_if = {
 		event_target:agenda_province = {
-			NOT = { religion = root }
+			NOT = { owned_by = root }
 		}
 	}
-	task_completed_effect = {
-		if = {
-			limit = {
-				event_target:agenda_province = {
-					owned_by = root
-				}
-			}
-			event_target:agenda_province = {
-				add_nationalism = -5
-			}
+    task_requirements = {
+		event_target:agenda_province = {
+			base_tax = "province_adm_var"
 		}
-		else = {
-			custom_tooltip = estate_nobles_protect_our_culture_effect_tooltip
-		}
+    }
+    task_completed_effect = {
 		add_estate_loyalty = {
 			estate = estate_mages
-			loyalty = 15
+			loyalty = 10
 		}
-	}
+		add_prestige = 10
+    }
     failing_effect = {
+		event_target:agenda_province = {
+			if = {
+				limit = { owned_by = root }
+				add_named_unrest = {
+					name = local_mages_displeased
+					value = 5
+				}
+			}
+		}
         add_estate_loyalty_modifier = {
             estate = estate_mages
 			desc = EST_VAL_AGENDA_DENIED
 			loyalty = -5
 			duration = 7300
         }
+    }
+}
+
+#Develop Precursor Relics province in y
+estate_mages_develop_precursor_relics_in_y = {
+	selection_weight = {
+		factor = 1
+	}
+	can_select = {
+		any_owned_province = {
+			trade_goods = precursor_relics
+		}
+	}
+	pre_effect = {
+		random_owned_province = {
+			limit = {
+				trade_goods = precursor_relics
+			}
+			save_event_target_as = agenda_province
+		}
 		event_target:agenda_province = {
 			if = {
 				limit = {
-					is_claim = root
-					NOT = { is_permanent_claim = root }
-				}
-				remove_claim = root
-			}
-			every_neighbor_province = {
-				if = {
-					limit = {
-						owned_by = event_target:agenda_country
-						is_claim = root
-						NOT = { is_permanent_claim = root }
-					}
-					remove_claim = root
-				}
-			}
-		}
-    }
-}
-
-
-#Ulema: Propagate religion in trade node (if you have CoC)
-estate_mages_propagate_religion = {
-	can_select = {
-		has_dlc = "Cradle of Civilization"
-		religion_group = muslim
-		dominant_religion = root
-		any_active_trade_node = {
-			trade_share = {
-				country = root
-				share = 50
-			}
-			is_node_in_trade_company_region = yes
-			any_trade_node_member_province = {
-				is_city = yes
-				NOT = { religion_group = muslim }
-				NOT = { religion_group = christian }
-				NOT = { religion_group = jewish_group }
-			}
-			calc_true_if = {
-				amount = 10
-				all_trade_node_member_province = {
-					religion = root
-				}
-			}
-		}
-		NOT = { has_country_modifier = missionary_zeal }
-	}
-	selection_weight = {
-		factor = 2.5
-	}
-	pre_effect = {
-		random_active_trade_node = {
-			limit = {
-				trade_share = {
-					country = root
-					share = 50
-				}
-				is_node_in_trade_company_region = yes
-				any_trade_node_member_province = {
-					is_city = yes
-					NOT = { religion_group = muslim }
-					NOT = { religion_group = christian }
-					NOT = { religion_group = jewish_group }
-				}
-				calc_true_if = {
-					amount = 10
-					all_trade_node_member_province = {
-						religion = root
+					check_variable = {
+						which = province_adm_var
+						value = 1
 					}
 				}
+				set_variable = {
+					which = province_adm_var
+					value = 0
+				}
 			}
-			save_event_target_as = agenda_trade_node
+			export_to_variable = {
+				which = province_adm_var
+				value = trigger_value:base_tax
+			}
+			change_variable = {
+				which = province_adm_var
+				value = 2
+			}
 		}
 	}
 	provinces_to_highlight = {
-		any_trade_node_member_province = {
-			province_id = event_target:agenda_trade_node
-		}
-		is_city = yes
-		NOT = { religion_group = muslim }
-		NOT = { religion_group = christian }
-		NOT = { religion_group = jewish_group }
-	}
-	task_requirements = {
-		custom_trigger_tooltip = {
-			tooltip = estate_mages_propagate_religion_trigger_tooltip
-			event_target:agenda_trade_node = {
-				all_trade_node_member_province = {
-					OR = {
-						religion = root
-						religion_group = muslim
-						religion_group = christian
-						religion_group = jewish_group
-						is_city = no
-					}
-				}
-			}
-		}
-	}
-	task_completed_effect = {
-		add_estate_loyalty = {
-			estate = estate_mages
-			loyalty = 15
-		}
-		add_country_modifier = {
-			name = missionary_zeal
-			duration = 5475
-		}
+		province_id = event_target:agenda_province
 	}
 	fail_if = {
-		OR = {
-			NOT = { religion_group = muslim }
-			event_target:agenda_trade_node = {
-				all_trade_node_member_province = {
-					NOT = {
-						trade_share = {
-							country = root
-							share = 50
-						}
-					}
+		event_target:agenda_province = {
+			NOT = { owned_by = root }
+		}
+	}
+    task_requirements = {
+		event_target:agenda_province = {
+			base_tax = "province_adm_var"
+		}
+    }
+    task_completed_effect = {
+		add_estate_loyalty = {
+			estate = estate_mages
+			loyalty = 10
+		}
+		add_prestige = 10
+    }
+    failing_effect = {
+		event_target:agenda_province = {
+			if = {
+				limit = { owned_by = root }
+				add_named_unrest = {
+					name = local_mages_displeased
+					value = 5
 				}
 			}
 		}
-	}
-    failing_effect = {
         add_estate_loyalty_modifier = {
             estate = estate_mages
 			desc = EST_VAL_AGENDA_DENIED
@@ -2537,118 +2369,241 @@ estate_mages_propagate_religion = {
     }
 }
 
-
-#Relations with DotF
-estate_mages_relations_with_dotf = {
+#Mage Towers
+estate_mages_build_mage_tower_in_y = {
 	can_select = {
-		any_country = {
-			religion = root
-			NOT = { tag = root }
-			is_defender_of_faith = yes
-			NOT = {
-				has_opinion = {
-					who = root
-					value = 50
-				}
-			}
-			has_opinion = {
-				who = root
-				value = -50
-			}
-			NOT = { war_with = root }
-			NOT = { alliance_with = root }
-			NOT = { overlord_of = root }
-			NOT = { is_rival = root }
-			NOT = { ROOT = { is_rival = prev } }
-			any_owned_province = {
-				has_discovered = root
+		always = no #Update agenda when mage tower added
+		adm_tech = 17
+		any_owned_province = {
+			is_state_core = root
+		#	NOT = { has_building = mage_tower }
+			OR = {
+				development = 10
+				is_capital = yes
 			}
 		}
+		monthly_income = 30
 	}
 	selection_weight = {
-		factor = 2.5
+		factor = 1
+		modifier = {
+			factor = 0.5
+			OR = {
+				current_age = age_of_discovery
+				current_age = age_of_reformation
+			}
+		}
+		modifier = {
+			factor = 0.5
+			NOT = { monthly_income = 40 }
+		}
 		modifier = {
 			factor = 2
-			has_idea_group = religious_ideas
+			monthly_income = 60
+		}
+		modifier = {
+			factor = 2
+			is_institution_enabled = manufactories
+			NOT = { has_institution = manufactories }
+		}
+	}
+	pre_effect = {
+		random_owned_province = {
+			limit = {
+				is_state_core = root
+				NOT = { has_building = mage_tower }
+				development = 10
+			}
+			save_event_target_as = agenda_province
+		}
+		random_owned_province = {
+			limit = {
+				is_state_core = root
+				NOT = { has_building = mage_tower }
+				development = 15
+			}
+			save_event_target_as = agenda_province
+		}
+		random_owned_province = {
+			limit = {
+				is_state_core = root
+				NOT = { has_building = mage_tower }
+				development = 20
+			}
+			save_event_target_as = agenda_province
+		}
+		random_owned_province = {
+			limit = {
+				is_state_core = root
+				NOT = { has_building = mage_tower }
+				is_capital = yes
+			}
+			save_event_target_as = agenda_province
 		}
 	}
 	provinces_to_highlight = {
-		owner = {
-			religion = root
-			is_defender_of_faith = yes
-		}
-		is_capital = yes
-	}
-	pre_effect = {
-		random_country = {
-			limit = {
-				religion = root
-				NOT = { tag = root }
-				is_defender_of_faith = yes
-				NOT = {
-					has_opinion = {
-						who = root
-						value = 50
-					}
-				}
-				has_opinion = {
-					who = root
-					value = -50
-				}
-				NOT = { war_with = root }
-				NOT = { alliance_with = root }
-				NOT = { overlord_of = root }
-				NOT = { is_rival = root }
-				NOT = { ROOT = { is_rival = prev } }
-				any_owned_province = {
-					has_discovered = root
-				}
-			}
-			save_event_target_as = agenda_country
-		}
-	}
-	task_requirements = {
-		if = {
-			limit = { is_defender_of_faith = no }
-			any_country = {
-				custom_trigger_tooltip = {
-					tooltip = is_root_religion
-					religion = root
-				}
-				is_defender_of_faith = yes
-				has_opinion = {
-					who = root
-					value = 100
-				}
-			}
-		}
-		else = {
-			is_defender_of_faith = yes
-		}
+		province_id = event_target:agenda_province
 	}
 	fail_if = {
-		NOT = { is_defender_of_faith = yes }
-		OR = {
-			NOT = {
-				any_country = {
-					religion = root
-					is_defender_of_faith = yes
-				}
-			}
-			any_country = {
-				religion = root
-				is_defender_of_faith = yes
-				war_with = root
-			}
+		event_target:agenda_province = {
+			NOT = { owned_by = root }
 		}
 	}
-	task_completed_effect = {
+    task_requirements = {
+		event_target:agenda_province = {
+			has_building = mage_tower
+		}
+    }
+    task_completed_effect = {
 		add_estate_loyalty = {
 			estate = estate_mages
-			loyalty = 15
+			loyalty = 10
+		}
+		add_adm_power = 35
+		add_dip_power = 35
+		add_mil_power = 35
+    }
+    failing_effect = {
+		event_target:agenda_province = {
+			if = {
+				limit = { owned_by = root }
+				add_named_unrest = {
+					name = local_mages_displeased
+					value = 5
+				}
+			}
+		}
+        add_estate_loyalty_modifier = {
+            estate = estate_mages
+			desc = EST_VAL_AGENDA_DENIED
+			loyalty = -5
+			duration = 7300
+        }
+    }
+}
+
+#Develop x province
+estate_mages_develop_x = {
+	selection_weight = {
+		factor = 1
+	}
+	can_select = {
+		capital_scope = {
+			is_state_core = root
 		}
 	}
+	pre_effect = {
+		random_list = {
+			1 = {
+				random_owned_province = {
+					limit = {
+						is_state_core = root
+						area_for_scope_province = {
+							is_capital_of = root
+						}
+					}
+					save_event_target_as = agenda_province
+				}
+			}
+			2 = {
+				trigger = {
+					any_owned_province = {
+						is_state_core = root
+						OR = {
+							AND = {
+								religion = root
+								OR = {
+									culture = root
+									has_owner_accepted_culture = yes
+								}
+							}
+						}
+						region_for_scope_province = {
+							is_capital_of = root
+						}
+					}
+				}
+				random_owned_province = {
+					limit = {
+						is_state_core = root
+						OR = {
+							AND = {
+								religion = root
+								OR = {
+									culture = root
+									has_owner_accepted_culture = yes
+								}
+							}
+						}
+						region_for_scope_province = {
+							is_capital_of = root
+						}
+					}
+					save_event_target_as = agenda_province
+				}
+			}
+			1 = {
+				random_owned_province = {
+					limit = {
+						is_state_core = root
+					}
+					save_event_target_as = agenda_province
+				}
+			}
+		}
+		event_target:agenda_province = {
+			if = {
+				limit = {
+					check_variable = {
+						which = province_adm_var
+						value = 1
+					}
+				}
+				set_variable = {
+					which = province_adm_var
+					value = 0
+				}
+			}
+			export_to_variable = {
+				which = province_adm_var
+				value = trigger_value:base_tax
+			}
+			change_variable = {
+				which = province_adm_var
+				value = 2
+			}
+		}
+	}
+	provinces_to_highlight = {
+		province_id = event_target:agenda_province
+	}
+	fail_if = {
+		event_target:agenda_province = {
+			NOT = { owned_by = root }
+		}
+	}
+    task_requirements = {
+		event_target:agenda_province = {
+			base_tax = "province_adm_var"
+		}
+    }
+    task_completed_effect = {
+		add_estate_loyalty = {
+			estate = estate_mages
+			loyalty = 10
+		}
+		add_prestige = 10
+    }
     failing_effect = {
+		event_target:agenda_province = {
+			if = {
+				limit = { owned_by = root }
+				add_named_unrest = {
+					name = local_mages_displeased
+					value = 5
+				}
+			}
+		}
         add_estate_loyalty_modifier = {
             estate = estate_mages
 			desc = EST_VAL_AGENDA_DENIED
