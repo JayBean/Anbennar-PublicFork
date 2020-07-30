@@ -14,6 +14,7 @@ replace_path="common/government_names"
 replace_path="common/disasters"
 replace_path="common/rebel_types"
 replace_path="common/countries"
+replace_path="common/mercenary_companies"
 
 replace_path="events"
 replace_path="missions"
