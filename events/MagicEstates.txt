@@ -417,29 +417,6 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	immediate = {
-		hidden_effect = { 
-			count_provinces_owned_by_rivals_effect = {
-				which = amount_of_rival_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_neighbours_effect = {
-				which = amount_of_neighbour_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_country_effect = {
-				which = amount_of_owned_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_war_enemies_effect = {
-				which = amount_of_war_enemy_provinces
-			}
-		}
-	}
-	
 	option = {	#Spy on our rivals - turn their spy network back on them
 		name = magic_estate.5.a
 		ai_chance = {
@@ -1644,10 +1621,88 @@ country_event = {
 	}
 	# If an heir was born in the 9 months (don't ask), keep the current heir
 	option = {
-		name = magic_estate.10.b
+		name = magic_estate.16.b
 		trigger = {
 			has_heir = yes
 		}
 		# Keep current heir
 	}
+}
+
+# Cleanup event to not get ahead of neighbors after embracing an institution
+country_event = {
+	id = magic_estate.17
+	title = magic_estate.17.t
+	desc = magic_estate.17.d
+	picture = DEATH_OF_HEIR_eventPicture
+	mean_time_to_happen = { days = 1 }
+	hidden = yes
+	trigger = {
+		any_owned_province = {
+			OR = { #using this instead of 
+				has_province_modifier = magic_estate_scrying_stealing_institution_1
+				has_province_modifier = magic_estate_scrying_stealing_institution_2
+				has_province_modifier = magic_estate_scrying_stealing_institution_3
+			}
+		}
+		neighbor_is_ahead_in_institution = no
+	}
+	option = {
+		name = magic_estate.17.a
+		every_owned_province = {
+			remove_province_modifier = magic_estate_scrying_stealing_institution_1
+			remove_province_modifier = magic_estate_scrying_stealing_institution_2
+			remove_province_modifier = magic_estate_scrying_stealing_institution_3
+		}
+	}
+}
+
+# Magisterium demands switch back
+country_event = {
+	id = magic_estate.18
+	title = magic_estate.18.t
+	desc = magic_estate.18.d
+	picture = ACCUSATION_eventPicture
+	is_triggered_only = yes
+
+	trigger = {
+		is_part_of_hre = yes
+		exists = A85
+		NOT = { has_estate_privilege = estate_mages_organization_magisterium } #in case someone flipped back
+	}
+
+	# Refuse
+	option = {
+		name = magic_estate.18.a
+		reverse_add_casus_belli = {
+			target = A85
+			type = cb_insult
+			months = 120
+		}
+		reverse_add_opinion = {
+			who = A85
+			modifier = refused_magisterium_org
+		}
+	}
+	# Accept
+	option = {
+		name = magic_estate.18.b
+		custom_tooltip = magic_estate_returned_to_magisterium_tooltip
+		hidden_effect = {
+			if = {
+				limit = { has_estate_privilege = estate_mages_organization_state }
+				remove_estate_privilege = estate_mages_organization_state
+			}
+			if = {
+				limit = { has_estate_privilege = estate_mages_organization_guilds }
+				remove_estate_privilege = estate_mages_organization_guilds
+			}
+			if = {
+				limit = { has_estate_privilege = estate_mages_organization_religious }
+				remove_estate_privilege = estate_mages_organization_religious
+			}
+			set_estate_privilege = estate_mages_organization_magisterium
+		}
+	}
+	
 }
