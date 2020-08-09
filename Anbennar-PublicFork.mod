@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-Mavercik"
+path="mod/anbennar-maverick"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
