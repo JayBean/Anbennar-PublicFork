@@ -1,4 +1,4 @@
-name="Anbennar-Mavercik"
+name="Anbennar-Maverick"
 path="mod/anbennar-maverick"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
