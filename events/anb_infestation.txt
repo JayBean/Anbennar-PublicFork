@@ -1,0 +1,312 @@
+namespace = infestation
+
+# notes for testing: 
+# spawn a random infestation in one of your own provinces with infestation.0
+# find a random infestation globally with infestation.1000
+# find a random infestation locally with infestation.1001
+
+# When adding a new random infestation type, make sure to add it to 
+# infestation.0 or it will never spawn randomly
+# and infestation.2000 to aid in easy cleanup while debugging
+
+# see anb_infestation_*.txt for monsters you can base your designs off of
+# try to use the same event number between different monsters to improve consistency
+# and troubleshooting
+
+# generate a new infestation in the province designated
+# calling this event directly creates a single infestation only
+province_event = {
+    id = infestation.0
+    title = infestation.0.t
+    desc = infestation.0.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    is_triggered_only = yes
+    hidden = yes
+    
+    trigger = {
+        is_city = yes # no infestations in sea tiles, uncolonized land, wasteland
+        NOT = { has_province_flag = infestation_present }
+    }
+    
+    # now we go through a list of random monsters we can spawn
+    # whenever you create a new monster, add it to this list or it will never
+    # randomly spawn
+    
+    
+    
+    # goblins
+    option = {
+        trigger = {
+            # anb scripted racial triggers; gobbos only where gobbos not liked/accepted
+            owner = { ruler_is_goblin = no }
+            owner = { monstrous_culture = no }
+            owner = { has_goblin_accepted_culture = no }
+            owner = { low_tolerance_goblin_race_trigger = yes }
+        }
+        ai_chance = { 
+            factor = 10 
+            # the greentide pushed goblins all over cannor
+            # but the chance of finding them elsewhere is low in other continents
+            modifier = {
+                factor = 0.5
+                NOT = { continent = europe } # europe == cannor
+            }
+            modifier = {
+                # except in serpentspine, where they're really quite common
+                factor = 5
+                continent = serpentspine
+            }
+        }
+        province_event = { id = infestation_goblin.0 days = 1 }
+    }
+    # dragons
+    #option = {
+    #    ai_chance = { factor = 1 }
+    #    province_event = { id = infestation_dragon.0 days = 1 }
+    #}
+}
+
+
+# recursively pulse this event to periodically add new monsters to the map
+province_event = {
+    id = infestation.1
+    title = infestation.1.t
+    desc = infestation.1.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    is_triggered_only = yes
+    hidden = yes
+    
+    immediate = {
+        # set flag here, so it doesn't accidentally choose this province
+        # a second time in a row
+        set_province_flag = infestation_present
+        # set up recursive event firing, so we will pulse again
+        # on another province in 30ish days
+        random_province = {
+            limit = {
+                is_city = yes # no infestations in sea tiles, uncolonized land, wasteland
+                NOT = { has_province_flag = infestation_present }
+            }
+            save_event_target_as = infestation_target
+        }
+    }
+    
+    option = {
+        ai_chance = { factor = 100 }
+        hidden_effect = {
+            event_target:infestation_target = {
+                province_event = { id = infestation.1 days = 30 random = 5 }
+            }
+            province_event = { id = infestation.0 } # spawn a monster here
+        }
+    }
+}
+
+# set up our event chain by abusing an existing country with a known colonized province
+# 524 is owned by magesterium, tag A85, in 1444, and should always be owned by someone
+# we do it this way so that the check only happens once at game start
+# after which every subsequent event is scoped to a single province
+country_event = {
+    id = infestation.2
+    title = infestation.2.t
+    desc = infestation.2.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    fire_only_once = yes
+    hidden = yes
+    #major = yes
+    is_triggered_only = yes
+    
+    mean_time_to_happen = { 
+        days = 1
+    }
+    trigger = {
+        owns = 524
+    }
+    
+    immediate = {
+        random_province = {
+            limit = {
+                is_city = yes # no infestations in sea tiles, uncolonized land, wasteland
+                NOT = { has_province_flag = infestation_present }
+            }
+            save_event_target_as = infestation_target
+        }
+    }
+    option = {
+        ai_chance = { factor = 100 }
+        hidden_effect = {
+            event_target:infestation_target = {
+                province_event = { id = infestation.1 days = 30 random = 5 }
+            }
+        }
+    }
+}
+ 
+    
+    
+
+# a debug event, to find province where infestation has spawned
+# allowing you to tag switch to them and play it out
+country_event = {
+    id = infestation.1000
+    title = infestation.1000.t
+    desc = infestation.1000.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    is_triggered_only = yes
+    
+    mean_time_to_happen = {
+        days = 1
+    }
+    
+    trigger = {
+    
+    }
+    
+    immediate = {
+        random_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target1
+        }
+        random_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target2
+        }        
+        random_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target3
+        }
+        random_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target4
+        }
+        random_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target5
+        }
+    }
+    option = {
+        name = infestation.1000.a
+        goto = infested_target1
+    }
+    option = {
+        name = infestation.1000.a
+        goto = infested_target2
+    }
+    option = {
+        name = infestation.1000.a
+        goto = infested_target3
+    }
+    option = {
+        name = infestation.1000.a
+        goto = infested_target4
+    }
+    option = {
+        name = infestation.1000.a
+        goto = infested_target5
+    }
+}
+
+# same debug event, limited to owned provinces, to find province where infestation has spawned
+# allowing you to tag switch to them and play it out
+country_event = {
+    id = infestation.1001
+    title = infestation.1001.t
+    desc = infestation.1001.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    is_triggered_only = yes
+    
+    mean_time_to_happen = {
+        days = 1
+    }
+    
+    trigger = {
+    
+    }
+    
+    immediate = {
+        random_owned_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target1
+        }
+        random_owned_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target2
+        }        
+        random_owned_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target3
+        }
+        random_owned_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target4
+        }
+        random_owned_province = {
+            limit = {
+                has_province_flag = infestation_present
+            }
+            save_event_target_as = infested_target5
+        }
+    }
+    option = {
+        name = infestation.1001.a
+        goto = infested_target1
+    }
+    option = {
+        name = infestation.1001.a
+        goto = infested_target2
+    }
+    option = {
+        name = infestation.1001.a
+        goto = infested_target3
+    }
+    option = {
+        name = infestation.1001.a
+        goto = infested_target4
+    }
+    option = {
+        name = infestation.1001.a
+        goto = infested_target5
+    }
+}
+
+
+# cleanup event - call for any reason on any province to remove all trace of infestation
+# when creating a new infestation type, make sure you add its cleanup event to this list
+province_event = {
+    id = infestation.2000
+    title = infestation.2000.t
+    desc = infestation.2000.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    is_triggered_only = yes
+    hidden = yes
+    
+    option = {
+        ai_chance = { factor = 100 }
+        province_event = { id = infestation_goblin.2000 }
+        province_event = { id = infestation_dragon_merathis.2000 }
+    }
+}
