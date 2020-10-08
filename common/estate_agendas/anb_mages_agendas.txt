@@ -66,7 +66,7 @@ estate_mages_fire_advisor = {
 	invalid_trigger = {
 		NOT = {
 			employed_advisor = {
-				type = court_mage
+				category = ADM
 			}
 		}
 		NOT = { has_country_flag = just_fired_adm_advisor }
@@ -2130,16 +2130,59 @@ estate_mages_ally_pro_mage_countries = {
 	can_select = {
 		is_at_war = no
 		num_of_free_diplomatic_relations = 1
+		OR = { #only valid for non-subjects or subjects who are able to ally
+			is_subject = no
+			is_subject_of_type = great_daimyo_vassal
+			is_subject_of_type = daimyo_vassal
+			is_subject_of_type = daimyo_xiaken_vassal
+			is_subject_of_type = tributary_state
+		}
 		any_known_country = {
-			has_estate = estate_mages
+			has_estate = estate_mages # has loyal mages
 			estate_loyalty = {
 				estate = estate_mages
 				loyalty = 60
 			}
-			NOT = { war_with = ROOT }
-			NOT = { is_rival = ROOT }
-			has_opinion = { who = ROOT value = -50 }
-			NOT = { alliance_with = ROOT }
+			NOT = { war_with = ROOT } # not currently at war
+			NOT = { is_rival = ROOT } # not an enemy
+			NOT = { ROOT = { is_rival = PREV } } # not a rival
+			has_opinion = { who = ROOT value = -50 } # not awful relations
+			NOT = { alliance_with = ROOT } # not already allied
+			NOT = { # target is within 100 distance
+				border_distance = {
+					who = ROOT
+					distance = 100
+				}
+			}
+			OR = { 
+				AND = { # Case 1: Country is not in the Raj
+					OR = { # target is not a subject or is a tributary (is not in the Raj)
+						is_subject = no
+						is_subject_of_type = tributary_state
+					}
+					ROOT = { # Country is not in the Raj
+						AND = { 
+							NOT = {	is_subject_of_type = great_daimyo_vassal }
+							NOT = { is_subject_of_type = daimyo_vassal }
+							NOT = { is_subject_of_type = daimyo_xiaken_vassal }
+						}
+					}
+				}
+				AND = { # Case 2: Country is in the Raj
+					ROOT = { # Country is in the Raj
+						OR = {
+							is_subject_of_type = great_daimyo_vassal
+							is_subject_of_type = daimyo_vassal
+							is_subject_of_type = daimyo_xiaken_vassal
+						}
+					}
+					OR = { # target is also in the Raj
+						is_subject_of_type = great_daimyo_vassal
+						is_subject_of_type = daimyo_vassal
+						is_subject_of_type = daimyo_xiaken_vassal
+					}
+				}
+			}
 		}
 	}
 	selection_weight = {
@@ -2160,8 +2203,44 @@ estate_mages_ally_pro_mage_countries = {
 				}
 				NOT = { war_with = ROOT }
 				NOT = { is_rival = ROOT }
+				NOT = { ROOT = { is_rival = PREV } }
 				has_opinion = { who = ROOT value = -50 }
 				NOT = { alliance_with = ROOT }
+				NOT = {
+					border_distance = {
+						who = ROOT
+						distance = 100
+					}
+				}
+				OR = { 
+					AND = {
+						OR = {
+							is_subject = no
+							is_subject_of_type = tributary_state
+						}
+						ROOT = {
+							AND = { 
+								NOT = {	is_subject_of_type = great_daimyo_vassal }
+								NOT = { is_subject_of_type = daimyo_vassal }
+								NOT = { is_subject_of_type = daimyo_xiaken_vassal }
+							}
+						}
+					}
+					AND = {
+						ROOT = {
+							OR = {
+								is_subject_of_type = great_daimyo_vassal
+								is_subject_of_type = daimyo_vassal
+								is_subject_of_type = daimyo_xiaken_vassal
+							}
+						}
+						OR = { 
+							is_subject_of_type = great_daimyo_vassal
+							is_subject_of_type = daimyo_vassal
+							is_subject_of_type = daimyo_xiaken_vassal
+						}
+					}
+				}
 			}
 			save_event_target_as = agenda_country
 		}
@@ -2169,8 +2248,9 @@ estate_mages_ally_pro_mage_countries = {
 	fail_if = {
 		event_target:agenda_country = {
 			OR = {
-				war_with = ROOT
-				exists = no
+				war_with = ROOT #can't ally at war
+				exists = no     #can't rival nonexistent
+				is_rival = ROOT #can't ally rival
 			}
 		}
 	}
@@ -2182,17 +2262,8 @@ estate_mages_ally_pro_mage_countries = {
 	provinces_to_highlight = {
 		is_capital_of = event_target:agenda_country
 	}
-	task_requirements = {
+	task_requirements = { #Only need alliance to succeed, don't care about the state of mages at the time of the alliance
 		alliance_with = event_target:agenda_country
-	}
-	task_requirements = {
-		any_ally = {
-			has_estate = estate_mages
-			estate_loyalty = {
-				estate = estate_mages
-				loyalty = 60
-			}
-		}
 	}
 	task_completed_effect = {
 		add_estate_loyalty = {
@@ -2375,7 +2446,7 @@ estate_mages_build_mage_tower_in_y = {
 		adm_tech = 3
 		any_owned_province = {
 			is_state_core = root
-			NOT = { has_building = mage_tower }
+			has_no_manufactory_trigger = yes
 			OR = {
 				development = 10
 				is_capital = yes

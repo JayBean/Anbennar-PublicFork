@@ -551,7 +551,7 @@ NCountry = {
 	PARLIAMENT_CHANCE_OF_DECISION = 10,			-- % Chance debate is ended after PARLIAMENT_DEBATE_DURATION
 
 	ALLOW_FEMALE_GENERALS = 0,
-	FEMALE_ADVISOR_CHANCE = 2,						-- If Women in History is enabled, chance of an advisor (or general if permitted) spawning as female
+	FEMALE_ADVISOR_CHANCE = 10,						-- If Women in History is enabled, chance of an advisor (or general if permitted) spawning as female
 	MAX_IDEA_GROUPS_FROM_SAME_CATEGORY = 0.5,
 
 	RANDOM_LUCKY_BASE_WEIGHT = 100,					-- Base weight given to each nation when rolling for random lucky
@@ -595,9 +595,9 @@ NCountry = {
 	LAND_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	NAVAL_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	REPUBLICAN_TRADITION_YEARLY_INCREASE = 1,		-- how much it increases each year.
-	PIETY_PERCENTAGE_AT_NEW_RULER = 0.25,			-- percentage of piety kept at new ruler.
-	PIETY_INCREASE_AT_GOOD_WAR = 0.25,
-	PIETY_DECREASE_AT_BAD_WAR = -0.33,
+	PIETY_PERCENTAGE_AT_NEW_RULER = 0.0,			-- percentage of piety kept at new ruler.
+	PIETY_INCREASE_AT_GOOD_WAR = -0.10,
+	PIETY_DECREASE_AT_BAD_WAR = -0.10,
 	ADVISOR_COST_INCREASE_PER_YEAR = 0.005,			-- yearly increase in price in percent,
 	SCRIPTED_ADVISOR_DISCOUNT = 0.5,				-- Multiplier on cost for advisors scripted with discount=yes
 	MINIMUM_ADVISOR_DURATION = 10, 					-- _CDEF_MINIMUM_ADVISOR_DURATION_
@@ -1705,7 +1705,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEDGES = 2,
+	ESTATE_MAX_PRIVILEDGES = 4,
 
 },
 
