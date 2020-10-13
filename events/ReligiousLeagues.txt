@@ -60,6 +60,102 @@ country_event = {
 			set_hre_heretic_religion = regent_court
 			set_hre_religion = corinite
 			set_hre_religion_locked = yes			
+			
+			#Check whether Dissensions among the Reformers incident should happen
+			#Needs 2/3 of the Empire to be owned by Reformed princes
+		#	while = {
+		#		limit = {
+		#			any_province = {
+		#				is_part_of_hre = yes
+		#				owner = {
+		#					is_part_of_hre = yes
+		#					religion = reformed
+		#				}
+		#				NOT = { has_province_flag = hre_post_leaguewar_reformed_owned }
+		#			}
+		#		}
+		#		1 = { #Stockholm is the global variable substitute
+		#			change_variable = {
+		#				which = reformed_hre_member_provinces
+		#				value = 1
+		#			}
+		#		}
+		#		random_province = {
+		#			limit = {
+		#				is_part_of_hre = yes
+		#				owner = {
+		#					is_part_of_hre = yes
+		#					religion = reformed
+		#				}
+		#				NOT = { has_province_flag = hre_post_leaguewar_reformed_owned }
+		#			}
+		#			set_province_flag = hre_post_leaguewar_reformed_owned
+		#		}
+		#	}
+		#	while = {
+		#		limit = {
+		#			any_province = {
+		#				is_part_of_hre = yes
+		#				owner = {
+		#					is_part_of_hre = yes
+		#					NOT = { religion = reformed }
+		#				}
+		#				NOT = { has_province_flag = hre_post_leaguewar_non_reformed_owned }
+		#			}
+		#		}
+		#		1 = {
+		#			change_variable = {
+		#				which = non_reformed_hre_member_provinces
+		#				value = 1
+		#			}
+		#		}
+		#		random_province = {
+		#			limit = {
+		#				is_part_of_hre = yes
+		#				owner = {
+		#					is_part_of_hre = yes
+		#					NOT = { religion = reformed }
+		#				}
+		#				NOT = { has_province_flag = hre_post_leaguewar_non_reformed_owned }
+		#			}
+		#			set_province_flag = hre_post_leaguewar_non_reformed_owned
+		#		}
+		#	}
+		#	every_province = {
+		#		limit = {
+		#			is_part_of_hre = yes
+		#		}
+		#		clr_province_flag = hre_post_leaguewar_non_reformed_owned
+		#		clr_province_flag = hre_post_leaguewar_reformed_owned
+		#	}
+		#	1 = {
+		#		set_variable = {
+		#			which = reformed_others_member_provinces_ratio
+		#			which = reformed_hre_member_provinces
+		#		}
+		#		divide_variable = {
+		#			which = reformed_others_member_provinces_ratio
+		#			which = non_reformed_hre_member_provinces
+		#		}
+		#		if = {
+		#			limit = {
+		#				check_variable = {
+		#					which = reformed_others_member_provinces_ratio
+		#					value = 1.1
+		#				}
+		#			}
+		#			set_global_flag = incident_reformer_dissension_can_happen
+		#		}
+		#		if = {
+		#			limit = {
+		#				check_variable = {
+		#					which = reformed_others_member_provinces_ratio
+		#					value = 2
+		#				}
+		#			}
+		#			set_global_flag = incident_reformer_dissension_high_chance
+		#		}
+		#	}
 		}
 	}
 
@@ -70,7 +166,32 @@ country_event = {
 			set_hre_religion = corinite	
 			set_hre_religion_locked = yes			
 		}
+	#	if = {
+	#		limit = {
+	#			has_dlc = "Emperor"
+	#			has_global_flag = incident_reformer_dissension_can_happen
+	#		}
+	#		custom_tooltip = incident_reformer_dissension_can_happen_tt
+	#		set_imperial_incident = incident_reformer_dissension
+	#	}
 	}
+
+	#after = {
+	#	1 = {
+	#		set_variable = {
+	#			which = non_reformed_hre_member_provinces
+	#			value = 0
+	#		}
+	#		set_variable = {
+	#			which = reformed_hre_member_provinces
+	#			value = 0
+	#		}
+	#		set_variable = {
+	#			which = reformed_others_member_provinces_ratio
+	#			value = 0
+	#		}
+	#	}
+	#}
 }
 
 # Victory of the Adeanic League
@@ -97,7 +218,7 @@ country_event = {
 		hidden_effect = {
 			set_hre_heretic_religion = corinite
 			set_hre_religion = regent_court
-			set_hre_religion_locked = yes			
+			set_hre_religion_locked = yes	
 		}
 	}
 
@@ -160,10 +281,14 @@ country_event = {
 		#has_global_flag = counter_reformation
 		any_known_country = {
 			is_elector = yes
-			religion = corinite
+			OR = {
+				religion = corinite
+				religion = ravelian
+			}
 			is_free_or_tributary_trigger = yes
 		}
-		NOT = { hre_reform_level = 6 }
+		NOT = { hre_reform_passed = erbkaisertum }
+		NOT = { has_global_flag = great_peasants_war_flag }
 	}
 	
 	mean_time_to_happen = {
@@ -217,7 +342,10 @@ country_event = {
 				NOT = {
 					any_known_country = {
 						is_elector = yes
-						religion = corinite
+						OR = {
+							religion = corinite
+							religion = ravelian
+						}
 						is_league_enemy = ROOT
 						truce_with = ROOT
 					}		
@@ -320,6 +448,46 @@ country_event = {
 		name = "religious_leagues.8.a"
 		tooltip = { 
 			set_hre_religion_locked = yes 
+		}
+	}
+}
+
+#Anbennar
+# The Emperor removes Corinite reformation centers
+country_event = {
+	id = religious_leagues.9
+	title = "religious_leagues.9.t"
+	desc = "religious_leagues.9.d"
+	picture = RELIGIOUS_WARS_eventPicture
+	major = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Art of War"
+	}
+
+	option = {
+		name = "religious_leagues.9.a" #don't remove centers
+		ai_chance = {
+			factor = 0
+		}
+	}
+	option = {
+		name = "religious_leagues.9.b" #remove centers
+		custom_tooltip = remove_centers_tooltip
+		ai_chance = {
+			factor = 90
+		}
+		add_country_modifier = {
+			name = "removed_corinite_centers"
+			duration = 10950
+		}
+		europe = {
+			limit = {
+				is_part_of_hre = yes
+			}
+			remove_reform_center = corinite
 		}
 	}
 }

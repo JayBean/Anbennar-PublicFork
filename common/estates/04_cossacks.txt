@@ -1,22 +1,39 @@
 estate_cossacks = {
 	icon = 4
 	
-	color = { 200 150 150 }
-	
 	# Used for when declaring independence
 	independence_government = tribal
 	starting_reform = steppe_horde
 	independence_tech_group = nomad_group
-	independence_trigger = {
-		OR = { 		
+
+	province_independence_weight = {
+		factor = 1
+		modifier = {
+			factor = 2
 			has_terrain = steppe
-			has_estate = estate_cossacks
+		}
+		modifier = {
+			factor = 2
+			culture_group = east_slavic
+		}
+		modifier = {
+			factor = 0.75
+			NOT = { religion_group = christian }
+		}
+		modifier = {
+			factor = 1.5
+			NOT = { development = 10 }
+		}
+		modifier = {
+			factor = 0.75
+			development = 15
+		}
+		modifier = {
+			factor = 0.75
+			development = 20
 		}
 	}
-	
-	# Is estate kept in control of province on conquest?
-	keep_on_conquest = no
-	
+
 	# If true, country will get estate
 	
 	trigger = {	
@@ -25,39 +42,29 @@ estate_cossacks = {
 		NOT = { has_reform = cossacks_reform }
 		NOT = { has_government_attribute = is_merchant_republic }
 		NOT = { has_reform = trading_city }
+		NOT = { is_revolutionary_republic_trigger = yes }
 		NOT = { has_reform = technocracy_republic_reform }
-		NOT = { has_reform = revolutionary_republic_reform }
 		NOT = { government = native }
 		NOT = { has_reform = siberian_tribe }
 		NOT = { has_reform = veche_republic }
 		
 		NOT = { has_reform = adventurer_reform }
 		NOT = { has_country_modifier = monstrous_nation }
+		NOT = { has_reform = enlightened_empire_reform }
 		
 		is_nomad = no
 		is_colonial_nation = no
 		NOT = { has_reform = celestial_empire }
 		unit_type = eastern
 		religion_group = christian
+		NOT = { has_reform = revolutionary_empire_reform }
+		OR = {
+			has_estate = estate_cossacks
+			any_owned_province = {
+				has_terrain = steppe
+			}
+		}
 	}
-	
-	# If true, province can be granted to estate
-	province_trigger = {
-		has_terrain = steppe
-	}	
-	
-	# Giving territory affects power this much compared to base
-	territory_power_modifier = 2.0
-
-	# Is used to weigh importance compared to other estates
-	start_territory_weight = 100
-	
-	# Min autonomy in estate provinces
-	min_autonomy = 25
-	
-	# Estate cancels out the following multiplicative local autonomy effects:
-	autonomy_does_not_affect = local_manpower_modifier
-	autonomy_does_not_affect = land_forcelimit_modifier
 
 	# These scale with loyalty & power
 	country_modifier_happy = {
@@ -71,22 +78,21 @@ estate_cossacks = {
 	country_modifier_angry = {
 		cavalry_cost = 0.2
 		cavalry_power = -0.1
+		global_unrest = 2
 	}
-	
-	# These do not scale, but only applied in provinces owned by the estate
-	province_modifier_happy = {	
-		local_hostile_attrition = 1
-		local_manpower_modifier = 0.2
+	land_ownership_modifier = {
+		cossacks_loyalty_modifier = 0.2
 	}
-	province_modifier_neutral = {
-		local_hostile_attrition = 1
-	}	
-	province_modifier_angry = {
-		local_unrest = 5
-	}
-	
+
 	# Influence modifiers
 	base_influence = 0
+	influence_modifier = {
+		desc = EST_VAMPIRIC_LORD
+		trigger = {
+			has_estate_privilege = estate_vampires_organization_vampires_lord
+		}	
+		influence = -10
+	}
 	influence_modifier = {
 		desc = EST_STEPPE_PROVINCES
 		trigger = {
@@ -104,13 +110,15 @@ estate_cossacks = {
 				has_disaster = estate_nobility_disaster
 				has_disaster = estate_church_disaster
 				has_disaster = estate_burghers_disaster
-				has_disaster = estate_brahmins_disaster
-				has_disaster = estate_vaisyas_disaster
-				has_disaster = estate_jains_disaster
+				# has_disaster = estate_brahmins_disaster
+				# has_disaster = estate_vaisyas_disaster
+				# has_disaster = estate_jains_disaster
 			}
 		}
 		influence = -40
 	}
+
+	influence_from_dev_modifier = 2.0
 	
 	loyalty_modifier = {
 		desc = EST_VAL_OTHER_ESTATE_IN_POWER_LOY
@@ -119,724 +127,38 @@ estate_cossacks = {
 				has_disaster = estate_nobility_disaster
 				has_disaster = estate_church_disaster
 				has_disaster = estate_burghers_disaster
-				has_disaster = estate_brahmins_disaster
-				has_disaster = estate_vaisyas_disaster
-				has_disaster = estate_jains_disaster
+				#has_disaster = estate_brahmins_disaster
+				#has_disaster = estate_vaisyas_disaster
+				#has_disaster = estate_jains_disaster
 			}
 		}
 		loyalty = -20
 	}
-	
-	# For province assignment
-	ai_grant_province = {
-		factor = 10		
-		modifier = {
-			factor = 4
-			local_autonomy = 25
-		}
-		modifier = {
-			factor = 0.25
-			NOT = { local_autonomy = 25 }
-		}
-	}	
-	
-	# Does the AI want to give any extra territory beyond the minimum?
-	ai_territory_modifier = {
-		trigger = {
-			always = yes
-		}	
-		value = 100	# Code has a sanity check against pushing influence too high
+
+	privileges = {
+		estate_cossacks_land_rights
+		estate_cossacks_exploration_expedition
+		estate_cossacks_cossack_self_governance
+		estate_cossacks_establish_the_cossack_regiments
+		estate_cossacks_expand_the_cossack_regiments
+		estate_cossacks_recruit_cossack_generals
+		estate_cossacks_prime_herding_rights
 	}
 
-	#Interactions
-	interaction = {
-		name = "EXPAND_COSSACK_REGISTRY"
-		icon = 17
-		
-		years_between_use = 20
-		
-		trigger = {
-			any_owned_province = {
-				has_terrain = steppe
-			}
-		}
-		
-		effect = {
-			add_prestige = -5
-			add_estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = 10
-			}
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_COSSACK_REGISTER_EXPANDED
-				influence = 10
-				duration = 7300
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				estate_influence = {
-					estate = estate_cossacks
-					influence = 60
-				}				
-			}
-			modifier = {
-				factor = 0
-				estate_loyalty = {
-					estate = estate_cossacks
-					loyalty = 30
-				}				
-			}			
-		}
+	agendas = {
+		estate_cossacks_develop_x
+		estate_cossacks_three_privileges
+		estate_cossacks_reply_of_the_zaporozhian
+		estate_cossacks_expand_into_x
+		estate_cossacks_complete_conquest_of_x
+		estate_cossacks_colonise_X
+		estate_cossacks_go_privateering
+		estate_cossacks_go_privateering_2
+		estate_cossacks_despoil_x
+		estate_cossacks_recruit_more_cossacks
+		estate_cossacks_hire_advisor
+		estate_cossacks_fire_advisor
 	}
-	
-	interaction = {
-		name = "RAISE_COSSACK_HOST"
-		icon = 13
-		
-		years_between_use = 5
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
-		}
-		
-		trigger = {
-			estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = 50
-			}
-			estate_influence = {
-				estate = estate_cossacks
-				influence = 40
-			}
-			custom_trigger_tooltip = {
-				tooltip = tooltip_own_cossack_province
-				any_owned_province = {
-					has_estate = estate_cossacks
-				}
-			}
-		}
-		
-		effect = {
-			random_owned_province = {
-				limit = { has_estate = estate_cossacks }
-				cossack_cavalry = ROOT
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 2
-								has_estate = estate_cossacks
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 3
-								has_estate = estate_cossacks
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 4
-								has_estate = estate_cossacks
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 5
-								has_estate = estate_cossacks
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 6
-								has_estate = estate_cossacks
-							}
-							estate_influence = {
-								estate = estate_cossacks
-								influence = 60
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 7
-								has_estate = estate_cossacks
-							}
-							estate_influence = {
-								estate = estate_cossacks
-								influence = 60
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 8
-								has_estate = estate_cossacks
-							}
-							estate_influence = {
-								estate = estate_cossacks
-								influence = 60
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 9
-								has_estate = estate_cossacks
-							}
-							estate_influence = {
-								estate = estate_cossacks
-								influence = 60
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-				if = {
-					limit = {
-						owner = {
-							num_of_owned_provinces_with = {
-								value = 10
-								has_estate = estate_cossacks
-							}
-							estate_influence = {
-								estate = estate_cossacks
-								influence = 60
-							}
-						}
-					}
-					cossack_cavalry = ROOT
-				}
-			}
-			add_estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = -15
-			}
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_RAISED_COSSACK_HOST
-				influence = 10
-				duration = 1825
-			}
-			custom_tooltip = raise_cossack_host_tooltip
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				estate_influence = {
-					estate = estate_cossacks
-					influence = 70
-				}				
-			}
-			modifier = {
-				factor = 0
-				ai_wants_raise_cossack = no
-			}	
-		}
-	}
-	interaction = {
-		name = "COSSACK_CONQUISTADOR" #Led important exploration expeditions into Siberia
-		icon = 19
-		
-		years_between_use = 30
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
 
-			OR = {
-				has_idea_group = exploration_ideas
-				has_idea = siberian_frontier
-			}
-		}
-		
-		trigger = {
-			estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = 50
-			}
-			estate_influence = {
-				estate = estate_cossacks
-				influence = 40
-			}
-		}
-		effect = {
-			create_conquistador = 40		
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_COSSACK_CONQUISTADOR
-				influence = 20
-				duration = 10950
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0			
-		}
-	}
-	interaction = {
-		name = "RECRUIT_MINISTER"
-		icon = 10
-		
-		years_between_use = 30
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
-		}
-		
-		trigger = {
-			estate_influence = {
-				estate = estate_cossacks
-				influence = 40
-			}
-		}
-		
-		effect = {
-			hidden_effect = {
-				random_owned_province = {
-					limit = {
-						has_estate = estate_cossacks
-					}
-					save_event_target_as = estate_estate_province
-				}
-			}
-			if = {
-				limit = {
-					monthly_income = 25
-					has_saved_event_target = estate_estate_province
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 80
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-					cost_multiplier = 0.5
-				}
-			}
-			else_if = {
-				limit = {
-					monthly_income = 25
-					NOT = { has_saved_event_target = estate_estate_province }
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 80
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-					cost_multiplier = 0.5
-				}
-			}
-			else_if = {
-				limit = {
-					monthly_income = 25
-					has_saved_event_target = estate_estate_province
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 60
-					}
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 80
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-					cost_multiplier = 0.75
-				}
-			}
-			else_if = {
-				limit = {
-					monthly_income = 25
-					NOT = { has_saved_event_target = estate_estate_province }
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 60
-					}
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 80
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-					cost_multiplier = 0.75
-				}
-			}
-			else_if = {
-				limit = {
-					monthly_income = 25
-					has_saved_event_target = estate_estate_province
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 60
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-				}
-			}
-			else_if = {
-				limit = {
-					monthly_income = 25
-					NOT = { has_saved_event_target = estate_estate_province }
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 60
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 3
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					has_saved_event_target = estate_estate_province
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 80
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-					cost_multiplier = 0.5
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-					
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					NOT = { has_saved_event_target = estate_estate_province }
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 80
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-					cost_multiplier = 0.5
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					has_saved_event_target = estate_estate_province
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 60
-					}
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 80
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-					cost_multiplier = 0.75
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-					
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					NOT = { has_saved_event_target = estate_estate_province }
-					estate_influence = {
-						estate = estate_cossacks
-						influence = 60
-					}
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 80
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-					cost_multiplier = 0.75
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					has_saved_event_target = estate_estate_province
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 60
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-					culture = event_target:estate_estate_province
-					religion = event_target:estate_estate_province
-					location = event_target:estate_estate_province
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { monthly_income = 25 }
-					NOT = { has_saved_event_target = estate_estate_province }
-					NOT = {
-						estate_influence = {
-							estate = estate_cossacks
-							influence = 60
-						}
-					}
-				}
-				define_advisor = {
-					type = army_reformer
-					skill = 2
-				}
-			}
-			
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_COSSACKS_MINISTER
-				influence = 20
-				duration = 10950
-			}
-			add_estate_loyalty = {
-				estate = estate_nobles
-				loyalty = -15 #Taking offense to a cossack being used in government
-			}
-		}
-		
-		ai_will_do = {
-			factor = 0			
-		}
-	}	
-	interaction = {
-		name = "CONSCRIPT_COSSACK_ELITE"
-		icon = 20
-		
-		years_between_use = 20
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
-		}
-		
-		trigger = {
-			custom_trigger_tooltip = {
-				tooltip = tooltip_own_cossack_province
-				any_owned_province = {
-					has_estate = estate_cossacks
-				}
-			}
-		}
-		
-		effect = {
-			add_army_tradition = 10
-			add_estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = -15
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				NOT = {
-					estate_loyalty = {
-						estate = estate_cossacks
-						loyalty = 60
-					}
-				}
-			}			
-		}		
-	}
-	interaction = {
-		name = "SUPPLY_ARMS"
-		icon = 21
-		
-		years_between_use = 20
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
-		}
-		
-		trigger = {
-			custom_trigger_tooltip = {
-				tooltip = tooltip_own_cossack_province
-				any_owned_province = {
-					has_estate = estate_cossacks
-				}
-			}
-		}
-		
-		effect = {
-			add_mil_power = -15
-			add_country_modifier = {
-				name = "armed_cossacks"
-				duration = 7300
-			}
-			add_estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = 5
-			}
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_SUPPLY_ARMS
-				influence = 15
-				duration = 7300
-			}
-		}
-		
-		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 0
-				estate_influence = {
-					estate = estate_cossacks
-					influence = 60
-				}
-			}
-		}	
-	}	
-	interaction = {
-		name = "PERMIT_SELF_GOVERNANCE"
-		icon = 22
-		
-		years_between_use = 10
-		
-		potential = {
-			NOT = { has_disaster = estate_burghers_disaster }
-			NOT = { has_disaster = estate_church_disaster }
-			NOT = { has_disaster = estate_nobility_disaster }
-			NOT = { current_age = age_of_absolutism }
-			NOT = { current_age = age_of_revolutions }
-			any_owned_province = {
-				has_estate = estate_cossacks
-			}
-		}
-		
-		trigger = {
-			NOT = { current_age = age_of_absolutism }
-			NOT = { current_age = age_of_revolutions }
-			custom_trigger_tooltip = {
-				tooltip = tooltip_own_cossack_province
-				any_owned_province = {
-					has_estate = estate_cossacks
-				}
-			}
-		}
-		
-		effect = {
-			every_owned_province = {
-				limit = {
-					has_estate = estate_cossacks
-				}
-				add_local_autonomy = 10
-			}
-			add_estate_loyalty = {
-				estate = estate_cossacks
-				loyalty = 5
-			}
-			add_estate_influence_modifier = {
-				estate = estate_cossacks
-				desc = EST_VAL_SELF_GOVERNANCE
-				influence = 15
-				duration = 7300
-			}
-		}
-		
-		ai_will_do = {
-			factor = 1
-			modifier = {
-				factor = 0
-				estate_loyalty = {
-					estate = estate_cossacks
-					loyalty = 40
-				}
-			}			
-		}		
-	}
+	color = { 200 150 150 }
 }

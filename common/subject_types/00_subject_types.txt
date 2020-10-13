@@ -33,6 +33,7 @@ vassal = {}
 march = {}
 daimyo_vassal = {}
 great_daimyo_vassal = {}
+daimyo_xiaken_vassal = {}
 personal_union = {}
 client_vassal = {}
 client_march = {}
@@ -97,6 +98,7 @@ default = {
 	liberty_desire_negative_prestige = 0.0
 	liberty_desire_development_ratio = 0.0
 	liberty_desire_same_dynasty = 0.0
+	liberty_desire_revolution = 30.0					# Liberty desire at 100% revolution spread in country
 	pays_overlord = 0.0									# 1.0 represents the amount payed by vassals
 	forcelimit_bonus = 0.0								# 1.0 represents bonus from having a vassal
 	forcelimit_to_overlord = 0.0						# Percent of subject FL to use as base for modifiers
@@ -151,6 +153,8 @@ default = {
 	return_land = no
 	conscript_general = no
 	knowledge_sharing = yes
+	block_settlement_growth = yes
+	allow_settlement_growth = yes
 	# (special)
 	sword_hunt = no
 	sankin_kotai = no
@@ -263,17 +267,17 @@ daimyo_vassal = {
 	# Properties:
 	has_power_projection = yes
 	takes_diplo_slot = no
-	joins_overlords_wars = no
 	gives_daimyo_bonuses = yes
 	gets_help_with_rebels = no
+	joins_overlords_wars = no
 	separatists_become_subjects = yes
 	allows_taking_land_without_independence = yes
 	can_use_claims = no
-	max_government_rank = 2
 
 	trust_on_start = 0
 	
-	base_liberty_desire = 15.0
+	base_liberty_desire = 10.0
+	pays_overlord = 1.2
 	military_focus = 1.2
 
 	relative_power_class = 1
@@ -309,7 +313,7 @@ daimyo_vassal = {
 	contribute_to_capital = yes
 	## force_isolation = yes #No isolation in Anbennar
 	return_land = yes
-	## conscript_general = yes #Because of battlemages
+	## conscript_general = yes #because of war wizards
 	#(special)
 	sword_hunt = yes
 	sankin_kotai = yes
@@ -430,6 +434,84 @@ great_daimyo_vassal = {
 	}
 }
 
+#Anbennar
+daimyo_xiaken_vassal = {
+	copy_from = vassal
+	count = vassal
+	
+	# Properties:
+	has_power_projection = yes
+	takes_diplo_slot = no
+	gives_daimyo_bonuses = yes
+	gets_help_with_rebels = no
+	separatists_become_subjects = yes
+	allows_taking_land_without_independence = yes
+	can_use_claims = no
+
+	trust_on_start = 0
+	
+	base_liberty_desire = 10.0
+	military_focus = 1.2
+
+	relative_power_class = 1
+
+	can_fight = {
+		same_overlord = daimyo_xiaken_vassal
+		#same_overlord = great_daimyo_vassal
+	}
+	can_rival = {
+		same_overlord = daimyo_xiaken_vassal
+		#same_overlord = great_daimyo_vassal
+	}
+	can_ally = {
+		same_overlord = daimyo_xiaken_vassal
+		#same_overlord = great_daimyo_vassal
+	}
+	can_marry = {
+		same_overlord = daimyo_xiaken_vassal
+		#same_overlord = great_daimyo_vassal
+	}
+	
+	# Subject Interactions
+	#(disable)
+	scutage = no
+	grant_core_claim = yes
+	grant_province = yes
+	place_relative_on_throne = no
+	enforce_religion = no
+	enforce_culture = no
+	seize_territory = no
+	#(enable)
+	force_seppuku = yes
+	contribute_to_capital = yes
+	## force_isolation = yes #No isolation in Anbennar
+	return_land = yes
+	## conscript_general = yes #because of war wizards
+	#(special)
+	sword_hunt = yes
+	sankin_kotai = yes
+	expel_ronin = yes
+	
+	# Modifiers
+	
+	modifier_overlord = clear #We don't want to duplicate the ones inherited from vassal
+	modifier_subject = clear #Ditto
+	modifier_subject = {
+		modifier = subject_nation
+	}
+	modifier_overlord = {
+		modifier = daimyo_subject
+	}
+	
+	
+	modifier_overlord = {
+		modifier = overlord_sword_hunt
+		trigger = {
+			has_country_modifier = subject_sword_hunt
+		}
+	}
+}
+
 personal_union = {
 	copy_from = default
 
@@ -482,6 +564,7 @@ client_vassal = {
 	created_by_overlord = yes
 
 	base_liberty_desire = -25.0
+	liberty_desire_revolution = 0
 
 	# Subject Interactions:
 	customize_subject = yes
@@ -499,6 +582,7 @@ client_march = {
 	created_by_overlord = yes
 
 	base_liberty_desire = -40.0
+	liberty_desire_revolution = 0
 
 	# Subject Interactions:
 	customize_subject = yes
@@ -581,11 +665,10 @@ tributary_state = {
 		NOT = { 
 			is_subject_of_type = tributary_state
 		}
+		NOT = { has_country_modifier = hobgoblin_administration }
 		OR = {
 			has_reform = celestial_empire
-			is_nomad = yes
-			religion_group = eastern
-			has_country_modifier = monstrous_nation
+			culture_group = gnollish
 		}
 	}
 	
@@ -711,6 +794,7 @@ autonomous_vassal = {
 	liberty_desire_same_dynasty = -10.0
 	pays_overlord = 0.35 								#1.0 Is what vassal pays
 	relative_power_class = 2 							#Same as vassal
+	liberty_desire_revolution = 10.0
 	
 	# Subject Interactions:
 	scutage = no
@@ -783,12 +867,11 @@ slave_state = {
 	can_have_subjects_of_other_types = yes
 	can_be_annexed = no
 	takes_diplo_slot = yes
-	has_power_projection = yes
 	can_release_in_peace = yes
 	counts_for_borders = yes
 	overlord_enforce_peace_attacking = yes
 	can_use_claims = yes
-	gets_help_with_rebels = no
+	gets_help_with_rebels = yes
 	share_rebel_popup = no
 	separatists_become_subjects = no
 	allows_taking_land_without_independence = no
@@ -805,26 +888,13 @@ slave_state = {
 	liberty_desire_negative_prestige = 0.25
 	liberty_desire_development_ratio = 0.25
 	pays_overlord = 1.5									# 1.0 represents the amount payed by vassals
-	forcelimit_bonus = 1.25								# 1.0 represents bonus from having a vassal
-	forcelimit_to_overlord = 0.5						# Percent of subject FL to use as base for modifiers
-	military_focus = 1.0								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
+	forcelimit_bonus = 1								# 1.0 represents bonus from having a vassal
+	forcelimit_to_overlord = 0.25					# Percent of subject FL to use as base for modifiers
+	military_focus = 1.5								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
+	liberty_desire_revolution = 0.0
 
 	relative_power_class = 1 							# See description above
 	diplomacy_view_class = 1							# See description above
-
-	
-	can_fight = {
-		independent_nations = yes
-		other_overlord = all
-	}
-	can_rival = {
-		independent_nations = yes
-		other_overlord = all
-	}
-	can_marry = {
-		independent_nations = yes
-		other_overlord = all
-	}
 	
 	# Modifiers:
 	overlord_opinion_modifier = is_vassal
@@ -834,21 +904,7 @@ slave_state = {
 	modifier_subject = clear
 	
 	modifier_overlord = {
-		modifier = hobgoblin_orcish_advance_guard
-		trigger = {
-			tag = R63 # Thunderfist Clan
-			is_subject_of = R62 # The Command
-		}
-	}
-	modifier_overlord = {
-		modifier = hobgoblin_greenshade_spies
-		trigger = {
-			tag = R64 # Greenshade Clan
-			is_subject_of = R62 # The Command
-		}
-	}
-	modifier_overlord = {
-		modifier = hobgoblin_goblin_hunters
+		modifier = hobgoblin_riches_of_jade_mines
 		trigger = {
 			tag = R65 # Blackstep Clan
 			is_subject_of = R62 # The Command
@@ -857,7 +913,7 @@ slave_state = {
 	modifier_overlord = {
 		modifier = hobgoblin_riches_of_jade_mines
 		trigger = {
-			tag = R66 # Earthsplitter Clan
+			tag = R66 # Stolen Gem Clan
 			is_subject_of = R62 # The Command
 		}
 	}
