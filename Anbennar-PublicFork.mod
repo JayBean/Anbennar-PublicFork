@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-DukeJorgas"
+path="mod/anbennar-eu4-dukejorgas-build2"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
