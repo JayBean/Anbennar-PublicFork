@@ -1,0 +1,652 @@
+namespace = girl_in_the_forest
+
+# some flag descriptions
+# girl_in_the_forest = flag attached to girl when heir/ruler
+# girl_in_the_forest = flat attached to country where event chain is active
+# girl_in_the_forest_started = global flag to prevent event from spawning more than once
+# girl_in_the_forest_parent = attached to ruler when they spawn the girl
+# occupied_advisors = country modifier with increased advisor costs during event chain
+# quest_for_new_heir = ruler modifier, temporary 50% fertility bonus
+# gitf_he, gitf_e, gitf_h = event flags for province selection during event #8
+
+# spawn daughter if near the forest. Special event cause we need to save her name.
+# basically cribbed from dynastic_events.2 and dynastic_events.3
+country_event = {
+	id = girl_in_the_forest.0
+	title = girl_in_the_forest.0.t
+	desc = girl_in_the_forest.0.d
+	picture = NEW_HEIR_eventPicture
+	
+    trigger = {
+
+		has_heir = no
+		ruler_age = 20
+		government = monarchy
+        is_lesser_in_union = no
+		NOT = {
+			has_ruler_flag = girl_in_the_forest_parent
+		}
+        NOT = {
+			has_global_flag = girl_in_the_forest_started
+		}
+		has_government_attribute = heir
+        capital_scope = { 
+            # in deepwoods or adjacent region only; this isn't going to fire for khet or lorent!
+            OR = {
+                superregion = deepwoods_superregion 
+                superregion = escann_superregion 
+                superregion = bulwar_superregion
+                superregion = west_serpentspine_superregion
+            }
+        }
+        OR = {
+            # must be in a human-ish culture group
+            culture_group = alenic
+            culture_group = bulwari
+            culture_group = dostanorian
+            culture_group = anbennarian
+            culture_group = escanni
+            culture_group = lencori
+        }
+        any_owned_province = {
+            OR = {
+                # either in the deepwoods or bordering it
+                superregion = deepwoods_superregion
+                province_id = 509 # Mestikis...
+                province_id = 450 # Lorest's Watch
+                province_id = 813 # Banesfork
+                province_id = 889 # Hornwood
+                province_id = 4060 # Kikkimig
+                province_id = 4102 # Azmak
+                province_id = 676 # Firanyalen
+                province_id = 4100 # verkal skomdihr
+            }
+        }
+	}
+	
+	mean_time_to_happen = {
+		years = 5 # pretty fast, but conditions hard to meet
+	}
+	
+    immediate = {
+		set_ruler_flag = girl_in_the_forest_parent
+        set_saved_name = { # intentionally not cleared here
+            key = girl_in_the_forest_name
+            female = yes
+            type = advisor
+            scope = ROOT
+        }
+        hidden_effect = {
+            country_event = { id = girl_in_the_forest.1 days = 2555 }
+        }
+	}
+    option = {
+		name = girl_in_the_forest.0.a
+		add_legitimacy = -10
+		define_heir = {
+		    name = girl_in_the_forest_name
+			dynasty = ROOT
+			female = yes
+			claim = 70
+			age = 0
+		}
+		set_heir_flag = girl_in_the_forest
+		set_ruler_flag = girl_in_the_forest_parent
+	}
+}
+
+# female heir vanishes into the forest
+country_event = {
+	id = girl_in_the_forest.1
+	title = girl_in_the_forest.1.t
+	desc = girl_in_the_forest.1.d
+	picture = AFRICAN_EXPLORING_JUNGLE_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+	    has_ruler_flag = girl_in_the_forest_parent
+        has_heir_flag = girl_in_the_forest
+        NOT = {
+			has_global_flag = girl_in_the_forest_started
+		}
+    }
+    immediate = {
+        # prevent additional event chains from starting
+        set_global_flag = girl_in_the_forest_started
+        set_country_flag = girl_in_the_forest
+        hidden_effect = {
+            exile_heir_as = girl_in_the_forest_exile
+            country_event = { id = girl_in_the_forest.2 days = 100 }
+            country_event = { id = girl_in_the_forest.3 days = 400 random = 400}
+            country_event = { id = girl_in_the_forest.4 days = 3650 }
+        }
+	}
+	option = {
+	    # send your advisors to search
+        name = girl_in_the_forest.1.a
+		add_country_modifier = {
+		    name = "occupied_advisors"
+		    duration = 3650
+		}
+	}
+	option = {
+	    # hire some adventurers to search
+        name = girl_in_the_forest.1.b
+		add_treasury = -100
+		add_estate_influence_modifier = {
+				estate = estate_adventurers
+				desc = girl_in_the_forest_adv_searching
+				duration = 3650
+				influence = 5
+        }
+	}
+}
+
+
+# advisors want to stop searching
+country_event = {
+	id = girl_in_the_forest.2
+	title = girl_in_the_forest.2.t
+	desc = girl_in_the_forest.2.d
+	picture = EXPLORERS_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+	    has_country_flag = girl_in_the_forest
+	    has_country_modifier = occupied_advisors
+	    has_ruler_flag = girl_in_the_forest_parent
+	}
+	
+    option = {
+	    # keep searching
+        name = girl_in_the_forest.2.a
+	}
+	option = {
+	    # it's time for adventurers
+        name = girl_in_the_forest.2.b
+		add_treasury = -100
+		add_estate_influence_modifier = {
+				estate = estate_adventurers
+				desc = girl_in_the_forest_adv_searching
+				duration = 3650
+				influence = 5
+        }
+        remove_country_modifier = occupied_advisors
+	}
+    option = {
+	    # enough
+        name = girl_in_the_forest.2.c
+        remove_country_modifier = occupied_advisors
+	}
+}
+
+# quest for new heir
+country_event = {
+	id = girl_in_the_forest.3
+	title = girl_in_the_forest.3.t
+	desc = girl_in_the_forest.3.d
+	picture = EXPLORERS_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest_parent
+	}
+	
+    option = {
+	    # what's wrong with current heir?
+	    trigger = { has_heir = yes }
+        name = girl_in_the_forest.3.a
+        add_heir_claim = 10
+	}
+    option = {
+	    # take a cousin
+	    trigger = { has_heir = no }
+        name = girl_in_the_forest.3.b
+        define_heir = {
+			dynasty = ROOT
+			claim = 40
+		}
+	}
+    option = {
+	    # get on the baby making
+        name = girl_in_the_forest.3.c
+        add_ruler_modifier = { 
+            name = quest_for_new_heir
+            duration = 3650  
+            desc = quest_for_new_heir_desc
+        }
+	}
+}
+
+# girl returns
+country_event = {
+	id = girl_in_the_forest.4
+	title = girl_in_the_forest.4.t
+	desc = girl_in_the_forest.4.d
+	picture = ACCUSATION_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest_parent
+	}
+	
+    option = {
+	    # what's wrong with current heir? event exit
+	    trigger = { has_heir = yes has_ruler_flag = girl_in_the_forest_parent }
+        name = girl_in_the_forest.4.a
+        add_heir_claim = 20
+		clr_country_flag = girl_in_the_forest
+	}
+    option = {
+	    # she shall once again be our heir
+	    trigger = { has_ruler_flag = girl_in_the_forest_parent }
+        name = girl_in_the_forest.4.b
+        define_heir = {
+		    name = girl_in_the_forest_name
+			dynasty = ROOT
+			female = yes
+			age = 17
+			adm = 5
+            dip = 5
+            mil = 5
+			claim = 70
+		}
+		set_heir_flag = girl_in_the_forest
+		hidden_effect = {
+            country_event = { id = girl_in_the_forest.5 days = 365 random = 365 }
+        }
+	}
+    option = {
+	    # she is a pretender (ruler changed, doesn't love this girl)
+	    trigger = { NOT = { has_ruler_flag = girl_in_the_forest_parent } }
+        name = girl_in_the_forest.4.c
+        random_owned_province = {
+			spawn_rebels = {
+				type = pretender_rebels
+				size = 3
+				female = yes
+				leader = girl_in_the_forest_name
+			}
+            set_country_flag = girl_in_the_forest_rebels # used in pretender.txt to enforce demands
+            hidden_effect = {
+                country_event = { id = girl_in_the_forest.9 days = 365 } # cleanup hidden event
+            }
+        }
+	}
+    option = {
+	    # she is the rightful ruler! cost same as abdicating later
+        name = girl_in_the_forest.4.e
+		add_prestige = -50
+		add_stability = -1
+		remove_heir = yes
+        define_ruler = {
+		    name = girl_in_the_forest_name
+			dynasty = ROOT
+			female = yes
+			age = 17
+			adm = 5
+            dip = 5
+            mil = 5
+			claim = 70
+		}
+		set_ruler_flag = girl_in_the_forest
+	}
+}
+
+# advisors warn of imposter - optional event, might be skipped, last chance to exit event
+country_event = {
+	id = girl_in_the_forest.5
+	title = girl_in_the_forest.5.t
+	desc = girl_in_the_forest.5.d
+	picture = EXPLORERS_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_heir_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest_parent
+	}
+    option = {
+	    # too much doubt! take a cousin. event exit
+        name = girl_in_the_forest.5.a
+        define_heir = {
+			dynasty = ROOT
+			claim = 40
+		}
+		add_prestige = -50
+		clr_country_flag = girl_in_the_forest
+	}
+    option = {
+	    # We must keep her!
+        name = girl_in_the_forest.5.b
+        add_heir_claim = -10
+        add_stability = -1
+	}
+
+}
+
+# girl in the forest becomes ruler
+country_event = {
+	id = girl_in_the_forest.6
+	title = girl_in_the_forest.6.t
+	desc = girl_in_the_forest.6.d
+	picture = FEMALE_RULER_eventPicture
+	
+	#is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest
+	}
+	
+    option = {
+	    # She is Queen now!
+        name = girl_in_the_forest.6.a
+        add_legitimacy = -50
+        set_ruler_culture = wood_elf
+        hidden_effect = {
+            country_event = { id = girl_in_the_forest.7 days = 100 random = 500 }
+            country_event = { id = girl_in_the_forest.8 days = 7300 }
+        }
+	}
+}
+
+# object to wood elf ruler
+country_event = {
+	id = girl_in_the_forest.7
+	title = girl_in_the_forest.7.t
+	desc = girl_in_the_forest.7.d
+	picture = ANGRY_MOB_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest
+	}
+    option = {
+	    # a temporary problem only
+        name = girl_in_the_forest.7.a
+        add_stability = -1
+        spawn_rebels = {
+            type = pretender_rebels
+            size = 2
+        }
+        small_decrease_of_human_tolerance_effect = yes
+        small_increase_of_elven_tolerance_effect = yes
+        small_increase_of_half_elven_tolerance_effect = yes
+        
+	}
+    option = {
+	    # abdicate; exit event chain
+        name = girl_in_the_forest.7.b
+        add_stability = -1
+        define_ruler = {
+			claim = 70
+		}
+		clr_country_flag = girl_in_the_forest
+	}
+	option = {
+        # no problem here, move along
+        trigger = { accepted_culture = wood_elf }
+        highlight = yes
+        ai_chance = { factor = 75 }
+        add_prestige = 20
+        small_increase_of_elven_tolerance_effect = yes
+        small_increase_of_half_elven_tolerance_effect = yes
+	}
+}
+
+# singles mingle
+country_event = {
+	id = girl_in_the_forest.8
+	title = girl_in_the_forest.8.t
+	desc = girl_in_the_forest.8.d
+	picture = FEMALE_RULER_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+        has_country_flag = girl_in_the_forest
+        has_ruler_flag = girl_in_the_forest
+	}
+	
+	immediate = {
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_he }
+                }
+            }
+            set_province_flag = gitf_he
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_e }
+                }
+            }
+            set_province_flag = gitf_e
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_e }
+                }
+            }
+            set_province_flag = gitf_e
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_e }
+                }
+            }
+            set_province_flag = gitf_e
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_e }
+                }
+            }
+            set_province_flag = gitf_e
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_h }
+                }
+            }
+            set_province_flag = gitf_h
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_h }
+                }
+            }
+            set_province_flag = gitf_h
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_h }
+                }
+            }
+            set_province_flag = gitf_h
+        }	
+        random_owned_province = {
+            limit = { 
+                AND = {
+                    NOT = { has_any_half_elven_pop_trigger = yes }
+                    NOT = { has_province_flag = gitf_h }
+                }
+            }
+            set_province_flag = gitf_h
+        }	
+	}
+	
+    option = {
+	    # absolutely not!
+        name = girl_in_the_forest.8.a
+        ai_chance = { factor = 10 }
+        medium_decrease_of_half_elven_tolerance_effect = yes
+        small_decrease_of_elven_tolerance_effect = yes
+	}
+	
+	option = {
+	    # let them mingle
+        name = girl_in_the_forest.8.b
+        ai_chance = { factor = 50 }
+        small_increase_of_human_tolerance_effect = yes
+        small_increase_of_elven_tolerance_effect = yes
+        medium_increase_of_half_elven_tolerance_effect = yes
+        add_stability = 1
+        every_owned_province = {
+            limit = {
+                has_province_flag = gitf_he
+            }
+            add_half_elven_minority_size_effect = yes
+            clr_province_flag = gitf_he
+        }
+        every_owned_province = {
+            limit = {
+                has_province_flag = gitf_e
+            }
+            add_elven_minority_size_effect = yes
+            clr_province_flag = gitf_e
+        }
+        every_owned_province = {
+            limit = {
+                has_province_flag = gitf_h
+            }
+            add_human_minority_size_effect = yes
+            clr_province_flag = gitf_h
+        }
+	}
+}
+
+# if we exited the event chain due to failed rebels
+# clean up any stray flags; this ensures that future pretenders are not broken
+# for this country, etc.
+country_event = {
+	id = girl_in_the_forest.9
+	title = girl_in_the_forest.9.t
+	desc = girl_in_the_forest.9.d
+	picture = FEMALE_RULER_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	immediate = {
+        if = {
+            limit = { 
+                # our pretenders spawned, but didn't win
+                has_country_flag = girl_in_the_forest_rebels
+                NOT = { has_spawned_rebels = pretender_rebels }
+            }
+            clr_country_flag = girl_in_the_forest_rebels
+            clr_country_flag = girl_in_the_forest_born
+        }
+        else = {
+            # our pretenders are still active, try to cleanup again in a year
+            country_event = { id = girl_in_the_forest.9 days = 365 } # cleanup hidden event
+        }
+        remove_country_modifier = occupied_advisors # if it snuck through cracks
+	}
+	
+    option = {
+        # Does nothing
+        name = girl_in_the_forest.9.a
+        ai_chance = { factor = 100 }
+    }
+}
+
+

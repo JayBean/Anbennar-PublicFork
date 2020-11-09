@@ -2,6 +2,7 @@
 # Free Cities Events
 #
 # Scripted by Sara Wendel-Örtqvist
+# Ammended for 1.30 by James Beaumont
 ########################################
 
 namespace = free_cities
@@ -17,7 +18,7 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			change_government = republic
+			change_government_to_republic = yes
 			add_government_reform = free_city
 		}
 	}
@@ -25,7 +26,7 @@ country_event = {
 	option = {
 		name = free_cities.1.a
 		tooltip = {
-			change_government = republic
+			change_government_to_republic = yes
 			add_government_reform = free_city
 		}
 	}
@@ -124,7 +125,7 @@ country_event = {
 		}
 		add_manpower = -1
 		add_years_of_income = -0.1
-		add_imperial_influence = 1
+		add_imperial_influence = 10
 		FROM = {
 			set_country_flag = fc_help_flag
 			country_event = {
@@ -152,6 +153,13 @@ country_event = {
 						who = FROM
 						value = 0
 					}				
+				}
+			}
+			modifier = {
+				factor = 0
+				has_opinion = {
+					who = FROM
+					value = 50
 				}
 			}
 		}		
@@ -209,7 +217,7 @@ country_event = {
 	}
 }
 
-#- Picked as place of coronation by the new HRE. Gives you prestige.
+#- Picked as place of coronation by the new HRE.
 country_event = {
 	id = free_cities.6
 	title = free_cities.6.t
@@ -224,7 +232,11 @@ country_event = {
 	
 	option = {
 		name = free_cities.6.a
-		add_prestige = 10
+		add_prestige = 50
+		add_country_modifier = {
+			name = fc_imperial_coronation
+			duration = 3650
+		}
 	}
 }
 
@@ -241,25 +253,13 @@ country_event = {
 		has_dlc = "Common Sense"
 		has_reform = free_city
 		NOT = {
-			prestige = 80
+			prestige = 40
 		}
-		NOT = {
-			has_country_modifier = fc_treatyconference_timer
-		}
+		has_country_modifier = fc_treatyconference_timer
 	}
 	
 	mean_time_to_happen = {
 		days = 1
-	}
-	
-	immediate = {
-		hidden_effect = {
-			add_country_modifier = {
-				name = fc_treatyconference_timer
-				duration = 3650
-				hidden = yes
-			}
-		}
 	}
 	
 	option = {
@@ -282,7 +282,7 @@ country_event = {
 		is_emperor = yes
 		has_regency = no
 		any_known_country = {
-			num_of_loans = 5
+			num_of_loans = 3
 			NOT = { treasury = 100 }
 			has_reform = free_city
 			reverse_has_opinion = { who = ROOT value = 25 }
@@ -293,16 +293,24 @@ country_event = {
 		days = 1
 	}
 	
+	immediate = {
+		hidden_effect = {
+			random_known_country = {
+				limit = {
+					num_of_loans = 3
+					NOT = { treasury = 100 }
+					has_reform = free_city
+					reverse_has_opinion = { who = ROOT value = 25 }
+				}
+				save_event_target_as = free_city_in_debt_target
+			}
+		}
+	}
+	
 	option = {
 		name = free_cities.8.a
 		add_years_of_income = -0.2
-		random_known_country = {
-			limit = {
-				num_of_loans = 5
-				NOT = { treasury = 100 }
-				has_reform = free_city
-				reverse_has_opinion = { who = ROOT value = 25 }
-			}
+		event_target:free_city_in_debt_target = {
 			add_opinion = {
 				who = ROOT
 				modifier = opinion_special_privileges
@@ -335,6 +343,7 @@ country_event = {
 	
 	option = {
 		name = free_cities.9.a
+		add_treasury = 100
 		add_country_modifier = {
 			name = fc_hre_privileges
 			duration = -1
@@ -512,6 +521,35 @@ country_event = {
 		}
 	}
 	
+	immediate = {
+		hidden_effect = {
+			random_country = {
+				limit = {
+					has_reform = free_city
+					is_at_war = no
+					culture_group = ROOT
+					NOT = { has_country_modifier = fc_city_league }
+					NOT = { is_rival = ROOT }
+					NOT = { is_enemy = ROOT }
+					NOT = {
+						has_opinion_modifier = { who = ROOT modifier = opinion_refused_league }
+					}
+					has_opinion = {
+						who = ROOT
+						value = 25
+					}
+					ROOT = {
+						has_opinion = {
+							who = PREV
+							value = 25
+						}
+					}				
+				}
+				save_event_target_as = fc_league_invitation_target
+			}
+		}
+	}
+	
 	mean_time_to_happen = {
 		days = 1
 	}
@@ -519,28 +557,7 @@ country_event = {
 	option = {
 		name = free_cities.13.a
 		add_dip_power = -100
-		random_country = {
-			limit = {
-				has_reform = free_city
-				is_at_war = no
-				culture_group = ROOT
-				NOT = { has_country_modifier = fc_city_league }
-				NOT = { is_rival = ROOT }
-				NOT = { is_enemy = ROOT }
-				NOT = {
-					has_opinion_modifier = { who = ROOT modifier = opinion_refused_league }
-				}
-				has_opinion = {
-					who = ROOT
-					value = 25
-				}
-				ROOT = {
-					has_opinion = {
-						who = PREV
-						value = 25
-					}
-				}				
-			}
+		event_target:fc_league_invitation_target = {
 			country_event = {
 				id = free_cities.14
 			}
@@ -548,7 +565,10 @@ country_event = {
 	}
 	option = {
 		name = free_cities.13.b
-		add_prestige = 10
+		add_country_modifier = {
+			name = fc_mercenary_contracts
+			duration = 3650
+		}
 	}
 }
 
@@ -581,6 +601,7 @@ country_event = {
 			name = fc_city_league
 			duration = -1
 		}
+		add_manpower = 1
 		set_country_flag = fc_city_league_flag
 	}
 	option = {
@@ -630,6 +651,7 @@ country_event = {
 			name = fc_city_league
 			duration = -1
 		}
+		add_manpower = 1
 		clr_country_flag = fc_agreed_league_flag
 		set_country_flag = fc_city_league_flag
 	}

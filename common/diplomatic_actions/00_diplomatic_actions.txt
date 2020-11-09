@@ -42,6 +42,7 @@
 # warsubsidy
 # sellprov
 # imperial_relations_action
+# imperial_realm_war_action
 # religious_unity_action
 # grant_electorate
 # remove_electorate
@@ -59,7 +60,6 @@
 # sabotage_reputation
 # support_rebels
 # sow_discontent
-# study_technology
 # agitate_for_liberty
 # form_coalition
 # request_to_join_federation
@@ -69,8 +69,116 @@
 # designate_march
 # ask_for_march
 # sell_ships_action
-# counterespionage
-# abandon_union_action
+# abandon_union
+# takeondebt
+# influence_nation
+# claim_states
+# steer_trade
+# stealmap
+# spy_network
+# invite_to_trade_league
+# request_to_join_trade_league
+# sharemap
+# intervene_in_war
+# break_alliance
+# tributary_state_action
+# ask_for_tributary_state_action
+# knowledge_sharing
+
+
+
+declarewar = {
+	condition = {
+		tooltip = FEDERATION_MILITARY
+		potential = {
+			has_country_modifier = lake_federation_member
+			has_country_modifier = federation_fighter
+		}
+		allow = {
+			FROM = {
+				NOT = { has_country_modifier = lake_federation_member }
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = FEDERATION_SUBVENTIONNER
+		potential = {
+			has_country_modifier = lake_federation_member
+			has_country_modifier = federation_subventionner
+		}
+		allow = {
+			FROM = {
+				NOT = { has_country_modifier = federation_fighter }
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = FEDERATION_WAR_MANDAT
+		potential = {
+			has_country_modifier = lake_federation_member
+			NOT = { is_lake_federation_leader = yes }
+		}
+		allow = {
+			is_at_war = no
+			OR = {
+				AND = {
+					has_country_modifier = federation_war_mandat
+					FROM = { has_country_modifier = lake_federation_member }
+				}
+				FROM = { NOT = { has_country_modifier = lake_federation_member } }
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = FEDERATION_CRISIS_WAR
+		potential = {
+			has_country_modifier = lake_federation_member
+			has_global_flag = federation_crisis
+		}
+		allow = {
+			FROM = { NOT = { has_country_modifier = lake_federation_member } }
+		}
+	}
+	
+	condition = {
+		tooltip = ULTAKAL_DECREE
+		potential = {
+			has_country_modifier = ultakal_decree
+		}
+		allow = {
+			FROM = { NOT = { has_country_modifier = ultakal_decree } }
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { 
+				has_country_modifier = federation_war_mandat
+				FROM = { has_country_modifier = lake_federation_member }
+			}
+			remove_country_modifier = federation_war_mandat
+		}
+		if = {
+			limit = {
+				NOT = { has_country_modifier = lake_federation_member }
+				FROM = { has_country_modifier = lake_federation_member }
+				has_global_flag = lake_the_place_of_everyone
+			}
+			FROM = { country_event = { id = lake.49 } }
+		}
+		
+		if = {
+			limit = {
+				has_country_modifier = monstrous_nation
+				has_country_flag = removing_monstrous
+			}
+			FROM = { country_event = { id = monstrous.103 } }
+		}
+	}
+}
 
 allianceaction = {
 	condition = {
@@ -78,11 +186,23 @@ allianceaction = {
 		potential = {
 			has_reform = adventurer_reform
 			NOT = { is_year = 1600 }
-			capital_scope = { superregion = escann_superregion }
+			capital_scope = {
+				OR = {
+					superregion = escann_superregion
+					area = cursewood_area
+					area = whistlevale_area
+				}
+			}
 		}
 		allow = {
 			FROM = {
-				capital_scope = { superregion = escann_superregion }
+				capital_scope = {
+					OR = {
+						superregion = escann_superregion
+						area = cursewood_area
+						area = whistlevale_area
+					}
+				}
 			}
 		}
 	}
@@ -119,6 +239,52 @@ allianceaction = {
 			}
 		}
 	}
+	
+	condition = {
+		tooltip = NO_CENTAUR_ALLY #Proud Horse!
+		potential = {
+			has_country_modifier = centaur_administration
+		}
+		allow = {
+			FROM = {
+				OR = {
+					NOT = { has_country_modifier = centaur_administration }
+					AND = {
+						is_subject = yes
+						overlord = { overlord_of = ROOT }
+					}
+				}
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = centaurs_bad
+		potential = {
+			has_country_modifier = ogre_administration
+		}
+		allow = {
+			FROM = {
+				OR = {
+					NOT = { has_country_modifier = centaur_administration }
+				}
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = ogres_dumb
+		potential = {
+			has_country_modifier = centaur_administration
+		}
+		allow = {
+			FROM = {
+				OR = {
+					NOT = { has_country_modifier = ogre_administration }
+				}
+			}
+		}
+	}
 }
 
 royal_marriage = {
@@ -147,12 +313,7 @@ royal_marriage = {
 			primary_culture = sun_elf #Sun Elf rulers ruling non Sun Elf countries shouldn't care as much
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = sun_elf }
-				FROM = { ruler_culture = moon_elf }
-				FROM = { ruler_culture = wood_elf }
-				FROM = { ruler_culture = sea_elf }
-			}
+			FROM = { ruler_is_elven = yes }
 		}
 	}
 	
@@ -163,12 +324,7 @@ royal_marriage = {
 			FROM = { primary_culture = sun_elf } #Sun Elf rulers ruling non Sun Elf countries shouldn't care as much
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = sun_elf }
-				ROOT = { ruler_culture = moon_elf }
-				ROOT = { ruler_culture = wood_elf }
-				ROOT = { ruler_culture = sea_elf }
-			}
+			ROOT = { ruler_is_elven = yes }
 		}
 	}
 	
@@ -178,26 +334,13 @@ royal_marriage = {
 		potential = {
 			government = monarchy
 			
-			OR = {
-				ruler_culture = sun_elf
-				ruler_culture = moon_elf
-				ruler_culture = wood_elf
-				ruler_culture = sea_elf
-			}
-			OR = {
-				primary_culture = sun_elf
-				primary_culture = moon_elf
-				primary_culture = wood_elf
-				primary_culture = sea_elf
-			}
+			ruler_is_elven = yes
+			culture_group = elven
+			NOT = { ruler_culture = desert_elf }
+			NOT = { primary_culture = desert_elf }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = sun_elf }
-				FROM = { ruler_culture = moon_elf }
-				FROM = { ruler_culture = wood_elf }
-				FROM = { ruler_culture = sea_elf }
-			}
+			FROM = { ruler_is_elven = yes }
 		}
 	}
 	
@@ -206,27 +349,15 @@ royal_marriage = {
 		potential = {
 			government = monarchy
 			
-			OR = {
-				FROM = { ruler_culture = sun_elf }
-				FROM = { ruler_culture = moon_elf }
-				FROM = { ruler_culture = wood_elf }
-				FROM = { ruler_culture = sea_elf }
-			}
-			
-			OR = {
-				FROM = { primary_culture = sun_elf }
-				FROM = { primary_culture = moon_elf }
-				FROM = { primary_culture = wood_elf }
-				FROM = { primary_culture = sea_elf }
+			FROM = {
+				ruler_is_elven = yes
+				culture_group = elven
+				NOT = { ruler_culture = desert_elf }
+				NOT = { primary_culture = desert_elf }
 			}
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = sun_elf }
-				ROOT = { ruler_culture = moon_elf }
-				ROOT = { ruler_culture = wood_elf }
-				ROOT = { ruler_culture = sea_elf }
-			}
+			ROOT = { ruler_is_elven = yes }
 		}
 	}
 	
@@ -236,21 +367,14 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = forest_goblin }
-				ROOT = { ruler_culture = common_goblin }
-				ROOT = { ruler_culture = hill_goblin }
-				ROOT = { ruler_culture = cave_goblin }
-				ROOT = { ruler_culture = exodus_goblin }
-			}
+			ROOT = { ruler_is_goblin = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = forest_goblin }
-				FROM = { ruler_culture = common_goblin }
-				FROM = { ruler_culture = hill_goblin }
-				FROM = { ruler_culture = cave_goblin }
-				FROM = { ruler_culture = exodus_goblin }
+			FROM = {
+				OR = {
+					ruler_is_goblin = yes
+					ruler_is_harpy = yes
+				}
 			}
 		}
 	}
@@ -258,69 +382,36 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = forest_goblin }
-				FROM = { ruler_culture = common_goblin }
-				FROM = { ruler_culture = hill_goblin }
-				FROM = { ruler_culture = cave_goblin }
-				FROM = { ruler_culture = exodus_goblin }
-			}
+			FROM = { ruler_is_goblin = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = forest_goblin }
-				ROOT = { ruler_culture = common_goblin }
-				ROOT = { ruler_culture = hill_goblin }
-				ROOT = { ruler_culture = cave_goblin }
-				ROOT = { ruler_culture = exodus_goblin }
+			ROOT = {
+				OR = {
+					ruler_is_goblin = yes
+					ruler_is_harpy = yes
+				}
 			}
 		}
 	}
 	
-	#Gnolles are too biologically different to other races for marriages.
+	#Gnolls are too biologically different to other races for marriages.
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = east_sandfang_gnoll }
-				ROOT = { ruler_culture = west_sandfang_gnoll }
-				ROOT = { ruler_culture = sandfang_gnoll }
-				ROOT = { ruler_culture = hill_gnoll }
-				ROOT = { ruler_culture = flamemarked_gnoll }
-			}
+			ROOT = { ruler_is_gnoll = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = east_sandfang_gnoll }
-				FROM = { ruler_culture = west_sandfang_gnoll }
-				FROM = { ruler_culture = sandfang_gnoll }
-				FROM = { ruler_culture = hill_gnoll }
-				FROM = { ruler_culture = flamemarked_gnoll }
-			}
+			FROM = { ruler_is_gnoll = yes }
 		}
 	}
 	
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = east_sandfang_gnoll }
-				FROM = { ruler_culture = west_sandfang_gnoll }
-				FROM = { ruler_culture = sandfang_gnoll }
-				FROM = { ruler_culture = sandfang_gnoll }
-				FROM = { ruler_culture = hill_gnoll }
-				FROM = { ruler_culture = flamemarked_gnoll }
-			}
+			FROM = { ruler_is_gnoll = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = east_sandfang_gnoll }
-				ROOT = { ruler_culture = west_sandfang_gnoll }
-				ROOT = { ruler_culture = sandfang_gnoll }
-				ROOT = { ruler_culture = sandfang_gnoll }
-				ROOT = { ruler_culture = hill_gnoll }
-				ROOT = { ruler_culture = flamemarked_gnoll }
-			}
+			ROOT = { ruler_is_gnoll = yes }
 		}
 	}
 	
@@ -328,40 +419,20 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = redscale_kobold }
-				ROOT = { ruler_culture = bluescale_kobold }
-				ROOT = { ruler_culture = greenscale_kobold }
-				ROOT = { ruler_culture = kobildzani_kobold }
-			}
+			ROOT = { ruler_is_kobold = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = redscale_kobold }
-				FROM = { ruler_culture = bluescale_kobold }
-				FROM = { ruler_culture = greenscale_kobold }
-				FROM = { ruler_culture = kobildzani_kobold }
-			}
+			FROM = { ruler_is_kobold = yes }
 		}
 	}
 	
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = redscale_kobold }
-				FROM = { ruler_culture = bluescale_kobold }
-				FROM = { ruler_culture = greenscale_kobold }
-				FROM = { ruler_culture = kobildzani_kobold }
-			}
+			FROM = { ruler_is_kobold = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = redscale_kobold }
-				ROOT = { ruler_culture = bluescale_kobold }
-				ROOT = { ruler_culture = greenscale_kobold }
-				ROOT = { ruler_culture = kobildzani_kobold }
-			}
+			ROOT = { ruler_is_kobold = yes }
 		}
 	}
 	
@@ -369,44 +440,20 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = imperial_halfling }
-				ROOT = { ruler_culture = bluefoot_halfling }
-				ROOT = { ruler_culture = redfoot_halfling }
-				ROOT = { ruler_culture = newfoot_halfling }
-				ROOT = { ruler_culture = visfoot_halfling }
-			}
+			ROOT = { ruler_is_halfling = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = imperial_halfling }
-				FROM = { ruler_culture = bluefoot_halfling }
-				FROM = { ruler_culture = redfoot_halfling }
-				FROM = { ruler_culture = newfoot_halfling }
-				FROM = { ruler_culture = visfoot_halfling }
-			}
+			FROM = { ruler_is_halfling = yes }
 		}
 	}
 	
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = imperial_halfling }
-				FROM = { ruler_culture = bluefoot_halfling }
-				FROM = { ruler_culture = redfoot_halfling }
-				FROM = { ruler_culture = newfoot_halfling }
-				FROM = { ruler_culture = visfoot_halfling }
-			}
+			FROM = { ruler_is_halfling = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = imperial_halfling }
-				ROOT = { ruler_culture = bluefoot_halfling }
-				ROOT = { ruler_culture = redfoot_halfling }
-				ROOT = { ruler_culture = newfoot_halfling }
-				ROOT = { ruler_culture = visfoot_halfling }
-			}
+			ROOT = { ruler_is_halfling = yes }
 		}
 	}
 	
@@ -414,36 +461,20 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = cliff_gnome }
-				ROOT = { ruler_culture = creek_gnome }
-				ROOT = { ruler_culture = imperial_gnome }
-			}
+			ROOT = { ruler_is_gnomish = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = cliff_gnome }
-				FROM = { ruler_culture = creek_gnome }
-				FROM = { ruler_culture = imperial_gnome }
-			}
+			FROM = { ruler_is_gnomish = yes }
 		}
 	}
 	
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = cliff_gnome }
-				FROM = { ruler_culture = creek_gnome }
-				FROM = { ruler_culture = imperial_gnome }
-			}
+			FROM = { ruler_is_gnomish = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = cliff_gnome }
-				ROOT = { ruler_culture = creek_gnome }
-				ROOT = { ruler_culture = imperial_gnome }
-			}
+			ROOT = { ruler_is_gnomish = yes }
 		}
 	}
 	
@@ -451,156 +482,20 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = ruby_dwarf }
-				ROOT = { ruler_culture = silver_dwarf }
-				ROOT = { ruler_culture = gold_dwarf }
-				ROOT = { ruler_culture = copper_dwarf }
-				ROOT = { ruler_culture = iron_dwarf }
-				ROOT = { ruler_culture = obsidian_dwarf }
-				ROOT = { ruler_culture = kronium_dwarf }
-				ROOT = { ruler_culture = quartz_dwarf }
-				ROOT = { ruler_culture = sapphire_dwarf }
-				ROOT = { ruler_culture = ramsteel_dwarf }
-				ROOT = { ruler_culture = mithril_dwarf }
-				ROOT = { ruler_culture = dagrite_dwarf }
-				ROOT = { ruler_culture = agate_dwarf }
-				ROOT = { ruler_culture = platinum_dwarf }
-				ROOT = { ruler_culture = opal_dwarf }
-				ROOT = { ruler_culture = lead_dwarf }
-				ROOT = { ruler_culture = marble_dwarf }
-				ROOT = { ruler_culture = cobalt_dwarf }
-				ROOT = { ruler_culture = flint_dwarf }
-				ROOT = { ruler_culture = titanium_dwarf }
-				ROOT = { ruler_culture = pyrite_dwarf }
-				ROOT = { ruler_culture = basalt_dwarf }
-				ROOT = { ruler_culture = topaz_dwarf }
-				ROOT = { ruler_culture = peridot_dwarf }
-				ROOT = { ruler_culture = granite_dwarf }
-				ROOT = { ruler_culture = amethyst_dwarf }
-				ROOT = { ruler_culture = emerald_dwarf }
-				ROOT = { ruler_culture = jade_dwarf }
-				ROOT = { ruler_culture = malachite_dwarf }
-				ROOT = { ruler_culture = amber_dwarf }
-				ROOT = { ruler_culture = citrine_dwarf }
-				ROOT = { ruler_culture = garnet_dwarf }
-				ROOT = { ruler_culture = diamond_dwarf }
-			}
+			ROOT = { ruler_is_dwarven = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = ruby_dwarf }
-				FROM = { ruler_culture = silver_dwarf }
-				FROM = { ruler_culture = gold_dwarf }
-				FROM = { ruler_culture = copper_dwarf }
-				FROM = { ruler_culture = iron_dwarf }
-				FROM = { ruler_culture = obsidian_dwarf }
-				FROM = { ruler_culture = kronium_dwarf }
-				FROM = { ruler_culture = quartz_dwarf }
-				FROM = { ruler_culture = sapphire_dwarf }
-				FROM = { ruler_culture = ramsteel_dwarf }
-				FROM = { ruler_culture = mithril_dwarf }
-				FROM = { ruler_culture = dagrite_dwarf }
-				FROM = { ruler_culture = agate_dwarf }
-				FROM = { ruler_culture = platinum_dwarf }
-				FROM = { ruler_culture = opal_dwarf }
-				FROM = { ruler_culture = lead_dwarf }
-				FROM = { ruler_culture = marble_dwarf }
-				FROM = { ruler_culture = cobalt_dwarf }
-				FROM = { ruler_culture = flint_dwarf }
-				FROM = { ruler_culture = titanium_dwarf }
-				FROM = { ruler_culture = pyrite_dwarf }
-				FROM = { ruler_culture = basalt_dwarf }
-				FROM = { ruler_culture = topaz_dwarf }
-				FROM = { ruler_culture = peridot_dwarf }
-				FROM = { ruler_culture = granite_dwarf }
-				FROM = { ruler_culture = amethyst_dwarf }
-				FROM = { ruler_culture = emerald_dwarf }
-				FROM = { ruler_culture = jade_dwarf }
-				FROM = { ruler_culture = malachite_dwarf }
-				FROM = { ruler_culture = amber_dwarf }
-				FROM = { ruler_culture = citrine_dwarf }
-				FROM = { ruler_culture = garnet_dwarf }
-				FROM = { ruler_culture = diamond_dwarf }
-			}
+			FROM = { ruler_is_dwarven = yes }
 		}
 	}
 	
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = ruby_dwarf }
-				FROM = { ruler_culture = silver_dwarf }
-				FROM = { ruler_culture = gold_dwarf }
-				FROM = { ruler_culture = copper_dwarf }
-				FROM = { ruler_culture = iron_dwarf }
-				FROM = { ruler_culture = obsidian_dwarf }
-				FROM = { ruler_culture = kronium_dwarf }
-				FROM = { ruler_culture = quartz_dwarf }
-				FROM = { ruler_culture = sapphire_dwarf }
-				FROM = { ruler_culture = ramsteel_dwarf }
-				FROM = { ruler_culture = mithril_dwarf }
-				FROM = { ruler_culture = dagrite_dwarf }
-				FROM = { ruler_culture = agate_dwarf }
-				FROM = { ruler_culture = platinum_dwarf }
-				FROM = { ruler_culture = opal_dwarf }
-				FROM = { ruler_culture = lead_dwarf }
-				FROM = { ruler_culture = marble_dwarf }
-				FROM = { ruler_culture = cobalt_dwarf }
-				FROM = { ruler_culture = flint_dwarf }
-				FROM = { ruler_culture = titanium_dwarf }
-				FROM = { ruler_culture = pyrite_dwarf }
-				FROM = { ruler_culture = basalt_dwarf }
-				FROM = { ruler_culture = topaz_dwarf }
-				FROM = { ruler_culture = peridot_dwarf }
-				FROM = { ruler_culture = granite_dwarf }
-				FROM = { ruler_culture = amethyst_dwarf }
-				FROM = { ruler_culture = emerald_dwarf }
-				FROM = { ruler_culture = jade_dwarf }
-				FROM = { ruler_culture = malachite_dwarf }
-				FROM = { ruler_culture = amber_dwarf }
-				FROM = { ruler_culture = citrine_dwarf }
-				FROM = { ruler_culture = garnet_dwarf }
-				FROM = { ruler_culture = diamond_dwarf }
-			}
+			FROM = { ruler_is_dwarven = yes }
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = ruby_dwarf }
-				ROOT = { ruler_culture = silver_dwarf }
-				ROOT = { ruler_culture = gold_dwarf }
-				ROOT = { ruler_culture = copper_dwarf }
-				ROOT = { ruler_culture = iron_dwarf }
-				ROOT = { ruler_culture = obsidian_dwarf }
-				ROOT = { ruler_culture = kronium_dwarf }
-				ROOT = { ruler_culture = quartz_dwarf }
-				ROOT = { ruler_culture = sapphire_dwarf }
-				ROOT = { ruler_culture = ramsteel_dwarf }
-				ROOT = { ruler_culture = mithril_dwarf }
-				ROOT = { ruler_culture = dagrite_dwarf }
-				ROOT = { ruler_culture = agate_dwarf }
-				ROOT = { ruler_culture = platinum_dwarf }
-				ROOT = { ruler_culture = opal_dwarf }
-				ROOT = { ruler_culture = lead_dwarf }
-				ROOT = { ruler_culture = marble_dwarf }
-				ROOT = { ruler_culture = cobalt_dwarf }
-				ROOT = { ruler_culture = flint_dwarf }
-				ROOT = { ruler_culture = titanium_dwarf }
-				ROOT = { ruler_culture = pyrite_dwarf }
-				ROOT = { ruler_culture = basalt_dwarf }
-				ROOT = { ruler_culture = topaz_dwarf }
-				ROOT = { ruler_culture = peridot_dwarf }
-				ROOT = { ruler_culture = granite_dwarf }
-				ROOT = { ruler_culture = amethyst_dwarf }
-				ROOT = { ruler_culture = emerald_dwarf }
-				ROOT = { ruler_culture = jade_dwarf }
-				ROOT = { ruler_culture = malachite_dwarf }
-				ROOT = { ruler_culture = amber_dwarf }
-				ROOT = { ruler_culture = citrine_dwarf }
-				ROOT = { ruler_culture = garnet_dwarf }
-				ROOT = { ruler_culture = diamond_dwarf }
-			}
+			ROOT = { ruler_is_dwarven = yes }
 		}
 	}
 	
@@ -608,15 +503,35 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				ROOT = { ruler_culture = royal_harimari }
-				ROOT = { ruler_culture = east_harimari }
-			}
+			ROOT = { ruler_is_harimari = yes }
 		}
 		allow = {
-			OR = {
-				FROM = { ruler_culture = royal_harimari }
-				FROM = { ruler_culture = east_harimari }
+			FROM = { ruler_is_harimari = yes }
+		}
+	}
+	
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			FROM = { ruler_is_harimari = yes }
+		}
+		allow = {
+			ROOT = { ruler_is_harimari = yes }
+		}
+	}
+	
+	#Hobgoblins are too biologically different to other races for marriages.
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			ROOT = { ruler_is_hobgoblin = yes }
+		}
+		allow = {
+			FROM = {
+				OR = {
+					ruler_is_hobgoblin = yes
+					ruler_is_harpy = yes
+				}
 			}
 		}
 	}
@@ -624,15 +539,106 @@ royal_marriage = {
 	condition = {
 		tooltip = INCOMPITABLE_BIOLOGY
 		potential = {
-			OR = {
-				FROM = { ruler_culture = royal_harimari }
-				FROM = { ruler_culture = east_harimari }
+			FROM = { ruler_is_hobgoblin = yes }
+		}
+		allow = {
+			ROOT = {
+				OR = {
+					ruler_is_hobgoblin = yes
+					ruler_is_harpy = yes
+				}
+			}
+		}
+	}
+	
+	#Trolls are too biologically different to other races for marriages.
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			ROOT = { ruler_is_troll = yes }
+		}
+		allow = {
+			FROM = { ruler_is_troll = yes }
+		}
+	}
+	
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			FROM = { ruler_is_troll = yes }
+		}
+		allow = {
+			ROOT = { ruler_is_troll = yes }
+		}
+	}
+	
+	#Ogres are too biologically different to other races for marriages.
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			ROOT = { ruler_is_ogre = yes }
+		}
+		allow = {
+			FROM = { ruler_is_ogre = yes }
+		}
+	}
+	
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			FROM = { ruler_is_ogre = yes }
+		}
+		allow = {
+			ROOT = { ruler_is_ogre = yes }
+		}
+	}
+	
+	#Centaurs are too biologically different to other races for marriages.
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			ROOT = { ruler_is_centaur = yes }
+		}
+		allow = {
+			FROM = { ruler_is_centaur = yes }
+		}
+	}
+	
+	condition = {
+		tooltip = INCOMPITABLE_BIOLOGY
+		potential = {
+			FROM = { ruler_is_centaur = yes }
+		}
+		allow = {
+			ROOT = { ruler_is_centaur = yes }
+		}
+	}
+	
+	#Harpies are mono-gendered.
+	condition = {
+		tooltip = MONO_GENDERED
+		potential = {
+			ROOT = { ruler_is_harpy = yes }
+		}
+		allow = {
+			FROM = {
+				NOT = { ruler_is_harpy = yes }
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = MONO_GENDERED
+		potential = {
+			ROOT = {
+				NOT = { ruler_is_harpy = yes }
+				is_female = yes
+				has_consort = no
 			}
 		}
 		allow = {
-			OR = {
-				ROOT = { ruler_culture = royal_harimari }
-				ROOT = { ruler_culture = east_harimari }
+			FROM = {
+				NOT = { ruler_is_harpy = yes }
 			}
 		}
 	}
@@ -735,9 +741,6 @@ abandon_union_action = {
 	}
 }
 
-
-
-
 form_coalition = {
 	condition = {
 		tooltip = MINAGGRESSIVEEXPANSION
@@ -753,6 +756,40 @@ form_coalition = {
 					modifier = aggressive_expansion
 					who = FROM
 					value = -50
+				}
+			}
+		}
+	}
+}
+
+request_to_join_trade_league = {
+	condition = {
+		tooltip = NOT_RELEVANT_TRADE_REGION_FROM
+		potential = {
+		}
+		allow = {
+			home_trade_node = {
+				trade_share = {
+					country = from
+					share = 1
+				}
+			}
+		}
+	}
+}
+
+invite_to_trade_league = {
+	condition = {
+		tooltip = NOT_RELEVANT_TRADE_REGION
+		potential = {
+		}
+		allow = {
+			from = {
+				home_trade_node = {
+					trade_share = {
+						country = root
+						share = 1
+					}
 				}
 			}
 		}
