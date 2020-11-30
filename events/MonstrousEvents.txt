@@ -85,6 +85,7 @@ country_event = {
 			every_subject_country = {
 				limit = { is_colonial_nation = yes NOT = { has_country_flag = no_longer_monstrous } }
 				set_country_flag = no_longer_monstrous
+				clr_country_flag = removing_monstrous
 				every_country = {
 					limit = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } }
 					remove_opinion = { who = ROOT modifier = root_monstrous }
@@ -395,7 +396,7 @@ country_event = {
 		name = monstrous.8.a
 		ai_chance = { factor = 1 }
 		decrease_monstrous_2 = yes
-		add_stability = -1
+		reduce_stability_or_adm_power = yes
 		add_country_modifier = {
 			name = monstrous_societal_reforms
 			duration = 3650
@@ -576,7 +577,6 @@ country_event = {
 			random_owned_province = {
 				limit = { 
 					NOT = {
-						religion = ROOT
 						religion = ravelian
 						religion = the_jadd
 						religion = corinite
@@ -1153,6 +1153,11 @@ country_event = {
 					NOT = { is_rival = ROOT }
 					NOT = { war_with = ROOT }
 					NOT = { has_matching_religion = ROOT }
+					OR = {
+						religion = ravelian
+						religion = the_jadd
+						religion = corinite
+					}
 				}
 				save_event_target_as = country
 			}
@@ -1169,8 +1174,14 @@ country_event = {
 		change_religion = event_target:country
 		capital_scope = { area = { limit = { owned_by = ROOT } change_religion = event_target:country } }
 		set_ruler_religion = event_target:country
-		set_heir_religion = event_target:country
-		set_consort_religion = event_target:country
+		if = {
+			limit = { has_heir = yes }
+			set_heir_religion = event_target:country
+		}
+		if = {
+			limit = { has_consort = yes }
+			set_consort_religion = event_target:country
+		}
 		hidden_effect = { set_country_flag = monstrous_converted_religion }
 	}
 	#fuck dat
@@ -1386,20 +1397,24 @@ country_event = {
 		has_regency = no
 	}
 	
-	immediate = {
-	}
-	
 	#Let's go
 	option = {
 		name = monstrous.25.a
 		ai_chance = { factor = 20 }
-		kill_ruler = yes
+		if = {
+			limit = { has_ruler_modifier = lich_ruler }
+			country_event = { id = magic_project_lichdom.14 days = 1 }
+		}
+		else = {
+			kill_ruler = yes
+		}
 		add_prestige = -20
 		add_legitimacy = -30
 		add_republican_tradition = -20
 		add_devotion = -30
 		add_horde_unity = -30
 	}
+
 }
 
 ##################################
@@ -1417,11 +1432,11 @@ country_event = {
 	hidden = yes
 	
 	trigger = {
-		NOT = { has_ruler_flag = setup_monstrous_opinion }
+		NOT = { has_country_flag = setup_monstrous_opinion }
 	}
 	
 	immediate = {
-		hidden_effect = { set_ruler_flag = setup_monstrous_opinion }
+		hidden_effect = { set_country_flag = setup_monstrous_opinion }
 	}
 	
 	#Do it
@@ -1436,6 +1451,16 @@ country_event = {
 					colonial_parent = { NOT = { has_country_modifier = monstrous_nation } }
 				}
 				set_country_flag = no_longer_monstrous
+				every_country = {
+					limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } NOT = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } } }
+					add_opinion = { who = ROOT modifier = root_monstrous }
+					reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+				}
+				every_country = {
+					limit = { has_country_modifier = monstrous_nation has_country_flag = semi_monstrous NOT = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } } }
+					add_opinion = { who = ROOT modifier = semi_monstrous }
+					reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+				}
 			}
 			else = {
 				if = {
@@ -1467,7 +1492,7 @@ country_event = {
 		}
 		else = {
 			every_country = {
-				limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } NOT = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } } }
+				limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } NOT = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } } }
 				add_opinion = { who = ROOT modifier = root_monstrous }
 				reverse_add_opinion = { who = ROOT modifier = root_monstrous }
 			}
@@ -1516,9 +1541,14 @@ country_event = {
 					reverse_remove_opinion = { who = ROOT modifier = both_monstrous }
 				}
 				every_country = {
-					limit = { has_country_modifier = monstrous_nation }
+					limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } }
 					add_opinion = { who = ROOT modifier = root_monstrous }
 					reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+				}
+				every_country = {
+					limit = { has_country_modifier = monstrous_nation has_country_flag = semi_monstrous }
+					add_opinion = { who = ROOT modifier = semi_monstrous }
+					reverse_add_opinion = { who = ROOT modifier = semit_monstrous }
 				}
 			}
 			else_if = {
@@ -1757,7 +1787,6 @@ country_event = {
 			}
 			any_owned_province = {
 				NOT = {
-					religion = ROOT
 					religion = ravelian
 					religion = the_jadd
 					religion = corinite
@@ -1954,11 +1983,20 @@ country_event = {
 				limit = { tag = R62 ai = yes }
 				NOT = { total_development = 400 }
 			}
+			NOT = {
+				religion = ravelian
+				religion = the_jadd
+				religion = corinite
+			}
 			any_neighbor_country = {
 				NOT = { has_country_modifier = monstrous_nation }
 				NOT = { is_rival = ROOT }
 				NOT = { war_with = ROOT }
-				NOT = { has_matching_religion = ROOT }
+				OR = {
+					religion = ravelian
+					religion = the_jadd
+					religion = corinite
+				}
 			}
 		}
 		country_event = { id = monstrous.22 }
