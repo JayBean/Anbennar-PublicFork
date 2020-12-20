@@ -16,6 +16,18 @@ on_startup = {
 		}
 		save_global_event_target_as = EmperorOfChina
 	}
+	#if = { #enable this if goblins and orcs still ding poorly
+	#	limit = {
+	#		OR = {
+	#			has_reform = dwarovar_warband
+	#			has_reform = roaming_horde
+	#			has_reform = dwarovar_squatter
+	#		}
+	#		ai = yes
+	#	}
+	#	add_treasury = 100 #ai don't delete your army
+	#}
+
 	events = {
 		# muslim_school_events.20 #Pick School
 		high_philosophy_events.0
@@ -54,6 +66,7 @@ on_startup = {
 		ogre.4					#Sets up Ogre Tribal v Monarch opinion
 		oniichan.1				#Oni tolerance for humans
 		oniichan.2				#Oni chilling with their subject
+		oniichan.3				#Oni factions influence
 		
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -528,6 +541,9 @@ on_war_lost = {
 		duration = 10
 		hidden = yes
 	}
+	ROOT = {
+		country_event = { id = anbennar_setup.14 } 
+	}
 }
 
 # country
@@ -535,6 +551,7 @@ on_war_lost = {
 on_battle_won_country = {
 	ROOT = { country_event = { id = magic_on_action.1 } }	#Necromancy body recovery
 	ROOT = { country_event = { id = magic_on_action.2 } }	#Necromancy body recovery hidden
+	ROOT = { jaddari_deioderan_battle_counter_update = { value = 1 } }
 	if = {
 		limit = { NOT = { FROM = { tag = REB } } }
 		centaur_battle_count_win = yes
@@ -545,6 +562,7 @@ on_battle_won_country = {
 # root = loser country, from = winner country
 on_battle_lost_country = {
 	battle_cult_spreading_effect = yes #Scripted effect for fetishist cult mechanics.
+	ROOT = { jaddari_deioderan_battle_counter_update = { value = -1 } }
 	random_events = {
 		90 = 0
 		10 = friendship_events.1 #Historical Friendship Broken
@@ -817,7 +835,7 @@ on_new_monarch = {
 		#anbennar_setup.6			#setup mage organization for new country - handled by mage_organization.1
 		anbennar_setup.7			#Setup for evil/witch king opinions
 		anbennar_setup.9			#Setup for racial admin mil
-		#racial_modifiers.5		#Racial admin change if unmatching
+		racial_modifiers.5		#Racial admin change if unmatching
 		racial_modifiers.6		#Racial mil change if unmatching
 		magic_ruler.8				#gives magic schools
 		anb_miscevents.10 			# Make you adventurer reform if youre not - this is for released countries
@@ -1433,6 +1451,17 @@ on_government_change = {
 			}
 		}
 	}
+	if = {
+		limit = {
+			THIS = {
+				culture = cave_goblin
+			}
+			has_global_flag = cave_goblin_modernity
+		}
+		country_event = {
+			id = cavegoblinflavor.2 #cave goblin modernity for cave goblins still tribal when the global event fired
+		}
+	}
 }
 
 # When a native changes government after filling all their advancement groups.
@@ -1665,6 +1694,14 @@ on_dismantle_revolution = {
 # province
 on_adm_development = {
 	if = {
+		limit = { has_province_modifier = jaddari_blessed_land }
+		random = {
+			chance = 25
+			add_base_tax = 1
+		}
+	}
+	jaddari_deioderan_dev_counter_update = yes
+	if = {
 		limit = { owner = { has_country_flag = federation_state_council } }
 		governing_point_adm = yes
 	}
@@ -1677,6 +1714,14 @@ on_dip_development = {
 		add_base_production = 1
 	}
 	if = {
+		limit = { has_province_modifier = jaddari_blessed_land }
+		random = {
+			chance = 25
+			add_base_production = 1
+		}
+	}
+	jaddari_deioderan_dev_counter_update = yes
+	if = {
 		limit = { owner = { has_country_flag = federation_state_council } }
 		governing_point_dip = yes
 	}
@@ -1684,6 +1729,14 @@ on_dip_development = {
 
 # province
 on_mil_development = {
+	if = {
+		limit = { has_province_modifier = jaddari_blessed_land }
+		random = {
+			chance = 25
+			add_base_manpower = 1
+		}
+	}
+	jaddari_deioderan_dev_counter_update = yes
 	if = {
 		limit = { owner = { has_country_flag = federation_state_council } }
 		governing_point_mil = yes
@@ -2164,6 +2217,14 @@ on_bi_yearly_pulse = {
 		500 = flavor_grombar.23
 		500 = flavor_grombar.24
 		500 = flavor_grombar.25
+		
+		# Jaddari disaster prelim
+		
+		500 = jaddari_missions.101
+		200 = jaddari_missions.102
+		200 = jaddari_missions.103
+		500 = jaddari_missions.104
+		200 = jaddari_missions.105
 
 		2000 = 0 #was 1250
 	}
@@ -2213,10 +2274,19 @@ on_bi_yearly_pulse_3 = {
 		flavor_grombar.18
 		flavor_grombar.22
 		flavor_grombar.26
+		flavor_grombar.99
+
+		railskulker.4 #railskulker breadth of the dwarovar
+
+		cavegoblinflavor.1 #cave goblin modernization
 	}
 	random_events = {
 		100 = new_court_flavour_events.21 #religious resignation
 		100 = new_court_flavour_events.25 #blood is thicker than water
+
+		100 = cavegoblinflavor.100 #venombrew and other events
+		100 = cavegoblinflavor.10
+		100 = cavegoblinflavor.4
 		
 		200 = 0 #was 200
 	}
@@ -3516,6 +3586,7 @@ on_five_year_pulse_2 = {
 }
 
 on_five_year_pulse_3 = {
+
 	random_events = {
 		100 = propagate_religion_events.1
 		100 = propagate_religion_events.2
@@ -4000,6 +4071,17 @@ on_lose_great_power_status = {
 # province
 on_province_religion_converted = {
 	on_province_religion_converted_estate_privileges_effect = yes
+	
+	if = {
+		limit = {
+			owner = { has_country_flag = jaddari_the_western_beacon_flag }
+			has_province_modifier = jaddari_the_western_beacon
+			religion = the_jadd
+		}
+		hidden_effect = {
+			remove_province_modifier = jaddari_the_western_beacon
+		}
+	}
 }
 
 # province
@@ -4143,6 +4225,52 @@ on_province_owner_change = {
 			duration = -1
 		}
 	}
+	if = {
+		limit = {
+			owner = { has_country_flag = jaddari_the_western_beacon_flag }
+			continent = europe
+			NOT = { religion = the_jadd }
+		}
+		add_province_modifier = {
+			name = jaddari_the_western_beacon
+			duration = -1
+			hidden = yes
+		}
+	}
+	if = {
+		limit = {
+			owner = { has_country_flag = jaddari_remnant_dhenijansar_administration_flag }
+			OR = { region = rakhadesh_region region = rahen_coast_region region = dhujat_region }
+		}
+		add_province_modifier = {
+			name = jaddari_remnant_dhenijansar_administration
+			duration = -1
+			hidden = yes
+		}
+	}
+	if = {
+		limit = {
+			primary_culture = cave_goblin
+			NOT = {
+				capital_scope = {
+					OR = {
+						has_terrain = dwarven_hold
+						has_terrain = dwarven_hold_surface
+					}
+				}
+			}
+			ai = yes
+		}
+		random_owned_province = {
+			limit = {
+				OR = {
+					has_terrain = dwarven_hold
+					has_terrain = dwarven_hold_surface
+				}
+			}
+			province_event = { id = cavegoblinflavor.3000 }
+		}
+	}
 
 	# if = {
 		# limit = {
@@ -4254,6 +4382,15 @@ on_refuse_tribute = {
 
 # country
 on_leader_recruited = {
+	if = {
+		limit = {
+			has_faction = hob_lion_command
+		}
+		add_faction_influence = {
+			faction = hob_lion_command
+			influence = 1
+		}
+	}
 }
 
 # country
@@ -4472,6 +4609,33 @@ on_country_released = {
 		}
 		capital_scope = {
 			change_religion = FROM
+		}
+	}
+
+	if = {
+		limit ={
+			culture = cave_goblin
+			FROM = {
+				has_country_modifier = allclan_split
+			}
+		}
+		THIS = {
+			add_country_modifier = {
+				name = allclan_split
+				duration = -1
+				hidden = yes
+			}
+		}
+	}
+	if = {
+		limit = {
+			THIS = {
+				culture = cave_goblin
+			}
+			has_global_flag = cave_goblin_modernity
+		}
+		country_event = {
+			id = cavegoblinflavor.2 #cave goblin modernity for cave goblins not alive when the global event fired
 		}
 	}
 	
