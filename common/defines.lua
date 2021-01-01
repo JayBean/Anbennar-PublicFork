@@ -1394,7 +1394,7 @@ NAI = {
 	RIVAL_ALLIANCE_PENALTY = 50, -- Penalty on alliance chance for being allied to rivals
 	REVOLUTION_EMBRACE_MAX_ABSOLUTISM = 49, -- AI will not consider embracing the revolution (unless a disaster happens) if their absolutism if over this value
 
-	DEBASE_THRESHOLD = -5000,-- AI will not debase if it has more gold than this.
+	DEBASE_THRESHOLD = -100,-- AI will not debase if it has more gold than this.	#Anbennar change from like -50,000 this is to improve AI aggressiveness in FP
 
 	DEVELOPMENT_CAP_BASE = 10,	-- AI will not develop provinces that have more development than this or DEVELOPMENT_CAP_MULT*original development (whichever is bigger)
 	DEVELOPMENT_CAP_MULT = 2,
