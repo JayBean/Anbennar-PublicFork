@@ -1,0 +1,591 @@
+########################################
+# one_xia Events                         #
+########################################
+
+namespace = one_xia
+
+# The DYNASTYNAME wulin has fallen!
+province_event = {
+	id = one_xia.1
+	title = one_xia.1.t
+	picture = COURT_eventPicture
+	
+	major = yes
+	is_triggered_only = yes
+	
+	desc = {
+		trigger = {
+			owner = { has_reform = wulin }
+			FROM = {
+				has_reform = wulin
+			}
+		}
+		desc = one_xia.t.da
+	}
+	
+	desc = {
+		trigger = {
+			owner = { has_reform = wulin }
+			FROM = {
+				NOT = { has_reform = wulin }
+			}
+		}
+		desc = one_xia.1.db
+	}
+	
+	desc = {
+		trigger = {
+			owner = {
+				NOT = { has_reform = wulin }
+			}
+		}
+		desc = one_xia.1.dc
+	}
+	
+	trigger = {
+		# OBS! These checks are also hard coded in WouldBecomeShogunIfTaking() for AI and interface reasons. Change code too if this trigger changes.
+		province_id = 4559
+		#owner = {
+		#	OR = {
+		#		has_reform = xiaken
+		#		has_reform = indep_xiaken
+		#	}
+		#}
+	}
+	
+	immediate = {
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						OR = {
+							has_reform = xiaken
+							has_reform = indep_xiaken
+						}
+					}
+					add_core = 4559
+					set_capital = 4559
+					add_government_reform = wulin
+					save_event_target_as = new_wulin
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = one_xia.1.a
+		if = {
+			limit = {
+				owner = { has_reform = wulin }
+			}
+			custom_tooltip = claiming_the_wulin_tooltip
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					FROM = { exists = yes }
+					owner = { has_reform = wulin }
+					FROM = { has_reform = wulin }
+				}
+				FROM = {
+					free_vassal = PREV
+				}
+				FROM = {
+					every_subject_country = {
+						limit = {
+							OR = {
+								has_reform = xiaken
+								has_reform = indep_xiaken
+
+							}
+							NOT = { war_with = event_target:new_wulin }
+						}
+						event_target:new_wulin = {
+							vassalize = PREV
+						}
+					}
+					every_subject_country = {
+						limit = {
+							OR = {
+								has_reform = xiaken
+								has_reform = indep_xiaken
+							}
+							war_with = event_target:new_wulin
+						}
+						from = {
+							free_vassal = prev
+						}
+						if = {
+							limit = {
+								NOT = { has_reform = indep_xiaken }
+								NOT = { has_reform = pirate_republic_reform }
+								NOT = { has_reform = pirate_king_reform }
+								NOT = { has_reform = war_against_the_world_doctrine_reform }
+								NOT = { has_reform = black_market_consortium_reform }
+							}
+							add_government_reform = indep_xiaken
+						}
+					}
+					add_government_reform = indep_xiaken
+				}
+			}
+			if = {
+				limit = {
+					FROM = { exists = yes }
+					NOT = { owner = { has_reform = wulin } }
+					FROM = { has_reform = wulin }
+				}
+				FROM = {
+					every_subject_country = {
+						limit = {
+							OR = {
+								has_reform = xiaken
+								has_reform = indep_xiaken
+							}
+						}
+						FROM = {
+							free_vassal = PREV
+						}
+					}
+					add_government_reform = indep_xiaken
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						FROM = { exists = yes }
+					}
+					owner = { has_reform = wulin }
+				}
+				every_country = {
+					limit = {
+						has_reform = xiaken
+						NOT = { war_with = event_target:new_wulin }
+					}
+					event_target:new_wulin = {
+						vassalize = PREV
+					}
+				}
+				every_country = {
+					limit = {
+						has_reform = xiaken
+						war_with = event_target:new_wulin
+					}
+					add_government_reform = indep_xiaken
+				}
+				#solution for So Pirates
+				every_country = {
+					limit = {
+						NOT = { war_with = event_target:new_wulin }
+					}
+					country_event = { id = one_xia.2 }
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						FROM = { exists = yes }
+					}
+					NOT = {
+						owner = { has_reform = wulin }
+					}
+				}
+				every_country = {
+					limit = { has_reform = xiaken }
+					overlord = {
+						free_vassal = PREV
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					owner = { has_reform = wulin }
+				}
+			}
+			owner = {
+				if = {
+					limit = { NOT = { has_country_flag = destroyed_wulin } }
+					add_prestige = 20
+					add_adm_power = 50
+					add_dip_power = 50
+					add_mil_power = 50
+					set_country_flag = destroyed_wulin
+				}
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_country = {
+						is_subject_of_type = daimyo_xiaken_vassal
+						NOT = { overlord = { has_reform = wulin } }
+					}
+				}
+				every_country = {
+					limit = {
+						is_subject_of_type = daimyo_xiaken_vassal
+						NOT = { overlord = { has_reform = wulin } }
+					}
+					overlord = {
+						free_vassal = PREV
+					}
+				}
+			}
+		}
+	}
+}
+
+# I couldn't actually find a way to get this event to fire from the last one, so I assume that the NOT = { exists = FROM } bit is actually unused. But just in case I missed something, it seems better to add this anyway.
+# New Shogun - join or not?
+country_event = {
+	id = one_xia.2
+	title = one_xia.2.t
+	desc = one_xia.2.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #be a xiaken
+		name = one_xia.2.a
+
+		event_target:new_wulin = {
+			vassalize = root
+		}
+
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				num_of_cities = 10
+			}
+		}
+	}
+	option = { #don't be a xiaken
+		name = one_xia.2.b
+		
+		event_target:new_wulin = {
+			add_opinion = {
+				who = root
+				modifier = opinion_defy_new_shogun
+			}
+			country_event = { id = one_xia.3 days = 5 }
+		}
+
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = { num_of_cities = 10 }
+			}
+		}
+	}
+}
+
+
+# So Defies our Authority
+country_event = {
+	id = one_xia.3
+	title = one_xia.3.t
+	desc = one_xia.3.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #be a xiaken
+		name = one_xia.3.a
+	}
+}
+
+#Hidden startup event for One Xia to define xiaWarsWon and trigger the next event
+country_event = {
+	id = one_xia.9
+	title = one_xia.9.t
+	desc = one_xia.9.d
+	picture = BUDDHISM_BAD_eventPicture
+	
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = {
+		name = one_xia.9.a
+		every_country = {
+			limit = {
+				capital_scope = { region = xianjie_region }
+				OR = {
+					has_reform = xiaken
+					has_reform = wulin
+				}
+			}
+			set_country_flag = xia_nation
+			set_variable = {
+				which = xiaWarsWon
+				value = 0
+			}
+			country_event = { id = one_xia.10 }
+		}
+	}
+}
+
+#Startup event for One Xia - gives the Peasants Fleeing + Deserters modifiers
+country_event = {
+	id = one_xia.10
+	title = one_xia.10.t
+	desc = one_xia.10.d
+	picture = BUDDHISM_BAD_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = one_xia.10.a
+		add_country_modifier = {
+			name = xia_peasants_fleeing
+			duration = 9160
+		}
+		add_country_modifier = {
+			name = xia_soldiers_deserting
+			duration = 9160
+		}
+	}
+}
+
+##########XIA MISSION TREE EVENTS##########
+#Choose to patronize Sages or Wandering Warriors
+country_event = {
+	id = one_xia.11
+	title = one_xia.11.t
+	desc = one_xia.11.d
+	picture = MERCHANTS_TALKING_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {					#choose mages
+		name = one_xia.11.a
+		ai_chance = { factor = 50 }
+		
+		add_country_modifier = {
+			name = xia_patronizing_sages
+			duration = -1
+		}
+	}
+	
+	option = {					#choose adventurers
+		name = one_xia.11.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ruler_has_personality = powerful_mage
+				}
+			}
+		}
+		add_country_modifier = {
+			name = xia_patronizing_wandering_warriors
+			duration = -1
+		}
+	}
+}
+
+#Enlist Renowned Hero
+country_event = {
+	id = one_xia.12
+	title = one_xia.12.t
+	desc = one_xia.12.d
+	picture = MIRACLE_MONK_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {									#hire a venerable sage
+		name = one_xia.12.a
+		trigger = {
+			has_country_modifier = xia_patronizing_sages
+		}
+		define_general = {
+			shock = 8
+			fire = 0
+			manuever = 3
+			siege = 2
+			trait = war_wizard_personality
+		}
+		add_prestige = 20
+	}
+	
+	option = {									#hire a masterful strategist
+		name = one_xia.12.b
+		trigger = {
+			has_country_modifier = xia_patronizing_wandering_warriors
+		}
+		define_general = {
+			shock = 4
+			fire = 4
+			manuever = 6
+			siege = 2
+			trait = defensive_planner_personality
+		}
+		add_prestige = 20
+	}
+	
+	option = {									#hire an esteemed mercenary leader
+		name = one_xia.12.c
+		trigger = {
+			has_country_modifier = xia_patronizing_wandering_warriors
+		}
+		define_general = {
+			shock = 6
+			fire = 4
+			manuever = 4
+			siege = 2
+			trait = master_of_arms_personality
+		}
+		add_prestige = 20
+	}
+	
+	option = {									#hire a siege specialist
+		name = one_xia.12.dd
+		trigger = {
+			has_country_modifier = xia_patronizing_wandering_warriors
+		}
+		define_general = {
+			shock = 3
+			fire = 3
+			manuever = 4
+			siege = 6
+			trait = siege_specialist
+		}
+		add_prestige = 20
+	}
+}
+
+#Choose Martial School
+country_event = {
+	id = one_xia.13
+	title = one_xia.13.t
+	desc = one_xia.13.d
+	picture = CHINESE_GENERAL_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {					#School of the Charging Bull: +1 leader shock
+		name = one_xia.13.a
+		add_country_modifier = {
+			name = xia_charging_bull
+			duration = -1
+		}
+	}
+	
+	option = {					#School of Wrathful Thunder: +1 leader fire
+		name = one_xia.13.b
+		add_country_modifier = {
+			name = xia_wrathful_thunder
+			duration = -1
+		}
+	}
+	
+	option = {					#School of the Cunning Fox: +1 leader siege
+		name = one_xia.13.c
+		add_country_modifier = {
+			name = xia_cunning_fox
+			duration = -1
+		}
+	}
+}
+
+#Mythical Prowess
+country_event = {
+	id = one_xia.14
+	title = one_xia.14.t
+	desc = one_xia.14.d
+	picture = MILITARISTICALLY_TALENTED_RULER_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {					#We are the Very Best
+		name = one_xia.14.a
+		add_country_modifier = {
+			name = xia_mythical_prowess
+			duration = -1
+		}
+		add_prestige = 10
+	}
+}
+
+#Calm Restored - Peasants/Soldiers return
+country_event = {
+	id = one_xia.15
+	title = one_xia.15.t
+	desc = one_xia.15.d
+	picture = BUDDHISM_GOOD_eventPicture
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		remove_country_modifier = xia_peasants_fleeing
+		remove_country_modifier = xia_soldiers_deserting
+	}
+	
+	option = {					#Send them to the fields
+		name = one_xia.15.a
+		add_adm_power = -100
+		capital_scope = {
+			area = {
+				add_base_tax = 2
+			}
+		}
+	}
+	
+	option = {					#Balance
+		name = one_xia.15.b
+		add_adm_power = -100
+		capital_scope = {
+			area = {
+				add_base_tax = 1
+				add_base_manpower = 1
+			}
+		}
+	}
+	
+	option = {					#Send them to the barracks
+		name = one_xia.15.c
+		add_adm_power = -100
+		capital_scope = {
+			area = {
+				add_base_manpower = 2
+			}
+		}
+	}
+}
+
+#Leading Position Secured
+country_event = {
+	id = one_xia.16
+	title = one_xia.16.t
+	desc = one_xia.16.d
+	picture = IMPERIAL_SEAL_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {					#Attempt to convince other states of rightful leadership
+		name = one_xia.16.a
+		add_dip_power = -100
+		add_country_modifier = {
+			name = xia_diplomatic_efforts
+			duration = 3650
+		}
+	}
+	
+	option = {					#Attempt to justify further conquest
+		name = one_xia.16.b
+		add_dip_power = -100
+		add_country_modifier = {
+			name = xia_justifying_conquests
+			duration = 3650
+		}
+	}
+}
