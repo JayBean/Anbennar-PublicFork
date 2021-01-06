@@ -595,9 +595,9 @@ NCountry = {
 	LAND_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	NAVAL_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	REPUBLICAN_TRADITION_YEARLY_INCREASE = 1,		-- how much it increases each year.
-	PIETY_PERCENTAGE_AT_NEW_RULER = 0.0,			-- percentage of piety kept at new ruler.
-	PIETY_INCREASE_AT_GOOD_WAR = -0.10,
-	PIETY_DECREASE_AT_BAD_WAR = -0.10,
+	PIETY_PERCENTAGE_AT_NEW_RULER = 0.90,			-- percentage of piety kept at new ruler.
+	PIETY_INCREASE_AT_GOOD_WAR = -0.1,
+	PIETY_DECREASE_AT_BAD_WAR = -0.1,
 	ADVISOR_COST_INCREASE_PER_YEAR = 0.005,			-- yearly increase in price in percent,
 	SCRIPTED_ADVISOR_DISCOUNT = 0.5,				-- Multiplier on cost for advisors scripted with discount=yes
 	MINIMUM_ADVISOR_DURATION = 10, 					-- _CDEF_MINIMUM_ADVISOR_DURATION_
