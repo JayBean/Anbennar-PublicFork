@@ -8,6 +8,7 @@ country_decisions = {
 					has_terrain = dwarven_hold_surface
 				}
 			}
+			NOT = { has_country_flag = debug_digging_flag }
 		}
 		
 		provinces_to_highlight = {
@@ -34,9 +35,7 @@ country_decisions = {
 			capital_scope = { can_upgrade_hold_capital = yes }
 		}
 		effect = {
-			hidden_effect = { capital_scope = { setup_digging_deeper_capital = yes } }
-			capital_scope = { start_digging_deeper = yes }
-			hidden_effect = { set_country_flag = is_digging }
+			country_event = { id = diggy.51 }
 		}
 		ai_will_do = {
 			factor = 400
@@ -52,7 +51,7 @@ country_decisions = {
 					has_province_modifier = partially_ruined_hold
 					has_province_modifier = damaged_hold
 				}
-				NOT = { has_province_modifier = hold_being_restored }
+				NOT = { has_construction = building }
 				is_city = yes
 			}
 			NOT = { has_country_flag = open_repair_hold_menu }
@@ -68,6 +67,16 @@ country_decisions = {
 		}
 		
 		allow = {
+			any_owned_province = {
+				OR = {
+					has_province_modifier = ruined_hold
+					has_province_modifier = partially_ruined_hold
+					has_province_modifier = damaged_hold
+				}
+				NOT = { has_construction = building }
+				is_city = yes
+				is_core = ROOT
+			}
 			NOT = { num_of_rebel_armies = 1 }
 			is_at_war = no
 			if = {
@@ -88,14 +97,11 @@ country_decisions = {
 				random_owned_province = {
 					limit = {
 						OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold }
-						NOT = { has_province_modifier = hold_being_restored }
+						NOT = { has_construction = building }
 						is_city = yes
+						is_core = ROOT
 					}
-					add_province_modifier = {
-						name = hold_being_restored
-						duration = -1
-					}
-					hidden_effect = { set_province_flag = being_restored }
+					repair_hold_ai = yes
 				}
 			}
 			else = {
@@ -973,25 +979,46 @@ country_decisions = {
 		potential = {
 			ai = no
 			NOT = { num_of_cities = 3 }
-			culture_group = dwarven
+			OR = {
+				culture_group = dwarven
+				has_reform = dwarovar_warband
+				has_reform = roaming_horde
+			}
 			capital_scope = {
 				continent = serpentspine
-			}
-			any_owned_province = {
-				is_capital = no
-				OR = {
-					culture = black_orc
-					culture = cave_goblin
-				}
-				is_city = yes
 			}
 		}
 		
 		provinces_to_highlight = {
 			is_capital = no
+			NOT = {
+				is_core = ROOT #is_capital was failing sometimes for some reason						
+				#has_owner_accepted_culture = yes
+			}
 			OR = {
 				culture = black_orc
 				culture = cave_goblin
+				if = {
+					limit = {
+						NOT = {
+							ROOT = {
+								primary_culture = greenscale_kobold
+							}
+						}
+					}
+					culture_group = kobold
+				}
+				if = { #goblins can use it on dwarves
+					limit = {
+						ROOT = {
+							OR = {
+								has_reform = dwarovar_warband
+								has_reform = roaming_horde
+							}
+						}
+					}
+					culture_group = dwarven
+				}
 			}
 			is_city = yes
 			
@@ -999,11 +1026,37 @@ country_decisions = {
 		}
 		
 		allow = {
+			NOT = { num_of_cities = 3 }
 			any_owned_province = {
 				is_capital = no
+				NOT = {
+					is_core = ROOT #is_capital was failing sometimes for some reason						
+					#has_owner_accepted_culture = yes
+				}
 				OR = {
 					culture = black_orc
 					culture = cave_goblin
+					if = {
+						limit = {
+							NOT = {
+								ROOT = {
+									primary_culture = greenscale_kobold
+								}
+							}
+						}
+						culture_group = kobold
+					}
+					if = { #goblins can use it on dwarves
+						limit = {
+							ROOT = {
+								OR = {
+									has_reform = dwarovar_warband
+									has_reform = roaming_horde
+								}
+							}
+						}
+						culture_group = dwarven
+					}
 				}
 				is_city = yes
 			}
@@ -1016,9 +1069,34 @@ country_decisions = {
 			random_owned_province = {
 				limit = {
 					is_capital = no
+					NOT = {
+						is_core = ROOT #is_capital was failing sometimes for some reason						
+						#has_owner_accepted_culture = yes
+					}
 					OR = {
 						culture = black_orc
 						culture = cave_goblin
+						if = {
+							limit = {
+								NOT = {
+									ROOT = {
+										primary_culture = greenscale_kobold
+									}
+								}
+							}
+							culture_group = kobold
+						}
+						if = {
+							limit = {
+								ROOT = {
+									OR = {
+										has_reform = dwarovar_warband
+										has_reform = roaming_horde
+									}
+								}
+							}
+							culture_group = dwarven
+						}
 					}
 					is_city = yes
 				}
@@ -1168,12 +1246,57 @@ country_decisions = {
 		}
 		
 		allow = {
-			always = yes
+			any_owned_province = { can_upgrade_hold = yes }
 		}
 		
 		effect = {
 			country_event = { id = diggy.49 }
 			hidden_effect = { set_country_flag = hold_operation_menu }
+		}
+		
+		ai_will_do = {
+			factor = 400
+		}
+	}
+	
+	amlharaz = {
+		major = yes
+		potential = {
+			tag = I24
+			NOT = { has_country_flag = formed_amlharaz }
+		}
+		
+		provinces_to_highlight = {
+			OR = {
+				has_terrain = dwarven_hold
+				has_terrain = dwarven_hold_surface
+			}
+			continent = serpentspine
+			NOT = { owned_by = ROOT }
+
+		}
+		
+		allow = {
+			custom_trigger_tooltip = {
+				tooltip = almharaz_decision_tooltip
+				serpentspine = {
+					type = all
+					if = {
+						limit = {
+							OR = {
+								has_terrain = dwarven_hold
+								has_terrain = dwarven_hold_surface
+							}
+						}
+						owned_by = ROOT
+					}
+				}
+			}
+		}
+		
+		effect = {
+			country_event = { id = diggy.52 }
+			hidden_effect = { set_country_flag = formed_amlharaz }
 		}
 		
 		ai_will_do = {
