@@ -40,6 +40,7 @@ A59_anti_Asheniande = {
 					treasury = 50
 				}
 				NOT = { dostanor_region = { owned_by = A60 } }
+				A60 = { is_subject_of = ROOT }
 			}
 		}
 		
@@ -47,6 +48,12 @@ A59_anti_Asheniande = {
 			if = {
 				limit = {
 					NOT = { dostanor_region = { owned_by = A60 } }
+				}
+				add_dip_power = 25
+			}
+			else_if = {
+				limit = {
+					A60 = { is_subject_of = ROOT }
 				}
 				add_dip_power = 25
 			}
@@ -73,13 +80,22 @@ A59_anti_Asheniande = {
 		}
 		
 		trigger = {
-		    owns_core_province = 428
-			owns_core_province = 431
+			OR = {
+				AND = {
+					owns_core_province = 428
+					owns_core_province = 431
+				}
+				A60 = {
+					is_subject_of = ROOT
+					owns = 428
+					owns = 431
+				}
+			}
 		}
 		
 		effect = {
 			add_prestige = 30
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			add_adm_power = 100
 			if = {
 				limit = {
@@ -95,6 +111,19 @@ A59_anti_Asheniande = {
 					months = 300
 				}
 			}
+			if = {
+				limit = {
+					A60 = {
+						is_subject_of = ROOT
+						owns = 428
+						owns = 431
+					}
+				}
+				428 = { cede_province = ROOT }
+				431 = { cede_province = ROOT }
+			}
+			428 = { add_local_autonomy = -30 }
+			431 = { add_local_autonomy = -30 }
 	    }
 	}
 	
@@ -122,7 +151,6 @@ A59_anti_Asheniande = {
 				duration = 10950
 			}
 	    }
-		
 	}
 }
 
@@ -187,11 +215,14 @@ A59_Imperial_Meddling = {
 		required_missions = { A59_imperial_diplomacy }
 		
 		trigger = {
-			OR = {
-				any_ally = {  
-					war_with = emperor
+			custom_trigger_tooltip = {
+				tooltip = corvuria_distraction
+				OR = {
+					any_ally = {  
+						war_with = emperor
+					}
+					is_emperor = yes
 				}
-				is_emperor = yes
 			}
 		}
 		
@@ -403,6 +434,10 @@ A59_general_development = {
 				add_base_production = 1
 				add_base_manpower = 1
 			}
+			add_country_modifier = {
+				name = corvuria_safe
+				duration = 10950
+			}
 	    }
 	}
 	
@@ -420,7 +455,8 @@ A59_general_development = {
 		}
 		
 		trigger = {
-		    dostanor_region = { 
+		    dostanor_region = {
+				type = all
 				owned_by = ROOT
 				development = 10
 			}
@@ -672,7 +708,7 @@ A59_centralize = {
 		}
 		
 		effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			441 = {
 				add_province_modifier = {
 					name = corvuria_village
@@ -955,6 +991,7 @@ A59_centralize = {
 					every_country = {
 						limit = {
 							has_country_flag = has_vampires
+							NOT = { tag = A59 } #don't invite ourselves
 						}
 						country_event = {
 							id = corvuria.4
@@ -966,7 +1003,6 @@ A59_centralize = {
 			}
 			set_global_flag = blood_court_founded
 			set_country_flag = founded_blood_court
-			
 			rotwall_area = {
 				limit = {
 					NOT = { is_core = ROOT }
@@ -1026,12 +1062,25 @@ A59_resettle_swamps = {
 				}
 				add_permanent_claim = ROOT
 			}
+			if = {
+				limit = { 
+					ai = yes
+					444 = { is_empty = yes }
+				}
+				444 = {
+					cede_province = A59
+					add_core = A59
+					change_culture = ROOT
+					change_religion = ROOT
+				}
+				add_treasury = -25
+			}
 	    }
 	}
 	
 	A59_resettle_dreadmire = {
 		icon = mission_ghost_town
-		required_missions = { A59_prepare_resettlement }
+		required_missions = { A59_capitol_fort A59_prepare_resettlement }
 		
 		provinces_to_highlight = {
 			area = dreadmire_area
@@ -1075,6 +1124,7 @@ A59_resettle_swamps = {
 		
 		provinces_to_highlight = {
 			area = flooded_coast_area
+			NOT = { province_id = 451 }
 			NOT = { owned_by = ROOT }
 			has_discovered = ROOT
 		}
@@ -1145,7 +1195,7 @@ A59_Nathalire = {
 				add_casus_belli = {
 					target = A74
 					type = cb_vassalize_mission
-					months = 7300
+					months = 300
 				}
 			}
 			define_admiral = {
@@ -1183,7 +1233,7 @@ A59_Nathalire = {
 				A74 = { change_primary_culture = FROM }
 			}
 			add_mil_power = 50
-			451 = { add_culture_construction = { speed = 2 cost = 0 }}
+			451 = { add_culture_construction = { speed = 1.5 cost = 0 }}
 	    }
 	}
 	
@@ -1397,7 +1447,7 @@ A59_Dostanor = {
 		}
 		
 		effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			510 = {
 				add_base_tax = 1
 				add_base_production = 1
@@ -1482,6 +1532,58 @@ A59_Dostanor = {
 				add_base_tax = 1
 				add_base_production = 1
 				add_base_manpower = 3
+			}
+	    }
+	}
+	
+	A59_secure_south = {
+		icon = claim_the_borderlands
+		required_missions = { A59_stengthen_bal_ouord A59_integrate_nathalire }
+		
+		provinces_to_highlight = {
+			region = ourdia_region
+			NOT = { owned_by = ROOT }
+		}
+		
+		trigger = {
+		    ourdia_region = {
+				type = all
+				owned_by = ROOT
+				is_core = ROOT
+			}
+			num_of_owned_provinces_with = {
+				value = 6
+				OR = {
+					region = dostanor_region
+					region = daravans_folly_region
+					region = ourdia_region
+				}
+				OR = {
+					has_building = fort_15th
+					has_building = fort_16th
+					has_building = fort_17th
+					has_building = fort_18th
+				}
+			}
+		}
+		
+		effect = {
+			add_country_modifier = {
+				name = corvuria_citadels
+				duration = -1
+			}
+			custom_tooltip = corvuria_lose_devestation
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						OR = {
+							region = dostanor_region
+							region = daravans_folly_region
+							region = ourdia_region
+						}
+					}
+					add_devastation = -30
+				}
 			}
 	    }
 	}
@@ -1784,8 +1886,7 @@ A59_Castanor = {
 		trigger = {
 		    dostans_way_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT 
 			}
 		}
 		
@@ -1915,8 +2016,8 @@ A59_Castanor = {
 		required_missions = { A59_south_castanor }
 		
 		trigger = {
-		    army_size = 100
-			num_of_artillery = 20
+		    army_size = 150
+			num_of_artillery = 30
 		}
 		
 		effect = {
@@ -2047,7 +2148,7 @@ A59_Corvuria_dev = {
 		}
 		
 		effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			add_prestige = 20
 	    }
 	}
@@ -2212,7 +2313,7 @@ A59_Corvuria_dev = {
 					province_id = 441
 					OR = {
 						NOT = { development = 40 }
-						NOT = { has_manufactory_trigger = yes }
+						NOT = { has_building = manufactory }
 					}
 				}
 			}
@@ -2359,13 +2460,18 @@ A59_Wider_dev = {
 			add_dip_power = -100
 			add_mil_power = -100
 			add_prestige = 30
-			431 = {
-				add_base_tax = 2
-				add_base_production = 2
-				add_base_manpower = 2
-				add_province_modifier = {
-					name = corvuria_folly_healing
-					duration = -1
+			if = {
+				limit = {
+					owns = 431
+				}
+				431 = {
+					add_base_tax = 2
+					add_base_production = 2
+					add_base_manpower = 2
+					add_province_modifier = {
+						name = corvuria_folly_healing
+						duration = -1
+					}
 				}
 			}
 			daravans_folly_region = {
@@ -2652,7 +2758,8 @@ A59_Deepwoods = {
 		
 		effect = {
 			custom_tooltip = corvuria_destroy_verdant
-			add_stability = 1
+			custom_tooltip = corvuria_deepwoods_dev
+			add_stability_or_adm_power = yes
 			add_estate_loyalty = { estate = estate_vampires loyalty = 30 }
 			hidden_effect = {
 				every_owned_province = {
@@ -2661,17 +2768,17 @@ A59_Deepwoods = {
 					}
 					remove_province_modifier = verdant_link
 				}
-			}
-			every_owned_province = {
-				limit = {
-					OR = {
-						region = west_deepwood
-						region = east_deepwood
+				every_owned_province = {
+					limit = {
+						OR = {
+							region = west_deepwood
+							region = east_deepwood
+						}
+						trade_goods = tropical_wood
 					}
-					trade_goods = tropical_wood
+					add_base_tax = 1
+					add_base_production = 3
 				}
-				add_base_tax = 1
-				add_base_production = 3
 			}
 	    }
 	}
@@ -2765,18 +2872,18 @@ A59_Coal = {
 			}
 			custom_tooltip = corvuria_coal
 			hidden_effect = {
-				if = { limit = { 446 = { has_building = farm_estate } 446 = { remove_building = farm_estate } }
-				if = { limit = { 446 = { has_building = wharf } 446 = { remove_building = wharf } }
-				if = { limit = { 446 = { has_building = weapons } 446 = { remove_building = weapons } }
-				if = { limit = { 446 = { has_building = textile } 446 = { remove_building = textile } }
-				if = { limit = { 446 = { has_building = plantations } 446 = { remove_building = plantations } }
-				if = { limit = { 446 = { has_building = tradecompany } 446 = { remove_building = tradecompany } }
-				if = { limit = { 446 = { has_building = mills } 446 = { remove_building = mills } }
-				if = { limit = { 446 = { has_building = ramparts } 446 = { remove_building = ramparts } }
-				if = { limit = { 446 = { has_building = soldier_households } 446 = { remove_building = soldier_households } }
-				if = { limit = { 446 = { has_building = impressment_offices } 446 = { remove_building = impressment_offices } }
-				if = { limit = { 446 = { has_building = state_house } 446 = { remove_building = state_house } }
-				if = { limit = { 446 = { has_building = mage_tower } 446 = { remove_building = mage_tower } }
+				if = { limit = { 446 = { has_building = farm_estate } } 446 = { remove_building = farm_estate } }
+				if = { limit = { 446 = { has_building = wharf } } 446 = { remove_building = wharf } }
+				if = { limit = { 446 = { has_building = weapons } } 446 = { remove_building = weapons } }
+				if = { limit = { 446 = { has_building = textile } } 446 = { remove_building = textile } }
+				if = { limit = { 446 = { has_building = plantations } } 446 = { remove_building = plantations } }
+				if = { limit = { 446 = { has_building = tradecompany } } 446 = { remove_building = tradecompany } }
+				if = { limit = { 446 = { has_building = mills } } 446 = { remove_building = mills } }
+				if = { limit = { 446 = { has_building = ramparts } } 446 = { remove_building = ramparts } }
+				if = { limit = { 446 = { has_building = soldier_households } } 446 = { remove_building = soldier_households } }
+				if = { limit = { 446 = { has_building = impressment_offices } } 446 = { remove_building = impressment_offices } }
+				if = { limit = { 446 = { has_building = state_house } } 446 = { remove_building = state_house } }
+				if = { limit = { 446 = { has_building = mage_tower } } 446 = { remove_building = mage_tower } }
 			}
 	    }
 	}
