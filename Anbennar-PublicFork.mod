@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="Anbennar-Fork-Ditto"
 path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
