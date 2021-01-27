@@ -163,6 +163,7 @@ country_event = {
 		}
 		NOT = { has_ruler_flag = offered_blood_gift }
 		NOT = { has_ruler_flag = is_a_vampire }
+		NOT = { has_ruler_flag = is_a_lich }
 	}
 	
 	immediate = {
@@ -177,19 +178,8 @@ country_event = {
 	option = {
 		name = vampires_estate_events.4.a
 		ai_chance = { factor = 80 }
-		hidden_effect = {
-			set_ruler_flag = set_immortality
-			set_ruler_flag = is_a_vampire
-		}
-		if = {
-			limit = { NOT = { ruler_has_personality = immortal_personality  } }
-			if = {
-				limit = { ruler_has_max_personalities = yes }
-				clear_scripted_personalities = yes
-			}
-			add_ruler_personality = immortal_personality
-		}
 		custom_tooltip = will_become_a_vampire_tooltip
+		ruler_become_vampire = yes
 	}
 	
 	#Refuse the offer
@@ -554,6 +544,183 @@ country_event = {
 			desc = EST_ACCEPTED_EMIGRE
 			loyalty = 20
 			duration = 7300
+		}
+	}
+}
+
+#vampire Death - Regency Council
+country_event = {
+	id = vampires_estate_events.13
+	title = vampires_estate_events.13.t
+	desc = vampires_estate_events.13.d
+	picture = DEATH_OF_HEIR_eventPicture
+	
+	#is_triggered_only = yes	#this should be triggered by other events like adventurers destroying phylactery
+	
+	trigger = {
+		has_country_flag = vampire_ruler
+		NOT = { has_country_flag = lich_ruler }				#Stop weird lich shenanigans going on (hopefully)
+		has_country_flag = vampire_ruler_has_coffin
+		
+		NOT = { has_country_flag = interregnum }
+		
+		NOT = { has_ruler_flag = is_a_vampire }
+		
+		NOT = { government = republic }
+	}
+	
+	mean_time_to_happen = {
+		days = 7
+	}
+	
+	after = {
+		hidden_effect = { add_stability = 1 }	#Technically two rulers are killed so you would otherwise get a -2 stab hit
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				has_regency = no
+			}
+			exile_ruler_as = old_heir_turned_ruler
+		}
+		if = {
+			limit = {
+				has_heir = yes
+			}
+			exile_heir_as = old_heir
+		}
+		
+		define_ruler = {
+			name = "(Interregnum)"
+			#dynasty = ROOT
+			adm = 0
+			mil = 0
+			dip = 0
+			regency = yes
+		}
+	}
+	
+	#Govs with heirs
+	#Make heir with no dynasty
+	option = {
+		name = vampires_estate_events.13.a
+		trigger = { has_government_attribute = heir }
+		ai_chance = {
+			factor = 50
+		}
+		
+		if = {
+			limit = { has_country_flag = vampire_ruler_female }
+			define_heir = {
+				age = 33
+				dynasty = " "
+				no_consort_with_heir = yes
+				female = yes
+			}
+		}
+		else = {
+			define_heir = {
+				age = 33
+				dynasty = " "
+				no_consort_with_heir = yes
+				male = yes
+			}
+		}
+		
+		set_heir_flag = is_a_vampire
+		set_heir_flag = new_vampire_setup
+		set_country_flag = interregnum
+		
+		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
+	}
+	
+	#Govs without heirs - straight ruler boy
+	option = {
+		name = vampires_estate_events.13.b
+		trigger = { NOT = { has_government_attribute = heir } }
+		ai_chance = {
+			factor = 50
+		}
+		
+		hidden_effect = { exile_ruler_as = old_ruler }
+		
+		if = {
+			limit = { has_country_flag = vampire_ruler_female }
+			define_ruler = {
+				age = 33
+				dynasty = " "
+				female = yes
+			}
+		}
+		else = {
+			define_ruler = {
+				age = 33
+				dynasty = " "
+				male = yes
+			}
+		}
+		
+		set_ruler_flag = is_a_vampire
+		set_ruler_flag = new_vampire_setup
+		set_country_flag = interregnum
+
+		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
+	}
+	
+}
+
+#vampire Reborn - initialization giving spell schools ruler if nessecary
+country_event = {
+	id = vampires_estate_events.14
+	title = vampires_estate_events.14.t
+	desc = vampires_estate_events.14.d
+	picture = END_OF_TIME_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		#has_ruler_flag = is_a_vampire
+		#has_country_flag = interregnum
+		#has_regency = no
+		
+		#has_ruler_flag = new_vampire_setup
+		
+		#NOT = { has_ruler_modifier = vampire_ruler }
+	}
+	
+	option = {
+		name = vampires_estate_events.14.a
+		ai_chance = {
+			factor = 50
+		}
+		if = {
+			limit = {
+				NOT = { ruler_age = 33 }
+			}
+			kill_ruler = yes
+			hidden_effect = { add_stability = 1 }
+		}
+		clr_country_flag = interregnum
+		
+		clr_heir_flag = new_vampire_setup
+		clr_ruler_flag = new_vampire_setup
+		
+		clear_scripted_personalities = yes
+		add_ruler_personality = immortal_personality
+		if = {
+			limit = { has_country_flag = mage_vampire }
+			add_ruler_personality = mage_personality
+			ruler_give_saved_spell_schools = yes	#links to ruler_save_spell_schools
+		}
+		
+		set_heir = old_heir_turned_ruler
+		
+		add_ruler_modifier = {
+			name = vampire_ruler
+			duration = -1
 		}
 	}
 }
