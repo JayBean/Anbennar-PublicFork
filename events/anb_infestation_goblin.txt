@@ -5,7 +5,7 @@ namespace = infestation_goblin
 # notes on goblins:
 # goblin infestations have three sizes, 1, 2, 3 with three being the largest
 # goblins can be civilized as racial minority
-# goblins can rebel at size 3, with demands to civilize
+# goblins can rebel at size 2 or 3, with demands to civilize
 
 # possible flags and province modifiers
 # infestation_present - province flag, universal
@@ -26,7 +26,7 @@ province_event = {
     
     immediate = {
         hidden_effect = {
-            set_province_flag = infestation_present # important
+            set_province_flag = infestation_present # important; or event loop will exit
         }
     }
     
@@ -96,6 +96,10 @@ province_event = {
                     owner = { has_reform = adventurer }
                 }
             }
+            modifier = {
+                factor = 5 # if being expelled through racial menu
+                owner = { has_country_modifier = racial_pop_goblin_expulsion }
+            }
         }
         province_event = { id = infestation_goblin.115 }
     }
@@ -108,7 +112,7 @@ province_event = {
                 has_province_modifier = infestation_goblin_3
             }
         }
-        ai_chance = { factor = 1 }
+        ai_chance = { factor = 2 }
         province_event = { id = infestation_goblin.120 }
     }
     
@@ -120,7 +124,7 @@ province_event = {
                 has_province_modifier = infestation_goblin_3
             }
         }
-        ai_chance = { factor = 1 }
+        ai_chance = { factor = 2 } # spreading is good
         province_event = { id = infestation_goblin.121 }
     }
     
@@ -132,7 +136,7 @@ province_event = {
                 has_province_modifier = infestation_goblin_2
             }
         }
-        ai_chance = { factor = 1 }
+        ai_chance = { factor = 2 } # we like growth opportunities
         province_event = { id = infestation_goblin.130 }
     }
 
@@ -185,6 +189,10 @@ province_event = {
                     owner = { has_reform = adventurer }
                 }
             }
+            modifier = {
+                factor = 5 # if being purged through racial menu
+                owner = { has_country_modifier = racial_pop_goblin_purge }
+            }
         }
         province_event = { id = infestation_goblin.150 }
     }
@@ -199,6 +207,22 @@ province_event = {
                     owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
                     owner = { has_reform = adventurer }
                 }
+            }
+            modifier = {
+                factor = 5 # goblins infest a goblin nation! Let's incorporate them!
+                OR = {
+                    owner = { culture_group = goblin } # country is in culture group
+                    owner = { has_goblin_accepted_culture = yes }
+                    culture_group = goblin # province is in culture group
+                }
+            }
+            modifier = {
+                factor = 5 # goblins already in province, and are an integrated minority
+                OR = {
+                    has_goblin_minority_trigger = yes
+                    has_goblin_majority_trigger = yes
+                }
+                owner = { has_integrated_goblin_pop_trigger = yes }
             }
         }
         province_event = { id = infestation_goblin.160 }
@@ -245,7 +269,13 @@ province_event = {
     option = {
         # grant adventurer's generous rewards to look after it
         name = infestation_goblin.100.b
-        ai_chance = { factor = 50 }
+        ai_chance = { 
+            factor = 20 
+            modifier = {
+                factor = 0
+                owner = { is_in_deficit = yes }
+            }
+        }
         trigger = {
             owner = { has_estate = estate_adventurers }
             owner = { NOT = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
@@ -513,6 +543,7 @@ province_event = {
     option = {
         # How could they do this to us!?
         name = infestation_goblin.112.a
+        ai_chance = { factor = 50 }
         owner = {
             add_opinion = {
                 who = FROM
@@ -523,6 +554,13 @@ province_event = {
     option = {
         # grant adventurer's generous rewards to look after it
         name = infestation_goblin.112.b
+        ai_chance = { 
+            factor = 20 
+            modifier = {
+                factor = 0
+                owner = { is_in_deficit = yes }
+            }
+        }
         trigger = {
             owner = { has_estate = estate_adventurers }
             owner = { NOT = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
@@ -538,6 +576,7 @@ province_event = {
     option = {
         # the adventurer's are on it
         name = infestation_goblin.112.c
+        ai_chance = { factor = 50 }
         trigger = {
             owner = { has_estate = estate_adventurers }
             owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
@@ -552,6 +591,7 @@ province_event = {
     option = {
         # we are adventurers, deal with it ourselves!
         name = infestation_goblin.112.e
+        ai_chance = { factor = 50 }
         trigger = {
             owner = { has_reform = adventurer }
         }
@@ -1029,8 +1069,8 @@ province_event = {
         name = infestation_goblin.150.a
         ai_chance = { factor = 100 }
         remove_province_modifier = infestation_goblin_1
-        remove_province_modifier = infestation_goblin_1
-        remove_province_modifier = infestation_goblin_1
+        remove_province_modifier = infestation_goblin_2
+        remove_province_modifier = infestation_goblin_3
         clr_province_flag = infestation_present
         owner = {
             add_estate_influence_modifier = {
@@ -1072,23 +1112,35 @@ province_event = {
                 factor = 0
                 owner = { culture_group = dwarven } # dwarves hate gobbos 
             }
+            modifier = {
+                factor = 100
+                OR = {
+                    owner = { culture_group = goblin } # country is in culture group
+                    owner = { has_goblin_accepted_culture = yes }
+                    culture_group = goblin # province is in culture group
+                    has_goblin_minority_trigger = yes
+                    has_goblin_majority_trigger = yes
+                    owner = { has_integrated_goblin_pop_trigger = yes }
+                }
+            }
         }
         if = {
             limit = { has_province_modifier = infestation_goblin_1 }
             add_goblin_minority_size_effect = yes
+            remove_province_modifier = infestation_goblin_1
         }
         if = {
             limit = { has_province_modifier = infestation_goblin_2 }
             add_goblin_minority_size_effect = yes
+            remove_province_modifier = infestation_goblin_2
         }
         if = {
             limit = { has_province_modifier = infestation_goblin_3 }
             add_goblin_minority_size_effect = yes
             add_goblin_minority_size_effect = yes
+            remove_province_modifier = infestation_goblin_3
         }
-        remove_province_modifier = infestation_goblin_1
-        remove_province_modifier = infestation_goblin_2
-        remove_province_modifier = infestation_goblin_3
+        small_increase_of_goblin_tolerance_effect = yes
         clr_province_flag = infestation_present
         hidden_effect = {
             province_event = { id = infestation_goblin.301 days = 30 } # deal with stronghold
