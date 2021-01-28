@@ -15,7 +15,7 @@ namespace = infestation_dragon_merathis
 # possible flags and province modifiers
 # infestation_present - flag
 # infestation_dragon_hostile, infestation_dragon_neutral, infestation_dragon_friendly - prov modifiers
-# infestation_dragon_merathis_modifier - prov modifier for effects that are specific to this named dragon
+# infestation_dragon_merathis - prov modifier for effects that are specific to this named dragon
 # infestation_dragon_merathis_hoard - keeps track of hoard size
 
 # spawn dragon merathis infestation in this province and start event loop
@@ -43,9 +43,9 @@ province_event = {
             desc = infestation_dragon_neutral_tooltip
         }
         add_province_modifier = {
-            name = infestation_dragon_merathis_modifier
+            name = infestation_dragon_merathis
             duration = -1  
-            desc = infestation_dragon_merathis_modifier_tooltip
+            desc = infestation_dragon_merathis_tooltip
         }
         province_event = { id = infestation_dragon_merathis.100 days = 1 } # spawn response event
     }
@@ -74,7 +74,7 @@ province_event = {
             has_province_modifier = infestation_dragon_neutral
             has_province_modifier = infestation_dragon_hostile
         }
-        has_province_modifier = infestation_dragon_merathis_modifier
+        has_province_modifier = infestation_dragon_merathis
     }
 
     option = {
@@ -128,7 +128,7 @@ province_event = {
     }
 }
 
-# notification of infestation spawning
+# notification of Dragon spawning, major event!
 province_event = {
     id = infestation_dragon_merathis.100
     title = infestation_dragon_merathis.100.t
@@ -137,6 +137,12 @@ province_event = {
     goto = ROOT
     
     hidden = no
+    major = yes
+    major_trigger = {
+        capital_scope = {
+            continent = europe # cannor
+        }
+    }
     is_triggered_only = yes
     
     option = {
@@ -199,7 +205,7 @@ province_event = {
         # oh, thank goodness
         name = infestation_dragon_merathis.101.a
         ai_chance = { factor = 100 }
-        remove_province_modifier = infestation_dragon_merathis_modifier
+        remove_province_modifier = infestation_dragon_merathis
         remove_province_modifier = infestation_dragon_neutral
         clr_province_flag = infestation_present
     }
@@ -222,6 +228,7 @@ province_event = {
     is_triggered_only = yes
     
     trigger = {
+        NOT = { has_province_flag = infestation_present }
         owner = { num_of_cities = 2 } # you have something to migrate to
         owner = {
             any_owned_province = {
@@ -251,12 +258,12 @@ province_event = {
             event_target:infestation_migration_target = {
                 set_province_flag = infestation_present
                 add_province_modifier = {
-                    name = infestation_dragon_merathis_modifier
+                    name = infestation_dragon_merathis
                     duration = -1  
-                    desc = infestation_dragon_merathis_modifier_tooltip
+                    desc = infestation_dragon_merathis_tooltip
                 }
             }
-            remove_province_modifier = infestation_dragon_merathis_modifier
+            remove_province_modifier = infestation_dragon_merathis
             clr_province_flag = infestation_present
         }
     }
@@ -334,12 +341,31 @@ province_event = {
     
     immediate = {
         hidden_effect = {
+            # set migration target, starting at least desirable and working upwards
             random_province = {
                 limit = {
+                    continent = europe # cannorian dragon
+                    OR = {
+                        has_terrain = mountains
+                        has_terrain = cavern
+                        has_terrain = dwarven_hold
+                        has_terrain = dwarven_hold_surface
+                    }
+                }
+                save_event_target_as = infestation_migration_target
+            }
+            random_province = {
+                limit = {
+                    continent = europe # cannorian dragon
                     owner = { 
                         OR = {
                             high_tolerance_kobold_race_trigger = yes
                             has_kobold_accepted_culture = yes
+                            A33 # verne, due to wyverns
+                            B31 # castellyr, would apparently like them too
+                            B32 # castanor, due to dragon on flag
+                            Z34 # black castanor, likewise
+                            has_any_kobold_pop_trigger = yes
                         }
                     }
                     OR = {
@@ -348,14 +374,14 @@ province_event = {
                         has_terrain = dwarven_hold
                         has_terrain = dwarven_hold_surface
                     }
-                    has_any_kobold_pop_triggesr = yes
                 }
                 save_event_target_as = infestation_migration_target
             }
+
+            
             event_target:infestation_migration_target = {
                 set_province_flag = infestation_present
             }
-            remove_province_modifier = infestation_goblin_stronghold
             clr_province_flag = infestation_present
         }
     }
@@ -371,14 +397,14 @@ province_event = {
                 desc = infestation_dragon_neutral_tooltip
             }
             add_province_modifier = {
-                name = infestation_dragon_merathis_modifier
+                name = infestation_dragon_merathis
                 duration = -1  
-                desc = infestation_dragon_merathis_modifier_tooltip
+                desc = infestation_dragon_merathis_tooltip
             }
         }
         remove_province_modifier = infestation_dragon_neutral
         remove_province_modifier = infestation_dragon_hostile
-        remove_province_modifier = infestation_dragon_merathis_modifier
+        remove_province_modifier = infestation_dragon_merathis
     }
  
     after = {
@@ -390,8 +416,8 @@ province_event = {
 
 # dragon migrated across our border into this province
 # basically the same as infestation_dragon_merathis.100
-# except the dragon chose to come here, because it is a superior lair; 
-# so we assume we're kobold of some sort.
+# except the dragon chose to come here, because it is a superior lair or the country is friendly; 
+# so we assume we're kobold of some sort, or Verne
 province_event = {
     id = infestation_dragon_merathis.112
     title = infestation_dragon_merathis.112.t
@@ -406,29 +432,35 @@ province_event = {
     }
     
     option = {
-        # how wonderful, send it a welcoming gift
+        # how wonderful, send her a welcoming gift
         name = infestation_dragon_merathis.112.a
         ai_chance = { factor = 50 }
     }
     option = {
         # we cannot afford a dragon
-        name = infestation_goblin.112.b
+        name = infestation_dragon_merathis.112.b
         ai_chance = { 
-            factor = 20 
+            factor = 50 
             modifier = {
-                factor = 0
-                owner = { is_in_deficit = yes }
+                factor = 2
+                owner = { 
+                    OR = {
+                        is_in_deficit = yes
+                        num_of_loans = 1
+                    }
+                }
             }
         }
     }
 
     after = {
         # first event in half a year, ish
-        province_event = { id = infestation_goblin.1 days = 100 random = 100 }
+        province_event = { id = infestation_dragon_merathis.1 days = 100 random = 100 }
     }
 }
 
 # deal with dragon hoard; dragon is dead/vanished
+# TODO
 province_event = {
     id = infestation_dragon_merathis.201
     title = infestation_dragon_merathis.201.t
@@ -456,6 +488,7 @@ province_event = {
 
 # cleanup event; wipes all trace of this infestation from the province
 # this is useful for debugging
+# note this clears hoard value and the global flag allowing merathis to spawn again
 province_event = {
     id = infestation_dragon_merathis.2000
     title = infestation_dragon_merathis.2000.t
@@ -468,12 +501,17 @@ province_event = {
     
     option = {
         # cleanup; hidden
-        name = infestation_goblin.2000.a
+        name = infestation_dragon_merathis.2000.a
         ai_chance = { factor = 100 }
         remove_province_modifier = infestation_dragon_friendly
         remove_province_modifier = infestation_dragon_neutral
         remove_province_modifier = infestation_dragon_hostile
-        remove_province_modifier = infestation_dragon_merathis_modifier
+        remove_province_modifier = infestation_dragon_merathis
+        set_variable = {
+            which = infestation_dragon_merathis_hoard
+            value = 0
+        }
         clr_province_flag = infestation_present
+        clr_global_flag = infestation_dragon_merathis_spawned
     }
 }
