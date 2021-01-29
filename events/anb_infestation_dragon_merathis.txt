@@ -16,7 +16,7 @@ namespace = infestation_dragon_merathis
 # infestation_present - flag
 # infestation_dragon_hostile, infestation_dragon_neutral, infestation_dragon_friendly - prov modifiers
 # infestation_dragon_merathis - prov modifier for effects that are specific to this named dragon
-# infestation_dragon_merathis_hoard - keeps track of hoard size
+# infestation_dragon_merathis_hoard - keeps track of hoard size; province scoped
 # infestation_dragon_leveraged_hoard - country modifier, if you decided to leverage the hoard in .201
 
 # spawn dragon merathis infestation in this province and start event loop
@@ -50,7 +50,7 @@ province_event = {
         }
         set_variable = {
             which = infestation_dragon_merathis_hoard 
-            value = 0 # start with nothing in their hoard
+            value = 77 # start with something in their hoard
         }
         province_event = { id = infestation_dragon_merathis.100 days = 1 } # spawn response event
     }
@@ -145,7 +145,7 @@ province_event = {
     option = {
         # devastation/looting - neutral version. See .210 and .211 for the fun versions
         trigger = { has_province_modifier = infestation_dragon_neutral }
-        ai_chance = { factor = 1 }
+        ai_chance = { factor = 5 }
         province_event = { id = infestation_dragon_merathis.140 }
     }
     
@@ -294,6 +294,25 @@ province_event = {
             }
             remove_province_modifier = infestation_dragon_merathis
             clr_province_flag = infestation_present
+            # copy the current hoard value from this province to target
+            while = {
+                limit = {
+                    check_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33 # modulo 33; might leave behind some moving expenses
+                    }
+                }
+                event_target:infestation_migration_target = {
+                    change_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33
+                    }
+                }
+                change_variable = {
+                    which = infestation_dragon_merathis_hoard
+                    value = -33
+                }
+            }
         }
     }
     option = {
@@ -403,6 +422,25 @@ province_event = {
                 set_province_flag = infestation_present
             }
             clr_province_flag = infestation_present
+            # copy the current hoard value from this province to target
+            while = {
+                limit = {
+                    check_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33 # modulo 33; might leave behind some moving expenses
+                    }
+                }
+                event_target:infestation_migration_target = {
+                    change_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33
+                    }
+                }
+                change_variable = {
+                    which = infestation_dragon_merathis_hoard
+                    value = -33
+                }
+            }
         }
     }
     
@@ -454,10 +492,6 @@ province_event = {
                 value = monthly_income
                 who = ROOT
             }
-            multiply_variable = {
-                which = infestation_dragon_gift_size
-                value = -1
-            }
         }
     }
     
@@ -480,17 +514,50 @@ province_event = {
                 }
             }
         }
-        add_treasury = infestation_dragon_gift_size
         hidden_effect = {
-            subtract_variable = { # subtracting a negative -> adding!
-                which = infestation_dragon_merathis_hoard
-                value = infestation_dragon_gift_size
+            while = {
+                limit = {
+                        check_variable = {
+                            which = infestation_dragon_gift_size
+                            value = 10
+                        }
+                }
+                owner = { add_treasury = -10 }
+                change_variable = {
+                    which = infestation_dragon_merathis_hoard
+                    value = 10
+                }
+                change_variable = {
+                    which = infestation_dragon_gift_size
+                    value = -10
+                }
+            }
+            while = {
+                limit = {
+                        check_variable = {
+                            which = infestation_dragon_gift_size
+                            value = 1
+                        }
+                }
+                owner = { add_treasury = -1 }
+                change_variable = {
+                    which = infestation_dragon_merathis_hoard
+                    value = 1
+                }
+                change_variable = {
+                    which = infestation_dragon_gift_size
+                    value = -1
+                }
             }
         }
         random = { 
             chance = 10 
             hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
-            add_province_modifier = infestation_dragon_friendly
+            add_province_modifier = {
+                name = infestation_dragon_friendly
+                duration = -1  
+                desc = infestation_dragon_friendly_tooltip
+            }
         }
     }
     option = {
@@ -511,7 +578,11 @@ province_event = {
         random = { 
             chance = 10 
             hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
-            add_province_modifier = infestation_dragon_hostile
+            add_province_modifier = {
+                name = infestation_dragon_hostile
+                duration = -1  
+                desc = infestation_dragon_hostile_tooltip
+            }
         }
     }
 
@@ -662,16 +733,6 @@ province_event = {
                 }
                 save_event_target_as = infestation_dragon_raid_target
             }
-            # calculate loot amount = ~ province dev*5
-            export_to_variable = {
-                which = infestation_dragon_raid_amount
-                value = development
-                who = event_target:infestation_dragon_raid_target
-            }
-            multiply_variable = {
-                which = infestation_dragon_raid_amount
-                value = 5
-            }
         }
     }
 
@@ -680,22 +741,27 @@ province_event = {
         name = infestation_dragon_merathis.140.a
         ai_chance = { factor = 50 }
         trigger = { owned_by = ROOT }
-        goto = event_target:infestation_dragon_raid_target
         event_target:infestation_dragon_raid_target = {
             add_devastation = 5
-            remove_loot = {
-                who = REB # hoping this works!
-                amount = infestation_dragon_raid_amount
+            hidden_effect = {
+                remove_loot = {
+                    who = REB # hoping this works!
+                    amount = 15
+                }
             }
-            change_variable = {
-                which = infestation_dragon_merathis_hoard
-                value = infestation_dragon_raid_amount
-            }
+        }
+        change_variable = {
+            which = infestation_dragon_merathis_hoard
+            value = 15
         }
         random = { # sometimes, by turning a blind eye, we can make her friendly
             chance = 5 
             hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
-            add_province_modifier = infestation_dragon_friendly
+            add_province_modifier = {
+                name = infestation_dragon_friendly
+                duration = -1  
+                desc = infestation_dragon_friendly_tooltip
+            }
         }
     }
     option = {
@@ -706,13 +772,13 @@ province_event = {
     }
     option = {
         # "Time for the adventurers to shine"
-        name = infestation_dragon_merathis.140.b
+        name = infestation_dragon_merathis.140.c
         ai_chance = { factor = 50 }
         add_devastation = 10
     }
     option = {
         # "we must control her" <- get claim if not ROOT
-        name = infestation_dragon_merathis.140.b
+        name = infestation_dragon_merathis.140.e
         ai_chance = { factor = 50 }
         add_devastation = 10
     }
@@ -735,84 +801,26 @@ province_event = {
     }
     
     immediate = {
-        # we need to set some targets for one option. This is a cascade, selecting
-        # three targets, first by opinion, then replacing them with better options
+        # we need to set a target for one option. This is a cascade, selecting
+        # targets, first by opinion, then replacing them with better options
         # if there are allies/subjects/overlords available
         hidden_effect = {
+            random_neighbor_country = {
+                save_event_target_as = infestation_dragon_hoard_friend_target
+            }
             random_country = {
                 limit = {
+                    NOT = { tag = ROOT }
                     has_opinion = {
                         who = ROOT
-                        value = 100
+                        value = 35
                     }
                 }
-                save_event_target_as = infestation_dragon_hoard_friend_target1
+                save_event_target_as = infestation_dragon_hoard_friend_target
             }
-        }
-        hidden_effect = {
             random_country = {
                 limit = {
-                    has_opinion = {
-                        who = ROOT
-                        value = 50
-                    }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target1 }
-                }
-                save_event_target_as = infestation_dragon_hoard_friend_target2
-            }
-        }
-        hidden_effect = {
-            random_country = {
-                limit = {
-                    has_opinion = {
-                        who = ROOT
-                        value = 25
-                    }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target1 }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target2 }
-                }
-                save_event_target_as = infestation_dragon_hoard_friend_target3
-            }
-        }
-        hidden_effect = {
-            random_country = {
-                limit = {
-                    has_opinion = {
-                        who = ROOT
-                        value = 100
-                    }
-                    OR = {
-                        alliance_with = ROOT
-                        overlord_of = ROOT
-                        is_subject_of = ROOT
-                    }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target2 }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target3 }
-                }
-                save_event_target_as = infestation_dragon_hoard_friend_target1
-            }
-        }
-        hidden_effect = {
-            random_country = {
-                limit = {
-                    has_opinion = {
-                        who = ROOT
-                        value = 50
-                    }
-                    OR = {
-                        alliance_with = ROOT
-                        overlord_of = ROOT
-                        is_subject_of = ROOT
-                    }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target1 }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target3 }
-                }
-                save_event_target_as = infestation_dragon_hoard_friend_target2
-            }
-        }
-        hidden_effect = {
-            random_country = {
-                limit = {
+                    NOT = { tag = ROOT }
                     has_opinion = {
                         who = ROOT
                         value = 25
@@ -822,12 +830,10 @@ province_event = {
                         overlord_of = ROOT
                         is_subject_of = ROOT
                     }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target1 }
-                    NOT = { tag = event_target:infestation_dragon_hoard_friend_target2 }
                 }
-                save_event_target_as = infestation_dragon_hoard_friend_target3
+                save_event_target_as = infestation_dragon_hoard_friend_target
             }
-        } 
+        }
     }
     
     option = {
@@ -856,13 +862,7 @@ province_event = {
         name = infestation_dragon_merathis.201.b
         ai_chance = { factor = 50 }
         custom_tooltip = infestation_dragon_merathis.201.b.tooltip
-        event_target:infestation_dragon_hoard_friend_target1 = {
-            add_historical_friend = ROOT
-        }
-        event_target:infestation_dragon_hoard_friend_target2 = {
-            add_historical_friend = ROOT
-        }
-        event_target:infestation_dragon_hoard_friend_target3 = {
+        event_target:infestation_dragon_hoard_friend_target = {
             add_historical_friend = ROOT
         }
         hidden_effect = {
@@ -873,15 +873,9 @@ province_event = {
                         value = 40
                     }
                 }
-                owner = { add_treasury = 10 }
-                event_target:infestation_dragon_hoard_friend_target1 = {
-                    add_treasury = 10
-                }
-                event_target:infestation_dragon_hoard_friend_target2 = {
-                    add_treasury = 10
-                }
-                event_target:infestation_dragon_hoard_friend_target3 = {
-                    add_treasury = 10
+                owner = { add_treasury = 20 }
+                event_target:infestation_dragon_hoard_friend_target = {
+                    add_treasury = 20
                 }
                 change_variable = {
                     which = infestation_dragon_merathis_hoard
@@ -932,7 +926,7 @@ province_event = {
             add_country_modifier = {
                 name = infestation_dragon_leveraged_hoard
                 duration = -1  
-                desc = infestation_dragon_leveraged_hoard_tooltop
+                desc = infestation_dragon_leveraged_hoard_tooltip
             }
         }
     }
