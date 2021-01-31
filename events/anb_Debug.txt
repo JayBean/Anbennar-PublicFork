@@ -47,10 +47,15 @@ country_event = {
 	trigger = {
 		#has_country_flag = avoids_colonist_settlement_growth
 		num_of_colonists = 1
-		NOT = { num_of_colonies = 1 }
-		ai = yes
-		any_owned_province = {
-			has_colonist = yes
+		OR = {
+			capital_scope = { has_colonist = yes } #This lower intensity and AI like putting their settler in the capital
+			AND = {
+				NOT = { num_of_colonies = 1 }
+				ai = yes
+				any_owned_province = {
+					has_colonist = yes
+				}
+			}
 		}
 		has_dlc = "Dharma"
 	}
@@ -69,21 +74,25 @@ country_event = {
 				}
 			}
 			add_country_modifier = {
-				add_country_modifier = {
-					name = dont_colonize_but_migrate
-					duration = 1825
-				}
+				name = dont_colonize_but_migrate
+				duration = 1825
 			}
 		}
-		if = { #turn off the colonist if all of escann is colonized
+		else_if = {
 			limit = {
-				capital_scope = {
-					superregion = escann_superregion
+				NOT = { num_of_colonies = 1 }
+				all_owned_province = {
+					OR = {
+						NOT = { has_empty_adjacent_province = yes }
+						all_empty_neighbor_province = { NOT = { development = 3 } }
+					}
 				}
 			}
-			if = {
+			if = { #turn off the colonist if all of escann is colonized
 				limit = {
-					NOT = { num_of_colonies = 1 }
+					capital_scope = {
+						superregion = escann_superregion
+					}
 					escann_superregion = {
 						is_city = yes
 						type = all
@@ -94,45 +103,41 @@ country_event = {
 					duration = -1
 				}
 			}
-		}
-		else_if = { #turn off the colonist if all the serpentspine is colonized
-			limit = {
-				capital_scope = {
-					continent = serpentspine
-				}
-				serpentspine = {
-					is_city = yes
-					type = all
-				}
-			}
-			add_country_modifier = {
-				name = dont_colonize_but_migrate
-				duration = -1
-			}
-		}
-		if = { #if we have no provinces to colonize, then turn off their colonist for a year. This might false postitive for new world colonizers sometimes. But the trigger for the event should mostly catch that
-			limit = {
-				NOT = { num_of_colonies = 1 }
-			}
-			if = {
+			else_if = { #turn off the colonist if all the serpentspine is colonized
 				limit = {
-					all_owned_province = {
-						NOT = {
-							has_empty_adjacent_province = yes
-						}
+					capital_scope = {
+						continent = serpentspine
+					}
+					serpentspine = {
+						is_city = yes
+						type = all
 					}
 				}
+				add_country_modifier = {
+					name = dont_colonize_but_migrate
+					duration = -1
+				}
 			}
-			add_country_modifier = {
-				name = dont_colonize_temp
-				duration = 365
+			else_if = {
+				any_owned_province = { has_port = yes }
+				add_country_modifier = {
+					name = dont_colonize_temp
+					duration = 3650
+				}
+			}
+			else = {
+				any_owned_province = { has_port = yes }
+				add_country_modifier = {
+					name = dont_colonize_temp
+					duration = 365
+				}
 			}
 		}
 		random_owned_province = {
 			limit = { is_city = yes has_empty_adjacent_province = yes }
 			random_empty_neighbor_province = { #colonize things downstream you dumbshits
 				limit = { development = 3 }	#Don't colonize 0 0 0
-				create_colony = 200	#Boosted or this colony will never finish cause the AI doesn't send their colonists
+				create_colony = 1000	#Boosted or this colony will never finish cause the AI doesn't send their colonists
 			}
 		}
 	}
