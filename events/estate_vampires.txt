@@ -112,7 +112,7 @@ country_event = {
 		}
 		estate_loyalty = {
 			estate = estate_vampires
-			loyalty = 85
+			loyalty = 70
 		}
 	}
 	
@@ -155,14 +155,17 @@ country_event = {
 		has_estate = estate_vampires
 		estate_influence = {
 			estate = estate_vampires
-			influence = 80
+			influence = 60
 		}
+		#Hopefully this is easily achievable
 		estate_loyalty = {
 			estate = estate_vampires
-			loyalty = 80
+			loyalty = 60
 		}
 		NOT = { has_ruler_flag = offered_blood_gift }
 		NOT = { has_ruler_flag = is_a_vampire }
+		NOT = { has_ruler_flag = is_a_lich }
+		NOT = { has_regency = yes }
 	}
 	
 	immediate = {
@@ -177,19 +180,8 @@ country_event = {
 	option = {
 		name = vampires_estate_events.4.a
 		ai_chance = { factor = 80 }
-		hidden_effect = {
-			set_ruler_flag = set_immortality
-			set_ruler_flag = is_a_vampire
-		}
-		if = {
-			limit = { NOT = { ruler_has_personality = immortal_personality  } }
-			if = {
-				limit = { ruler_has_max_personalities = yes }
-				clear_scripted_personalities = yes
-			}
-			add_ruler_personality = immortal_personality
-		}
 		custom_tooltip = will_become_a_vampire_tooltip
+		ruler_become_vampire = yes
 	}
 	
 	#Refuse the offer
@@ -305,9 +297,11 @@ country_event = {
 				influence = 20
 			}
 		}
-		estate_loyalty = {
-			estate = estate_vampires
-			loyalty = 40
+		NOT = {
+			estate_loyalty = {
+				estate = estate_vampires
+				loyalty = 40
+			}
 		}
 		#NOT = { stability = -3 }
 		any_owned_province = {
@@ -365,9 +359,11 @@ country_event = {
 				influence = 20
 			}
 		}
-		estate_loyalty = {
-			estate = estate_vampires
-			loyalty = 40
+		NOT = {
+			estate_loyalty = {
+				estate = estate_vampires
+				loyalty = 40
+			}
 		}
 		has_advisor = yes
 	}
@@ -403,7 +399,7 @@ country_event = {
 		NOT = {
 			estate_loyalty = {
 				estate = estate_vampires
-				loyalty = 10
+				loyalty = 15
 			}
 		}
 		has_heir = yes
@@ -555,5 +551,358 @@ country_event = {
 			loyalty = 20
 			duration = 7300
 		}
+	}
+}
+
+#vampire Death - Regency Council
+country_event = {
+	id = vampires_estate_events.13
+	title = vampires_estate_events.13.t
+	desc = vampires_estate_events.13.d
+	picture = DEATH_OF_HEIR_eventPicture
+	
+	#is_triggered_only = yes	#this should be triggered by other events like adventurers destroying phylactery
+	
+	trigger = {
+		has_country_flag = vampire_ruler
+		NOT = { has_country_flag = lich_ruler }				#Stop weird lich shenanigans going on (hopefully)
+		has_country_flag = vampire_ruler_has_coffin
+		
+		NOT = { has_country_flag = interregnum }
+		
+		NOT = { has_ruler_flag = is_a_vampire }
+		
+		NOT = { government = republic }
+	}
+	
+	mean_time_to_happen = {
+		days = 7
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				has_regency = no
+			}
+			exile_ruler_as = old_heir_turned_ruler
+		}
+		if = {
+			limit = {
+				has_heir = yes
+			}
+			exile_heir_as = old_heir
+		}
+		
+		define_ruler = {
+			name = "(Interregnum)"
+			#dynasty = ROOT
+			adm = 0
+			mil = 0
+			dip = 0
+			regency = yes
+		}
+	}
+	
+	#Govs with heirs
+	#Make heir with no dynasty
+	option = {
+		name = vampires_estate_events.13.a
+		trigger = { has_government_attribute = heir }
+		ai_chance = {
+			factor = 50
+		}
+		
+		if = {
+			limit = { has_country_flag = vampire_ruler_female }
+			define_heir = {
+				age = 33
+				dynasty = " "
+				no_consort_with_heir = yes
+				female = yes
+			}
+		}
+		else = {
+			define_heir = {
+				age = 33
+				dynasty = " "
+				no_consort_with_heir = yes
+				male = yes
+			}
+		}
+		
+		set_heir_flag = is_a_vampire
+		set_heir_flag = new_vampire_setup
+		set_country_flag = interregnum
+		
+		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
+	}
+	
+	#Govs without heirs - straight ruler boy
+	option = {
+		name = vampires_estate_events.13.b
+		trigger = { NOT = { has_government_attribute = heir } }
+		ai_chance = {
+			factor = 50
+		}
+		
+		hidden_effect = { exile_ruler_as = old_ruler }
+		
+		if = {
+			limit = { has_country_flag = vampire_ruler_female }
+			define_ruler = {
+				age = 33
+				dynasty = " "
+				female = yes
+			}
+		}
+		else = {
+			define_ruler = {
+				age = 33
+				dynasty = " "
+				male = yes
+			}
+		}
+		
+		set_ruler_flag = is_a_vampire
+		set_ruler_flag = new_vampire_setup
+		set_country_flag = interregnum
+
+		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
+	}
+	
+}
+
+#vampire Reborn - initialization giving spell schools ruler if nessecary
+country_event = {
+	id = vampires_estate_events.14
+	title = vampires_estate_events.14.t
+	desc = vampires_estate_events.14.d
+	picture = END_OF_TIME_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+	}
+	
+	after = {
+		hidden_effect = { add_stability = 1 } #You're losing two rulers
+	}
+	
+	option = {
+		name = vampires_estate_events.14.a
+		ai_chance = {
+			factor = 50
+		}
+		if = {
+			limit = {
+				NOT = { ruler_age = 33 }
+			}
+			kill_ruler = yes
+			hidden_effect = { add_stability = 1 }
+		}
+		clr_country_flag = interregnum
+		
+		clr_heir_flag = new_vampire_setup
+		clr_ruler_flag = new_vampire_setup
+		
+		clear_scripted_personalities = yes
+		add_ruler_personality = immortal_personality
+		if = {
+			limit = { has_country_flag = mage_vampire }
+			add_ruler_personality = mage_personality
+			ruler_give_saved_spell_schools = yes	#links to ruler_save_spell_schools
+		}
+		
+		set_heir = old_heir_turned_ruler
+		
+		#add_ruler_modifier = {		#Look at giving -Fertility
+		#	name = vampire_ruler
+		#	duration = -1
+		#}
+	}
+}
+
+#Occupying army searches for coffin
+province_event = {
+	id = vampires_estate_events.15
+	title = vampires_estate_events.15.t
+	desc = vampires_estate_events.15.d
+	picture = END_OF_TIME_eventPicture
+	goto = root
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			has_ruler_flag = is_a_vampire
+			has_country_flag = vampire_ruler
+			has_country_flag = vampire_ruler_has_coffin
+		}
+		
+		is_capital = yes
+		NOT = { controlled_by = ROOT }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = { has_ruler_flag = abjuration_1 }
+				}
+				province_event = { id = vampires_estate_events.16 days = 15 random = 15 }
+			}
+			else = {
+				trigger_switch = {
+					on_trigger = has_ruler_flag
+					
+					abjuration_3 = { province_event = { id = vampires_estate_events.16 days = 90 random = 90 } }
+					abjuration_2 = { province_event = { id = vampires_estate_events.16 days = 60 random = 60 } }
+					abjuration_1 = { province_event = { id = vampires_estate_events.16 days = 30 random = 30 } }
+				}
+			}
+			controller = { country_event = { id = vampires_estate_events.17 days = 1 } }
+		}
+	}
+	
+	#It is only a matter of time until the coffin is found
+	option = {
+		name = vampires_estate_events.15.a
+		trigger = {
+			NOT = { has_ruler_flag = abjuration_1 }
+		}
+		ai_chance = {
+			factor = 100
+		}
+		
+		owner = { add_prestige = -10 }
+	}
+	
+	#Wards will slow them down
+	option = {
+		name = vampires_estate_events.15.b
+		trigger = {
+			has_ruler_flag = abjuration_1
+		}
+		ai_chance = {
+			factor = 100
+		}
+		
+		owner = { add_prestige = -5 }
+	}
+}
+
+#coffin found by occupiers if not retaken
+province_event = {
+	id = vampires_estate_events.16
+	title = vampires_estate_events.16.t
+	desc = vampires_estate_events.16.d
+	picture = END_OF_TIME_eventPicture
+	goto = root
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		owner = {
+			has_ruler_flag = is_a_vampire
+			has_country_flag = vampire_ruler
+			#has_country_flag = vampire_ruler_has_coffin
+		}
+		
+		NOT = { controlled_by = ROOT }
+	}
+
+	#coffin destroyed
+	option = {
+		name = vampires_estate_events.16.a
+		ai_chance = {
+			factor = 100
+		}
+		
+		owner = { country_event = { id = vampires_estate_events.19 days = 1 } }
+		controller = { country_event = { id = vampires_estate_events.18 days = 1 }}
+	}
+}
+
+#Occupier coffin search notification
+country_event = {
+	id = vampires_estate_events.17
+	title = vampires_estate_events.17.t
+	desc = vampires_estate_events.17.d
+	picture = END_OF_TIME_eventPicture
+	
+	is_triggered_only = yes
+	
+	#Inform hold province to destroy coffin
+	option = {
+		name = vampires_estate_events.17.a
+		ai_chance = {
+			factor = 100
+		}
+	}
+}
+
+#Occupier destroys coffin
+country_event = {
+	id = vampires_estate_events.18
+	title = vampires_estate_events.18.t
+	desc = vampires_estate_events.18.d
+	picture = END_OF_TIME_eventPicture
+	
+	is_triggered_only = yes
+	
+	#Destroyed coffin
+	option = {
+		name = vampires_estate_events.18.a
+		ai_chance = {
+			factor = 100
+		}
+		
+		add_prestige = 20
+		#add_country_modifier = {		#Rewards for killing a vampire?
+		#	name = vampire_destroyed_coffin
+		#	duration = 3650
+		#}
+	}
+}
+
+#vampire Destruction - coffin destroyed
+country_event = {
+	id = vampires_estate_events.19
+	title = vampires_estate_events.19.t
+	desc = vampires_estate_events.19.d
+	picture = END_OF_TIME_eventPicture
+	
+	is_triggered_only = yes	#this should be triggered by other events like adventurers destroying coffin
+	
+	trigger = {
+		has_ruler_flag = is_a_vampire
+		has_country_flag = vampire_ruler
+		has_country_flag = vampire_ruler_has_coffin
+	}
+	
+	immediate = {
+		clr_country_flag = vampire_ruler
+		clr_country_flag = vampire_ruler_has_coffin
+		clr_country_flag = vampire_ruler_female
+		clr_country_flag = vampire_ruler_male
+		ruler_clear_saved_spell_schools = yes
+	}
+	
+	option = {
+		name = vampires_estate_events.19.a
+		ai_chance = {
+			factor = 50
+		}
+		
+		kill_ruler = yes
+		add_prestige = -20
+		add_stability = -1	#Less of a deal than a lich dying, there are likely more vampires about
+		
+		hidden_effect = { country_event = { id = vampires_estate_events.16 days = 7 } }
+		
 	}
 }
