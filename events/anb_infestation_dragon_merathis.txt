@@ -96,6 +96,7 @@ province_event = {
             NOT = { 
                 OR = {
                     has_terrain = mountain
+                    # has_terrain = highlands # will go from highlands to one of the other types
                     has_terrain = cavern
                     has_terrain = dwarven_hold
                     has_terrain = dwarven_hold_surface
@@ -104,6 +105,7 @@ province_event = {
             any_owned_province = {
                 OR = {
                     has_terrain = mountain
+                    has_terrain = highlands
                     has_terrain = cavern
                     has_terrain = dwarven_hold
                     has_terrain = dwarven_hold_surface
@@ -149,22 +151,21 @@ province_event = {
         # should be common; requires a rival to be set
         trigger = { 
             has_province_modifier = infestation_dragon_friendly 
-            any_country = {
-                is_rival = ROOT
-            }
         }
             
         ai_chance = { factor = 10 }
         hidden_effect = {
-            # select any random province
-            random_rival_country = { 
-                random_core_province = { 
-                    save_event_target_as = infestation_dragon_raid_target
-                }            
-                # but prefer one with loot
-                random_core_province = { 
-                    limit = { is_looted = no }
-                    save_event_target_as = infestation_dragon_raid_target
+            owner = {
+                # select any random province
+                random_rival_country = { 
+                    random_province = { 
+                        save_event_target_as = infestation_dragon_raid_target
+                    }
+                    # but prefer one with loot
+                    random_province = { 
+                        limit = { is_looted = no }
+                        save_event_target_as = infestation_dragon_raid_target
+                    }
                 }
             }
         }
@@ -242,7 +243,7 @@ province_event = {
     option = {
         # kobold minority settled
         ai_chance = { 
-            factor = 1
+            factor = 2
             modifier = {
                 factor = 3 # if kobold friendly
                 OR = {
@@ -255,10 +256,17 @@ province_event = {
         province_event = { id = infestation_dragon_merathis.160 }
     }
     
+    option = {
+        # demands tribute
+        ai_chance = { factor = 3 }
+        province_event = { id = infestation_dragon_merathis.205 }
+    }
+    
     after = {
         # loop this random event dispatcher
         # about a year between events
-        province_event = { id = infestation_dragon_merathis.1 days = 300 random = 100 }
+        province_event = { id = infestation_dragon_merathis.1 days = 3 random = 1 }
+        #province_event = { id = infestation_dragon_merathis.1 days = 300 random = 100 }
     }
 }
 
@@ -368,6 +376,7 @@ province_event = {
             any_owned_province = {
                 OR = {
                     has_terrain = mountain
+                    has_terrain = highlands
                     has_terrain = cavern
                     has_terrain = dwarven_hold
                     has_terrain = dwarven_hold_surface
@@ -381,8 +390,10 @@ province_event = {
         hidden_effect = {
             random_owned_province = {
                 limit = {
+                    NOT = { has_province_modifier = infestation_present }
                     OR = {
                         has_terrain = mountain
+                        has_terrain = highlands
                         has_terrain = cavern
                         has_terrain = dwarven_hold
                         has_terrain = dwarven_hold_surface
@@ -499,8 +510,11 @@ province_event = {
             random_province = {
                 limit = {
                     continent = europe # cannorian dragon
+                    NOT = { owner = { tag = ROOT } }
+                    NOT = { has_province_modifier = infestation_present }
                     OR = {
                         has_terrain = mountain
+                        has_terrain = highlands
                         has_terrain = cavern
                         has_terrain = dwarven_hold
                         has_terrain = dwarven_hold_surface
@@ -511,6 +525,8 @@ province_event = {
             random_province = {
                 limit = {
                     continent = europe # cannorian dragon
+                    NOT = { owner = { tag = ROOT } }
+                    NOT = { has_province_modifier = infestation_present }
                     owner = {
                         OR = {
                             high_tolerance_kobold_race_trigger = yes
@@ -592,13 +608,6 @@ province_event = {
     is_triggered_only = yes
     
     immediate = {
-        hidden_effect = {
-            export_to_variable = {
-                which = infestation_dragon_gift_size
-                value = monthly_income
-                who = ROOT
-            }
-        }
     }
     
     option = {
@@ -620,41 +629,10 @@ province_event = {
                 }
             }
         }
-        hidden_effect = {
-            while = {
-                limit = {
-                        check_variable = {
-                            which = infestation_dragon_gift_size
-                            value = 10
-                        }
-                }
-                owner = { add_treasury = -10 }
-                change_variable = {
-                    which = infestation_dragon_merathis_hoard
-                    value = 10
-                }
-                change_variable = {
-                    which = infestation_dragon_gift_size
-                    value = -10
-                }
-            }
-            while = {
-                limit = {
-                        check_variable = {
-                            which = infestation_dragon_gift_size
-                            value = 1
-                        }
-                }
-                owner = { add_treasury = -1 }
-                change_variable = {
-                    which = infestation_dragon_merathis_hoard
-                    value = 1
-                }
-                change_variable = {
-                    which = infestation_dragon_gift_size
-                    value = -1
-                }
-            }
+        owner = { add_treasury = -54 }
+        change_variable = {
+            which = infestation_dragon_merathis_hoard
+            value = 54
         }
         random = { 
             chance = 25 # dragon stops migrating if friendly
@@ -744,6 +722,25 @@ province_event = {
                 set_province_flag = infestation_present
             }
             clr_province_flag = infestation_present
+            # copy the current hoard value from this province to target
+            while = {
+                limit = {
+                    check_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33 # modulo 33; might leave behind some moving expenses
+                    }
+                }
+                event_target:infestation_migration_target = {
+                    change_variable = {
+                        which = infestation_dragon_merathis_hoard
+                        value = 33
+                    }
+                }
+                change_variable = {
+                    which = infestation_dragon_merathis_hoard
+                    value = -33
+                }
+            }
         }
     }
     
@@ -1388,7 +1385,7 @@ province_event = {
                 1 = { add_base_manpower = 1 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_neutral
             }
@@ -1402,7 +1399,7 @@ province_event = {
                 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_hostile
             }
@@ -1422,6 +1419,14 @@ province_event = {
         name = infestation_dragon_merathis.160.b
         ai_chance = { 
             factor = 50
+            modifier = {
+                factor = 0
+                OR = {
+                    owner = { has_kobold_accepted_culture = yes }
+                    owner = { high_tolerance_kobold_race_trigger = yes }
+                }
+            }
+            
         }
         small_decrease_of_kobold_tolerance_effect = yes
         if = {
@@ -1438,7 +1443,7 @@ province_event = {
                 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_neutral
             }
@@ -1620,7 +1625,6 @@ province_event = {
     
     trigger = {
         has_province_flag = infestation_present
-        NOT = { has_province_modifier = infestation_dragon_friendly }
         has_province_modifier = infestation_dragon_merathis
     }
     
@@ -1628,8 +1632,14 @@ province_event = {
         # "For our dear dragon friend, trinkets for her hoard!" - reward is prestige/mana
         name = infestation_dragon_merathis.205.a
         trigger = { has_province_modifier = infestation_dragon_friendly }
-        ai_chance = { factor = 50 }
-        add_treasury = -475
+        ai_chance = { 
+            factor = 50 
+            modifier = {
+                factor = 0.1
+                owner = { is_in_deficit = yes }
+            }
+        }
+        owner = { add_treasury = -475 }
         change_variable = {
             which = infestation_dragon_merathis_hoard
             value = 475
@@ -1642,8 +1652,18 @@ province_event = {
         # "Or, perhaps some men for her honour guard." - reward is military stuff/general
         name = infestation_dragon_merathis.205.b
         trigger = { has_province_modifier = infestation_dragon_friendly }
-        ai_chance = { factor = 50 }
-        add_manpower = -5000
+        ai_chance = { 
+            factor = 50 
+            modifier = {
+                factor = 0.5
+                owner = { NOT = { manpower = 15 } }
+            }
+            modifier = {
+                factor = 0.2
+                owner = { NOT = { manpower = 5 } }
+            }
+        }
+        owner = { add_manpower = -5 }
         hidden_effect = {
             province_event = { id = infestation_dragon_merathis.207 days = 100 random = 100 }
         }
@@ -1659,20 +1679,20 @@ province_event = {
                 owner = { NOT = { manpower = 10 } }
             }
             modifier = {
-                factor = 0.1
+                factor = 0.2
                 owner = { NOT = { manpower = 3 } }
             }
             modifier = {
-                factor = 0.5
+                factor = 0.2
                 owner = { is_in_deficit = yes }
             }
         }
-        add_treasury = -325
+        owner = { add_treasury = -325 }
         change_variable = {
             which = infestation_dragon_merathis_hoard
             value = 325
         }
-        add_manpower = -3000
+        owner = { add_manpower = -3 }
         if = {
             limit = {
                 has_province_modifier = infestation_dragon_hostile
@@ -1687,7 +1707,7 @@ province_event = {
                 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_neutral
             }
@@ -1727,7 +1747,7 @@ province_event = {
                 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_neutral
             }
@@ -1784,7 +1804,7 @@ province_event = {
                 }
             }
         }
-        if = {
+        else_if = {
             limit = {
                 has_province_modifier = infestation_dragon_neutral
             }
@@ -1829,11 +1849,13 @@ province_event = {
         # Turns out having a friendly dragon has its rewards!
         name = infestation_dragon_merathis.206.a
         ai_chance = { factor = 100 }
-        change_government_reform_progress = 25
-        add_adm_power = 25
-        add_dip_power = 25
-        add_mil_power = 25
-        add_prestige = 10
+        owner = {
+            change_government_reform_progress = 25
+            add_adm_power = 25
+            add_dip_power = 25
+            add_mil_power = 25
+            add_prestige = 10
+        }
     }
 }
 
@@ -1859,9 +1881,11 @@ province_event = {
         # Turns out having a friendly dragon has its rewards!
         name = infestation_dragon_merathis.207.a
         ai_chance = { factor = 100 }
-        add_army_tradition = 10
-        add_army_professionalism = 0.025
-        create_general = { tradition = 50 }
+        owner = {
+            add_army_tradition = 10
+            add_army_professionalism = 0.025
+            create_general = { tradition = 50 }
+        }
     }
 }
 
@@ -1884,10 +1908,12 @@ province_event = {
     option = {
         # Should have poisoned the general too!
         name = infestation_dragon_merathis.207.a
-        kill_leader = {
-            type = general
+        owner = {
+            kill_leader = {
+                type = general
+            }
+            add_prestige = -10
         }
-        add_prestige = -10
     }
 }
 
