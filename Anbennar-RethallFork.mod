@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-RethallFork"
+path="mod/anbennar-eu4-fork-rethall"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
