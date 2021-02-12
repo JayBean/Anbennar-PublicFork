@@ -663,3 +663,131 @@ country_event = {
 		add_government_reform = leading_clergy_reform
 	}
 }
+
+##Colonist stuck on settlement growth fix
+#This is Heho code, we tried to change this. It didn't work. Lesson learned, don't touch Heho code.
+country_event = {
+	id = anb_miscevents.12
+	title = anb_miscevents.12.t
+	desc = anb_miscevents.12.d
+	picture = HUIZTILOPOCHTLI_eventPicture
+	
+	hidden = yes
+	
+	mean_time_to_happen = {
+		months = 6
+	}
+	
+	trigger = {
+		#has_country_flag = avoids_colonist_settlement_growth
+		num_of_colonists = 1
+		OR = {
+			capital_scope = { has_colonist = yes } #This lower intensity and AI like putting their settler in the capital
+			AND = {
+				NOT = { num_of_colonies = 1 }
+				any_owned_province = {
+					has_colonist = yes
+				}
+			}
+		}
+		ai = yes
+		has_dlc = "Dharma"
+	}
+	
+	option = {
+		name = debug.6.a
+		
+		every_owned_province = {
+			limit = { has_colonist = yes is_city = yes }
+			cancel_construction = yes
+		}
+		if = {	#Create a colony and don't take their colonist away if they need it
+			limit = { 
+				any_owned_province = { is_city = yes has_empty_adjacent_province = yes } #Don't take away their colonists if they need to make a colony
+			}
+			random_owned_province = {
+				limit = { is_city = yes has_empty_adjacent_province = yes }
+				if = {
+					limit = { capital_scope = { OR = { region = west_forbidden_plains_region region = east_forbidden_plains_region } } }
+					random_empty_neighbor_province = {
+						limit = { development = 3 }	#Don't colonize 0 0 0
+						create_colony = 400	#Boosted or this colony will finish slowly as the AI doesn't send their colonists
+					}
+				} 
+				else = {
+					random_empty_neighbor_province = {
+						limit = { development = 3 NOT = { region = west_forbidden_plains_region } }	#No plains dwarves
+						create_colony = 300	#Boosted or this colony will finish slowly as the AI doesn't send their colonists
+					}
+				}
+			}
+		}
+		else_if = { #Monstrous frontiers stop AI doing colonizing with colonists, take them away
+			limit = {
+				any_owned_province = {
+					has_construction = siberian
+				}
+			}
+			add_country_modifier = {
+				name = dont_colonize_but_migrate
+				duration = 1825
+			}
+		}
+		else_if = { #Check if they still need their colonists
+			limit = {
+				NOT = { num_of_colonies = 1 }
+			}
+			if = { #turn off the colonist if all of escann is colonized
+				limit = {
+					capital_scope = {
+						superregion = escann_superregion
+					}
+				}
+				if = {
+					limit = { 
+						escann_superregion = {
+							is_city = yes
+							type = all
+						}
+					}
+					add_country_modifier = {	#Take away their colonist for the rest of the game
+						name = dont_colonize_but_migrate
+						duration = -1
+					}
+				}
+			}
+			else_if = { #Turn off the colonist if all the serpentspine is colonized
+				limit = {
+					capital_scope = {
+						continent = serpentspine
+					}
+				}
+				if = {
+					limit = { 
+						serpentspine = {
+							is_city = yes
+							type = all
+						}
+					}
+					add_country_modifier = {	#Take away their colonist for the rest of the game
+						name = dont_colonize_but_migrate
+						duration = -1
+					}
+				}
+			}
+			else_if = {
+				limit = { any_owned_province = { has_port = yes } }
+				add_country_modifier = {	#Take away their colonist for a few years, they might need it again if they regain a coast
+					name = dont_colonize_temp
+					duration = 1825
+				}
+			}
+			else = {
+				add_country_modifier = {	#Catch all to take away their colonist if they're not coastal
+					name = dont_colonize_but_migrate
+					duration = 3650
+				}
+			}
+		}
+	}
+}
