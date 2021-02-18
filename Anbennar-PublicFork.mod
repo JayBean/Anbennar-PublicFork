@@ -1,5 +1,5 @@
-name="Anbennar-eu4-fork-alectron"
-path="/Users/dmitry/Documents/Paradox Interactive/Europa Universalis IV/mod/Anbennar-eu4-fork-alectron
+name="Anbennar-PublicFork"
+path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
