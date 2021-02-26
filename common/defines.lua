@@ -595,9 +595,9 @@ NCountry = {
 	LAND_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	NAVAL_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	REPUBLICAN_TRADITION_YEARLY_INCREASE = 1,		-- how much it increases each year.
-	PIETY_PERCENTAGE_AT_NEW_RULER = 0.0,			-- percentage of piety kept at new ruler.
-	PIETY_INCREASE_AT_GOOD_WAR = -0.10,
-	PIETY_DECREASE_AT_BAD_WAR = -0.10,
+	PIETY_PERCENTAGE_AT_NEW_RULER = 0.90,			-- percentage of piety kept at new ruler.
+	PIETY_INCREASE_AT_GOOD_WAR = -0.1,
+	PIETY_DECREASE_AT_BAD_WAR = -0.1,
 	ADVISOR_COST_INCREASE_PER_YEAR = 0.005,			-- yearly increase in price in percent,
 	SCRIPTED_ADVISOR_DISCOUNT = 0.5,				-- Multiplier on cost for advisors scripted with discount=yes
 	MINIMUM_ADVISOR_DURATION = 10, 					-- _CDEF_MINIMUM_ADVISOR_DURATION_
@@ -1252,7 +1252,7 @@ NMilitary = {
 	RAJPUT_MAXIMUM_RATIO = 1.0,						-- Maximum number of Rajput regiments, relative to force limit
 	MARINE_DISEMBARK_SPEED_BONUS = 2.0	,			-- marine disembark speed bonus
 	BASE_COST_MODIFIER = 2.0,						-- Revolutionary guards base cost is double as expensive
-	RAJPUT_BASE_COST_MODIFIER = 1.5,				-- Rajput base cost is double as expensive
+	RAJPUT_BASE_COST_MODIFIER = 5,				-- Artificers are expensive
 	COSSACK_BASE_COST_MODIFIER = 1.5,				-- Cossack base cost is double as expensive
 	REVOLUTIONARY_GUARD_BASE_COST_MODIFIER = 2.0,	-- Revolutionary guards base cost is double as expensive
 
@@ -1996,8 +1996,8 @@ NFrontend = {
 },
 
 NReligion = {
-	COUNCIL_BASE_COST = 1000,
-	COUNCIL_CARDINAL_SPREAD = 500,
+	COUNCIL_BASE_COST = 100000,
+	COUNCIL_CARDINAL_SPREAD = 1000,
 	
 	PIETY_CORRUPTION = -2,
 	PIETY_MANPOWER = 2.0,
@@ -2038,7 +2038,7 @@ NReligion = {
 	YEARLY_PAPAL_INFLUENCE_PER_CARDINAL = 0.5,					-- The amount of yearly papal influence you receive each year for each cardinal you have active
 	YEARLY_POPE_INVESTED_INFLUENCE_PER_CARDINAL = 0.1,			-- The amount of investment Papal state gets towards becoming Papal controller for each cardinal that exists
 	MAX_PAPAL_INFLUENCE = 200.0,								-- The maximum stored amount of papal influence for each country.
-	REFORM_DESIRE_PER_YEAR = 0.005,								-- Increase of reform descire for each year.
+	REFORM_DESIRE_PER_YEAR = 0.1,								-- Increase of reform descire for each year.	#Anbennar - increased this from 0.005 to 0.1
 	MINIMUM_DEVELOPMENT_ALLOWED = 10.0,								-- You will need a higher development than this for your province to be eligible for cardinal
 	COUNTRY_DEVELOPMENT_DIVIDER = 200.0,							-- When a cardinal is chosen the formula is diving a countrys development by this number.
 	INVEST_PAPAL_INFLUENCE = 10.0,								-- The amount of papal influence you invest in becoming controller of the curia.
