@@ -1252,7 +1252,7 @@ NMilitary = {
 	RAJPUT_MAXIMUM_RATIO = 1.0,						-- Maximum number of Rajput regiments, relative to force limit
 	MARINE_DISEMBARK_SPEED_BONUS = 2.0	,			-- marine disembark speed bonus
 	BASE_COST_MODIFIER = 2.0,						-- Revolutionary guards base cost is double as expensive
-	RAJPUT_BASE_COST_MODIFIER = 1.5,				-- Rajput base cost is double as expensive
+	RAJPUT_BASE_COST_MODIFIER = 5,				-- Artificers are expensive
 	COSSACK_BASE_COST_MODIFIER = 1.5,				-- Cossack base cost is double as expensive
 	REVOLUTIONARY_GUARD_BASE_COST_MODIFIER = 2.0,	-- Revolutionary guards base cost is double as expensive
 
