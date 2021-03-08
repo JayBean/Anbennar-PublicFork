@@ -3498,7 +3498,6 @@ blood_lotus_new_sympathizers = {
 			owned_by = ROOT
 		}
 		area = {
-			type = all
 			limit = {
 				OR = {
 					culture_group = upper_raheni
@@ -5451,16 +5450,34 @@ set_vampires_hideout_restore_masquerade = {
 			}
 			change_variable = { hideout = 1 }
 		}
+		if = {
+			limit = {
+				has_country_modifier = outed_vampire
+			}
+			change_variable = { hideout = 2 }
+		}
 		while = {
-			limit = { NOT = { check_variable = { which = x which = hideout } } }
+			limit = { NOT = { check_variable = { which = hideout value = 0 } } }
 			random_owned_province = {
 				limit = { is_in_capital_area = yes is_capital = no NOT = { has_province_modifier = vampire_hideout } }
-				add_province_modifier = {
-					name = vampire_hideout
-					duration = -1
+				if = {
+					limit = { any_neighbor_province = { fort_level = 2 NOT = { has_province_modifier = vampire_hideout } } } #Don't Spawn next to forts where possible
+					random_neighbor_province = {
+						limit = { fort_level = 2 NOT = { has_province_modifier = vampire_hideout } }
+						add_province_modifier = {
+							name = vampire_hideout
+							duration = -1
+						}
+					}
+				}
+				else = {
+					add_province_modifier = {
+						name = vampire_hideout
+						duration = -1
+					}
 				}
 			}
-			change_variable = { x = 1 }
+			subtract_variable = { which = hideout value = 1 }
 		}
 	}
 }
@@ -5702,6 +5719,13 @@ ruler_become_vampire = {
 
 #Should be used for resetting the "age" of a vampire (ie how long they have been ruling without aging), so the game does not see successive vampires as a single one and the "real" age of a vampire can be tracked, even if they revive
 ruler_new_vampire = {
+	hidden_effect = {
+		#Don't want to count the Vampire Points from Previous ruler vampires
+		set_variable = {
+			which = suspicionPoints
+			value = 0
+		}
+	}
 	clr_country_flag = vampire_ruler
 	set_country_flag = vampire_ruler
 	clr_country_flag = vampire_ruler_has_coffin
@@ -5712,7 +5736,184 @@ ruler_new_vampire = {
 		}
 		set_country_flag = hidden_ruler_vampire
 	}
+	else = {
+		set_country_flag = exposed_ruler_vampire
+	}
 }
+
+reset_vampire_age = {
+	hidden_effect = {
+		clr_country_flag = vampire_ruler
+		set_country_flag = vampire_ruler
+	}
+}
+
+advance_hunter_hunt = {
+	custom_tooltip = advance_vampire_hunter
+	if = {
+		limit = { has_country_flag = vampire_hunter_2 }
+		clr_country_flag = vampire_hunter_2
+		clr_country_flag = vampire_being_hunted
+		country_event = { id = vampire_ruler.22 days = 60 random = 30 } #Final encounter with Hunter
+	}
+	else_if = {
+		limit = { has_country_flag = vampire_hunter_1 }
+		clr_country_flag = vampire_hunter_1
+		set_country_flag = vampire_hunter_2
+	}
+	else_if = {
+		limit = { has_country_flag = vampire_being_hunted }
+		set_country_flag = vampire_hunter_1
+	}
+	else = {
+		set_country_flag = vampire_being_hunted
+	}
+}
+
+end_hunter_hunt = {
+	custom_tooltip = end_vampire_hunter
+	clr_country_flag = vampire_hunter_1
+	clr_country_flag = vampire_hunter_2
+	clr_country_flag = vampire_hunter_3
+}
+
+#Vampire Points shit
+facade_suspicion_increase_1 = {
+	custom_tooltip = small_increase_suspicion_points
+	hidden_effect = {
+		change_variable = {
+			which = suspicionPoints
+			value = 1
+		}
+	}
+}
+
+facade_suspicion_increase_2 = {
+	custom_tooltip = medium_increase_suspicion_points
+	hidden_effect = {
+		change_variable = {
+			which = suspicionPoints
+			value = 2
+		}
+	}
+}
+
+facade_suspicion_increase_5 = {
+	custom_tooltip = large_increase_suspicion_points
+	hidden_effect = {
+		change_variable = {
+			which = suspicionPoints
+			value = 5
+		}
+	}
+}
+
+facade_suspicion_increase_10 = {
+	custom_tooltip = huge_increase_suspicion_points
+	hidden_effect = {
+		change_variable = {
+			which = suspicionPoints
+			value = 10
+		}
+	}
+}
+
+facade_suspicion_decrease_1 = {
+	custom_tooltip = small_decrease_suspicion_points
+	hidden_effect = {
+		if = { 
+			limit = {
+				check_variable = {
+					which = suspicionPoints
+					value = 1
+				}
+			}
+			subtract_variable = {
+				which = suspicionPoints
+				value = 1
+			}
+		} 
+		else = {
+			set_variable = {
+				which = suspicionPoints
+				value = 0
+			}
+		}
+	}
+}
+
+facade_suspicion_decrease_2 = {
+	custom_tooltip = medium_decrease_suspicion_points
+	hidden_effect = {
+		if = { 
+			limit = {
+				check_variable = {
+					which = suspicionPoints
+					value = 2
+				}
+			}
+			subtract_variable = {
+				which = suspicionPoints
+				value = 2
+			}
+		} 
+		else = {
+			set_variable = {
+				which = suspicionPoints
+				value = 0
+			}
+		}
+	}
+}
+
+facade_suspicion_decrease_5 = {
+	custom_tooltip = large_decrease_suspicion_points
+	hidden_effect = {
+		if = { 
+			limit = {
+				check_variable = {
+					which = suspicionPoints
+					value = 5
+				}
+			}
+			subtract_variable = {
+				which = suspicionPoints
+				value = 5
+			}
+		} 
+		else = {
+			set_variable = {
+				which = suspicionPoints
+				value = 0
+			}
+		}
+	}
+}
+
+facade_suspicion_decrease_10 = {
+	custom_tooltip = huge_decrease_suspicion_points
+	hidden_effect = {
+		if = { 
+			limit = {
+				check_variable = {
+					which = suspicionPoints
+					value = 10
+				}
+			}
+			subtract_variable = {
+				which = suspicionPoints
+				value = 10
+			}
+		} 
+		else = {
+			set_variable = {
+				which = suspicionPoints
+				value = 0
+			}
+		}
+	}
+}
+
 
 target_elector_elder_pact = {
 	random_elector = {
@@ -8283,93 +8484,27 @@ castanor_trials_clear_trials_flags_effect = {
 		clr_country_flag = beastbane_trial_enchantment_admin_success
 		clr_country_flag = beastbane_trial_enchantment_dip_success
 		clr_country_flag = beastbane_trial_enchantment_mil_success
+		clr_country_flag = beastbane_trial_ran
+
+		clr_country_flag = realmbuilder_trial_failed
 
 		clr_country_flag = jump_trial_in_progress
+		clr_country_flag = jump_trial_failed
 	}
 }
-castanor_trials_fail_effect = {
-	# If original version
-	if = {
-		limit = { has_reform = original_castanor_trials_reform }
-		hidden_effect = {
-			random_list = {
-				# One of the other candidates succeeds in the trials
-				2 = {
-					trigger = {
-						NOT = { has_country_flag = castanor_trials_solo_candidate }
-					}
-					country_event = {
-						id = castanortrials.95
-					}
-				}
-				# None of the candidates succeeds in the trials
-				1 = {
-					castanor_trials_clear_candidate_flags_effect = yes
-					castanor_trials_clear_trials_flags_effect = yes
-				}
-			}
+
+castanor_trials_fail_effect = {	
+	hidden_effect = {
+		country_event = {
+			id = castanortrials.15
 		}
-	}
-	# If dynastic version
-	if = {
-		limit = { has_reform = dynastic_castanor_trials_reform }
-		castanor_trials_clear_trials_flags_effect = yes
-		add_ruler_modifier = {
-			name = castanortrials_failed_alive
-			duration = -1
-		}
-		add_legitimacy = -10
-		add_prestige = -10
-		reduce_stability_or_adm_power = yes
-	}
-	# If doing trials to form Castanor
-	if = {
-		limit = { 
-			NOT = { TAG = B32 }
-			NOT = { TAG = Z34 }
-		}
-		castanor_trials_clear_trials_flags_effect = yes
 	}
 }
 castanor_trials_die_effect = {
-	# If original version
-	if = {
-		limit = { has_reform = original_castanor_trials_reform }
-		hidden_effect = {
-			random_list = {
-				# One of the other candidates succeeds in the trials
-				2 = {
-					trigger = {
-						NOT = { has_country_flag = castanor_trials_solo_candidate }
-					}
-					country_event = {
-						id = castanortrials.95
-					}
-				}
-				# None of the candidates succeeds in the trials
-				1 = {
-					castanor_trials_clear_candidate_flags_effect = yes
-					castanor_trials_clear_trials_flags_effect = yes
-				}
-			}
+	hidden_effect = {
+		country_event = {
+			id = castanortrials.16
 		}
-	}
-	# If dynastic version
-	if = {
-		limit = { has_reform = dynastic_castanor_trials_reform }
-		castanor_trials_clear_trials_flags_effect = yes
-		kill_ruler = yes
-		reduce_stability_or_adm_power = yes
-		add_country_modifier = { name = castanortrials_failed_dead duration = 7300 }
-	}
-	# If doing trials to form Castanor
-	if = {
-		limit = { 
-			NOT = { TAG = B32 }
-			NOT = { TAG = Z34 }
-		}
-		castanor_trials_clear_trials_flags_effect = yes
-		kill_ruler = yes
 	}
 }
 
@@ -8401,4 +8536,220 @@ castonath_patricians_decrease_influence_effect = {
 			remove_province_modifier = castonath_patrician_influence_some
 		}
 	}
+}
+
+#VerkalSkomdihr
+
+verkalskomdihr_define_hold_that_can_build_gate = {
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_1_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold1
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_2_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold2
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_3_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold3
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_4_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold4
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_5_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold5
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_6_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold6
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_7_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold7
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_8_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold8
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_9_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold9
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_10_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold10
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_11_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold11
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_12_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold12
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_13_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold13
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_14_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold14
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_15_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold15
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_16_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold16
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_17_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = hold17
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_18_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold18
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_19_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold19
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_20_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold20
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_21_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold21
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_22_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold22
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_23_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold23
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_24_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold24
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_25_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold25
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_26_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold26
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_27_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold27
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_28_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold28
+	}
+	random_owned_province = {
+		limit = { verkalskomdihr_can_build_gate = yes NOT = { has_province_flag = vs_hold_@ROOT } }
+		set_province_flag = vs_option_hold_29_@ROOT
+		set_province_flag = vs_hold_@ROOT
+		save_event_target_as = vs_hold29
+	}
+}
+
+verkalskomdihr_clr_gate_menu = {
+	every_owned_province = {
+		limit = { has_province_flag = vs_hold_@ROOT }
+		clr_province_flag = vs_option_hold_1_@ROOT
+		clr_province_flag = vs_option_hold_2_@ROOT
+		clr_province_flag = vs_option_hold_3_@ROOT
+		clr_province_flag = vs_option_hold_4_@ROOT
+		clr_province_flag = vs_option_hold_5_@ROOT
+		clr_province_flag = vs_option_hold_6_@ROOT
+		clr_province_flag = vs_option_hold_7_@ROOT
+		clr_province_flag = vs_option_hold_8_@ROOT
+		clr_province_flag = vs_option_hold_9_@ROOT
+		clr_province_flag = vs_option_hold_10_@ROOT
+		clr_province_flag = vs_option_hold_11_@ROOT
+		clr_province_flag = vs_option_hold_12_@ROOT
+		clr_province_flag = vs_option_hold_13_@ROOT
+		clr_province_flag = vs_option_hold_14_@ROOT
+		clr_province_flag = vs_option_hold_15_@ROOT
+		clr_province_flag = vs_option_hold_16_@ROOT
+		clr_province_flag = vs_option_hold_17_@ROOT
+		clr_province_flag = vs_option_hold_18_@ROOT
+		clr_province_flag = vs_option_hold_19_@ROOT
+		clr_province_flag = vs_option_hold_20_@ROOT
+		clr_province_flag = vs_option_hold_21_@ROOT
+		clr_province_flag = vs_option_hold_22_@ROOT
+		clr_province_flag = vs_option_hold_23_@ROOT
+		clr_province_flag = vs_option_hold_24_@ROOT
+		clr_province_flag = vs_option_hold_25_@ROOT
+		clr_province_flag = vs_option_hold_26_@ROOT
+		clr_province_flag = vs_option_hold_27_@ROOT
+		clr_province_flag = vs_option_hold_28_@ROOT
+		clr_province_flag = vs_option_hold_29_@ROOT
+		clr_province_flag = vs_hold_@ROOT
+	}
+	clr_country_flag = verkalskomdihr_gate_menu
 }
