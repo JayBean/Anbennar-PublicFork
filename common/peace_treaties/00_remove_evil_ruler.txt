@@ -17,7 +17,7 @@ po_remove_evil_ruler = {
 	category = 6 # Any number between 0 and 6. Represents the tab under which it will be listed. 6 corresponds to "treaties". This value currently defaults to 6.
 	power_projection = humiliated_rival # "power_projection" will only be applied if giver is your rival.
 	power_cost_base = 0.0 # Base factor for diplomatic power cost when treaty is not allowed by casus belli. Scales with war score cost.
-	prestige_base = 0.2 # Base factor for prestige gain and loss. Scales with war score cost.
+	prestige_base = 1 # Base factor for prestige gain and loss. Scales with war score cost.
 	ae_base = 0.0 # Base factor for aggressive expansion. Scales with war score cost.
 	warscore_cost = {
 		# Which of the giver's provinces' war score costs are included and by how much. All entries default to 0. Any combination of entries can be used. Try negative values at your own risk.
@@ -33,18 +33,30 @@ po_remove_evil_ruler = {
 	warscore_cap = 50 # Warscore cost will never go above this value. Only enabled if non-negative. This value defaults to -1.
 	requires_demand_independence = yes # Whether this can be demanded by the former subject in an independence war without also demanding independence.
 	is_make_subject = no # This will make the treaty mutually exclusive with other treaties that makes the giver a subject, or that explicitly frees the giver from their current overlord.
-	requires_is_allowed = yes # If set to "yes", treaty will only be visible when explicitly allowed by casus belli. If not, it will be available but cost diplomatic power.
+	requires_is_allowed = no # If set to "yes", treaty will only be visible when explicitly allowed by casus belli. If not, it will be available but cost diplomatic power.
 	
 	is_visible = { # Defaults to equivalent of "always = yes"
-		is_in_war = { casus_belli = cb_evil_ruler }
-		FROM = {
-			has_country_flag = witch_king_flag
-			#has_country_flag = exposed_homonculus #Dunno if these are evil enough
-			NOT = { ruler_is_immortal = yes }
+		OR = { 
+			is_in_war = { casus_belli = cb_evil_ruler } # Anti-Evil CB
+			is_in_war = { casus_belli = cb_super_badboy } # Coalition CB
 		}
+		FROM = {
+			OR = {
+				has_country_flag = witch_king_flag
+				has_country_flag = exposed_lich_ruler
+				has_country_flag = exposed_vampire_ruler
+				#has_country_flag = exposed_homonculus #Dunno if these are evil enough
+			}
+		}
+		#always = yes
 	}
 	is_allowed = { # Defaults to equivalent of "always = yes"
-		always = yes
+		#You need to control their capital
+		FROM = {
+			capital_scope = {
+				NOT = { controlled_by = FROM }
+			}
+		}
 	}
 	effect = { # Defaults to empty effect (which makes error log entry but is safe)
 		FROM = { country_event = { id = witch_king.2 } }
@@ -56,9 +68,18 @@ po_remove_evil_ruler = {
 		}
 		limit = { # if limit evaluates false, ai_weight will evaluate to 0 regardless
 			FROM = {
-				has_country_flag = witch_king_flag
-				#has_country_flag = exposed_homonculus #Dunno if these are evil enough
-				NOT = { ruler_is_immortal = yes } 
+				OR = {
+					has_country_flag = witch_king_flag
+					has_country_flag = exposed_lich_ruler
+					has_country_flag = exposed_vampire_ruler
+					#has_country_flag = exposed_homonculus #Dunno if these are evil enough
+				}
+				OR = {
+					is_in_war = { casus_belli = cb_evil_ruler } 
+					capital_scope = {
+						NOT = { controlled_by = FROM }
+					}
+				}
 			}
 		}
 	}
