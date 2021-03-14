@@ -509,6 +509,456 @@ country_event = {
 	}
 }
 
+# The Venaili Island Rights
+province_event = {
+	id = venail.16
+	title = venail.16.t
+	desc = venail.16.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		NOT = { A21 = { owns = 88 } }
+	}
+	
+	#Send the offer
+	option = {
+        name = venail.16.a
+        ai_chance = { factor = 100 }
+		custom_tooltip = buy_venail_island_rights
+		owner = { add_treasury = -200 }
+		A21 = { country_event = { id = venail.17 days = 30 } }
+	}
+	
+	#Don't send the offer - Player only
+	option = {
+        name = venail.16.b
+        ai_chance = { factor = 0 }
+	}
+}
+
+# The Venaili Island Rights - Venail recieves offer
+country_event = {
+	id = venail.17
+	title = venail.17.t
+	desc = venail.17.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Venail accepts
+	option = {
+        name = venail.17.a
+        ai_chance = { factor = 100 }
+		add_treasury = 200
+		if = {
+			limit = { ai = no }
+			add_country_modifier = {
+				name = sold_venail_rights
+				duration = 18250
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = sold_venail_rights
+				duration = 23500
+			}
+		}
+		88 = { owner = { country_event = { id = venail.18 days = 7 } } }
+		custom_tooltip = sell_venail_island_rights
+	}
+	
+	#Venail Refuses - Player Only
+	option = {
+        name = venail.17.b
+        ai_chance = { factor = 0 }
+		88 = { owner = { country_event = { id = venail.19 days = 7 } } }
+	}
+}
+
+
+# The Venaili Island Rights - Venail accepts
+country_event = {
+	id = venail.18
+	title = venail.18.t
+	desc = venail.18.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Venail accepts
+	option = {
+        name = venail.18.a
+        ai_chance = { factor = 100 }
+		88 = {
+			add_province_modifier = {
+				name = bought_venail_island_rights
+				duration = -1
+			}
+		}
+	}
+}
+
+# The Venaili Island Rights - Venail rejects
+country_event = {
+	id = venail.19
+	title = venail.19.t
+	desc = venail.19.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Venail accepts
+	option = {
+        name = venail.19.a
+        ai_chance = { factor = 100 }
+		add_treasury = 200
+	}
+}
+
+# The Venaili Island Rights - Venail migrate
+country_event = {
+	id = venail.20
+	title = venail.20.t
+	desc = venail.20.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		owns = 88
+		88 = {
+			has_province_modifier = bought_venail_island_rights
+		}
+	}
+	
+	immediate = {
+		#No colonizing shenanigans
+		hidden_effect = {
+			#In this case ROOT is Venail
+			88 = {
+				owner = {
+					save_event_target_as = venail_purchaser
+				}
+			}
+		}
+	}
+	
+	#Venail accepts
+	option = {
+        name = venail.20.a
+        ai_chance = { factor = 100 }
+		venail_area = {
+			limit = {
+				owner = { OR = { tag = A21 was_tag = A21 } }
+			}
+			add_base_manpower = -20
+			add_base_tax = -20
+			add_base_production = -20
+			remove_core = owner
+			cede_province = event_target:venail_purchaser
+			add_core = event_target:venail_purchaser
+		}
+		country_event = { id = venail.21 }
+	}
+}
+
+# The Venaili Island Rights - Venail has not migrated
+country_event = {
+	id = venail.21
+	title = venail.21.t
+	desc = {
+		trigger = {
+			venail_area = {
+				owner = {
+					OR = {
+						tag = A21
+						was_tag = A21
+					}
+				}
+			}
+		}
+	   desc = venail.21.d1
+	}
+	desc = {
+	   trigger = {
+			venail_area = {
+				type = all
+				owner = {
+					NOT = {
+						tag = A21
+						was_tag = A21
+					}
+				}
+			}
+		}
+	   desc = venail.21.d2
+	}
+	picture = NAVAL_MILITARY_eventPicture
+	
+	fire_only_once = yes
+	
+	trigger = {
+		owns = 88
+		88 = {
+			has_province_modifier = bought_venail_island_rights
+		}
+		OR = {
+			#Venail Remains
+			AND = {
+				is_institution_enabled = colonialism
+				NOT = { is_at_war = yes }
+				exists = A21
+				NOT = { tag = A21 }
+				A21 = {
+					is_subject = no
+				}
+				NOT = { truce_with = A21 } # Prevent War Firing :(
+			}
+			#Venail Migrates
+			A21 = {
+				NOT = {
+					owns = 93 
+					owns = 94 
+					owns = 127
+				}
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		years = 20
+		modifier = {
+			factor = 0.5
+			A21 = {
+				any_subject_country = {
+					capital_scope = { colonial_region = colonial_noruin }
+				}
+			}
+		}
+		modifier = {
+			factor = 0.5
+			A21 = {
+				NOT = { has_unembraced_institution = colonialism }
+			}
+		}
+	}
+	
+	immediate = {
+		#No colonizing shenanigans
+		hidden_effect = {
+			#In this case ROOT may be Venail
+			88 = {
+				owner = {
+					save_event_target_as = venail_purchaser
+				}
+			}
+		}
+	}
+	
+	#Demand Venail Surrenders the island
+	option = {
+        name = venail.21.a
+		trigger = { 
+			A21 = {
+				OR = {
+					owns = 93 
+					owns = 94 
+					owns = 127
+				}
+			}
+		}
+        ai_chance = { factor = 100 }
+		A21 = { country_event = { id = venail.22 days = 7 } }
+		venail_area = {
+			limit = {
+				NOT = { is_core = event_target:venail_purchaser }
+				NOT = { is_permanent_claim = event_target:venail_purchaser }
+			}
+			add_permanent_claim = event_target:venail_purchaser
+		}
+	}
+	
+	#Bide our time
+	option = {
+        name = venail.21.b
+        ai_chance = { factor = 10 }
+		trigger = {
+			NOT = {
+				owns = 93 
+				owns = 94 
+				owns = 127
+			}
+		}
+		venail_area = {
+			limit = {
+				NOT = { is_core = event_target:venail_purchaser }
+				NOT = { is_permanent_claim = event_target:venail_purchaser }
+			}
+			add_permanent_claim = event_target:venail_purchaser
+		}
+	}
+	
+	#Venail has Migrated
+	option = {
+        name = venail.21.c
+        ai_chance = { factor = 100 }
+		trigger = {
+			OR = {
+				owns = 93 
+				owns = 94 
+				owns = 127
+			}
+			A21 = {
+				NOT = {
+					owns = 93 
+					owns = 94 
+					owns = 127
+				}
+			}
+		}
+		venail_area = {
+			#As ownership has already been transferred must target provinces you own
+			limit = { owned_by = event_target:venail_purchaser }
+			change_religion = ROOT
+			add_province_modifier = {
+				name = resetle_venail
+				duration = 1825
+			}
+		}
+		
+		# Claims on any provinces you missed
+		if = {
+			limit = { venail_area = { NOT = { owned_by = event_target:venail_purchaser } } }
+			venail_area = {
+				limit = {
+					NOT = { is_core = event_target:venail_purchaser }
+					NOT = { is_permanent_claim = event_target:venail_purchaser }
+				}
+				add_permanent_claim = event_target:venail_purchaser
+			}
+		}
+	}
+}
+
+# The Venaili Island Rights - Venail has not migrated, island demanded
+country_event = {
+	id = venail.22
+	title = venail.22.t
+	desc = venail.22.d
+	picture = NAVAL_MILITARY_eventPicture
+	
+	trigger = {
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	
+	#We won't surrender
+	option = {
+        name = venail.22.a
+        ai_chance = { factor = 100 }
+		if = {
+			limit = { owns = 93 }
+			event_target:venail_purchaser = { 
+				declare_war_with_cb = {
+					who = A21
+					casus_belli = cb_conquest
+					war_goal_province = 93
+				}
+			}
+		}
+		else_if = {
+			limit = { owns = 94 }
+			event_target:venail_purchaser = { 
+				declare_war_with_cb = {
+					who = A21
+					casus_belli = cb_conquest
+					war_goal_province = 94
+				}
+			}
+		}
+		else_if = {
+			limit = { owns = 127 }
+			event_target:venail_purchaser = { 
+				declare_war_with_cb = {
+					who = A21
+					casus_belli = cb_conquest
+					war_goal_province = 127
+				}
+			}
+		}
+		add_country_modifier = {
+			name = population_leaving_for_aelantir
+			duration = 3650
+		}
+		custom_tooltip = colonies_declare_independence
+		hidden_effect = {
+			every_subject_country = {
+				limit = { is_colonial_nation = yes }
+				declare_war_with_cb = {
+					who = A21
+					casus_belli = cb_independence
+				}
+			}
+		}
+	}
+	
+	#Give up the island
+	option = {
+        name = venail.22.b
+        ai_chance = { factor = 10 }
+		venail_area = {
+			limit = { owner = { OR = { tag = A21 was_tag = A21 } } }
+			cede_province = event_target:venail_purchaser
+		}
+		if = {
+			#Don't give Lorent all of your colonies, they only want the island
+			limit = { every_owned_province = { area = venail_area } }
+			every_subject_country = {
+				grant_independence = yes
+			}
+		}
+	}
+}
 
 ### Thing to help the AI
 #relation with damescrown
