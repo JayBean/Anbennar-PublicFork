@@ -525,6 +525,7 @@ province_event = {
 	
 	trigger = {
 		NOT = { A21 = { owns = 88 } }
+		NOT = { is_year = 1535 } # Can't get it after the expedition has gone
 	}
 	
 	#Send the offer
@@ -741,14 +742,15 @@ country_event = {
 		OR = {
 			#Venail Remains
 			AND = {
-				is_institution_enabled = colonialism
-				NOT = { is_at_war = yes }
-				exists = A21
+				is_year = 1535
 				NOT = { tag = A21 }
-				A21 = {
-					is_subject = no
-				}
-				NOT = { truce_with = A21 } # Prevent War Firing :(
+				NOT = {
+                    93 = { owner = { war_with = ROOT } }
+                    94 = { owner = { war_with = ROOT } }
+                    127 = { owner = { war_with = ROOT } }
+                }
+				A21 = { is_subject = no }
+				NOT = { truce_with = A21 } # Prevents War Firing :(
 			}
 			#Venail Migrates
 			A21 = {
@@ -762,7 +764,15 @@ country_event = {
 	}
 
 	mean_time_to_happen = {
-		years = 20
+		years = 15
+		
+		# Mainly fires when you aren't distracted
+		modifier = {
+			factor = 2
+			is_at_war = yes
+		}
+		
+		# Mentioned in the flavour text, ideally they would be allowed to form Aelnar
 		modifier = {
 			factor = 0.5
 			A21 = {
@@ -771,11 +781,18 @@ country_event = {
 				}
 			}
 		}
+		
+		# Give players time to embrace Colonialism
 		modifier = {
 			factor = 0.5
-			A21 = {
-				NOT = { has_unembraced_institution = colonialism }
-			}
+			A21 = { NOT = { has_unembraced_institution = colonialism } }
+		}
+		
+		# AI Venail gets more time
+		modifier = {
+			factor = 20 # Sometimes AI get fucked even if they were going to migrate
+			A21 = { ai = yes }
+			NOT = { is_year = 1555 }
 		}
 	}
 	
@@ -817,7 +834,13 @@ country_event = {
 	#Bide our time
 	option = {
         name = venail.21.b
-        ai_chance = { factor = 10 }
+        ai_chance = { 
+			factor = 10
+			modifier = {
+				factor = 2
+				is_at_war = yes
+			}
+		}
 		trigger = {
 			NOT = {
 				owns = 93 
@@ -933,10 +956,24 @@ country_event = {
 		custom_tooltip = colonies_declare_independence
 		hidden_effect = {
 			every_subject_country = {
-				limit = { is_colonial_nation = yes }
+				limit = { is_colonial_nation = yes capital_scope = { colonial_region = colonial_noruin }}
 				declare_war_with_cb = {
 					who = A21
-					casus_belli = cb_independence
+					casus_belli = cb_independence_war
+				}
+			}
+			every_subject_country = {
+				limit = { is_colonial_nation = yes }
+				random_list = {
+					30 = {
+						declare_war_with_cb = {
+							who = A21
+							casus_belli = cb_independence_war
+						}
+					}
+					70 = {
+						add_liberty_desire = 40
+					}
 				}
 			}
 		}
@@ -952,7 +989,7 @@ country_event = {
 		}
 		if = {
 			#Don't give Lorent all of your colonies, they only want the island
-			limit = { every_owned_province = { area = venail_area } }
+			limit = { all_owned_province = { area = venail_area } }
 			every_subject_country = {
 				grant_independence = yes
 			}
