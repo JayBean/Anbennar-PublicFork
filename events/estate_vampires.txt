@@ -56,6 +56,7 @@ country_event = {
 		ai_chance = { factor = 100 }
 		remove_estate_privilege = estate_vampires_organization_vampiric_emigres
 		set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+		#aristocracy upgrade notification for the leader of the blood court
 		event_target:blood_court_founder = {
 			country_event = {
 				id = asheniande.9
@@ -607,7 +608,7 @@ country_event = {
 			country_event = { id = vampires_estate_events.12 days = 2 }
 			event_target:blood_court_founder = {
 				country_event = {
-					id = asheniande.8
+					id = asheniande.8 #emigres landing notification for the leaader of the blood court
 					days = 10
 				}
 			}
@@ -670,88 +671,84 @@ country_event = {
 	}
 	
 	immediate = {
-		if = {
-			limit = {
-				has_regency = no
+		hidden_effect = {
+			if = {
+				limit = {
+					has_regency = no
+				}
+				exile_ruler_as = old_heir
 			}
-			exile_ruler_as = old_heir_turned_ruler
-		}
-		if = {
-			limit = {
-				has_heir = yes
+			if = {
+				limit = {
+					has_heir = yes
+				}
+				exile_heir_as = old_heir
 			}
-			exile_heir_as = old_heir
-		}
-		
-		define_ruler = {
-			name = "(Interregnum)"
-			#dynasty = ROOT
-			adm = 0
-			mil = 0
-			dip = 0
-			regency = yes
+			
+			if = {
+				limit = { has_country_flag = vampire_ruler_female }
+				define_ruler = {
+					age = 33
+					dynasty = " "
+					female = yes
+					max_random_adm  = 0
+					max_random_dip  = 0
+					max_random_mil  = 0
+					hide_skills = yes
+				}
+			}
+			else = {
+				define_ruler = {
+					age = 33
+					dynasty = " "
+					male = yes
+					max_random_adm  = 0
+					max_random_dip  = 0
+					max_random_mil  = 0
+					hide_skills = yes
+				}
+			}
 		}
 	}
 	
-	#Govs with heirs
-	#Make heir with no dynasty
+	# Set Ruler
 	option = {
 		name = vampires_estate_events.13.a
-		trigger = { has_government_attribute = heir }
 		ai_chance = {
 			factor = 50
 		}
 		
-		if = {
-			limit = { has_country_flag = vampire_ruler_female }
-			define_heir = {
-				age = 33
-				dynasty = " "
-				no_consort_with_heir = yes
-				female = yes
+		# Revied Rulers are slighlty worse than normal ones, you don't want your ruler to die
+		tooltip = {
+			if = {
+				limit = { has_country_flag = vampire_ruler_female }
+				define_ruler = {
+					age = 33
+					dynasty = " "
+					female = yes
+					max_random_adm  = 0
+					max_random_dip  = 0
+					max_random_mil  = 0
+					hide_skills = yes
+				}
 			}
-		}
-		else = {
-			define_heir = {
-				age = 33
-				dynasty = " "
-				no_consort_with_heir = yes
-				male = yes
+			else = {
+				define_ruler = {
+					age = 33
+					dynasty = " "
+					male = yes
+					max_random_adm  = 0
+					max_random_dip  = 0
+					max_random_mil  = 0
+					hide_skills = yes
+				}
 			}
 		}
 		
-		set_heir_flag = is_a_vampire
-		set_heir_flag = new_vampire_setup
-		set_country_flag = interregnum
+		restore_ruler_stats = yes
+		revival_stat_loss = yes
 		
-		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
-	}
-	
-	#Govs without heirs - straight ruler boy
-	option = {
-		name = vampires_estate_events.13.b
-		trigger = { NOT = { has_government_attribute = heir } }
-		ai_chance = {
-			factor = 50
-		}
-		
-		hidden_effect = { exile_ruler_as = old_ruler }
-		
-		if = {
-			limit = { has_country_flag = vampire_ruler_female }
-			define_ruler = {
-				age = 33
-				dynasty = " "
-				female = yes
-			}
-		}
-		else = {
-			define_ruler = {
-				age = 33
-				dynasty = " "
-				male = yes
-			}
-		}
+		set_heir = old_heir
 		
 		set_ruler_flag = is_a_vampire
 		set_ruler_flag = new_vampire_setup
@@ -776,27 +773,12 @@ country_event = {
 	trigger = {
 	}
 	
-	after = {
-		if = {
-			limit = { government = monarchy }
-			hidden_effect = { add_stability = 1 } #You're losing two rulers
-		}
-	}
-	
 	option = {
 		name = vampires_estate_events.14.a
 		ai_chance = {
 			factor = 50
 		}
-		if = {
-			limit = {
-				NOT = { ruler_age = 33 }
-			}
-			kill_ruler = yes
-			hidden_effect = { add_stability = 1 }
-		}
 		clr_country_flag = interregnum
-		
 		clr_heir_flag = new_vampire_setup
 		clr_ruler_flag = new_vampire_setup
 		
@@ -805,7 +787,7 @@ country_event = {
 		if = {
 			limit = { has_country_flag = mage_vampire }
 			add_ruler_personality = mage_personality
-			ruler_give_saved_spell_schools = yes	#links to ruler_save_spell_schools
+			ruler_give_saved_spell_schools = yes	# links to ruler_save_spell_schools
 			if = { # Keep Witch King on Revival
 				limit = { has_country_flag = witch_king_flag }
 				add_ruler_modifier = {
@@ -814,12 +796,11 @@ country_event = {
 				}
 			}
 			# If not exposed people forget your misuse of magic
-			else = {
+			else_if = {
+				limit = { has_country_flag = hidden_ruler_vampire }
 				clear_witch_king_points = yes
 			}
 		}
-		
-		set_heir = old_heir_turned_ruler
 		
 		add_ruler_modifier = {
 			name = vampire_ruler
@@ -853,7 +834,7 @@ province_event = {
 		hidden_effect = {
 			if = {
 				limit = {
-					NOT = { has_ruler_flag = abjuration_1 }
+					owner = { NOT = { has_ruler_flag = abjuration_1 } }
 				}
 				province_event = { id = vampires_estate_events.16 days = 30 random = 15 } #Vampire rulers are less likely to be mages, give them a safety net
 			}
@@ -874,7 +855,7 @@ province_event = {
 	option = {
 		name = vampires_estate_events.15.a
 		trigger = {
-			NOT = { has_ruler_flag = abjuration_1 }
+			owner = { NOT = { has_ruler_flag = abjuration_1 } }
 		}
 		ai_chance = {
 			factor = 100
@@ -887,7 +868,7 @@ province_event = {
 	option = {
 		name = vampires_estate_events.15.b
 		trigger = {
-			has_ruler_flag = abjuration_1
+			owner = { has_ruler_flag = abjuration_1 }
 		}
 		ai_chance = {
 			factor = 100
@@ -988,17 +969,13 @@ country_event = {
 		has_country_flag = vampire_ruler_has_coffin
 	}
 	
-	immediate = {
-		clear_ruler_vampire_flags = yes
-	}
-	
 	option = {
 		name = vampires_estate_events.19.a
 		ai_chance = {
 			factor = 50
 		}
 		
-		kill_ruler = yes
+		kill_vampire_ruler = yes
 		add_prestige = -20
 		add_stability = -1		#Less of a deal than a lich dying, there are likely more vampires about
 	}
