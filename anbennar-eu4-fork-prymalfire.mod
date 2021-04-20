@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="anbennar-eu4-fork-prymalfire"
+path="mod/anbennar-eu4-fork-prymalfire"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
