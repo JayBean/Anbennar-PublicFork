@@ -56,6 +56,7 @@ country_event = {
 		ai_chance = { factor = 100 }
 		remove_estate_privilege = estate_vampires_organization_vampiric_emigres
 		set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+		#aristocracy upgrade notification for the leader of the blood court
 		event_target:blood_court_founder = {
 			country_event = {
 				id = asheniande.9
@@ -607,7 +608,7 @@ country_event = {
 			country_event = { id = vampires_estate_events.12 days = 2 }
 			event_target:blood_court_founder = {
 				country_event = {
-					id = asheniande.8
+					id = asheniande.8 #emigres landing notification for the leaader of the blood court
 					days = 10
 				}
 			}
@@ -651,7 +652,7 @@ country_event = {
 	desc = vampires_estate_events.13.d
 	picture = DEATH_OF_HEIR_eventPicture
 	
-	#is_triggered_only = yes	#this should be triggered by other events like adventurers destroying phylactery
+	is_triggered_only = yes	#this should be triggered by other events like adventurers destroying phylactery
 	
 	trigger = {
 		has_country_flag = vampire_ruler
@@ -665,47 +666,78 @@ country_event = {
 		NOT = { government = republic }
 	}
 	
-	mean_time_to_happen = {
-		days = 7
-	}
-	
 	immediate = {
 		hidden_effect = {
+			set_country_flag = interregnum
+			
+			
+			# Govs with Heirs keep dynasty
 			if = {
-				limit = {
-					has_regency = no
+				limit = { has_government_attribute = heir }
+				
+				# Gimme dynastic ruler
+				set_ruler = dynastic_heir_@ROOT
+				
+				if = {
+					limit = { has_country_flag = vampire_ruler_female }
+					define_heir = {
+						age = 30
+						dynasty = ROOT
+						female = yes
+						max_random_adm  = 0
+						max_random_dip  = 0
+						max_random_mil  = 0
+						hide_skills = yes
+					}
 				}
-				exile_ruler_as = old_heir
-			}
-			if = {
-				limit = {
-					has_heir = yes
+				else = {
+					define_heir = {
+						age = 30
+						dynasty = ROOT
+						male = yes
+						max_random_adm  = 0
+						max_random_dip  = 0
+						max_random_mil  = 0
+						hide_skills = yes
+					}
 				}
-				exile_heir_as = old_heir
+				
+				set_heir_flag = is_a_vampire
+				
+				exile_ruler_as = dynastic_heir_@ROOT
+				add_stability = 1 # Ruler is dead
 			}
 			
-			if = {
-				limit = { has_country_flag = vampire_ruler_female }
-				define_ruler = {
-					age = 33
-					dynasty = " "
-					female = yes
-					max_random_adm  = 0
-					max_random_dip  = 0
-					max_random_mil  = 0
-					hide_skills = yes
-				}
-			}
+			# Govs without Heirs straight ruler boy
 			else = {
-				define_ruler = {
-					age = 33
-					dynasty = " "
-					male = yes
-					max_random_adm  = 0
-					max_random_dip  = 0
-					max_random_mil  = 0
-					hide_skills = yes
+			
+				set_ruler = dynastic_heir_@ROOT
+				
+				if = {
+					limit = { has_country_flag = vampire_ruler_female }
+					define_ruler = {
+						age = 30
+						dynasty = ROOT
+						female = yes
+						max_random_adm  = 0
+						max_random_dip  = 0
+						max_random_mil  = 0
+						hide_skills = yes
+					}
 				}
+				else = {
+					define_ruler = {
+						age = 30
+						dynasty = ROOT
+						male = yes
+						max_random_adm  = 0
+						max_random_dip  = 0
+						max_random_mil  = 0
+						hide_skills = yes
+					}
+				}
+				
+				set_ruler_flag = is_a_vampire
 			}
 		}
 	}
@@ -722,8 +754,8 @@ country_event = {
 			if = {
 				limit = { has_country_flag = vampire_ruler_female }
 				define_ruler = {
-					age = 33
-					dynasty = " "
+					age = 30
+					dynasty = ROOT
 					female = yes
 					max_random_adm  = 0
 					max_random_dip  = 0
@@ -733,8 +765,8 @@ country_event = {
 			}
 			else = {
 				define_ruler = {
-					age = 33
-					dynasty = " "
+					age = 30
+					dynasty = ROOT
 					male = yes
 					max_random_adm  = 0
 					max_random_dip  = 0
@@ -751,8 +783,8 @@ country_event = {
 		
 		set_ruler_flag = is_a_vampire
 		set_ruler_flag = new_vampire_setup
-		set_country_flag = interregnum
-
+		clr_country_flag = interregnum
+		
 		hidden_effect = { country_event = { id = vampires_estate_events.14 days = 3 } }
 	}
 	
@@ -770,6 +802,8 @@ country_event = {
 	hidden = yes
 	
 	trigger = {
+		has_ruler_flag = is_a_vampire
+		NOT = { has_ruler_modifier = vampire_ruler }
 	}
 	
 	option = {
@@ -783,6 +817,9 @@ country_event = {
 		
 		clear_ruler_personalities = yes
 		add_ruler_personality = immortal_personality
+		
+		save_ruler_stats = yes
+		
 		if = {
 			limit = { has_country_flag = mage_vampire }
 			add_ruler_personality = mage_personality
