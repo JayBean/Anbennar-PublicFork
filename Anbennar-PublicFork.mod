@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-Biegeltoren"
+path="mod/anbennar-eu4-fork-biegeltoren"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
