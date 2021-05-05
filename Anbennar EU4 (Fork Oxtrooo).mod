@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-Oxtrooo fork"
+path="mod/Anbennar EU4 (Fork Oxtrooo)"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.30.*"
