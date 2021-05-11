@@ -1705,7 +1705,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEDGES = 4,
+	ESTATE_MAX_PRIVILEDGES = 5,									-- Anbennar, there are 5 slots now
 
 },
 
@@ -2067,7 +2067,7 @@ NReligion = {
 	YEARLY_HARMONY_INCREASE_WHEN_HARMONIZING = -3.0,
 	YEARLY_HARMONIZATION_PROGRESS = 0.03, 			-- 3%
 
-	INITIAL_ISOLATIONISM = 1,						-- Level of isolationism for a newly shintoed country.
+	INITIAL_ISOLATIONISM = 3,						-- Level of isolationism for a newly shintoed country.
 
 	NOT_SAME_MUSLIM_SCHOOL_ALLIANCE_ACCEPTANCE = 15,		-- Alliance acceptance value (positive and negative) for different religious schools
 	NOT_SAME_MUSLIM_SCHOOL_ROYAL_MARRIAGE_ACCEPTANCE = 15,	-- Royal marriage acceptance (positive and negative) for different religious schools
