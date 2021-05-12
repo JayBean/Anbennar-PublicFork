@@ -83,6 +83,7 @@ verkaldromak_11 = {
 				culture_group = dwarven
 			}
 		}
+		# TODO remove modifiers on war
 		effect = {
 			random_neighbor_country = {
 				limit = {
@@ -92,6 +93,7 @@ verkaldromak_11 = {
 					name = I25_friend_in_dwarovar
 					duration = -1
 				}
+				add_historical_friend = ROOT  # to prevent them rivalling you
 			}
 			add_country_modifier = {
 				name = I25_friend_in_dwarovar
@@ -151,7 +153,7 @@ verkaldromak_31 = {
 			}
 			estate_influence = {
 				estate = estate_mages
-				influence = 50
+				influence = 40
 			}
 			4323 = {
 				owned_by = FROM
@@ -212,6 +214,7 @@ verkaldromak_31 = {
 		effect = {
 			clr_country_flag = banned_magic
 			set_estate_privilege = estate_mages_organization_state
+			set_country_flag = sleeper_mages
 		}
 	}
 
@@ -245,7 +248,7 @@ verkaldromak_31 = {
 	
 	I25_sleeper_research_2 = {
 		icon = mission_writing_book
-		position = 7
+		position = 6
 		required_missions = {
 			I25_sleeper_research_1
 		}
@@ -273,7 +276,7 @@ verkaldromak_31 = {
 
 	I25_sleeper_research_3 = {
 		icon = mission_writing_book
-		position = 11
+		position = 8
 		required_missions = {
 			I25_sleeper_research_2
 		}
@@ -301,7 +304,7 @@ verkaldromak_31 = {
 
 	I25_sleeper_research_4 = {
 		icon = mission_writing_book
-		position = 15
+		position = 12
 		required_missions = {
 			I25_sleeper_research_3
 		}
@@ -329,9 +332,9 @@ verkaldromak_31 = {
 
 	I25_sleeper_research_5 = {
 		icon = mission_writing_book
-		position = 15
+		position = 16
 		required_missions = {
-			I25_sleeper_research_3
+			I25_sleeper_research_4
 		}
 		trigger = {
 			NOT = {
@@ -525,6 +528,171 @@ verkaldromak_51 = {
 
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+# Government
+#--------------------------------------------------------------------
+#--------------------------------------------------------------------
+
+
+
+verkaldromak_52 = {
+	slot = 5
+	generic = no
+	ai = yes
+	potential = {
+		tag = I25
+	}
+
+	I25_position_of_power = {
+		icon = mission_writing_book
+		position = 4
+		required_missions = {
+			I25_sort_out_problems
+		}
+		trigger = {
+			estate_loyalty = {
+				estate = estate_mages
+				loyalty = 60
+			}
+			estate_influence = {
+				estate = estate_mages
+				influence = 50
+			}
+		}
+		effect = {
+			add_country_modifier = {
+				name = I25_position_of_power
+				duration = -1
+			}
+		}
+	}
+
+	I25_curtail_estates = {
+		icon = mission_writing_book
+		position = 5
+		required_missions = {
+			I25_position_of_power
+		}
+		trigger = {
+			NOT = {
+				OR = {
+					estate_influence = {
+						estate = estate_nobles
+						influence = 30
+					}
+					estate_influence = {
+						estate = estate_burghers
+						influence = 30
+					}
+					estate_influence = {
+						estate = estate_church
+						influence = 30
+					}
+				}
+			}
+		}
+		effect = {
+			add_country_modifier = {
+				name = I25_estates_curtailed
+				duration = -1
+			}
+			change_estate_land_share = {
+				estate = all
+				share = -10
+			}
+			remove_country_modifier = I25_ruler_killed_estates_debuff
+		}
+	}
+
+	I25_new_government = {
+		icon = mission_writing_book
+		position = 6
+		required_missions = {
+			I25_curtail_estates
+		}
+		trigger = {
+			adm_power = 300
+			ruler_has_personality = mage_personality
+			OR = {
+				is_divination_2 = yes
+				is_divination_3 = yes
+			}
+		}
+		effect = {
+			add_adm_power = -300
+			remove_country_modifier = I25_ruler_killed_no_investigation
+			remove_country_modifier = I25_ruler_killed_investigator_disappeared
+			add_government_reform = verkal_dromak_sleeper_government
+			add_country_modifier = {
+				name = centralization_modifier
+				duration = 7300
+			}
+		}
+	}
+}
+
+
+verkaldromak_53 = {
+	slot = 5
+	generic = no
+	ai = yes
+	potential = {
+		tag = I25
+		
+		
+	}
+
+	I25_we_need_more_sleep = {
+		icon = mission_writing_book
+		position = 9
+		required_missions = {
+			I25_new_government
+			I25_sleeper_research_3
+		}
+		trigger = {
+			estate_loyalty = {
+				estate = estate_burghers
+				loyalty = 60
+			}
+			monthly_income = 200
+		}
+		effect = {
+			add_country_modifier = {
+				name = I25_shorter_working_hours_1
+				duration = -1
+			}
+			add_estate_loyalty = {
+				estate = estate_burghers
+				loyalty = -30
+			}
+			hidden_effect = {
+				country_event = {
+					id = verkaldromak.72
+					days = 1000
+				}
+			}
+		}
+	}
+
+	I25_moar_sleep = {
+		icon = mission_writing_book
+		position = 11
+		required_missions = {
+			I25_we_need_more_sleep	
+		}
+		trigger = {
+			monthly_adm = 12
+			monthly_dip = 12
+			monthly_mil = 12
+		}
+		effect = {
+			add_government_reform = verkal_dromak_sleeper_monarch
+		}
+	}
+}
+
+
+#--------------------------------------------------------------------
+#--------------------------------------------------------------------
 # After first sleeper research
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
@@ -552,9 +720,10 @@ verkaldromak_12 = {
 			NOT = {
 				has_country_modifier = I25_sleeper_research
 			}
-			mil_power = 200
+			mil_power = 150
 		}
 		effect = {
+			add_mil_power = -150
 			country_event = { id = verkaldromak.19 days = 1 }
 			set_country_flag = I25_dreaming_mission
 		}
@@ -582,9 +751,10 @@ verkaldromak_22 = {
 			NOT = {
 				has_country_modifier = I25_sleeper_research
 			}
-			adm_power = 200
+			adm_power = 150
 		}
 		effect = {
+			add_adm_power = -150
 			country_event = { id = verkaldromak.21 days = 1 }
 		}
 	}
@@ -622,6 +792,7 @@ verkaldromak_13 = {
 			dip_power = 200
 		}
 		effect = {
+			add_dip_power = -200
 			country_event = { id = verkaldromak.23 days = 1 }
 		}
 	}
@@ -652,6 +823,7 @@ verkaldromak_23 = {
 			dip_power = 200
 		}
 		effect = {
+			add_dip_power = -200
 			country_event = { id = verkaldromak.20 days = 1 }
 		}
 	}
@@ -679,10 +851,10 @@ verkaldromak_42 = {
 			NOT = {
 				has_country_modifier = I25_sleeper_research
 			}
-			adm_power = 300
+			adm_power = 200
 		}
 		effect = {
-			add_adm_power = -300
+			add_adm_power = -200
 			country_event = { id = verkaldromak.29 days = 1 }
 		}
 	}
@@ -772,11 +944,11 @@ verkaldromak_15 = {
 				has_country_modifier = I25_sleeper_research
 			}
 			treasury = 3000
-			manpower = 10000
+			manpower = 10
 		}
 		effect = {
 			add_treasury = -3000
-			add_manpower = -10000
+			add_manpower = -10
 			country_event = { id = verkaldromak.26 days = 1 }
 		}
 	}
@@ -1046,15 +1218,15 @@ verkaldromak_27 = {
 				has_province_modifier = I25_mage_tower_replica
 			}
 
-			adm_power = 100
-			mil_power = 100
-			dip_power = 100
+			adm_power = 200
+			mil_power = 200
+			dip_power = 200
 			treasury = 10000
 		}
 		effect = {
-			add_adm_power = -100
-			add_mil_power = -100
-			add_dip_power = -100
+			add_adm_power = -200
+			add_mil_power = -200
+			add_dip_power = -200
 			add_treasury = -10000
 			country_event = { id = verkaldromak.52 days = 365 }
 		}
@@ -1123,7 +1295,7 @@ verkaldromak_46 = {
 				has_country_modifier = witch_king_modifier
 				has_spy_network_from = {
 					who = FROM
-					value = 50
+					value = 80
 				}
 			}
 		}
@@ -1238,184 +1410,5 @@ verkaldromak_32 = {
 		}
 	}
 }
-
-#--------------------------------------------------------------------
-#--------------------------------------------------------------------
-# Government
-#--------------------------------------------------------------------
-#--------------------------------------------------------------------
-
-
-
-verkaldromak_52 = {
-	slot = 5
-	generic = no
-	ai = yes
-	potential = {
-		tag = I25
-	}
-
-	I25_position_of_power = {
-		icon = mission_writing_book
-		position = 5
-		required_missions = {
-			I25_sort_out_problems
-		}
-		trigger = {
-			estate_loyalty = {
-				estate = estate_mages
-				loyalty = 60
-			}
-			estate_influence = {
-				estate = estate_mages
-				influence = 50
-			}
-		}
-		effect = {
-			add_country_modifier = {
-				name = I25_position_of_power
-				duration = -1
-			}
-		}
-	}
-
-	I25_curtail_estates = {
-		icon = mission_writing_book
-		position = 6
-		required_missions = {
-			I25_position_of_power
-		}
-		trigger = {
-			NOT = {
-				OR = {
-					estate_influence = {
-						estate = estate_nobles
-						influence = 30
-					}
-					estate_influence = {
-						estate = estate_burghers
-						influence = 30
-					}
-					estate_influence = {
-						estate = estate_church
-						influence = 30
-					}
-				}
-			}
-		}
-		effect = {
-			add_country_modifier = {
-				name = I25_estates_curtailed
-				duration = -1
-			}
-			change_estate_land_share = {
-				estate = all
-				share = -10
-			}
-		}
-	}
-
-	I25_new_government = {
-		icon = mission_writing_book
-		position = 7
-		required_missions = {
-			I25_curtail_estates
-		}
-		trigger = {
-			adm_power = 300
-			ruler_has_personality = mage_personality
-		}
-		effect = {
-			add_government_reform = verkal_dromak_sleeper_government
-			add_country_modifier = {
-				name = I25_change_of_government
-				duration = 9125
-			}
-		}
-	}
-}
-
-
-
-
-verkaldromak_53 = {
-	slot = 5
-	generic = no
-	ai = yes
-	potential = {
-		tag = I25
-		
-		
-	}
-
-	I25_we_need_more_sleep = {
-		icon = mission_writing_book
-		position = 9
-		required_missions = {
-			I25_new_government
-			I25_sleeper_research_3
-		}
-		trigger = {
-			estate_loyalty = {
-				estate = estate_burghers
-				loyalty = 60
-			}
-			monthly_income = 200
-		}
-		effect = {
-			add_country_modifier = {
-				name = I25_shorter_working_hours_1
-				duration = -1
-			}
-			add_estate_loyalty = {
-				estate = estate_burghers
-				loyalty = -30
-			}
-			hidden_effect = {
-				country_event = {
-					id = verkaldromak.72
-					days = 1000
-				}
-			}
-		}
-	}
-
-	I25_moar_sleep = {
-		icon = mission_writing_book
-		position = 11
-		required_missions = {
-			I25_we_need_more_sleep	
-		}
-		trigger = {
-			NOT = {
-				OR = {
-					estate_influence = {
-						estate = estate_nobles
-						influence = 30
-					}
-					estate_influence = {
-						estate = estate_burghers
-						influence = 30
-					}
-					estate_influence = {
-						estate = estate_church
-						influence = 30
-					}
-				}
-			}
-		}
-		effect = {
-			add_country_modifier = {
-				name = I25_estates_curtailed
-				duration = -1
-			}
-			change_estate_land_share = {
-				estate = all
-				share = -10
-			}
-		}
-	}
-}
-
 
 
