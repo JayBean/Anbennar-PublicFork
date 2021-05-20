@@ -510,7 +510,7 @@ NCountry = {
 
 	ESTATE_AGENDA_DENIAL_LOYALTY_PENALTY = -5,	-- Loylaty penalty of denying an estate agenda
 	ESTATE_AGENDA_DEFAULT_MAX_ACTIVE_DAYS = 7300, -- Default max amount of days an agenda can stay active
-	ESTATE_AGENDA_ABOUT_TO_EXPIRE_WARNING = 365, -- How many days it should start warning for agenda about to expire
+	ESTATE_AGENDA_ABOUT_TO_EXPIRE_WARNING = 1095, -- How many days it should start warning for agenda about to expire
 
 	ESTATE_LOYALTY_INFLUENCE_ON_LIBERTY_DESIRE = -0.3, -- Estate loyalty influence on libarty desire of vassals (if it has vassal_liberty_affected_by_loyalty)
 
@@ -1705,7 +1705,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEDGES = 4,
+	ESTATE_MAX_PRIVILEDGES = 5,									-- Anbennar, there are 5 slots now
 
 },
 
@@ -2038,7 +2038,7 @@ NReligion = {
 	YEARLY_PAPAL_INFLUENCE_PER_CARDINAL = 0.5,					-- The amount of yearly papal influence you receive each year for each cardinal you have active
 	YEARLY_POPE_INVESTED_INFLUENCE_PER_CARDINAL = 0.1,			-- The amount of investment Papal state gets towards becoming Papal controller for each cardinal that exists
 	MAX_PAPAL_INFLUENCE = 200.0,								-- The maximum stored amount of papal influence for each country.
-	REFORM_DESIRE_PER_YEAR = 0.1,								-- Increase of reform descire for each year.	#Anbennar - increased this from 0.005 to 0.1
+	REFORM_DESIRE_PER_YEAR = 0.05,								-- Increase of reform descire for each year.	#Anbennar - increased this from 0.005 to 0.1
 	MINIMUM_DEVELOPMENT_ALLOWED = 10.0,								-- You will need a higher development than this for your province to be eligible for cardinal
 	COUNTRY_DEVELOPMENT_DIVIDER = 200.0,							-- When a cardinal is chosen the formula is diving a countrys development by this number.
 	INVEST_PAPAL_INFLUENCE = 10.0,								-- The amount of papal influence you invest in becoming controller of the curia.
@@ -2067,7 +2067,7 @@ NReligion = {
 	YEARLY_HARMONY_INCREASE_WHEN_HARMONIZING = -3.0,
 	YEARLY_HARMONIZATION_PROGRESS = 0.03, 			-- 3%
 
-	INITIAL_ISOLATIONISM = 1,						-- Level of isolationism for a newly shintoed country.
+	INITIAL_ISOLATIONISM = 3,						-- Level of isolationism for a newly shintoed country.
 
 	NOT_SAME_MUSLIM_SCHOOL_ALLIANCE_ACCEPTANCE = 15,		-- Alliance acceptance value (positive and negative) for different religious schools
 	NOT_SAME_MUSLIM_SCHOOL_ROYAL_MARRIAGE_ACCEPTANCE = 15,	-- Royal marriage acceptance (positive and negative) for different religious schools
