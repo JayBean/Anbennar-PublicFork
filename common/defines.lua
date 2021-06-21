@@ -459,7 +459,7 @@ NCountry = {
 	MONTHS_FOR_MAX_MP_ALERT = 3,
 
 	CHANGE_COLONIAL_TYPE_COOLDOWN_DURATION = 10,
-	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 50,
+	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 400,		-- anbennar, was 50
 	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- monthly..	anbennar ver this and bottom
 	SIBERIAN_FRONTIER_DAILY_RANGE = 3,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
@@ -932,7 +932,7 @@ NCountry = {
 	PROMOTE_INVESTMENTS_TRADEPOWER = 0.5,
 	PROMOTE_INVESTMENTS_INFLATION = 0.03,
 	SCUTAGE_TAX_FRACTION = 0.5,
-	CONCENTRATE_DEVELOPMENT_DEVELOPMENT_DECREASE = 0.2,
+	CONCENTRATE_DEVELOPMENT_DEVELOPMENT_DECREASE = 0,	--Anbennar, disabled concentrate development was 0.2
 	PILLAGE_CAPITAL_DEVELOPMENT_DECREASE = 0.2,
 	RAZE_UNREST_DURATION = 10,						-- Years of unrest. Also used for duration of neg. opinion modifier for previous owner.
 	RAZE_PROVINCE_DEVELOPMENT_DECREASE = 0.33,
@@ -1025,8 +1025,8 @@ NCountry = {
 	TRIBE_STARTING_DEV = 3,							-- Starting dev of a tribe
 	MIGRATORY_TRIBE_DEVASTATION_BURN = 2,			-- How much devastation is burnt per year, multiplied with development. 	Anbennar. Vanilla is 0.8
 	MIGRATORY_TRIBE_DEVASTATION_ALERT_THRESHOLD = 80,
-	MIGRATORY_TRIBE_DEVELOPMENT_PROGRESS = 0.1, 	-- How much progress on development for each monthly tick	Anbennar. Vanilla was 0.02
-	MIGRATORY_TRIBE_DEVELOPMENT_OTHER_BONUS = 0.2,	-- Bonus progress gained on development from burning someone else province. Was 0.08
+	MIGRATORY_TRIBE_DEVELOPMENT_PROGRESS = 0.08, 	-- How much progress on development for each monthly tick	Anbennar. Vanilla was 0.02
+	MIGRATORY_TRIBE_DEVELOPMENT_OTHER_BONUS = 0.10,	-- Bonus progress gained on development from burning someone else province. Was 0.08
 	TRIBE_MIGRATION_ADM_COST = 0,
 	TRIBE_MIGRATION_DIP_COST = 0,
 	TRIBE_MIGRATION_MIL_COST = 50,
@@ -1907,7 +1907,7 @@ NAI = {
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
 	ESTATE_MAX_PRIVILEDGES = 5,									-- Anbennar, there are 5 slots now
-	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 1.5,
+	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 100,					-- Anbennar, disabled for AI was 1.5f
 },
 
 NAIEconomy = {

@@ -259,12 +259,14 @@ adventurer_reform = {
 		#land_forcelimit = 3
 
 		#New Ones
-		tribal_development_growth = 0.02
+		# tribal_development_growth = 0.02
+		institution_spread_from_true_faith = 3.0 # Very big but otherwise there's never any institutions
 		
 		#Taken from natives
 		province_warscore_cost = 4
 		reform_progress_growth = -0.5
 		monthly_reform_progress = 1.0
+		migration_cost = -0.25
 	}
 	valid_for_nation_designer = yes
 	nation_designer_cost = 10
@@ -308,7 +310,7 @@ exploring_the_frontiers = {
 		}
 	}
 	modifiers = {
-		migration_cost = -0.25
+		migration_cost = -0.15
 	}
 }
 
@@ -331,11 +333,6 @@ growing_the_band = {
 		modifier = { 
 			factor = 2
 			NOT = { tribal_development = 10 } # We are somehow still quite small
-		}
-
-		modifier = { 
-			factor = 2
-			NOT = { tribal_development = 20 } # We are somehow still quite small
 		}
 	}
 }
@@ -363,28 +360,10 @@ begin_settlement = {
 			is_adventurer = yes
 			is_playing_custom_nation = yes
 		}
-		else = {
-			always = yes
-		}
-	}
-	trigger = {
-		if = { 
-			limit = {
-				has_dlc = "Conquest of Paradise"
-				NOT = { has_reform = begin_settlement }
-			}
-			custom_trigger_tooltip = {
-				tooltip = "MUST_BE_IN_TRIBAL_LAND_TO_SETTLE"
-				capital_scope = { tribal_land_of = ROOT }
-			}
-		}
-		else = {
-			always = yes
-		}
 	}
 	modifiers = {
 		add_tribal_land_cost = 1
-		province_warscore_cost = 1.0
+		province_warscore_cost = 0.75
 		stability_cost_modifier = -0.1
 	}
 	conditional = {
@@ -395,23 +374,25 @@ begin_settlement = {
 			enable_tribal_grazing = no
 		}
 	}
-	
-	lock_level_when_selected = yes
-
-	ai = {
-		factor = 0.5
-		
-
-		modifier = { 
-			factor = 2
-			tribal_development = 30
-		}
-
-		modifier = { 
-			factor = 2
-			tribal_development = 40
+	effect = {
+		if = {
+			limit = { ai = yes }
+			# Give AI some tribal land
+			capital_scope = {
+				change_tribal_land = ROOT
+				every_empty_neighbor_province = {
+					# Disabled until PDX fixes this
+					# limit = { 
+						# tribal_owner = { 
+							# OR = { exists = no has_country_modifier = monstrous_nation } 
+						# } 
+					# }
+					change_tribal_land = ROOT
+				}
+			}
 		}
 	}
+	lock_level_when_selected = yes
 }
 
 professional_adventurers = {
@@ -428,6 +409,9 @@ professional_adventurers = {
 		land_forcelimit_modifier = 0.1
 		migration_cost = -0.25
 	}
+	ai = {
+		factor = 0
+	}
 }
 
 local_administration = {
@@ -440,7 +424,7 @@ local_administration = {
 		}
 	}
 	modifiers = {
-		tribal_development_growth = 0.2 # Maybe tie feudal escanni formable to this?
+		tribal_development_growth = 0.04 # Maybe tie feudal escanni formable to this?
 		development_cost = -0.05
 	}
 }
@@ -468,21 +452,36 @@ found_our_nation = {
 			is_playing_custom_nation = yes
 		}
 	}
-	native_mechanic = no # Hopefully this disables native mechanics
+	native_mechanic = no
 	trigger = {
-		adm_tech = 7	#around 1500
 		if = {
 			limit = { NOT = { has_reform = found_our_nation } }
 			is_at_war = no
-			num_of_cities = 3
+			OR = {
+				num_of_cities = 3
+				treasury = 500
+			}
 		}
 	}
 	effect = {
 		every_tribal_land_province = {
 			limit = { NOT = { owner = { exists = yes } } }
 			settle_province = ROOT
+			if = {
+				# Expel all orcs and goblins
+				limit = { OR = { has_orcish_majority_trigger = yes has_goblin_majority_trigger = yes } }
+				change_culture = ROOT
+				change_religion = ROOT
+				add_devastation = 10
+			}
 		}
-		# lose_reforms = 5
+		if = {
+			limit = { NOT = { num_of_cities = 3 } }
+			add_treasury = -500
+		}
+	}
+	modifiers = {
+		colonists = 1
 	}
 }
 
