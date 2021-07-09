@@ -4,7 +4,7 @@
 # cost = x #==> cost in $ to build (subject to other modifiers)
 # time = x #==> number of months to build.
 # modifier = m # a modifier on the province that the building gives
-# build_trigger = t # an and trigger that needs to be fullfilled to build and keep the building
+# trigger = t # an and trigger that needs to be fullfilled to build and keep the building
 # one_per_country = yes/no # if yes, only one of these can exist in a country
 # manufactory = { trade_good trade_good } # list of trade goods that get a production bonus
 # onmap = yes/no # show as a sprite on the map
@@ -22,6 +22,7 @@
 # If you don't want the AI to build a building at all, make ai_will_do become 0.
 # AI will consider each building to be worth 0.01 ducats per year as a base, so making ai_will_do above cost will have them build it at some point.
 # It will still check whether it can afford a building before doing so though, but may save up to it.
+
 
 ################################################
 # Tier 1, 15th Century Buildings
@@ -59,7 +60,66 @@ temple = {
 	modifier = {
 		local_tax_modifier = 0.4
 	}
-
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					OR = {
+						religion = buddhism
+						religion = mahayana
+						religion = vajrayana
+						
+						religion = corinite	#Anbennar
+					}
+					has_estate_privilege = estate_church_karma_temples
+				}
+			}
+			FROM = {
+				add_karma = 3
+			}
+		}
+		if = {
+			limit = {
+				FROM = {
+					religion = ravelian	#Anbennar, form Catholic baby
+					has_estate_privilege = estate_church_influence_temples
+				}
+			}
+			FROM = {
+				add_papal_influence = 3
+			}
+		}
+	}
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					OR = {
+						religion = buddhism
+						religion = mahayana
+						religion = vajrayana
+						
+						religion = corinite	#Anbennar
+					}
+					has_estate_privilege = estate_church_karma_temples
+				}
+			}
+			FROM = {
+				add_karma = -3
+			}
+		}
+		if = {
+			limit = {
+				FROM = {
+					religion = ravelian
+					has_estate_privilege = estate_church_influence_temples
+				}
+			}
+			FROM = {
+				add_papal_influence = -3
+			}
+		}
+	}
 	ai_will_do = {
 		factor = 1
 	}
@@ -70,6 +130,30 @@ barracks = {
 	time = 12
 	modifier = {
 		local_manpower_modifier = 0.5
+	}
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_manpower = 1
+			}
+		}
+	}
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_manpower = -1
+			}
+		}
 	}
 
 #	# THIS = Province, FROM = Builder(not nessecairly owner, can be overlord)
@@ -115,7 +199,7 @@ shipyard = {
 	ai_will_do = {
 		factor = 1
 		modifier = {
-			factor = 105 # Little above build cost
+			factor = 1.5 # bit more likely if close to the naval force limit
 			FROM = { navy_size_percentage = 0.95 }
 		}
 		modifier = {
@@ -160,6 +244,8 @@ fort_15th = {
 
 	ai_will_do = {
 		factor = 1 #Lots of logic in code instead, that multiplies with this value
+		
+		#Anbennar
 		modifier = {
 			factor = 100
 			OR = {
@@ -180,6 +266,7 @@ coastal_defence = {
 	modifier = {
 		blockade_force_required = 0.5
 		hostile_disembark_speed = 1.0
+		block_slave_raid = yes
 	}
 
 	ai_will_do = {
@@ -202,6 +289,64 @@ courthouse = {
 
 	ai_will_do = {
 		factor = 1
+		modifier = {
+			factor = 2
+			FROM = { governing_capacity_percentage = 0.8 }
+		}
+		modifier = {
+			factor = 3
+			FROM = { governing_capacity_percentage = 1 }
+		}
+		modifier = {
+			factor = 5
+			FROM = { governing_capacity_percentage = 1.1 }
+		}
+		modifier = {
+			factor = 0.75
+			FROM = { num_of_loans = 1 }
+		}
+		modifier = {
+			factor = 0.25
+			FROM = { num_of_loans = 2 }
+		}
+		modifier = {
+			factor = 0
+			FROM = { num_of_loans = 3 }
+		}
+		modifier = {
+			factor = 0.5
+			FROM = { is_in_deficit = yes }
+		}
+		modifier = {
+			factor = 1.25
+			development = 10
+		}
+		modifier = {
+			factor = 1.25
+			development = 20
+		}
+		modifier = {
+			factor = 1.25
+			development = 30
+		}
+		modifier = {
+			factor = 0.5
+			FROM = { NOT = { treasury = 200 } }
+		}
+		modifier = {
+			factor = 1.25
+			FROM = { treasury = 300 }
+		}
+		#Provinces in the Capital Area don't need a courthouse
+		modifier = {
+			factor = 0
+			area_for_scope_province = {
+				any_province = {
+					area = PREV
+					is_capital_of = FROM
+				}
+			}
+		}
 	}
 }
 
@@ -213,6 +358,32 @@ dock = {
 	}
 	modifier = {
 		local_sailors_modifier = 0.5
+	}
+	
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_sailors = 200
+			}
+		}
+	}
+	
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_sailors = -200
+			}
+		}
 	}
 
 	ai_will_do = {
@@ -256,7 +427,7 @@ regimental_camp = {
 	ai_will_do = {
 		factor = 1
 		modifier = {
-			factor = 215 # Little above build cost
+			factor = 1.5 # more likely if we have an army close to the force limit
 			FROM = { army_size_percentage = 0.95 }
 		}
 		modifier = {
@@ -303,6 +474,8 @@ fort_16th = {
 
 	ai_will_do = {
 		factor = 1 #Lots of logic in code instead, that multiplies with this value
+		
+		#Anbennar
 		modifier = {
 			factor = 100
 			OR = {
@@ -325,6 +498,7 @@ naval_battery = {
 		blockade_force_required = 1.0
 		hostile_disembark_speed = 2.0
 		hostile_fleet_attrition = 5
+		block_slave_raid = yes
 	}
 
 	ai_will_do = {
@@ -343,6 +517,66 @@ cathedral = {
 	modifier = {
 		local_missionary_strength = 0.03
 		local_tax_modifier = 0.6
+	}
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					OR = {
+						religion = buddhism
+						religion = mahayana
+						religion = vajrayana
+						
+						religion = corinite #Anbennar
+					}
+					has_estate_privilege = estate_church_karma_temples
+				}
+			}
+			FROM = {
+				add_karma = 3
+			}
+		}
+		if = {
+			limit = {
+				FROM = {
+					religion = catholic
+					has_estate_privilege = estate_church_influence_temples
+				}
+			}
+			FROM = {
+				add_papal_influence = 3
+			}
+		}
+	}
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					OR = {
+						religion = buddhism
+						religion = mahayana
+						religion = vajrayana
+						
+						religion = corinite #Anbennar
+					}
+					has_estate_privilege = estate_church_karma_temples
+				}
+			}
+			FROM = {
+				add_karma = -3
+			}
+		}
+		if = {
+			limit = {
+				FROM = {
+					religion = catholic
+					has_estate_privilege = estate_church_influence_temples
+				}
+			}
+			FROM = {
+				add_papal_influence = -3
+			}
+		}
 	}
 
 	ai_will_do = {
@@ -426,7 +660,7 @@ grand_shipyard = {
 	ai_will_do = {
 		factor = 1
 		modifier = {
-			factor = 320 # Little above build cost
+			factor = 1.5 # bit more likely if close to the force limit
 			FROM = { navy_size_percentage = 0.95 }
 		}
 		modifier = {
@@ -467,6 +701,31 @@ training_fields = {
 
 	modifier = {
 		local_manpower_modifier = 1
+	}
+	
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_manpower = 1
+			}
+		}
+	}
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_manpower = -1
+			}
+		}
 	}
 
 	ai_will_do = {
@@ -514,6 +773,8 @@ fort_17th = {
 
 	ai_will_do = {
 		factor = 1 #Lots of logic in code instead, that multiplies with this value
+		
+		#Anbennar
 		modifier = {
 			factor = 3
 			OR = {
@@ -593,6 +854,32 @@ drydock = {
 	modifier = {
 		local_sailors_modifier = 1.0
 	}
+	
+	on_built = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_sailors = 200
+			}
+		}
+	}
+	
+	on_destroyed = {
+		if = {
+			limit = {
+				FROM = {
+					has_reform = corvee_reform
+				}
+			}
+			FROM = {
+				add_sailors = -200
+			}
+		}
+	}
 
 	ai_will_do = {
 		factor = 1
@@ -636,7 +923,7 @@ conscription_center = {
 	ai_will_do = {
 		factor = 1
 		modifier = {
-			factor = 435 # Little above build cost
+			factor = 1.5 # more likely if we have an army close to the force limit
 			FROM = { army_size_percentage = 0.95 }
 		}
 		modifier = {
@@ -714,7 +1001,7 @@ wharf = {
 	onmap = yes
 
 	ai_will_do = {
-		factor = 1750
+		factor = 1
 
 		modifier = {
 			factor = 0.4
@@ -791,6 +1078,7 @@ tradecompany = {
 		ivory
 		slaves
 		spices
+		cloves
 		fur
 		incense
 		precursor_relics
@@ -913,9 +1201,13 @@ impressment_offices = {
 
 	modifier = {
 		local_sailors = 250
+		ship_recruit_speed = -0.1
+		local_ship_cost = -0.05
 	}
 	bonus_modifier = {
 		local_sailors = 250
+		ship_recruit_speed = -0.1
+		local_ship_cost = -0.05
 	}
 	onmap = no
 	show_separate = yes # Means as a manufactory it will be shown according to the old way
@@ -1800,6 +2092,8 @@ castonath_preparation = {
 		factor = 0
 	}
 }
+
+
 
 castonath_build = {
 	cost = 1
