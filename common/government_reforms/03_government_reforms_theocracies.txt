@@ -265,7 +265,7 @@ adventurer_reform = {
 		institution_spread_from_true_faith = 3.0 # Very big but otherwise there's never any institutions, remove this once a better solution is found
 		
 		#Taken from natives
-		province_warscore_cost = 4
+		province_warscore_cost = 5 # Cause players get some for free now, this actually has a really tiny impact lol
 		reform_progress_growth = -0.5
 		monthly_reform_progress = 1.0
 		migration_cost = -0.25
@@ -464,6 +464,15 @@ begin_settlement = {
 			is_playing_custom_nation = yes
 		}
 	}
+	trigger = {
+		if = {
+			limit = { ai = no has_dlc = "Conquest of Paradise" } # Fuck you players
+			custom_trigger_tooltip = {
+				tooltip = "MUST_BE_IN_TRIBAL_LAND_TO_SETTLE"
+				capital_scope = { tribal_land_of = ROOT }
+			}
+		}
+	}
 	modifiers = {
 		add_tribal_land_cost = 1
 		province_warscore_cost = 0.75
@@ -478,12 +487,14 @@ begin_settlement = {
 		}
 	}
 	effect = {
-		if = {
-			limit = { ai = yes }
-			# Give AI some tribal land
+		custom_tooltip = claim_all_adjacent_monster_tt
+		hidden_effect = {
 			capital_scope = {
 				tribal_owner = {
-					country_event = { id = adventurer.4 }
+					if = {
+						limit = { ai = yes }
+						country_event = { id = adventurer.4 } # Don't sent yourself the event if you're not an AI
+					}
 				}
 				change_tribal_land = ROOT
 				# Take monsters tribal land
@@ -495,13 +506,17 @@ begin_settlement = {
 					}
 					tribal_owner = {
 						country_event = { id = adventurer.4 }
-						add_claim = PREV
 					}
 					change_tribal_land = ROOT
+					if = {
+						limit = { ROOT = { ai = no } }
+						add_adm_power = -50
+						add_treasury = -100
+					}
 				}
-				# Take empty tribal land
+				# Take monster tribal land
 				every_empty_neighbor_province = {
-					# Don't remove the NOT and change to an exists = no. You CANNOT scope to a tag that does not exist so this is the only way this works.
+						# Don't remove the NOT and change to an exists = no. You CANNOT scope to a tag that does not exist so this is the only way this works.
 					limit = {
 						NOT = {
 							tribal_owner = { 
@@ -510,11 +525,20 @@ begin_settlement = {
 						}
 					}
 					change_tribal_land = ROOT
+					if = {
+						limit = { ROOT = { ai = no } }
+						add_adm_power = -50
+						add_treasury = -100
+					}
 				}
 			}
 		}
 	}
 	lock_level_when_selected = yes
+
+	ai = {
+		factor = 1
+	}
 }
 
 professional_adventurers = {
@@ -527,12 +551,12 @@ professional_adventurers = {
 		}
 	}
 	modifiers = {
-		discipline = 0.05
-		land_forcelimit_modifier = 0.1
 		migration_cost = -0.25
+		warscore_cost_vs_other_religion = -1.0
+		add_tribal_land_cost = -0.5
 	}
 	ai = {
-		factor = 0
+		factor = 0.5
 	}
 }
 
@@ -549,6 +573,10 @@ local_administration = {
 		tribal_development_growth = 0.04 # Maybe tie feudal escanni formable to this?
 		development_cost = -0.05
 	}
+	
+	effect = {
+		custom_tooltip = can_form_feudal_tt
+	}
 }
 
 adventurer_administration = {
@@ -561,8 +589,8 @@ adventurer_administration = {
 		}
 	}
 	modifiers = {
-		warscore_cost_vs_other_religion = -1.0
-		add_tribal_land_cost = -0.5
+		discipline = 0.05
+		manpower_recovery_speed = 0.15
 	}
 }
 
