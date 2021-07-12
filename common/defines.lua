@@ -1026,7 +1026,7 @@ NCountry = {
 	REVOLUTION_CLAIM_MIN_ZEAL = 20.0,		-- Minimum Revolutionary Zeal required for contestant to claim the revolution target
 	REVOLUTION_CLAIM_COOLDOWN = 12,			-- How many months until it can be stolen again
 	TRIBE_STARTING_DEV = 3,							-- Starting dev of a tribe
-	MIGRATORY_TRIBE_DEVASTATION_BURN = 2,			-- How much devastation is burnt per year, multiplied with development. 	Anbennar. Vanilla is 0.8
+	MIGRATORY_TRIBE_DEVASTATION_BURN = 1,			-- How much devastation is burnt per year, multiplied with development. 	Anbennar. Vanilla is 0.8
 	MIGRATORY_TRIBE_DEVASTATION_ALERT_THRESHOLD = 80,
 	MIGRATORY_TRIBE_DEVELOPMENT_PROGRESS = 0.02, 	-- How much progress on development for each monthly tick	Anbennar.
 	MIGRATORY_TRIBE_DEVELOPMENT_OTHER_BONUS = 0.08,	-- Bonus progress gained on development from burning someone else province.
@@ -1036,8 +1036,8 @@ NCountry = {
 	SIBERIAN_TRIBE_MIGRATION_BONUS = 50,
 	SIBERIAN_TRIBE_MIGRATION_COOLDOWN_YEARS = 2,
 
-	TRIBE_SETTLE_ADM_COST = 0,
-	TRIBE_SETTLE_DIP_COST = 50,
+	TRIBE_SETTLE_ADM_COST = 25,	--was 0
+	TRIBE_SETTLE_DIP_COST = 25,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
 	TRIBE_SETTLE_MIL_COST = 0,
 
 	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.15,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05
