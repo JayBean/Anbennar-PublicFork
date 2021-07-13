@@ -38,10 +38,11 @@ on_startup = {
 		anbennar_setup.9		#Global Setup for Racial Admin Mil #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
 		anbennar_setup.10		#Sets up Greentide Adventurer opinion
 		anbennar_setup.12
-		#anbennar_setup.13		#Adds a hacky delay to prevent existing adventurers colonizing straight away
+		anbennar_setup.13		#Adds a hacky delay to prevent existing adventurers colonizing straight away
 		#estate_organization.1		#Give unassigned countries appropriate modifier - does anbennar_setup.6 for rest of game
 		kheteratan_events.1		#Sets up Khetarch for Kheterata
 		#kobold_events.1 		#Sets up for kobolds
+		diggy.40				#Remnant Legacy event
 		diggy.108				#Dwarovar Claimer event
 		diggy.106				#Random setup for cavern stuff
 		diggy.110				#AI Discover shit, Hold setup  #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
@@ -118,6 +119,15 @@ on_startup = {
 		country_event = { id = greentide.0 days = 1 }
 	}
 	
+	# AI need this event on day 1 or they release shit
+	if = {
+		limit = {
+			tag = A30
+			ai = yes
+		}
+		country_event = { id = flavor_wex.2 }
+	}
+	
 	if = {
 		limit = {
 			is_year = 1444
@@ -157,6 +167,14 @@ on_startup = {
 			limit = { has_province_modifier = ibevar_old_tradition }
 			set_variable = { ibReform = 100 }
 		}
+	}
+
+	if = {
+		limit = {
+			is_year = 1444
+			tag = Y58
+		}
+		country_event = { id = lotdekkhang.4 days = 3 } #Lot Dekkhang intro event and setting up hobgoblin tolerance
 	}
 
 	#########     Racial Pop Stuff     ###########
@@ -597,6 +615,24 @@ on_war_won = {
 			change_variable = { adenicaOrcWarsWon = 1 }
 		}
 	}
+
+	# Castanor wars won against beasts & evil counter
+	if = {
+		limit = {
+			TAG = B32
+		}
+		if = {
+			limit = { 
+				FROM = {
+					OR = {
+						monstrous_culture = yes
+						is_evil = yes
+					}
+				}
+			}
+			change_variable = { castanorWarsWonAgainstBeastsBarbarismEvil = 1 }
+		}
+	}
 	
 	#Raja winning war
 	if = {
@@ -853,6 +889,97 @@ on_battle_won_unit = {
 			country_event = { id = flavor_malacnar.6 }
 		}
     }
+	if = {	# Edhardrachon battles
+		limit = {
+			unit_owner = { tag = B61 }
+			is_ruler_commanding_unit = yes
+		}
+		B61 = {
+			change_variable = {
+				which = patricianCastanBattlesWon
+				value = 1
+			}
+		}
+	}
+	if = {
+		limit = {
+			unit_owner = { tag = B32 }
+			enemy_unit = { unit_owner = { tag = B61 } }
+		}
+		if = {
+			limit = { enemy_unit = { is_ruler_commanding_unit = yes } }
+			B32 = { change_variable = { which = battlesWonAgainstPatricianCastan value = 1 } }
+		}
+		if = {
+			limit = { enemy_unit = { general_with_name = "Elecast, the Burnished Wing" } }
+			B32 = { change_variable = { which = battlesWonAgainstElecast value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.210 } }
+				}
+			}
+		}
+		else_if = {
+			limit = { enemy_unit = { general_with_name = "Gracos, the Leaden Breath" } }
+			B32 = { change_variable = { which = battlesWonAgainstGracos value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.208 } }
+				}
+			}
+		}
+		else_if = {
+			limit = { enemy_unit = { general_with_name = "Erella, the Argent Claw" } }
+			B32 = { change_variable = { which = battlesWonAgainstErella value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.209 } }
+				}
+			}
+		}
+	}
 }
 
 # #Unit Scope OnAction for Battle Lost
@@ -982,6 +1109,7 @@ on_siege_won_country = {
 		deepwoods.22
 	}
 	clr_vampire_hideout = yes
+	castanor_succession_war_shift_momentum_siege = yes
 	random_events = {
 		10 = army_professionalism_events.1 #City Sacked
 		100 = 0
@@ -1206,6 +1334,16 @@ on_new_monarch = {
 		}
 	}
 
+	# Y58 lot dekkhang gets new ruler race modifier
+	if = {
+		limit = {
+			has_reform = teplinbasiet_arena_kingdom_reform
+		}
+		country_event = {
+			id = lotdekkhang.3
+		}
+	}
+
 	country_event = { id = flavor_malacnar.4 days = 1 }
 
 	random_events = {
@@ -1309,6 +1447,7 @@ on_monarch_death = {
 		vampires_estate_events.13 # Revival
 		magic_project_lichdom.12 # Revival
 		vampire_ruler.33 # Vampire Heir Returns
+		flavor_castanor.211 # One of the Castans during disaster dies
 	}
 	country_event = { id = magic_misc_events.4 days = 60 } #Undead Army
 	if = {
@@ -1317,6 +1456,15 @@ on_monarch_death = {
 			NOT = { has_country_flag = elven_constellation_done }
 		}
 		country_event = { id = aelnar.65 days = 10 }
+	}
+	if = {
+		limit = {
+			capital_scope = { region = bomdan_region }
+			religion = high_philosophy
+			owns_core_province = 4565
+			controls = 4565
+		}
+		country_event = { id = lotdekkhang.27 days = 3 } #Bim Lau Great Necropolis Entombment
 	}
 }
 
@@ -1455,6 +1603,13 @@ on_heir_death = {
 	if = {
 		limit = { has_ruler_flag = returned_from_sancaga_sikma_province }
 		clr_ruler_flag = returned_from_sancaga_sikma_province
+	}
+	if = {
+		limit = { has_reform = teplinbasiet_arena_kingdom_reform }
+		clr_country_flag = Y58_allied_noble_won
+		clr_country_flag = Y58_local_fighter_won
+		clr_country_flag = Y58_prominent_dauloph_won
+		clr_country_flag = Y58_relative_won
 	}
 		#Anbennar
 	events = {
@@ -2110,6 +2265,34 @@ on_adm_development = {
 			hidden = yes
 		}
 	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_tax = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
+		}
+	}
 }
 
 # province
@@ -2145,6 +2328,34 @@ on_dip_development = {
 			hidden = yes
 		}
 	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_production = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
+		}
+	}
 }
 
 # province
@@ -2174,6 +2385,34 @@ on_mil_development = {
 			name = devved_castonath_recently_dummy
 			duration = 1825
 			hidden = yes
+		}
+	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_manpower = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
 		}
 	}
 }
@@ -2669,6 +2908,8 @@ on_bi_yearly_pulse_3 = {
 		cavegoblinflavor.1 #cave goblin modernization
 		
 		flavor_malacnar.8 #checks if you have fought lately
+
+		flavor_castanor.38 # Adds coal to a random Deepwoods province if coal is unlocked and you've burned down the Deepwoods
 	}
 	random_events = {
 		100 = new_court_flavour_events.21 #religious resignation
@@ -3052,6 +3293,7 @@ on_bi_yearly_pulse_5 = {
 # country random events
 on_thri_yearly_pulse = {
 	random_events = {
+
 		# Republics
 		100 = republics.4
 		100 = republics.5
@@ -3263,6 +3505,8 @@ on_thri_yearly_pulse_2 = {
 		race_setup_events.4		#Add minorities to province / Culture Conversion - 
 		race_setup_events.5		#Culture Conversion - turns minorities into majorities cleanup
 		race_setup_events.9		#Expel/Purge opinionsrace_setup_events.9		#Expel/Purge opinions
+
+		migration_force_settle.1
 	}
 }
 
@@ -4864,6 +5108,29 @@ on_province_culture_converted = {
 		}
 		remove_province_modifier = Z26_axzo_vurte
 	}
+
+	if = {
+		limit = {
+			owner = { tag = B32 }
+			OR = {
+				has_province_modifier = castanor_culture_convert_100
+				has_province_modifier = castanor_culture_convert_95
+				has_province_modifier = castanor_culture_convert_90
+				has_province_modifier = castanor_culture_convert_85
+				has_province_modifier = castanor_culture_convert_80
+				has_province_modifier = castanor_culture_convert_75
+			}
+			culture = castanorian
+		}
+		hidden_effect = {
+			remove_province_modifier = castanor_culture_convert_100
+			remove_province_modifier = castanor_culture_convert_95
+			remove_province_modifier = castanor_culture_convert_90
+			remove_province_modifier = castanor_culture_convert_85
+			remove_province_modifier = castanor_culture_convert_80
+			remove_province_modifier = castanor_culture_convert_75
+		}
+	}
 }
 
 # THIS = Province, FROM = Country who Propogated
@@ -5179,12 +5446,6 @@ on_province_owner_change = {
 				NOT = { region = dragon_coast_region }
 			}
 			add_province_modifier = { name = centaur_rosen_rider_territory duration = -1 }
-		}
-	}
-	
-		add_province_modifier = {
-			name = grain_production_improved
-			duration = 7300
 		}
 	}
 
@@ -5655,12 +5916,14 @@ on_trade_good_changed = {
 				has_province_modifier = grain_bonus_prod
 				has_province_modifier = artifice_ageifier_bonus
 				has_province_modifier = artifice_pearl_cultivator_bonus
+				has_province_modifier = wine_lord_wine
 			}
 		}
 		remove_province_modifier = wine_bonus_prod
 		remove_province_modifier = grain_bonus_prod
 		remove_province_modifier = artifice_ageifier_bonus
 		remove_province_modifier = artifice_pearl_cultivator_bonus
+		remove_province_modifier = wine_lord_wine
 	}
 	hidden_effect = {
 		if = {
@@ -5668,12 +5931,26 @@ on_trade_good_changed = {
 				trade_goods = wine
 				OR = {
 					FROM = { has_reform = monastic_breweries_reform }
-					FROM = { has_reform = wine_lord_reform }
 				}
 			}
 			remove_province_modifier = grain_bonus_prod
 			add_province_modifier = { 
 				name = wine_bonus_prod
+				duration = -1
+				hidden = yes
+			}
+		}
+		if = {
+			limit = {
+				trade_goods = wine
+				OR = {
+					FROM = { has_reform = wine_lord_reform }
+					FROM = { has_reform = roilsard_elective }
+					FROM = { has_reform = wineport_merchants }
+				}
+			}
+			add_province_modifier = { 
+				name = wine_lord_wine
 				duration = -1
 				hidden = yes
 			}
@@ -5867,6 +6144,7 @@ on_conquest = {
 						influence = 80
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_full
@@ -5881,6 +6159,7 @@ on_conquest = {
 						influence = 60
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_significant
@@ -5895,6 +6174,7 @@ on_conquest = {
 						influence = 40
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_considerable
@@ -5902,9 +6182,12 @@ on_conquest = {
 			}
 		}
 		else = {
-			add_permanent_province_modifier = {
-				name = castonath_patrician_influence_some
-				duration = -1
+			if = {
+				limit = { owner = { NOT = { TAG = B61 } } }
+				add_permanent_province_modifier = {
+					name = castonath_patrician_influence_some
+					duration = -1
+				}
 			}
 		}
 	}
