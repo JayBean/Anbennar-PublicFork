@@ -8771,6 +8771,8 @@ castanor_trials_clear_trials_flags_effect = {
 		clr_country_flag = castan_oath_option_sickly
 		clr_country_flag = castan_oath_option_cowardly
 
+		clr_country_flag = castanQuietTrialFail
+
 		clr_country_flag = oath_trial_failed
 		clr_country_flag = castan_oath_preserver_succeeded
 		clr_country_flag = castan_oath_peacemaker_succeeded
@@ -8833,32 +8835,61 @@ castanor_trials_die_effect = {
 }
 
 castonath_patricians_decrease_influence_effect = {
-	trigger_switch = {
-		on_trigger = has_province_modifier
-		castonath_patrician_influence_full = {
-			remove_province_modifier = castonath_patrician_influence_full
-			add_permanent_province_modifier = {
-				name = castonath_patrician_influence_significant
-				duration = -1
-			}
+	#Paradox somehow broke trigger_switch with has_province_modifier....
+	# trigger_switch = {
+	# 	on_trigger = has_province_modifier
+	# 	castonath_patrician_influence_full = {
+	# 		remove_province_modifier = castonath_patrician_influence_full
+	# 		add_permanent_province_modifier = {
+	# 			name = castonath_patrician_influence_significant
+	# 			duration = -1
+	# 		}
+	# 	}
+	# 	castonath_patrician_influence_significant = {
+	# 		remove_province_modifier = castonath_patrician_influence_significant
+	# 		add_permanent_province_modifier = {
+	# 			name = castonath_patrician_influence_considerable
+	# 			duration = -1
+	# 		}
+	# 	}
+	# 	castonath_patrician_influence_considerable = {
+	# 		remove_province_modifier = castonath_patrician_influence_considerable
+	# 		add_permanent_province_modifier = {
+	# 			name = castonath_patrician_influence_some
+	# 			duration = -1
+	# 		}
+	# 	}
+	# 	castonath_patrician_influence_some = {
+	# 		remove_province_modifier = castonath_patrician_influence_some
+	# 	}
+	# }
+	if = {
+		limit = { has_province_modifier = castonath_patrician_influence_full }
+		remove_province_modifier = castonath_patrician_influence_full
+		add_permanent_province_modifier = {
+			name = castonath_patrician_influence_significant
+			duration = -1
 		}
-		castonath_patrician_influence_significant = {
-			remove_province_modifier = castonath_patrician_influence_significant
-			add_permanent_province_modifier = {
-				name = castonath_patrician_influence_considerable
-				duration = -1
-			}
+	}
+	else_if = {
+		limit = { has_province_modifier = castonath_patrician_influence_significant }
+		remove_province_modifier = castonath_patrician_influence_significant
+		add_permanent_province_modifier = {
+			name = castonath_patrician_influence_considerable
+			duration = -1
 		}
-		castonath_patrician_influence_considerable = {
-			remove_province_modifier = castonath_patrician_influence_considerable
-			add_permanent_province_modifier = {
-				name = castonath_patrician_influence_some
-				duration = -1
-			}
+	}
+	else_if = {
+		limit = { has_province_modifier = castonath_patrician_influence_considerable }
+		remove_province_modifier = castonath_patrician_influence_considerable
+		add_permanent_province_modifier = {
+			name = castonath_patrician_influence_some
+			duration = -1
 		}
-		castonath_patrician_influence_some = {
-			remove_province_modifier = castonath_patrician_influence_some
-		}
+	}
+	else_if = {
+		limit = { has_province_modifier = castonath_patrician_influence_some }
+		remove_province_modifier = castonath_patrician_influence_some
 	}
 }
 
@@ -9813,7 +9844,6 @@ restore_ruler_stats = {
 }
 
 revival_stat_loss = {
-	
 	random_list = {
 		40 = { change_adm = -1 change_dip = -1 change_mil = -1 }
 		20 = { change_adm = -1 }
@@ -10585,4 +10615,416 @@ rianvisa_end_modifier = {
 			duration = -1
 		}
 	}
+}
+
+
+add_prestige_excess_to_splendour_effect = {
+	if = { limit = { has_dlc = "Mandate of Heaven" }
+		tooltip = { add_prestige = $VAL$ }
+		custom_tooltip = add_prestige_excess_to_splendour_effect_tt
+		hidden_effect = {
+			change_variable = {
+				which = left_to_convert
+				value = $VAL$
+			}
+			while = {
+				limit = {
+					check_variable = {
+						which = left_to_convert
+						value = 1
+					}
+				}
+	
+				if = {
+					limit = { prestige = 100 }
+					add_splendor = 10
+				}
+				else = { add_prestige = 1 }
+	
+				subtract_variable = {
+					which = left_to_convert
+					value = 1
+				}
+			}
+		}
+	}
+	else = {
+		add_prestige = $VAL$
+	}
+}
+castanor_succession_war_update_legitimacy_modifiers = {
+	if = {
+		limit = {
+			B32 = {
+				check_variable = {
+					which = castanLegitimacy
+					value = 8
+				}
+			}
+		}
+		B32 = {
+			add_country_modifier = {
+				name = castanor_succession_war_most_favored
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_even
+		}
+		B61 = {
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_even
+			remove_country_modifier = castanor_succession_war_most_favored
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				add_province_modifier = {
+					name = castanor_fortress_castonath_solid
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			B32 = {
+				check_variable = {
+					which = castanLegitimacy
+					value = 6
+				}
+			}
+		}
+		B32 = {
+			add_country_modifier = {
+				name = castanor_succession_war_favored
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_even
+		}
+		B61 = {
+			remove_country_modifier = castanor_succession_war_even
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_favored
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_solid
+				add_province_modifier = {
+					name = castanor_fortress_castonath_sturdy
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			B32 = {
+				check_variable = {
+					which = castanLegitimacy
+					value = 5
+				}
+			}
+		}
+		B32 = {
+			add_country_modifier = {
+				name = castanor_succession_war_even
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_favored
+		}
+		B61 = {
+			add_country_modifier = {
+				name = castanor_succession_war_even
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_most_favored
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_solid
+				add_province_modifier = {
+					name = castanor_fortress_castonath_sturdy
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			B32 = {
+				check_variable = {
+					which = castanLegitimacy
+					value = 4
+				}
+			}
+		}
+		B32 = {
+			add_country_modifier = {
+				name = castanor_succession_war_even
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_favored
+		}
+		B61 = {
+			add_country_modifier = {
+				name = castanor_succession_war_even
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_even
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+				add_province_modifier = {
+					name = castanor_fortress_castonath_impenetrable
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			B32 = {
+				check_variable = {
+					which = castanLegitimacy
+					value = 2
+				}
+			}
+		}
+		B32 = {
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_even
+		}
+		B61 = {
+			add_country_modifier = {
+				name = castanor_succession_war_favored
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_even
+			remove_country_modifier = castanor_succession_war_most_favored
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+				add_province_modifier = {
+					name = castanor_fortress_castonath_impenetrable
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+	else = {
+		B32 = {
+			remove_country_modifier = castanor_succession_war_most_favored
+			remove_country_modifier = castanor_succession_war_favored
+			remove_country_modifier = castanor_succession_war_even
+		}
+		B61 = {
+			add_country_modifier = {
+				name = castanor_succession_war_most_favored
+				duration = -1
+			}
+			remove_country_modifier = castanor_succession_war_even
+			remove_country_modifier = castanor_succession_war_favored
+		}
+		castonath_area = {
+			if = {
+				limit = { controller = { TAG = B61 } }
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+				add_province_modifier = {
+					name = castanor_fortress_castonath_indestructible
+					duration = -1
+				}
+			}
+			else = {
+				remove_province_modifier = castanor_fortress_castonath_indestructible
+				remove_province_modifier = castanor_fortress_castonath_impenetrable
+				remove_province_modifier = castanor_fortress_castonath_sturdy
+				remove_province_modifier = castanor_fortress_castonath_solid
+			}
+		}
+	}
+}
+castanor_succession_war_shift_momentum_siege = {
+	if = {
+		limit = {
+			ROOT = { TAG = B61 }
+			FROM = { owner = { TAG = B32 } }
+		}
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = -0.1
+			}
+		}
+		add_treasury = 10
+	}
+	castanor_succession_war_update_legitimacy_modifiers = yes
+}
+castanor_succession_war_increase_castan_legitimacy_small = {
+	custom_tooltip = increaseCastanLegitimacySmall
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = 0.5
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_succession_war_increase_castan_legitimacy_moderate = {
+	custom_tooltip = increaseCastanLegitimacyModerate
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = 1
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_succession_war_increase_castan_legitimacy_massive = {
+	custom_tooltip = increaseCastanLegitimacyMassive
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = 3
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_succession_war_decrease_castan_legitimacy_small = {
+	custom_tooltip = decreaseCastanLegitimacySmall
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = -0.5
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_succession_war_decrease_castan_legitimacy_moderate = {
+	custom_tooltip = decreaseCastanLegitimacyModerate
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = -1
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_succession_war_decrease_castan_legitimacy_massive = {
+	custom_tooltip = decreaseCastanLegitimacyMassive
+	hidden_effect = {
+		B32 = {
+			change_variable = {
+				which = castanLegitimacy
+				value = -3
+			}
+		}
+		castanor_succession_war_update_legitimacy_modifiers = yes
+	}
+}
+castanor_build_legionway_with_hired_legion = {
+	if = {
+		limit = {
+			event_target:$event_target$ = {
+				location = {
+					NOT = { has_province_modifier = castanor_legionway }
+					NOT = { has_province_modifier = castanor_building_legionway_survey }
+					NOT = { has_province_modifier = castanor_building_legionway_construction }
+				}
+			}
+		}
+		custom_tooltip = not_has_legionway_tt
+	}
+	else = { custom_tooltip = has_legionway_tt }
+	if = {
+		limit = {
+			event_target:$event_target$ = {
+				location = {
+					any_neighbor_province = {
+						OR = {
+							has_province_modifier = castanor_legionway
+							has_province_modifier = castanor_building_legionway_survey
+							has_province_modifier = castanor_building_legionway_construction
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = neighbor_has_legionway_tt
+	}
+	else = { custom_tooltip = not_neighbor_has_legionway_tt }
+	if = {
+		limit = {
+			event_target:$event_target$ = {
+				location = { country_or_non_sovereign_subject_holds = ROOT }
+			}
+		}
+		custom_tooltip = owned_by_us_tt
+	}
+	else = { custom_tooltip = not_owned_by_us_tt }
 }
