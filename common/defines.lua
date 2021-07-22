@@ -27,6 +27,7 @@ NGame = {
 
 NDiplomacy = {
 
+	MIN_MONTHLY_COST_FOR_INFLUENCE_NATION = 5,
 	ESTATE_DISLIKE_ALLIANCE_ON_VC = -0.2,
 	HEGEMONY_LOST_DAYS = 7300,
 	HEGEMONY_MONTHLY_PROGRESS = 0.5,
@@ -141,7 +142,7 @@ NDiplomacy = {
 	PRESTIGE_PENALTY_ON_DISCOVER_JTC = -5,
 	MIN_ASKED_TRADE_POWER = 10,					-- Minimum % of someone's trade power can be asked for with the diplomatic action
 	MAX_ASKED_TRADE_POWER = 50,					-- Maximum % of someone's trade power can be asked for with the diplomatic action
-	MIN_PAPAL_INFLUENCE_TO_PREVENT_EXCOMMUNICATION = 0.5, -- Papal influence that prevents excommunication
+	MIN_PAPAL_INFLUENCE_TO_PREVENT_EXCOMMUNICATION = 50, -- Papal influence that prevents excommunication
 
 	HRE_VOTE_ENEMY = -200,
 	HRE_VOTE_LEGUE_ENEMY = -200,
@@ -266,6 +267,7 @@ NDiplomacy = {
 	PEACE_COST_REVOKE_ELECTOR = 60,					-- Revoke an elector title
 	PEACE_COST_UNION = 60, 							-- _DDEF_PEACE_COST_UNION_ Peace cost for forming a personal union
 	PEACE_COST_SUBJUGATE = 90, 							-- Peace cost for subjugating an enemy using the subjugation CB
+	PEACE_COST_JOIN_HRE = 90, 							-- Max Peace cost for forcing country to join the empire
 	PEACE_COST_CONVERSION = 1,					-- scaled with countrysize for forced conversion in peace.
 	PEACE_COST_RELEASE = 2, 						-- _DDEF_PEACE_COST_RELEASE_ Base Peace cost for releasing an annexed country (also increases with nr of provinces)
 	PEACE_COST_CONCEDE = 10, 						-- _DDEF_PEACE_COST_CONCEDE_ Base Peace cost for conceding defeat
@@ -382,7 +384,8 @@ NDiplomacy = {
 	BREAK_ALLIANCE_PENALTY_MONTHS = 120,			-- Break Alliance causes resentment for this many months.
 	BREAK_ALLIANCE_PENALTY_SCALER = -0.85,			-- Break Alliance resentment is scaled by this value but is capped at -100.
 	BREAK_ALLIANCE_DIPLOREP_FACTOR = 3,				-- AI acceptance factor per diplomatic reputation
-
+	AE_COALITION_THRESHOLD = -50,					-- Coalitions can form below this amount of AE opinion
+	
 	ABANDON_UNION_PRESTIGE = -25,					-- The change in prestige for the overlord when abandoning a personal union.
 
 	PAY_SUBJECT_DEBT_LIBERTY_DESIRE_REDUCTION = 5,	-- Amount of liberty desire the subject loses per paid loan
@@ -459,7 +462,7 @@ NCountry = {
 	MONTHS_FOR_MAX_MP_ALERT = 3,
 
 	CHANGE_COLONIAL_TYPE_COOLDOWN_DURATION = 10,
-	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 50,
+	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 400,		-- anbennar, was 50
 	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- monthly..	anbennar ver this and bottom
 	SIBERIAN_FRONTIER_DAILY_RANGE = 3,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
@@ -644,7 +647,7 @@ NCountry = {
 	GREAT_PROJECT_DEGRADATION_PERCENT_THRESHOLD_FOR_TIER_1 = 25, --state of repair threshold for tier 1 benefits
 	GREAT_PROJECT_DEGRADATION_PERCENT_THRESHOLD_FOR_TIER_2 = 50, --state of repair threshold for tier 2 benefits
 	GREAT_PROJECT_DEGRADATION_PERCENT_THRESHOLD_FOR_TIER_3 = 75, --state of repair threshold for tier 3 benefits
-	GREAT_PROJECT_MANPOWER_REQUIRED_FOR_CONSTRUCTION_BOOST = 5000, --use a bunch of manpower to move things on
+	GREAT_PROJECT_MANPOWER_REQUIRED_FOR_CONSTRUCTION_BOOST = 7500, --use a bunch of manpower to move things on
 	GREAT_PROJECT_MANPOWER_CONSTRUCTION_BOOST_AMOUNT_IN_DAYS = 730, --how far throwing men at the problem gets you
 	GREAT_PROJECT_MONEY_REQUIRED_FOR_CONSTRUCTION_BOOST = 250, --use a bunch of money to move things on
 	GREAT_PROJECT_MONEY_CONSTRUCTION_BOOST_AMOUNT_IN_DAYS = 730, --how far throwing cash at the problem gets you
@@ -653,9 +656,9 @@ NCountry = {
 	LAND_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	NAVAL_FORCELIMIT_EXTRA_COST_FACTOR = 2,			-- extra expense for being above forcelimit
 	REPUBLICAN_TRADITION_YEARLY_INCREASE = 1,		-- how much it increases each year.
-	PIETY_PERCENTAGE_AT_NEW_RULER = 0.90,			-- percentage of piety kept at new ruler.
+	PIETY_PERCENTAGE_AT_NEW_RULER = 0.90,			-- percentage of piety kept at new ruler.	Anbennar
 	PIETY_INCREASE_AT_GOOD_WAR = -0.1,				-- Anbennar changed values
-	PIETY_DECREASE_AT_BAD_WAR = -0.1,
+	PIETY_DECREASE_AT_BAD_WAR = -0.1,				-- Anbennar
 	ADVISOR_COST_INCREASE_PER_YEAR = 0.005,			-- yearly increase in price in percent,
 	SCRIPTED_ADVISOR_DISCOUNT = 0.5,				-- Multiplier on cost for advisors scripted with discount=yes
 	MINIMUM_ADVISOR_DURATION = 10, 					-- _CDEF_MINIMUM_ADVISOR_DURATION_
@@ -932,7 +935,7 @@ NCountry = {
 	PROMOTE_INVESTMENTS_TRADEPOWER = 0.5,
 	PROMOTE_INVESTMENTS_INFLATION = 0.03,
 	SCUTAGE_TAX_FRACTION = 0.5,
-	CONCENTRATE_DEVELOPMENT_DEVELOPMENT_DECREASE = 0.2,
+	CONCENTRATE_DEVELOPMENT_DEVELOPMENT_DECREASE = 0,	--Anbennar, disabled concentrate development was 0.2
 	PILLAGE_CAPITAL_DEVELOPMENT_DECREASE = 0.2,
 	RAZE_UNREST_DURATION = 10,						-- Years of unrest. Also used for duration of neg. opinion modifier for previous owner.
 	RAZE_PROVINCE_DEVELOPMENT_DECREASE = 0.33,
@@ -1023,28 +1026,30 @@ NCountry = {
 	REVOLUTION_CLAIM_MIN_ZEAL = 20.0,		-- Minimum Revolutionary Zeal required for contestant to claim the revolution target
 	REVOLUTION_CLAIM_COOLDOWN = 12,			-- How many months until it can be stolen again
 	TRIBE_STARTING_DEV = 3,							-- Starting dev of a tribe
-	MIGRATORY_TRIBE_DEVASTATION_BURN = 2,			-- How much devastation is burnt per year, multiplied with development. 	Anbennar. Vanilla is 0.8
+	MIGRATORY_TRIBE_DEVASTATION_BURN = 1,			-- How much devastation is burnt per year, multiplied with development. 	Anbennar. Vanilla is 0.8
 	MIGRATORY_TRIBE_DEVASTATION_ALERT_THRESHOLD = 80,
-	MIGRATORY_TRIBE_DEVELOPMENT_PROGRESS = 0.1, 	-- How much progress on development for each monthly tick	Anbennar. Vanilla was 0.02
-	MIGRATORY_TRIBE_DEVELOPMENT_OTHER_BONUS = 0.2,	-- Bonus progress gained on development from burning someone else province. Was 0.08
+	MIGRATORY_TRIBE_DEVELOPMENT_PROGRESS = 0.02, 	-- How much progress on development for each monthly tick	Anbennar.
+	MIGRATORY_TRIBE_DEVELOPMENT_OTHER_BONUS = 0.08,	-- Bonus progress gained on development from burning someone else province.
 	TRIBE_MIGRATION_ADM_COST = 0,
 	TRIBE_MIGRATION_DIP_COST = 0,
 	TRIBE_MIGRATION_MIL_COST = 50,
+	SIBERIAN_TRIBE_MIGRATION_BONUS = 50,
+	SIBERIAN_TRIBE_MIGRATION_COOLDOWN_YEARS = 2,
 
-	TRIBE_SETTLE_ADM_COST = 0,
-	TRIBE_SETTLE_DIP_COST = 50,
+	TRIBE_SETTLE_ADM_COST = 25,	--was 0
+	TRIBE_SETTLE_DIP_COST = 25,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
 	TRIBE_SETTLE_MIL_COST = 0,
 
-	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.05,
-	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.10,
+	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.15,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05
+	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.1,	
 	COHESION_FEDERATION_MEMBER_STRONGER = -0.20,
-	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.40,
-	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_NUMBER = 3,
-	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_MODIFIER = 1,
-	COHESION_NEIGHBOURING_COLONIZER = 0.5,
+	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.2,	--was -0.40
+	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_NUMBER = 3,	
+	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_MODIFIER = 0.5,	--was 1
+	COHESION_NEIGHBOURING_COLONIZER = 0.25,	-- Made this weaker for adventurers, was 0.5
 	COHESION_FEDERATION_ADVANCEMENT = -0.05,
-	FEDERATION_DESIRABILITY_WRONG_CULTURE_GROUP = -100,
-	FEDERATION_DESIRABILITY_SAME_CULTURE = 100,
+	FEDERATION_DESIRABILITY_WRONG_CULTURE_GROUP = -20,	--was -100, was -20
+	FEDERATION_DESIRABILITY_SAME_CULTURE = 50,	--was 100, made 50
 	FEDERATION_DESIRABILITY_SAME_CULTURE_GROUP = -20,
 	FEDERATION_DESIRABILITY_LAND_BALANCE_MULTIPLIER = 20,
 	FEDERATION_DESIRABILITY_STRONGER_THAN_LEADER_MALUS = -100,
@@ -1229,6 +1234,7 @@ NMilitary = {
 	ARMY_ATTRITION_AT_SEA = 10,						-- How many percent attrition units take while loaded onto ships traveling open sea
 	NATIVE_FEROCITY_IMPACT = 0.05,					-- how many percentage each ferocity gives in combat bonus
 	GALLEY_BONUS_INLAND_SEA = 1.0,
+	GALLEY_BONUS_COASTAL_SEA = 0.5,
 	GALLEY_DICE_MALLUS_HIGH_SEA = 0,				-- Malus dice roll when not fighting in inland sea.
 	INSUFFICIENT_SUPPORT = -0.25,
 	SIEGE_MEMORY = 11,
@@ -1367,7 +1373,7 @@ NMilitary = {
 	NAVAL_BASE_ENGAGEMENT_WIDTH = 5,   		-- Number of ships that can fire per round
 	HEAVY_SHIP_COMBAT_WIDTH = 3,
 	LIGHT_SHIP_COMBAT_WIDTH = 1,
-	GALLEY_COMBAT_WIDTH = 0.5,
+	GALLEY_COMBAT_WIDTH = 1,
 	TRANSPORT_COMBAT_WIDTH = 1,
 	NAVAL_CASUALTY_MIN_MORALE_DAMAGE = 0.2,
 	CAPTURED_SHIP_STRENGTH = 0.3,
@@ -1907,7 +1913,7 @@ NAI = {
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
 	ESTATE_MAX_PRIVILEDGES = 5,									-- Anbennar, there are 5 slots now
-	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 1.5,
+	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 100,					-- Anbennar, disabled for AI was 1.5f
 },
 
 NAIEconomy = {
@@ -2089,6 +2095,18 @@ NGraphics = {
 	MAPMODE_EMPIRE_PROVINCE_FOR_DEFAULT_G = 0.5,
 	MAPMODE_EMPIRE_PROVINCE_FOR_DEFAULT_B = 0.0,
 	
+	MAPMODE_RELIGIOUS_LEAGUE_RELIGION_R = 0.0,
+	MAPMODE_RELIGIOUS_LEAGUE_RELIGION_G = 0.5,
+	MAPMODE_RELIGIOUS_LEAGUE_RELIGION_B = 0.0,
+
+	MAPMODE_RELIGIOUS_LEAGUE_HERETIC_RELIGION_R = 0.0,
+	MAPMODE_RELIGIOUS_LEAGUE_HERETIC_RELIGION_G = 0.0,
+	MAPMODE_RELIGIOUS_LEAGUE_HERETIC_RELIGION_B = 0.5,
+
+	MAPMODE_PERPETUAL_DIET_LOCATION_R = 0.2,
+	MAPMODE_PERPETUAL_DIET_LOCATION_G = 0.8,
+	MAPMODE_PERPETUAL_DIET_LOCATION_B = 0.8,
+	
 	MAX_TRADE_NODE_FLAGS_SHOWN = 5,					-- -1 is unlimited
 	SHOW_TRADE_MODIFIERS_IN_TRADE_MAP_MODE = 1,		-- 1 = true, 0 = false
 	END_OF_COMBAT_GFX = 1,
@@ -2234,8 +2252,8 @@ NReligion = {
 	ORTHODOX_ICON_DURATION_MONTHS = 240,
 	ORTHODOX_ICON_AUTHORITY_COST = 0.1,
 
-	MAYA_COLLAPSE_PROVINCES = 10,	-- Maya collapses to this size on reform
-	MAYA_COLLAPSE_PROVINCES_PER_REFORM = 2,					-- Maya keeps this many extra provinces per reform
+	MAYA_COLLAPSE_PROVINCES = 15,	-- Maya collapses to this size on reform
+	MAYA_COLLAPSE_PROVINCES_PER_REFORM = 1,					-- Maya keeps this many extra provinces per reform
 	YEARLY_DOOM_INCREASE = 1,								-- Multiplied by number of provinces
 	DOOM_REDUCTION_FROM_REFORMS = 0.2,						-- This much less monthly doom (as a fraction of whole) for each reform passed
 	DOOM_REDUCTION_FROM_OCCUPATION = 0.05,					-- Multiplied by development
@@ -2253,7 +2271,7 @@ NReligion = {
 	MAX_CHRISTIAN_RELIGIOUS_CENTERS = 3,						-- The number of spawned centers of reformation wont exceed this number
 	MAX_RELIGIOUS_CENTER_SPREAD_DISTANCE = 150.0,				-- When spreading the religion to other provinces the distance wont exceed this number
 	CONVERSION_ZEAL_DURATION = 10950,							-- Amount of days in which you cannot convert the province back.
-	KARMA_FOR_CONVERSION = 0.1,
+	KARMA_FOR_CONVERSION = -0.1,								-- Anbennar, used to be 0.1 positive
 	MIN_CARDINALS = 7,											-- Least amount of cardinals/ Starting cardinals
 	MAX_CARDINALS = 49,											-- Max amount of cardinals
 	MAX_CARDINALS_PER_COUNTRY = 7,								-- Max cardinals in a single country
@@ -2273,10 +2291,10 @@ NReligion = {
 	MAX_UNLOCKED_ASPECTS = 3,									-- Maximum number of Aspects of Faith the player can have unlocked at once.
 	CHURCH_POWER_RATE_SCALE = 0.1,								-- Scaling value for rate at which church power is gained.
 
-	KARMA_FOR_OFFENSIVE_WAR = -10,
+	KARMA_FOR_OFFENSIVE_WAR = -20,								-- Anbennar was 10
 	KARMA_FOR_HONORING_CTA = 25,
 	KARMA_PER_RELEASED_PROVINCE = 1,
-	KARMA_PER_TAKEN_PROVINCE = -1,
+	KARMA_PER_TAKEN_PROVINCE = -0.5,							-- Anbennar was 1
 	KARMA_TOO_HIGH = 33,
 	KARMA_TOO_LOW = -33,
 	KARMA_JUST_RIGHT_HIGH = 33,
@@ -2439,10 +2457,10 @@ NGovernment = {
 	LEGACY_NATIVES_REFORM_THEOCRACY_SPONSOR = "theocratic_government",
 	LEADER_AS_MONARCH_TRADITION = 30, -- How much tradition leaders will get when generated for
 	
-	CONCENTRATE_DEVELOPMENT_CAPITAL_PROPORTION = 0.5,
-	CONCENTRATE_DEVELOPMENT_OTHER_STATE_PROVINCES_PROPORTION = 0.3,
-	FREE_CONCENTRATE_DEVELOPMENT_CAPITAL_PROPORTION = 0.7,
-	FREE_CONCENTRATE_DEVELOPMENT_OTHER_STATE_PROVINCES_PROPORTION = 0.3,
+	CONCENTRATE_DEVELOPMENT_CAPITAL_PROPORTION = 0.1,
+	CONCENTRATE_DEVELOPMENT_OTHER_STATE_PROVINCES_PROPORTION = 0.7,
+	FREE_CONCENTRATE_DEVELOPMENT_CAPITAL_PROPORTION = 0.2,
+	FREE_CONCENTRATE_DEVELOPMENT_OTHER_STATE_PROVINCES_PROPORTION = 0.8,
 },
 
 }
