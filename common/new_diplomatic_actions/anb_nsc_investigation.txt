@@ -1,0 +1,75 @@
+nsc_investigate_action = {
+	category = influence
+	
+	require_acceptance = no
+	
+	is_visible = {
+		has_country_flag = nsc_investigation_enabled
+		FROM = {
+			has_country_flag = nsc_investigation_enabled
+			NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
+		}
+		religion = bulwari_sun_cult
+    }
+	
+	is_allowed = {
+		num_of_diplomats = 2
+		custom_trigger_tooltip = {
+			tooltip = nsc_not_has_already_investigated_tt
+			FROM = {
+				NOT = { has_country_flag = nsc_was_fully_investigated_by_@ROOT }
+				NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
+			}
+		}
+	}
+
+    on_accept = {
+		if = { limit = { FROM = { NOT = { has_country_flag = nsc_was_investigated_by_@ROOT } } } #So the diplo action is can't be spammed to increase your NSC level
+			FROM = { set_country_flag = nsc_was_investigated_by_@ROOT }
+			if = { limit = { FROM = { ruler_culture = sun_elf } }
+				add_incident_variable_value = { incident = incident_summit_of_samartal value = -1 }
+			}
+			else = {
+				add_incident_variable_value = { incident = incident_summit_of_samartal value = 1 }
+			}
+		}
+		FROM = {
+			save_event_target_as = nsc_investigated_target
+			set_country_flag = nsc_is_investigated_by_@ROOT
+			add_opinion = { who = ROOT modifier = nsc_has_investigated_us }
+		}
+		nsc_add_investigation_ongoing_modifier = yes
+		country_event = { id = new_sun_cult.183 }
+	}
+	
+	ai_will_do = {
+		NOT = { is_subject_of = FROM }
+		FROM = { NOT = { is_subject_of = ROOT } }
+	}
+}
+
+nsc_cancel_investigate_action = {
+	category = influence
+	
+	require_acceptance = no
+	
+	is_visible = {
+		FROM = { has_country_flag = nsc_is_investigated_by_@ROOT }
+    }
+	
+	is_allowed = {
+		custom_trigger_tooltip = {
+			tooltip = nsc_has_already_cancelled_investigation_tt
+			FROM = { has_country_flag = nsc_is_investigated_by_@ROOT }
+		}
+	}
+
+    on_accept = {
+		FROM = { clr_country_flag = nsc_is_investigated_by_@ROOT }
+		nsc_remove_investigation_ongoing_modifier = yes
+	}
+	
+	ai_will_do = {
+		always = no
+	}
+}
