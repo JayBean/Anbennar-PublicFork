@@ -2402,7 +2402,7 @@ NNationDesigner = {
 
 NGovernment = {
 	SELECT_HEIR_FROM_HAREM_AT_MONARCH_AGE = 30, -- The age in years when an heir is selected if the government "has_harem" flag is set.
-	RUSSIAN_ABILITY_COST = 100,
+	RUSSIAN_ABILITY_COST = 100, -- This is used for Gawed government
 	RUSSIAN_ABILITY_POOL_SIZE = 150,
 	RUSSIAN_ABILITY_BASE_GAIN = 3,
 	RUSSIAN_ABILITY_SUDEBNIK_MIN_AUTONOMY = 10,
