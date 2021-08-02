@@ -1562,7 +1562,7 @@ NAI = {
 	REVOLUTION_EMBRACE_MAX_ABSOLUTISM = 49, -- AI will not consider embracing the revolution (unless a disaster happens) if their absolutism if over this value
 	BASE_CAN_MAKE_CORE_DESIRE_TO_RETURN_PROVINCE = 10, --score to add to desire to keep province rather than returning it to someone or creating a trading city if you can core it straight away
 	BASE_CAN_MAKE_CORE_IN_AREA_DESIRE_TO_RETURN_PROVINCE = 8, --score to add to desire to keep province rather than returning it to someone or creating a trading city if you can core it soon
-	GOVERNING_CAPACITY_OVER_PERCENTAGE_TOLERATED = 0.2,
+	GOVERNING_CAPACITY_OVER_PERCENTAGE_TOLERATED = 1,	--Anbennar, was 0.2 but people complained + anbennar has higher dev stuff in general. This makes AI make vassals if they are +100% over their governing capacity
 	DANGEROUS_OVEREXTENSION_PERCENTAGE = 0.1,
 
 	DEBASE_THRESHOLD = -100,-- AI will not debase if it has more gold than this.	Anbennar change from like -50,000 this is to improve AI aggressiveness in FP
