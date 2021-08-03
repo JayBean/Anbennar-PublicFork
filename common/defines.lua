@@ -1401,7 +1401,7 @@ NMilitary = {
 	AREA_REBEL_SUPPRESSION_MULTIPLIER = 5.0,		-- Armies suppressing rebels in areas adds this/<number of suppressed provinces> to rebel suppression in affected provinces.
 
 	BANNER_USES_CONSTRUCTION = 0,
-	STRELTSY_USES_CONSTRUCTION = 1,
+	STRELTSY_USES_CONSTRUCTION = 0,
 	COSSACKS_USES_CONSTRUCTION = 1,
 	JANISSARIES_USES_CONSTRUCTION = 0,
 	RAJPUT_USES_CONSTRUCTION = 1,
