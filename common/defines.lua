@@ -2411,7 +2411,7 @@ NGovernment = {
 	RUSSIAN_ABILITY_OPRICHNINA_AI_THRESHOLD = 0.85, -- AI will use ability when revolt risk is 90%, or when they have full power
 	RUSSIAN_ABILITY_OPRICHNINA_CHANGE = -0.3, 
 	RUSSIAN_ABILITY_STRELTSY_WE_CHANGE = -2,
-	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0, -- Anbennar change to 0 vanilla was 0.2
+	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0.2, -- Anbennar change to -100 vanilla was 0.2
 
 	IQTA_POLICY_COOLDOWN_YEARS = 20,
 	EFFICIENT_FARMING_DUCAT_MULTIPLIER = 2,
