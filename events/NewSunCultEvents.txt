@@ -10,7 +10,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		NOT = { ruler_culture = sun_elf }
+		is_chosen_country = no
 		has_estate = estate_church
 		NOT = { has_estate_privilege = estate_church_indepedent_clergy }
 	}
@@ -82,7 +82,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		ruler_culture = sun_elf
+		is_chosen_country = yes
 		religion = bulwari_sun_cult
 		government = monarchy
 		OR = {
@@ -178,37 +178,94 @@ province_event = {
 	title = new_sun_cult.8.t
 	desc = new_sun_cult.8.d
 	picture = DIPLOMACY_eventPicture
+	goto = ROOT
 	
 	is_triggered_only = yes
 	fire_only_once = yes
 	
-	#Invite the dude
+	#
 	option = {
 		name = new_sun_cult.8.a
+		owner = {
+			add_years_of_income = 0.1
+			light_ship = ROOT		
+		}
+		province_event = { id = new_sun_cult.9 days = 1825 }
+	}
+}
+
+#Lucian Carter arrives in the Drolas (Betelis province)
+province_event = {
+	id = new_sun_cult.9
+	title = new_sun_cult.9.t
+	desc = new_sun_cult.9.d
+	picture = DIPLOMACY_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	immediate = {
+		random_province = {
+			limit = {
+				OR = {
+					area = inner_drolas_area
+					area = outer_drolas_area
+				}
+				NOT = { has_province_modifier = nsc_teaching_the_one_god }
+			}
+			save_event_target_as = drolas_province_1
+		}
+		random_province = {
+			limit = {
+				OR = {
+					area = inner_drolas_area
+					area = outer_drolas_area
+				}
+				NOT = { has_province_modifier = nsc_teaching_the_one_god }
+			}
+			save_event_target_as = drolas_province_2
+		}
+	}
+	
+	#Leave him
+	option = {
+		name = new_sun_cult.9.a
 		ai_chance = { factor = 100 }
 		change_religion = ravelian
 		add_permanent_province_modifier = { name = "religious_zeal_at_conv" duration = 9125 }
-		define_advisor = {
-			type = theologian
-			name = "Lucian Carter"
-			skill = 2
-			culture = anbenncoster
-			religion = ravelian
-			discount = yes
+		add_permanent_province_modifier = { name = nsc_teaching_the_one_god duration = 9125 }
+		event_target:drolas_province_1 = {
+			change_religion = ravelian
+			add_permanent_province_modifier = { name = nsc_teaching_the_one_god duration = 9125 }
+			add_permanent_province_modifier = { name = "religious_zeal_at_conv" duration = 9125 }
 		}
+		event_target:drolas_province_2 = {
+			change_religion = ravelian
+			add_permanent_province_modifier = { name = nsc_teaching_the_one_god duration = 9125 }
+			add_permanent_province_modifier = { name = "religious_zeal_at_conv" duration = 9125 }
+		}
+		set_country_flag = nsc_lucian_carter_in_our_lands
 	}
 	
 	#Expel the dude
 	option = {
-		name = new_sun_cult.8.b
+		name = new_sun_cult.9.b
 		ai_chance = { factor = 0 }
-		change_religion = ravelian
 		add_adm_power = -50
+		change_religion = ravelian
 		add_permanent_province_modifier = { name = nsc_drolas_missionaries_expelled duration = 3650 }
+		event_target:drolas_province_1 = {
+			change_religion = ravelian
+			add_permanent_province_modifier = { name = nsc_drolas_missionaries_expelled duration = 3650 }
+		}
+		event_target:drolas_province_2 = {
+			change_religion = ravelian
+			add_permanent_province_modifier = { name = nsc_drolas_missionaries_expelled duration = 3650 }
+		}
 	}
 	
 	after = {
-		set_country_flag = nsc_lucian_carter_in_our_lands
 		set_country_flag = nsc_lucian_carter_happened
 		every_country = {
 			limit = {
@@ -222,15 +279,21 @@ province_event = {
 }
 
 country_event = {
-	id = new_sun_cult.9
-	title = new_sun_cult.9.t
-	desc = new_sun_cult.9.d
+	id = new_sun_cult.10
+	title = new_sun_cult.10.t
+	desc = new_sun_cult.10.d
 	picture = ARTWORK_eventPicture
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		hidden_effect = {
+			nsc_calculate_army_strength_ratio = { who = F25 }
+		}
+	}
+	
 	option = {
-		name = new_sun_cult.9.a
+		name = new_sun_cult.10.a
 	}
 }
 
@@ -238,6 +301,7 @@ country_event = {
 #------------#Dukeldar Disaster#-------------#
 #--------------------------------------------#
 
+#Dukeldar start
 country_event = {
 	id = new_sun_cult.30
 	title = new_sun_cult.30.t
@@ -248,6 +312,22 @@ country_event = {
 	
 	option = {
 		name = new_sun_cult.30.a
+		set_country_flag = nsc_dukeldar_end
+	}
+}
+
+#Dukeldar end
+country_event = {
+	id = new_sun_cult.48
+	title = new_sun_cult.48.t
+	desc = new_sun_cult.48.d
+	picture = ARTWORK_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = new_sun_cult.48.a
+		clr_country_flag = nsc_dukeldar_end
 	}
 }
 
@@ -270,7 +350,12 @@ country_event = {
 		name = new_sun_cult.49.a
 		custom_tooltip = nsc_incident_bulwar_under_threat_start_tt
 		add_war_exhaustion = 5
-		add_country_modifier = { name = nsc_bulwar_under_threat duration = -1 }
+		if = { limit = { ai = no }
+			add_country_modifier = { name = nsc_bulwar_under_threat duration = -1 }
+		}
+		else = {
+			add_country_modifier = { name = nsc_bulwar_under_threat_ai duration = -1 }
+		}
 		hidden_effect = { country_event = { id = new_sun_cult.51 days = 30 } }
 	}
 }
@@ -288,7 +373,12 @@ country_event = {
 		name = new_sun_cult.50.a
 		custom_tooltip = nsc_incident_bulwar_under_threat_start_tt
 		reduce_stability_or_adm_power = yes
-		add_country_modifier = { name = nsc_bulwar_under_threat duration = -1 }
+		if = { limit = { ai = no }
+			add_country_modifier = { name = nsc_bulwar_under_threat duration = -1 }
+		}
+		else = {
+			add_country_modifier = { name = nsc_bulwar_under_threat_ai duration = -1 }
+		}
 		hidden_effect = { country_event = { id = new_sun_cult.51 days = 30 } }
 	}
 }
@@ -303,22 +393,11 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	#Focus inward
+	#
 	option = {
 		name = new_sun_cult.51.a
 		ai_chance = { factor = 1 }
-		trigger { OR = { tag = F25 tag = F37 tag = F42 } }
-		custom_tooltip = nsc_stability_pledge_tt
-		hidden_effect = { country_event = { id = new_sun_cult.75 days = 3650 } }
-		set_country_flag = nsc_stability_pledge
-	}
-	
-	#To war !
-	option = {
-		name = new_sun_cult.51.b
-		ai_chance = { factor = 0 }
-		custom_tooltip = nsc_war_pledge_tt
-		add_country_modifier = { name = nsc_promises_of_war duration = -1 }
+		custom_tooltip = nsc_pledge_tt
 		if = { limit = { tag = F21 }								#Birsartanses gets claims on Dartaxagerdim
 			nsc_incident_target_birsartanses = { add_claim = F21 }
 		}
@@ -334,8 +413,8 @@ country_event = {
 		if = { limit = { tag = F42 }								#Varamhar gets claims on Harpylen
 			nsc_incident_target_varamhar = { add_claim = F42 }
 		}
+		set_country_flag = nsc_pledge
 		hidden_effect = { country_event = { id = new_sun_cult.76 days = 3650 } }
-		set_country_flag = nsc_conquest_pledge
 	}
 }
 
@@ -395,7 +474,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#Take a bribe
 	option = {
@@ -435,7 +514,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#lol no
 	option = {
@@ -453,7 +532,7 @@ country_event = {
 	option = {
 		name = new_sun_cult.54.b
 		ai_chance = { factor = 0 }
-		custom_tooltip = nsc_chosen_role_up_tt
+		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = -1 }
 		if = { limit = { has_country_flag = nsc_took_bribe }
 			clr_country_flag = nsc_took_bribe
@@ -479,7 +558,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#Take a bribe
 	option = {
@@ -522,7 +601,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#They will be fine
 	option = {
@@ -575,7 +654,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#Whoop whoop
 	option = {
@@ -647,7 +726,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	immediate = {
 		random_owned_province = {
@@ -721,7 +800,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	immediate = {
 		random_owned_province = { save_event_target_as = nsc_merchant_target_1 }
@@ -831,7 +910,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	immediate = {
 		random_owned_province = { save_event_target_as = nsc_peasant_target_1 }
@@ -922,7 +1001,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	immediate = {
 		hidden_effect = { nsc_calculate_unrest_percentage = yes }
@@ -950,7 +1029,7 @@ country_event = {
 	option = {
 		name = new_sun_cult.62.c
 		trigger = { NOT = { check_variable = { which = TotalUnrestVar value = 1 } } ai = no }
-		add_stability = 1
+		add_stability_or_adm_power = yes
 		add_country_modifier = { name = nsc_appeased_populace duration = -1 }
 	}
 	
@@ -974,7 +1053,7 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	trigger = { has_country_flag = nsc_stability_pledge }
+	trigger = { has_country_flag = nsc_pledge }
 	
 	#reduce taxes
 	option = {
@@ -983,14 +1062,10 @@ country_event = {
 		ai_chance = {
 			factor = 100
 			modifier = { factor = 0 all_subject_country = { NOT = { liberty_desire = 50 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -2 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -3 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -4 } } }
-			modifier = { factor = 0.1 tag = F25 }
 		}
 		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = -1 }
-		add_country_modifier = { name = nsc_lowered_vassal_levies duration = 1825 }
+		add_country_modifier = { name = nsc_lowered_vassal_levies duration = 3650 }
 		clr_country_flag = nsc_appeasing_vassals
 	}
 	
@@ -1001,31 +1076,36 @@ country_event = {
 		ai_chance = {
 			factor = 100
 			modifier = { factor = 0 all_subject_country = { NOT = { liberty_desire = 50 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -2 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -3 } } }
-			modifier = { factor = 0.5 NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -4 } } }
-			modifier = { factor = 0.1 tag = F25 }
 		}
 		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = -1 }
-		add_country_modifier = { name = nsc_lowered_vassal_troops duration = 1825 }
+		add_country_modifier = { name = nsc_lowered_vassal_troops duration = 3650 }
 		clr_country_flag = nsc_appeasing_vassals
 	}
 	
 	#sun elf propaganda
 	option = {
 		name = new_sun_cult.63.c
-		trigger = { num_of_missionaries = 1 }
+		trigger = {
+			num_of_missionaries = 1
+			any_subject_country = {
+				religion = bulwari_sun_cult
+				NOT = { isolationism = 4 }
+			}
+			has_dlc = "Mandate of Heaven"
+		}
 		ai_chance = {
-			factor = 100 
-			modifier = { factor = 0 NOT = { any_subject_country = { liberty_desire = 50 ai = yes } } }
+			factor = 100
+			modifier = { factor = 0 all_subject_country = { NOT = { liberty_desire = 50 } } }
+			modifier = { factor = 0 NOT = { has_country_modifier = nsc_lowered_vassal_levies } }
+			modifier = { factor = 0 NOT = { has_country_modifier = nsc_lowered_vassal_troops } }
 		}
 		country_event = { id = new_sun_cult.64 }
 	}
 	
 	#Go back
 	option = {
-		ai_chance = { factor = 100 }
+		ai_chance = { factor = 1 }
 		name = new_sun_cult.63.e
 		highlight = yes
 		if = { limit = { ai = yes }
@@ -1060,7 +1140,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_1_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_1
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1069,8 +1148,6 @@ country_event = {
 			event_target:influenceable_vassal_1 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_1_@ROOT
 			}
 		}
 	}
@@ -1082,7 +1159,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_2_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_2
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1091,8 +1167,6 @@ country_event = {
 			event_target:influenceable_vassal_2 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_2_@ROOT
 			}
 		}
 	}
@@ -1104,7 +1178,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_3_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_3
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1113,8 +1186,6 @@ country_event = {
 			event_target:influenceable_vassal_3 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_3_@ROOT
 			}
 		}
 	}
@@ -1126,7 +1197,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_4_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_4
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1135,8 +1205,6 @@ country_event = {
 			event_target:influenceable_vassal_4 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_4_@ROOT
 			}
 		}
 	}
@@ -1148,7 +1216,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_5_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_5
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1157,8 +1224,6 @@ country_event = {
 			event_target:influenceable_vassal_5 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_5_@ROOT
 			}
 		}
 	}
@@ -1170,7 +1235,6 @@ country_event = {
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT NOT = { liberty_desire = 50 } } }
 			modifier = { factor = 0 any_subject_country = { has_country_flag = influenceable_vassal_6_@ROOT ai = no } }
 		}
-		goto = influenceable_vassal_6
 		custom_tooltip = nsc_influencing_vassal_tt
 		custom_tooltip = nsc_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = 1 }
@@ -1179,8 +1243,6 @@ country_event = {
 			event_target:influenceable_vassal_6 = {
 				country_event = { id = new_sun_cult.65 days = 1460 random = 730 }
 				set_country_flag = influenced_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_@ROOT
-				clr_country_flag = influenceable_vassal_6_@ROOT
 			}
 		}
 	}
@@ -1195,6 +1257,15 @@ country_event = {
 	
 	after = {
 		clr_country_flag = nsc_appeasing_vassals
+		every_subject_country = {
+			clr_country_flag = influenceable_vassal_@ROOT
+			clr_country_flag = influenceable_vassal_1_@ROOT
+			clr_country_flag = influenceable_vassal_2_@ROOT
+			clr_country_flag = influenceable_vassal_3_@ROOT
+			clr_country_flag = influenceable_vassal_4_@ROOT
+			clr_country_flag = influenceable_vassal_5_@ROOT
+			clr_country_flag = influenceable_vassal_6_@ROOT
+		}
 	}
 }
 
@@ -1545,44 +1616,128 @@ country_event = {
 	}
 }
 
-#Incident end (internal focus)
+#Pledge Score
 country_event = {
 	id = new_sun_cult.75
 	title = new_sun_cult.75.t
 	desc = new_sun_cult.75.d
-	picture = ARTWORK_eventPicture
+	picture = BAD_WITH_MONARCH_eventPicture
 	
 	is_triggered_only = yes
 	
 	immediate = {
+		hidden_effect = { nsc_calculate_pledge_score = yes }
+	}
+	
+	#Proclaim the pledge fulfilled
+	option = {
+		name = new_sun_cult.75.a
+		trigger = { check_variable = { which = ScoreVar value = 50 } }
+		ai_chance = { factor = 100 }
+		country_event = { id = new_sun_cult.76 }
+	}
+	
+	#Go back
+	option = {
+		name = new_sun_cult.75.b
+		ai_chance = {
+			factor = 1
+			modifier = { factor = 0 check_variable = { which = ScoreVar value = 50 } }
+		}
+		clr_country_flag = nsc_pledge_menu
+		if = { limit = { ai = yes }
+			set_country_flag = nsc_ai_pledge_menu
+		}
+	}
+}
+
+#Incident end
+country_event = {
+	id = new_sun_cult.76
+	title = new_sun_cult.76.t
+	desc = { trigger = { check_variable = { which = ScoreVar value = 100 } } desc = new_sun_cult.76.da }
+	desc = {
+		trigger = {
+			NOT = { check_variable = { which = ScoreVar value = 100 } }
+			OR = {
+				check_variable = { which = ScoreVar value = 50 }
+				ai = yes
+			}
+		}
+		desc = new_sun_cult.76.db
+	}
+	desc = {
+		trigger = {
+			NOT = { check_variable = { which = ScoreVar value = 50 } }
+			check_variable = { which = ScoreVar value = 25 }
+			ai = no
+		}
+		desc = new_sun_cult.76.dc
+	}
+	desc = { trigger = { NOT = { check_variable = { which = ScoreVar value = 25 } } ai = no } desc = new_sun_cult.76.de }
+	picture = ARTWORK_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = { has_country_flag = nsc_pledge }
+	
+	immediate = {
 		hidden_effect = {
+			set_country_flag = had_nsc_incident_flag
 			clr_country_flag = active_nsc_incident_flag
-			clr_country_flag = nsc_stability_pledge
+			clr_country_flag = nsc_pledge
 			clr_country_flag = nsc_admin_over
 			clr_country_flag = nsc_populace_over
 			clr_country_flag = nsc_appeasing_vassals
+			clr_country_flag = nsc_reforming_army
 			clr_country_flag = nsc_ai_took_vassal_decision
+			clr_country_flag = nsc_pledge_menu
+			clr_country_flag = nsc_ai_pledge_menu
 			remove_country_modifier = nsc_admin_reformed
 			remove_country_modifier = nsc_admin_kinda_reformed
 			remove_country_modifier = nsc_flustered_populace
 			remove_country_modifier = nsc_appeased_populace
-			nsc_calculate_stability_pledge_score = yes
-			set_country_flag = had_nsc_incident_flag
+			nsc_calculate_pledge_score = yes
 		}
 	}
 	
-	#Total success
+	#Massive Success
 	option = {
-		name = new_sun_cult.75.a
-		trigger = { OR = { check_variable = { which = ScoreVar value = 1 } ai = yes } } #ai cheats
+		name = new_sun_cult.76.a
+		trigger = { check_variable = { which = ScoreVar value = 100 } }
 		end_incident = incident_bulwar_under_threat
-		add_country_modifier = { name = nsc_stability_path_successful duration = 3650 }
+		add_country_modifier = { name = nsc_pledge_great_success duration = 3650 }
 		remove_country_modifier = nsc_bulwar_under_threat
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 4 } } #max -5
+		remove_country_modifier = nsc_bulwar_under_threat_ai
+		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 5 } } #max -7
 			custom_tooltip = nsc_choices_impact_level_tt
 			increase_nsc_isolation_level = yes
 		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -4 } } } #min +7
+		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -5 } } } #min +9
+			custom_tooltip = nsc_choices_impact_level_tt
+			decrease_nsc_isolation_level = yes
+		}
+	}
+	
+	#Success
+	option = {
+		name = new_sun_cult.76.b
+		trigger = {
+			NOT = { check_variable = { which = ScoreVar value = 100 } }
+			OR = {
+				check_variable = { which = ScoreVar value = 50 }
+				ai = yes	#ai cheats
+			}
+		}
+		end_incident = incident_bulwar_under_threat
+		add_country_modifier = { name = nsc_pledge_successful duration = 3650 }
+		remove_country_modifier = nsc_bulwar_under_threat
+		remove_country_modifier = nsc_bulwar_under_threat_ai
+		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 5 } } #max -7
+			custom_tooltip = nsc_choices_impact_level_tt
+			increase_nsc_isolation_level = yes
+		}
+		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -5 } } } #min +9
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
@@ -1590,20 +1745,20 @@ country_event = {
 	
 	#Partial success
 	option = {
-		name = new_sun_cult.75.b
+		name = new_sun_cult.76.c
 		trigger = {
-			NOT = { check_variable = { which = ScoreVar value = 1 } }
-			check_variable = { which = ScoreVar value = 0.5 }
+			NOT = { check_variable = { which = ScoreVar value = 50 } }
+			check_variable = { which = ScoreVar value = 25 }
 			ai = no
 		}
 		end_incident = incident_bulwar_under_threat
 		remove_country_modifier = nsc_bulwar_under_threat
 		add_country_modifier = { name = nsc_semi_successful duration = 3650 }
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 4 } } #max -5
+		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 5 } } #max -7
 			custom_tooltip = nsc_choices_impact_level_tt
 			increase_nsc_isolation_level = yes
 		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -4 } } } #min +7
+		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -5 } } } #min +9
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
@@ -1611,98 +1766,22 @@ country_event = {
 	
 	#Failure
 	option = {
-		name = new_sun_cult.75.c
-		trigger = { NOT = { check_variable = { which = ScoreVar value = 0.5 } } ai = no }
+		name = new_sun_cult.76.e
+		trigger = { NOT = { check_variable = { which = ScoreVar value = 25 } } ai = no }
 		end_incident = incident_bulwar_under_threat
 		hidden_effect = { remove_country_modifier = nsc_bulwar_under_threat }
 		add_country_modifier = { name = nsc_bulwar_under_threat duration = 3650 }
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 4 } } #max -5
+		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 5 } } #max -7
 			custom_tooltip = nsc_choices_impact_level_tt
 			increase_nsc_isolation_level = yes
 		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -4 } } } #min +7
+		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -5 } } } #min +9
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
 	}
 }
 
-#Incident end (war focus)
-country_event = {
-	id = new_sun_cult.76
-	title = new_sun_cult.76.t
-	desc = new_sun_cult.76.da
-	picture = ARTWORK_eventPicture
-	
-	is_triggered_only = yes
-		
-	immediate = {
-		hidden_effect = {
-			clr_country_flag = active_nsc_incident_flag
-			clr_country_flag = nsc_conquest_pledge
-			clr_country_flag = nsc_reforming_army
-			remove_country_modifier = nsc_promises_of_war
-			nsc_calculate_war_pledge_score = yes
-			set_country_flag = had_nsc_incident_flag
-		}
-	}
-	
-	#Total success
-	option = {
-		name = new_sun_cult.76.a
-		trigger = { OR = { check_variable = { which = ScoreVar value = 1 } ai = yes } } #ai cheats
-		end_incident = incident_bulwar_under_threat
-		add_stability = 1
-		add_country_modifier = { name = nsc_war_path_successful duration = 3650 }
-		remove_country_modifier = nsc_bulwar_under_threat
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 2 } } #max -1
-			custom_tooltip = nsc_choices_impact_level_tt
-			increase_nsc_isolation_level = yes
-		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -1 } } } #min +2
-			custom_tooltip = nsc_choices_impact_level_tt
-			decrease_nsc_isolation_level = yes
-		}
-	}
-	
-	#Partial success
-	option = {
-		name = new_sun_cult.76.b
-		trigger = {
-			NOT = { check_variable = { which = ScoreVar value = 1 } }
-			check_variable = { which = ScoreVar value = 0.5 }
-			ai = no
-		}
-		end_incident = incident_bulwar_under_threat
-		remove_country_modifier = nsc_bulwar_under_threat
-		add_country_modifier = { name = nsc_semi_successful duration = 3650 }
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 2 } } #max -1
-			custom_tooltip = nsc_choices_impact_level_tt
-			increase_nsc_isolation_level = yes
-		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -1 } } } #min +2
-			custom_tooltip = nsc_choices_impact_level_tt
-			decrease_nsc_isolation_level = yes
-		}
-	}
-	
-	#Failure
-	option = {
-		name = new_sun_cult.76.c
-		trigger = { NOT = { check_variable = { which = ScoreVar value = 0.5 } } ai = no }
-		end_incident = incident_bulwar_under_threat
-		hidden_effect = { remove_country_modifier = nsc_bulwar_under_threat }
-		add_country_modifier = { name = nsc_bulwar_under_threat duration = 3650 }
-		if = { limit = { incident_variable_value = { incident = incident_bulwar_under_threat value = 2 } } #max -1
-			custom_tooltip = nsc_choices_impact_level_tt
-			increase_nsc_isolation_level = yes
-		}
-		else_if = { limit = { NOT = { incident_variable_value = { incident = incident_bulwar_under_threat value = -1 } } } #min +2
-			custom_tooltip = nsc_choices_impact_level_tt
-			decrease_nsc_isolation_level = yes
-		}
-	}
-}
 
 #id 77 to 124 available
 
@@ -1746,7 +1825,7 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			country_event = { id = new_sun_cult.127 days = 365 }
+			country_event = { id = new_sun_cult.127 days = 180 }
 			set_country_flag = got_the_event
 		}
 	}
@@ -1767,7 +1846,7 @@ country_event = {
 		add_years_of_income = -0.3
 		add_prestige = 10
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #sun elf choices count more
+			if = { limit = { is_chosen_country = yes } #sun elf choices count more
 				REB = {
 					change_variable = { which = nscTempUnityVar value = 2 }
 					change_variable = { which = nscTotalChoicesVar value = 2 }
@@ -1792,7 +1871,7 @@ country_event = {
 		add_years_of_income = -0.2
 		add_prestige = 5
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #sun elf choices count more
+			if = { limit = { is_chosen_country = yes } #sun elf choices count more
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -1815,7 +1894,7 @@ country_event = {
 		custom_tooltip = nsc_decrease_unity_tt
 		add_years_of_income = -0.1 
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #sun elf choices count more
+			if = { limit = { is_chosen_country = yes } #sun elf choices count more
 				REB = {
 					change_variable = { which = nscTempUnityVar value = -2 }
 					change_variable = { which = nscTotalChoicesVar value = 2 }
@@ -1943,7 +2022,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -1952,7 +2031,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -2013,7 +2092,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2022,7 +2101,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -2089,7 +2168,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2098,7 +2177,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -2171,7 +2250,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_e } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2180,7 +2259,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceEVar value = 2 } }
 			}
 			else = {
@@ -2243,7 +2322,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_f } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2252,7 +2331,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceFVar value = 2 } }
 			}
 			else = {
@@ -2283,7 +2362,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -2313,15 +2392,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.130 days = 150 }
+				country_event = { id = new_sun_cult.130 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.130 days = 300 }
+				country_event = { id = new_sun_cult.130 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.130 days = 450 }
+				country_event = { id = new_sun_cult.130 days = 330 }
 			}
-			country_event = { id = new_sun_cult.131 days = 600 }		#Results
+			country_event = { id = new_sun_cult.131 days = 480 }		#Results
 		}
 	}
 	
@@ -2428,14 +2507,14 @@ country_event = {
 					is_vassal = no
 					liberty_desire = 50
 				}
-				NOT = { ruler_culture = sun_elf }
+				is_chosen_country = no
 			}
 		}
 			
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2444,7 +2523,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -2494,7 +2573,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2503,7 +2582,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -2520,7 +2599,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -2550,15 +2629,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.132 days = 150 }
+				country_event = { id = new_sun_cult.132 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.132 days = 300 }
+				country_event = { id = new_sun_cult.132 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.132 days = 450 }
+				country_event = { id = new_sun_cult.132 days = 330 }
 			}
-			country_event = { id = new_sun_cult.133 days = 600 }		#Results
+			country_event = { id = new_sun_cult.133 days = 480 }		#Results
 		}
 	}
 	
@@ -2655,7 +2734,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2664,7 +2743,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -2714,7 +2793,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2723,7 +2802,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -2773,7 +2852,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2782,7 +2861,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -2801,7 +2880,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -2831,15 +2910,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.134 days = 150 }
+				country_event = { id = new_sun_cult.134 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.134 days = 300 }
+				country_event = { id = new_sun_cult.134 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.134 days = 450 }
+				country_event = { id = new_sun_cult.134 days = 330 }
 			}
-			country_event = { id = new_sun_cult.135 days = 600 }		#Results
+			country_event = { id = new_sun_cult.135 days = 480 }		#Results
 		}
 	}
 	
@@ -2939,7 +3018,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -2948,7 +3027,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -2998,7 +3077,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3007,7 +3086,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -3057,7 +3136,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3066,7 +3145,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -3085,7 +3164,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -3115,15 +3194,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.136 days = 150 }
+				country_event = { id = new_sun_cult.136 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.136 days = 300 }
+				country_event = { id = new_sun_cult.136 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.136 days = 450 }
+				country_event = { id = new_sun_cult.136 days = 330 }
 			}
-			country_event = { id = new_sun_cult.137 days = 600 }		#Results
+			country_event = { id = new_sun_cult.137 days = 480 }		#Results
 		}
 	}
 	
@@ -3223,7 +3302,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3232,7 +3311,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -3281,7 +3360,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3290,7 +3369,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -3339,7 +3418,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3348,7 +3427,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -3366,7 +3445,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -3396,15 +3475,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.138 days = 150 }
+				country_event = { id = new_sun_cult.138 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.138 days = 300 }
+				country_event = { id = new_sun_cult.138 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.138 days = 450 }
+				country_event = { id = new_sun_cult.138 days = 330 }
 			}
-			country_event = { id = new_sun_cult.139 days = 600 }		#Results
+			country_event = { id = new_sun_cult.139 days = 480 }		#Results
 		}
 	}
 	
@@ -3517,7 +3596,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3526,7 +3605,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -3577,7 +3656,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3586,7 +3665,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -3635,7 +3714,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3644,7 +3723,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -3664,7 +3743,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -3694,15 +3773,15 @@ country_event = {
 			}
 			#triggering next debate
 			if = { limit = { tag = F37 } 								#First Irrliam votes
-				country_event = { id = new_sun_cult.140 days = 150 }
+				country_event = { id = new_sun_cult.140 days = 30 }
 			}
 			else_if = { limit = { is_vassal = no }						#Then independent countries
-				country_event = { id = new_sun_cult.140 days = 300 }
+				country_event = { id = new_sun_cult.140 days = 180 }
 			}
 			else = {													#Then vassals
-				country_event = { id = new_sun_cult.140 days = 450 }
+				country_event = { id = new_sun_cult.140 days = 330 }
 			}
-			country_event = { id = new_sun_cult.141 days = 600 }		#Results
+			country_event = { id = new_sun_cult.141 days = 480 }		#Results
 		}
 	}
 	
@@ -3802,7 +3881,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_a } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3811,7 +3890,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceAVar value = 2 } }
 			}
 			else = {
@@ -3861,7 +3940,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_b } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3870,7 +3949,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceBVar value = 2 } }
 			}
 			else = {
@@ -3918,7 +3997,7 @@ country_event = {
 		if = { limit = { F37 = { has_country_flag = nsc_choice_c } } #Increasing unity if picking the same option as Irrliam
 			custom_tooltip = nsc_irrliam_option_tt
 			hidden_effect = {
-				if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+				if = { limit = { is_chosen_country = yes } #Elf choices count more
 					REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 				}
 				else = {
@@ -3927,7 +4006,7 @@ country_event = {
 			}
 		}
 		hidden_effect = {	
-			if = { limit = { ruler_culture = sun_elf } #Elf choices count more
+			if = { limit = { is_chosen_country = yes } #Elf choices count more
 				REB = { change_variable = { which = nscChoiceCVar value = 2 } }
 			}
 			else = {
@@ -3946,7 +4025,7 @@ country_event = {
 			if = { limit = { tag = F37 }	#Irrliam agreeing with itself
 				REB = { change_variable = { which = nscIrrliamChoicesVar value = 2 } }
 			}
-			if = { limit = { ruler_culture = sun_elf }
+			if = { limit = { is_chosen_country = yes }
 				REB = { change_variable = { which = nscTotalChoicesVar value = 2 } }
 			}
 			else = {
@@ -4611,7 +4690,7 @@ country_event = {
 	}
 	
 	after = {
-		if = { limit = { ruler_culture = sun_elf }
+		if = { limit = { is_chosen_country = yes }
 			country_event = { id = new_sun_cult.155 days = 365 }
 		}
 		else = {
@@ -5123,56 +5202,6 @@ country_event = {
 		is_incident_potential = incident_summit_of_samartal
 	}
 	
-	option = {
-		name = new_sun_cult.161.a
-		random_list = {
-			10 = {
-				trigger = {
-					NOT = { has_country_flag = nsc_assassination_attempt }
-					has_regency = no
-				}
-				country_event = { id = new_sun_cult.162 }
-			}
-			10 = {
-				trigger = {
-					NOT = { has_country_flag = nsc_kidnapping }
-					has_heir = yes
-				}
-				country_event = { id = new_sun_cult.164 }
-			}
-			10 = {
-				modifier = { factor = 0.02 has_country_flag = nsc_arson }
-				random_owned_province = { province_event = { id = new_sun_cult.167 } }
-			}
-			10 = {
-				modifier = { factor = 0.02 has_country_flag = nsc_caravan_raided }
-				country_event = { id = new_sun_cult.168 }
-			}
-			10 = {
-				modifier = { factor = 0.01 has_country_flag = nsc_instigated_revolts }
-				random_owned_province = { province_event = { id = new_sun_cult.169 } }
-			}
-			50 = {
-				trigger = { NOT = { check_variable = { which = nscNoTensionEvent value = 5 } } }
-				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 4 } }
-				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 3 } }
-				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 2 } }
-				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 1 } }
-				change_variable = { which = nscNoTensionEvent value = 1 }
-			}
-		}
-	}
-}
-
-#Failed assassination attempt
-country_event = {
-	id = new_sun_cult.162
-	title = new_sun_cult.162.t
-	desc = new_sun_cult.162.d
-	picture = ASSASSINATION_eventPicture
-	
-	is_triggered_only = yes
-	
 	immediate = {
 		random_known_country = {
 			limit = {
@@ -5187,7 +5216,7 @@ country_event = {
 				religion = bulwari_sun_cult
 				NOT = { capital_scope = { continent = south_america } }
 				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
+				NOT = { reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big } }
 			}
 			save_event_target_as = nsc_target_country
 		}
@@ -5196,12 +5225,70 @@ country_event = {
 				religion = bulwari_sun_cult
 				NOT = { capital_scope = { continent = south_america } }
 				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour }
+				NOT = { reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big } }
+				NOT = { reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour } }
+			}
+			save_event_target_as = nsc_target_country
+		}
+		random_known_country = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { capital_scope = { continent = south_america } }
+				NOT = { capital_scope = { continent = north_america } }
+				NOT = { reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big } }
+				NOT = { reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour } }
+				alliance_with = ROOT
 			}
 			save_event_target_as = nsc_target_country
 		}
 	}
+	
+	option = {
+		name = new_sun_cult.161.a
+		random_list = {
+			10 = {
+				trigger = { NOT = { has_country_flag = nsc_assassination_attempt } has_regency = no }
+				country_event = { id = new_sun_cult.162 } #+3 tension
+			}
+			10 = {
+				trigger = { NOT = { has_country_flag = nsc_kidnapping } has_heir = yes }
+				country_event = { id = new_sun_cult.164 } #+3 tension
+			}
+			10 = {
+				modifier = { factor = 0.02 has_country_flag = nsc_arson }
+				random_owned_province = { province_event = { id = new_sun_cult.167 } } #+1 tension
+			}
+			10 = {
+				modifier = { factor = 0.02 has_country_flag = nsc_caravan_raided }
+				country_event = { id = new_sun_cult.168 } #+1 tension
+			}
+			10 = {
+				modifier = { factor = 0.01 has_country_flag = nsc_instigated_revolts }
+				random_owned_province = { province_event = { id = new_sun_cult.169 } } #+2 tension
+			}
+			50 = {
+				trigger = { NOT = { check_variable = { which = nscNoTensionEvent value = 5 } } }
+				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 4 } }
+				modifier = { factor = 0.7 check_variable = { which = nscNoTensionEvent value = 3 } }
+				modifier = { factor = 0.75 check_variable = { which = nscNoTensionEvent value = 2 } }
+				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 1 } }
+				modifier = { factor = 0.5 NOT = { calc_true_if = { all_known_country = { is_incident_potential = incident_summit_of_samartal } amount = 16 } } }
+				modifier = { factor = 0 NOT = { calc_true_if = { all_known_country = { is_incident_potential = incident_summit_of_samartal } amount = 11 } } }
+				change_variable = { which = nscNoTensionEvent value = 1 }
+			}
+		}
+		#on average, tension increase by 1 every time this event fires
+	}
+}
+
+#Failed assassination attempt
+country_event = {
+	id = new_sun_cult.162
+	title = new_sun_cult.162.t
+	desc = new_sun_cult.162.d
+	picture = ASSASSINATION_eventPicture
+	
+	is_triggered_only = yes
 	
 	#Hire the best surgeon
 	option = {
@@ -5450,36 +5537,6 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	immediate = {
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-			}
-			save_event_target_as = nsc_target_country
-		}
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-			}
-			save_event_target_as = nsc_target_country
-		}
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour }
-			}
-			save_event_target_as = nsc_target_country
-		}
-	}
-	
 	#Heir come back
 	option = {
 		name = new_sun_cult.166.a
@@ -5524,42 +5581,9 @@ province_event = {
 	title = new_sun_cult.167.t
 	desc = new_sun_cult.167.d
 	picture = COUNTRY_COLLAPSE_eventPicture
-	
 	goto = ROOT
 	
 	is_triggered_only = yes
-	
-	immediate = {
-		owner = {
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-				}
-				save_event_target_as = nsc_target_country
-			}
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-				}
-				save_event_target_as = nsc_target_country
-			}
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour }
-				}
-				save_event_target_as = nsc_target_country
-			}
-		}
-	}
 	
 	#
 	option = {
@@ -5583,36 +5607,6 @@ country_event = {
 	picture = HORDE_ON_HORSEBACK_eventPicture
 	
 	is_triggered_only = yes
-	
-	immediate = {
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-			}
-			save_event_target_as = nsc_target_country
-		}
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-			}
-			save_event_target_as = nsc_target_country
-		}
-		random_known_country = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { capital_scope = { continent = south_america } }
-				NOT = { capital_scope = { continent = north_america } }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-				reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour }
-			}
-			save_event_target_as = nsc_target_country
-		}
-	}
 	
 	#Help the merchants recover
 	option = {
@@ -5651,42 +5645,9 @@ province_event = {
 	title = new_sun_cult.169.t
 	desc = new_sun_cult.169.d
 	picture = CIVIL_WAR_eventPicture
-	
 	goto = ROOT
 	
 	is_triggered_only = yes
-	
-	immediate = {
-		owner = {
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-				}
-				save_event_target_as = nsc_target_country
-			}
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-				}
-				save_event_target_as = nsc_target_country
-			}
-			random_known_country = {
-				limit = {
-					religion = bulwari_sun_cult
-					NOT = { capital_scope = { continent = south_america } }
-					NOT = { capital_scope = { continent = north_america } }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour_big }
-					reverse_has_opinion_modifier = { who = ROOT modifier = nsc_suspicious_behaviour }
-				}
-				save_event_target_as = nsc_target_country
-			}
-		}
-	}
 	
 	#
 	option = {
@@ -5808,7 +5769,7 @@ country_event = {
 			fixed = yes
 		}
 		hidden_effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			set_heir = exiled_heir_@ROOT
 		}
 		set_country_flag = nsc_sent_ruler
@@ -5973,6 +5934,15 @@ country_event = {
 	option = {
 		name = new_sun_cult.174.a
 		trigger = { has_country_flag = nsc_same_room_as_explosion }
+		every_known_country = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { is_subject_of = ROOT }
+				NOT = { overlord_of = ROOT }
+			}
+			add_opinion = { who = ROOT modifier = nsc_tragedy_of_samartal }
+			add_trust = { who = ROOT value = -15  mutual = no }
+		}
 		custom_tooltip = nsc_samartal_investigation_starts_tt
 	}
 	
@@ -6051,6 +6021,15 @@ country_event = {
 				}
 			}
 		}
+		every_known_country = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { is_subject_of = ROOT }
+				NOT = { overlord_of = ROOT }
+			}
+			add_opinion = { who = ROOT modifier = nsc_tragedy_of_samartal }
+			add_trust = { who = ROOT value = -15  mutual = no }
+		}
 		hidden_effect = {
 			random_list = {
 				50 = { country_event = { id = new_sun_cult.175 days = 365 } }	#Ruler/heir recovers
@@ -6083,6 +6062,15 @@ country_event = {
 				}
 			}
 		}
+		every_known_country = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { is_subject_of = ROOT }
+				NOT = { overlord_of = ROOT }
+			}
+			add_opinion = { who = ROOT modifier = nsc_tragedy_of_samartal }
+			add_trust = { who = ROOT value = -15  mutual = no }
+		}
 	}
 	
 	after = {
@@ -6093,6 +6081,7 @@ country_event = {
 		clr_ruler_flag = was_ruler_when_heir_left
 		set_country_flag = nsc_investigation_enabled
 		REB = { set_variable = { which = nscInvestigationProgressVar value = 0 } }
+		REB = { set_variable = { which = nscLocalInvestigationProgressVar value = 0 } }
 	}
 }
 
@@ -6225,14 +6214,18 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		calculate_local_investigation_impact = yes
+	}
+	
+	immediate = {
 		hidden_effect = {
-			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 6 } } }
+			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.6 } } }
 				country_event = { id = new_sun_cult.178 days = 365 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 4 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.4 } } }
 				country_event = { id = new_sun_cult.178 days = 545 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 2 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.2 } } }
 				country_event = { id = new_sun_cult.178 days = 730 }
 			}
 			else = {
@@ -6258,14 +6251,18 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		calculate_local_investigation_impact = yes
+	}
+	
+	immediate = {
 		hidden_effect = {
-			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 7 } } }
+			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 1.2 } } }
 				country_event = { id = new_sun_cult.179 days = 365 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 5 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.8 } } }
 				country_event = { id = new_sun_cult.179 days = 545 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 3 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.4 } } }
 				country_event = { id = new_sun_cult.179 days = 730 }
 			}
 			else = {
@@ -6291,14 +6288,18 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		calculate_local_investigation_impact = yes
+	}
+	
+	immediate = {
 		hidden_effect = {
-			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 8 } } }
+			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 1.8 } } }
 				country_event = { id = new_sun_cult.180 days = 365 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 6 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 1.2 } } }
 				country_event = { id = new_sun_cult.180 days = 545 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 4 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.6 } } }
 				country_event = { id = new_sun_cult.180 days = 730 }
 			}
 			else = {
@@ -6324,14 +6325,18 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		calculate_local_investigation_impact = yes
+	}
+	
+	immediate = {
 		hidden_effect = {
-			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 9 } } }
+			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 2.4 } } }
 				country_event = { id = new_sun_cult.181 days = 365 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 7 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 1.6 } } }
 				country_event = { id = new_sun_cult.181 days = 545 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 5 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 0.8 } } }
 				country_event = { id = new_sun_cult.181 days = 730 }
 			}
 			else = {
@@ -6357,14 +6362,18 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		calculate_local_investigation_impact = yes
+	}
+	
+	immediate = {
 		hidden_effect = {
-			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 10 } } }
+			if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 3 } } }
 				country_event = { id = new_sun_cult.182 days = 365 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 8 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 2 } } }
 				country_event = { id = new_sun_cult.182 days = 545 }
 			}
-			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 6 } } }
+			else_if = { limit = { REB = { check_variable = { which = nscInvestigationProgressVar value = 1 } } }
 				country_event = { id = new_sun_cult.182 days = 730 }
 			}
 			else = {
@@ -6423,6 +6432,7 @@ country_event = {
 		every_known_country = {
 			limit = { has_country_flag = nsc_was_investigated_by_@ROOT }
 			reverse_add_opinion = { who = FROM modifier = nsc_paid_reparations }
+			remove_opinion = { who = ROOT modifier = nsc_tragedy_of_samartal }
 		}
 		set_incident_variable_value = { incident = incident_summit_of_samartal value = 0 }
 	}
@@ -6483,10 +6493,14 @@ country_event = {
 		has_country_flag = nsc_is_investigated_by_@FROM
 	}
 	
+	immediate = {
+		hidden_effect = { nsc_calculate_army_strength_ratio = { who = FROM } }
+	}
+	
 	#Bear with them
 	option = {
 		name = new_sun_cult.184.a
-		ai_chance = { factor = 50 }
+		ai_chance = { factor = 33 }
 		add_legitimacy = -10
 		add_country_modifier = { name = nsc_intrusive_investigators duration = 9125 }
 		add_opinion = { who = FROM modifier = nsc_nosy_investigators }
@@ -6496,13 +6510,10 @@ country_event = {
 	option = {
 		name = new_sun_cult.184.b
 		ai_chance = {
-			factor = 50
-			modifier = { factor = 0 is_subject_of = ROOT NOT = { liberty_desire = 50 } }
-			modifier = { factor = 0.5 NOT = { manpower_percentage = 0.10 } NOT = { manpower = 10 } }
-			modifier = { factor = 0 NOT = { army_strength = { who = FROM value = 0.3 } } }
-			modifier = { factor = 0.5 NOT = { army_strength = { who = FROM value = 0.75 } } }
-			modifier = { factor = 2 army_strength = { who = FROM value = 1 } }
-			modifier = { factor = 5 army_strength = { who = FROM value = 1.5 } }
+			factor = 66
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 1.5 } } is_at_war = yes }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.4 } } }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.75 } } FROM = { is_at_war = no } }
 		}
 		custom_tooltip = nsc_they_might_declare_war_tt
 		add_opinion = { who = FROM modifier = nsc_nosy_investigators }
@@ -6532,7 +6543,8 @@ country_event = {
 	#Bear with them
 	option = {
 		name = new_sun_cult.185.a
-		ai_chance = { factor = 10 }
+		ai_chance = { factor = 1 }
+		reduce_stability_or_adm_power = yes
 		add_legitimacy = -15
 		add_country_modifier = { name = nsc_disrespected_by_investigators duration = 9125 }
 		add_opinion = { who = FROM modifier = nsc_disrespectful_investigators }
@@ -6542,13 +6554,10 @@ country_event = {
 	option = {
 		name = new_sun_cult.185.b
 		ai_chance = {
-			factor = 90
-			modifier = { factor = 0 is_subject_of = ROOT NOT = { liberty_desire = 50 } }
-			modifier = { factor = 0.5 NOT = { manpower_percentage = 0.10 } NOT = { manpower = 10 } }
-			modifier = { factor = 0 NOT = { army_strength = { who = FROM value = 0.3 } } }
-			modifier = { factor = 0.5 NOT = { army_strength = { who = FROM value = 0.75 } } }
-			modifier = { factor = 2 army_strength = { who = FROM value = 1 } }
-			modifier = { factor = 5 army_strength = { who = FROM value = 1.5 } }
+			factor = 99
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 1 } } is_at_war = yes }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.2 } } }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.35 } } FROM = { is_at_war = no } }
 		}
 		add_opinion = { who = FROM modifier = nsc_disrespectful_investigators }
 		reverse_add_opinion = { who = FROM modifier = nsc_expelled_investigators }
@@ -6569,25 +6578,27 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		hidden_effect = { nsc_calculate_army_strength_ratio = { who = FROM } }
+	}
+	
 	#To war
 	option = {
 		ai_chance = {
-			factor = 67
-			modifier = { factor = 0.5 NOT = { manpower_percentage = 0.10 } NOT = { manpower = 10 } }
-			modifier = { factor = 0 NOT = { army_strength = { who = FROM value = 0.4 } } FROM = { is_at_war = no } }
-			modifier = { factor = 0.5 NOT = { army_strength = { who = FROM value = 0.4 } } }
-			modifier = { factor = 0.5 NOT = { army_strength = { who = FROM value = 0.75 } } }
-			modifier = { factor = 10 army_strength = { who = FROM value = 1 } }
-			modifier = { factor = 10 army_strength = { who = FROM value = 1.5 } }
+			factor = 99
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 1.5 } } is_at_war = yes }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.4 } } }
+			modifier = { factor = 0 NOT = { check_variable = { which = armyStrengthRatio value = 0.75 } } FROM = { is_at_war = no } }
 		}
 		name = new_sun_cult.186.a
 		declare_war_with_cb = { who = FROM casus_belli = cb_nsc_investigation }
+		custom_tooltip = nsc_1v1_tt
 	}
 	
 	#We can't
 	option = {
 		name = new_sun_cult.186.b
-		ai_chance = { factor = 33 }
+		ai_chance = { factor = 1 }
 		add_prestige = -5
 	}
 }
@@ -6612,7 +6623,7 @@ country_event = {
 		custom_tooltip = nsc_global_investigation_progress_faster
 		hidden_effect = {
 			event_target:nsc_investigated_target = { set_country_flag = nsc_was_fully_investigated_by_@ROOT }
-			REB = { change_variable = { which = nscInvestigationProgressVar value = 1 } }
+			REB = { change_variable = { which = nscLocalInvestigationProgressVar value = 1 } }
 		}
 	}
 }
@@ -6633,7 +6644,7 @@ country_event = {
 		name = new_sun_cult.188.a
 		trigger = { NOT = { has_country_flag = nsc_was_investigated } }
 		custom_tooltip = nsc_global_investigation_progress_faster
-		hidden_effect = { REB = { change_variable = { which = nscInvestigationProgressVar value = 1 } } }
+		hidden_effect = { REB = { change_variable = { which = nscLocalInvestigationProgressVar value = 1 } } }
 	}
 	
 	#
@@ -6706,6 +6717,7 @@ country_event = {
 			clr_country_flag = nsc_was_fully_investigated_by_@ROOT
 			clr_country_flag = nsc_is_investigated_by_@ROOT
 		}
+		REB = { clr_country_flag = nsc_investigation_calculations }
 	}
 }
 
@@ -7632,6 +7644,25 @@ country_event = {
 		custom_tooltip = nsc_incident_ravelianism_start_tt
 		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = -1 }
+		if = { limit = { has_country_flag = nsc_lucian_carter_in_our_lands }
+			define_advisor = {
+				type = theologian
+				name = "Lucian Carter"
+				skill = 3
+				culture = anbenncoster
+				religion = ravelian
+				discount = yes
+			}
+		}
+		else = {
+			define_advisor = {
+				type = theologian
+				skill = 2
+				culture = anbenncoster
+				religion = ravelian
+				discount = yes
+			}
+		}
 		add_country_modifier = { name = nsc_ravelian_at_court duration = 3650 }
 	}
 	
