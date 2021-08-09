@@ -1,5 +1,5 @@
-name="anbennar-eu4-g_reth"
-path="mod/anbennar-eu4-g_reth"
+name="Anbennar-PublicFork"
+path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.31.*"
