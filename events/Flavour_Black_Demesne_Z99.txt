@@ -48,7 +48,174 @@ country_event = {
 	}
 }
 
+##The Demesne Expand
+#Black Invasion
+country_event = {
+	id = black_demesne.2
+	title = black_demesne.2.t
+	desc = black_demesne.2.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		tag = Z99
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_known_country = {
+				limit = { has_country_flag = black_invasion_target }
+				save_event_target_as = country
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = { event_target:country = { clr_country_flag = black_invasion_target } }
+	}
+	
+	#Share the Lands as per your Land Distribution Law
+	option = {
+		name = black_demesne.2.a
+		ai_chance = { factor = 40 }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			REB = { ROOT = { set_variable = { which = nbProvBlack which = PREV } } }
+			trigger_switch = {
+				on_trigger = has_estate_privilege
+				estate_acolytes_land_share_10 = { multiply_variable = { nbProvBlack = 0.1 } }
+				estate_acolytes_land_share_20 = { multiply_variable = { nbProvBlack = 0.2 } }
+				estate_acolytes_land_share_30 = { multiply_variable = { nbProvBlack = 0.3 } }
+				estate_acolytes_land_share_40 = { multiply_variable = { nbProvBlack = 0.4 } }
+				estate_acolytes_land_share_50 = { multiply_variable = { nbProvBlack = 0.5 } }
+			}
+			REB = { subtract_variable = { which = nbProvBlack which = ROOT } }
+			while = {
+				limit = { check_variable = { nbProvBlack = 0 } }
+				subtract_variable = { nbProvBlack = 1 }
+				event_target:country = {
+					random_owned_province = {
+						cede_province = ROOT
+						remove_loot = { who = ROOT amount = 100 }
+					}
+				}
+			}
+			acolytes_land_distribution_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+	
+	#Share the Lands but only for your acolyte
+	option = {
+		name = black_demesne.2.b
+		ai_chance = { factor = 40 }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			acolytes_land_distribution_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+}
 
+#The Apostle
+country_event = {
+	id = black_demesne.3
+	title = black_demesne.3.t
+	desc = black_demesne.3.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = { set_country_flag = debug_menu }
+		hidden_effect = {
+			if = {
+				limit = { ai = no }
+				set_variable = { foo = 0 }
+				export_to_variable = {
+					which = foo
+					value = years_of_income
+				}
+				multiply_variable = { foo = 0.03 }
+				divide_variable = { foo = 1000 }
+				multiply_variable = { foo = 1000 }
+			}
+		}
+	}
+	after = {
+		hidden_effect = { clr_country_flag = debug_menu }
+	}
+	
+	#Core
+	option = {
+		name = black_demesne.3.a
+		ai_chance = { factor = 40 }
+		custom_tooltip = the_apostle_tooltip
+		while = {
+			limit = {
+				AND = {
+					any_owned_province = {
+						is_territory = yes
+						AND = {
+							NOT = { is_core = ROOT }
+							NOT = { has_construction = core }
+						}
+					}
+					adm_power = 50
+				}
+			}
+			random_owned_province = {
+				limit = { 
+					is_territory = yes
+					AND = {
+						NOT = { is_core = ROOT }
+						NOT = { has_construction = core }
+					}
+				}
+				if = {
+					limit = { ai = yes }
+					add_core_construction = {
+						speed = 1.5
+						cost = 0.5
+					}
+				}
+				else = {
+					add_core_construction = {
+						speed = 2
+						cost = 0.75
+					}
+				}
+			}
+			if = {
+				limit = { ai = no }
+				add_years_of_income = -0.03
+			}
+		}
+	}
+	
+	#Go Back
+	option = {
+		name = black_demesne.3.b
+		ai_chance = { factor = 0 }
+	}
+}
 
 
 ##################
@@ -63,7 +230,7 @@ country_event = {
 	picture = COURT_eventPicture
 	
 	is_triggered_only = yes
-	# hidden = yes
+	hidden = yes
 	
 	trigger = {
 		tag = Z99
