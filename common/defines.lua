@@ -1401,7 +1401,7 @@ NMilitary = {
 	AREA_REBEL_SUPPRESSION_MULTIPLIER = 5.0,		-- Armies suppressing rebels in areas adds this/<number of suppressed provinces> to rebel suppression in affected provinces.
 
 	BANNER_USES_CONSTRUCTION = 0,
-	STRELTSY_USES_CONSTRUCTION = 1,
+	STRELTSY_USES_CONSTRUCTION = 0,
 	COSSACKS_USES_CONSTRUCTION = 1,
 	JANISSARIES_USES_CONSTRUCTION = 0,
 	RAJPUT_USES_CONSTRUCTION = 1,
@@ -1562,7 +1562,7 @@ NAI = {
 	REVOLUTION_EMBRACE_MAX_ABSOLUTISM = 49, -- AI will not consider embracing the revolution (unless a disaster happens) if their absolutism if over this value
 	BASE_CAN_MAKE_CORE_DESIRE_TO_RETURN_PROVINCE = 10, --score to add to desire to keep province rather than returning it to someone or creating a trading city if you can core it straight away
 	BASE_CAN_MAKE_CORE_IN_AREA_DESIRE_TO_RETURN_PROVINCE = 8, --score to add to desire to keep province rather than returning it to someone or creating a trading city if you can core it soon
-	GOVERNING_CAPACITY_OVER_PERCENTAGE_TOLERATED = 0.2,
+	GOVERNING_CAPACITY_OVER_PERCENTAGE_TOLERATED = 1,	--Anbennar, was 0.2 but people complained + anbennar has higher dev stuff in general. This makes AI make vassals if they are +100% over their governing capacity
 	DANGEROUS_OVEREXTENSION_PERCENTAGE = 0.1,
 
 	DEBASE_THRESHOLD = -100,-- AI will not debase if it has more gold than this.	Anbennar change from like -50,000 this is to improve AI aggressiveness in FP
@@ -2402,16 +2402,16 @@ NNationDesigner = {
 
 NGovernment = {
 	SELECT_HEIR_FROM_HAREM_AT_MONARCH_AGE = 30, -- The age in years when an heir is selected if the government "has_harem" flag is set.
-	RUSSIAN_ABILITY_COST = 100,
+	RUSSIAN_ABILITY_COST = 100, -- This is used for Magnates government, it might be reusable if you want to investigate that
 	RUSSIAN_ABILITY_POOL_SIZE = 150,
 	RUSSIAN_ABILITY_BASE_GAIN = 3,
-	RUSSIAN_ABILITY_SUDEBNIK_MIN_AUTONOMY = 10,
+	RUSSIAN_ABILITY_SUDEBNIK_MIN_AUTONOMY = 0, -- Anbennar changed to 0, was 10
 	RUSSIAN_ABILITY_SUDEBNIK_AUTONOMY_CHANGE = -10,
-	RUSSIAN_ABILITY_OPRICHNINA_THRESHOLD = 0.3,
+	RUSSIAN_ABILITY_OPRICHNINA_THRESHOLD = 0, -- Anbennar changed to 0, was 0.3
 	RUSSIAN_ABILITY_OPRICHNINA_AI_THRESHOLD = 0.85, -- AI will use ability when revolt risk is 90%, or when they have full power
-	RUSSIAN_ABILITY_OPRICHNINA_CHANGE = -0.3,
+	RUSSIAN_ABILITY_OPRICHNINA_CHANGE = -0.3, 
 	RUSSIAN_ABILITY_STRELTSY_WE_CHANGE = -2,
-	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0.2,
+	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0.2, -- Anbennar change to -100 vanilla was 0.2
 
 	IQTA_POLICY_COOLDOWN_YEARS = 20,
 	EFFICIENT_FARMING_DUCAT_MULTIPLIER = 2,

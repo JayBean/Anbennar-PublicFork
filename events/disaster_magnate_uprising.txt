@@ -1,0 +1,706 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
+namespace = magnate_uprising
+
+# The Magnates show their hand
+country_event = {
+	id = magnate_uprising.1
+	title = "magnate_uprising.1.t"
+	desc = "magnate_uprising.1.d"
+	picture = COUNTRY_COLLAPSE_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	is_triggered_only = yes
+
+	after = {
+		hidden_effect = {
+			country_event = { id = magnate_uprising.5 days = 730 random = 180 } # 2ish Years
+			country_event = { id = magnate_uprising.11 days = 365 random = 30 } # 1ish Year
+		}
+	}
+
+	# Rally to the Magnates
+	option = {
+		name = magnate_uprising.1.a
+		ai_chance = {
+			factor = 9
+		}
+		set_country_flag = chose_magnates
+		hidden_effect = {
+			country_event = {
+				id = magnate_uprising.100
+				days = 50
+				random = 10
+			}
+			exile_heir_as = magnate_uprising_exiled_heir
+			exile_ruler_as = magnate_uprising_exiled_king
+			add_stability = 1
+		}
+		
+		define_ruler = {
+			name = "Magnate Council"
+			dynasty = ""
+			adm = 2
+			dip = 2
+			mil = 2
+			age = 20
+			fixed = yes
+		}
+		setup_magnates_magnate_side = yes
+	}
+	
+	# We must crush these upstarts
+	option = {
+		name = magnate_uprising.1.b
+		ai_chance = {
+			factor = 1
+		}
+		set_country_flag = chose_crown
+		setup_magnates_crown_side = yes
+		capital_scope = {
+			spawn_rebels = {
+				type = magnate_rebels
+				size = 2
+			}
+		}
+	}
+}
+
+# The end of the war
+country_event = {
+	id = magnate_uprising.2
+	title = "magnate_uprising.2.t"
+	desc = {
+		trigger = {
+			OR = {
+				AND = {
+					has_country_flag = chose_crown
+					NOT = { has_country_modifier = just_lost_to_rebels }
+				}
+				AND = {
+					has_country_flag = chose_magnates
+					has_country_modifier = just_lost_to_rebels
+				}
+			}
+		}
+		desc = "magnate_uprising.2.d1"
+	}
+	desc = {
+		trigger = {
+			OR = {
+				AND = {
+					has_country_flag = chose_magnates
+					NOT = { has_country_modifier = just_lost_to_rebels }
+				}
+				AND = {
+					has_country_flag = chose_crown
+					has_country_modifier = just_lost_to_rebels
+				}
+			}
+		}
+		desc = "magnate_uprising.2.d2"
+	}
+	picture = CONQUEST_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	is_triggered_only = yes
+	
+	immediate = {
+		set_country_flag = ended_magnate_uprising
+	}
+	
+	after = {
+		# Don't need these anymore so cya
+		clr_country_flag = chose_magnates
+		clr_country_flag = chose_crown
+	}
+	
+	major = yes
+
+
+	# Mangnates win
+	option = {
+		name = magnate_uprising.2.a
+		trigger = { 
+			OR = {
+				AND = {
+					has_country_flag = chose_magnates
+					NOT = { has_country_modifier = just_lost_to_rebels }
+				}
+				AND = {
+					has_country_flag = chose_crown
+					has_country_modifier = just_lost_to_rebels
+				}
+			}
+		}
+		if = {
+			limit = { has_country_modifier = just_lost_to_rebels ai = no }
+			add_stability_or_adm_power = yes
+			add_country_modifier = {
+				name = magnates_enforced_control_lose
+				duration = 18250
+			}
+			define_ruler = {
+				name = "Magnate Council"
+				dynasty = ""
+				adm = 2
+				dip = 2
+				mil = 2
+				age = 20
+				fixed = yes
+			}
+			exile_heir_as = cannot_return
+			country_event = { id = magnate_uprising.100 days = 7 }
+		}
+		else = {
+			add_stability_or_adm_power = yes
+			add_stability_or_adm_power = yes
+			add_republican_tradition = 30
+			add_country_modifier = {
+				name = magnates_enforced_control_win
+				duration = 18250
+			}
+			if = {
+				limit = { ai = yes has_country_modifier = just_lost_to_rebels }
+				define_ruler = {
+					name = "Magnate Council"
+					dynasty = ""
+					adm = 2
+					dip = 2
+					mil = 2
+					age = 20
+					fixed = yes
+				}
+				exile_heir_as = cannot_return
+				country_event = { id = magnate_uprising.100 days = 7 }
+			}
+		}
+	}
+	
+	# Crown Win
+	option = {
+		name = magnate_uprising.2.b
+		trigger = { 
+			OR = {
+				AND = {
+					has_country_flag = chose_crown
+					NOT = { has_country_modifier = just_lost_to_rebels }
+				}
+				AND = {
+					has_country_flag = chose_magnates
+					has_country_modifier = just_lost_to_rebels
+				}
+			}
+		}
+		if = {
+			limit = { has_country_modifier = just_lost_to_rebels ai = no }
+			add_stability_or_adm_power = yes
+			add_country_modifier = {
+				name = crown_enforced_control_lose
+				duration = 18250
+			}
+			change_government = monarchy
+			set_ruler = magnate_uprising_exiled_king
+			set_heir = magnate_uprising_exiled_heir
+		}
+		else = {
+			add_stability_or_adm_power = yes
+			add_stability_or_adm_power = yes
+			add_legitimacy = 30
+			add_country_modifier = {
+				name = crown_enforced_control_win
+				duration = 18250
+			}
+			if = {
+				limit = { ai = yes has_country_modifier = just_lost_to_rebels }
+				change_government = monarchy
+				set_ruler = magnate_uprising_exiled_king
+				set_heir = magnate_uprising_exiled_heir
+			}
+		}
+	}
+}
+
+# Hostile stronghold, small rebels
+country_event = {
+	id = magnate_uprising.3
+	title = "magnate_uprising.3.t"
+	desc = "magnate_uprising.3.d"
+	picture = RELIGIOUS_TURMOIL_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		any_owned_province = {
+			has_hostile_stronghold = yes 
+		}
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { has_hostile_stronghold = yes }
+				save_event_target_as = bad_province
+				spawn_magnate_uprising_rebels_small = yes
+			}
+		}
+	}
+	
+	goto = bad_province
+	
+	option = {
+		name = magnate_uprising.3.a
+		tooltip = {
+			event_target:bad_province = {
+				spawn_magnate_uprising_rebels_small = yes
+			}
+		}
+	}
+}
+
+# Hostile stronghold, medium rebels
+country_event = {
+	id = magnate_uprising.4
+	title = "magnate_uprising.4.t"
+	desc = "magnate_uprising.4.d"
+	picture = REVOLUTION_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		any_owned_province = {
+			has_hostile_stronghold = yes 
+		}
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { has_hostile_stronghold = yes }
+				save_event_target_as = bad_province
+				spawn_magnate_uprising_rebels_medium = yes
+			}
+		}
+	}
+	
+	goto = bad_province
+	
+	option = {
+		name = magnate_uprising.4.a
+		tooltip = {
+			event_target:bad_province = {
+				spawn_magnate_uprising_rebels_medium = yes
+			}
+		}
+	}
+}
+
+# War has gone on for too long, peasants rise up
+country_event = {
+	id = magnate_uprising.5
+	title = "magnate_uprising.5.t"
+	desc = "magnate_uprising.5.d"
+	picture = BATTLE_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		has_disaster = magnate_uprising 
+	}
+	
+	goto = capital
+	
+	immediate = {
+		hidden_effect = {
+			capital_scope = {
+				area = {
+					spawn_rebels = {
+						type = anti_tax_rebels
+						size = 1
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = magnate_uprising.5.a
+		tooltip = {
+			capital_scope = {
+				area = {
+					spawn_rebels = {
+						type = anti_tax_rebels
+						size = 2
+					}
+				}
+			}
+		}
+	}
+}
+
+# Province changes sides
+country_event = {
+	id = magnate_uprising.6
+	title = "magnate_uprising.6.t"
+	desc = "magnate_uprising.6.d"
+	picture = FORT_eventPicture
+	mean_time_to_happen = {
+		days = 1
+		# AI cheats
+		modifier = {
+			factor = 0
+			ai = yes
+			has_country_flag = chose_magnates
+			any_owned_province = {
+				has_hostile_stronghold = yes 
+			}
+		}
+	}
+	
+	goto = bad_province
+
+	trigger = {
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					NOT = { 
+						has_hostile_stronghold = yes 
+						any_neighbor_province = { has_hostile_stronghold = yes } 
+					}
+				}
+				save_event_target_as = bad_province
+			}
+		}
+	}
+	
+	# We must accept their demands
+	option = {
+		name = magnate_uprising.6.a
+		add_dip_power = -50
+		event_target:bad_province = {
+			add_local_autonomy = 50
+		}
+	}
+	
+	# We will crush them as well!
+	option = {
+		name = magnate_uprising.6.b
+		event_target:bad_province = {
+			add_hostile_stronghold = yes
+		}
+		if = {
+			limit = { has_country_flag = chose_crown }
+			change_estate_land_share = {
+				estate = estate_burghers
+				share = -2
+			}
+		}
+	}
+}
+
+# Province tires of fighting
+country_event = {
+	id = magnate_uprising.7
+	title = "magnate_uprising.7.t"
+	desc = "magnate_uprising.7.d"
+	picture = MILITARY_CAMP_eventPicture
+	mean_time_to_happen = {
+		days = 1
+		# Must fight for one year
+		modifier = {
+			factor = 0
+			NOT = { 
+				had_country_flag = {
+					flag = chose_crown
+					days = 365
+				}
+				had_country_flag = {
+					flag = chose_magnates
+					days = 365
+				}
+			}
+		}
+		# Tiring of fighting after 2 years
+		modifier = {
+			factor = 2
+			OR = {
+				had_country_flag = {
+					flag = chose_crown
+					days = 730
+				}
+				had_country_flag = {
+					flag = chose_magnates
+					days = 730
+				}
+			}
+		}
+		# Wish for peace after 5 year
+		modifier = {
+			factor = 2
+			OR = {
+				had_country_flag = {
+					flag = chose_crown
+					days = 1825
+				}
+				had_country_flag = {
+					flag = chose_magnates
+					days = 1825
+				}
+			}
+		}
+		# AI cheats
+		modifier = {
+			factor = 1.5
+			ai = yes
+			has_country_flag = chose_magnates
+		}
+	}
+	
+	trigger = {
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+	
+	goto = good_province
+
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_province = {
+			limit = { 
+				has_hostile_stronghold = yes
+			}
+			save_event_target_as = good_province
+		}
+	}
+	
+	# We accept their surrender
+	option = {
+		name = magnate_uprising.7.a
+		add_dip_power = -20
+		event_target:good_province = {
+			add_local_autonomy = 25
+			magnate_uprising_siege_won_effects = yes
+			change_controller = ROOT
+		}
+		ai_chance = {
+			factor = 20
+		}
+	}
+	
+	# They are traitors, and they shall be slain to the last
+	option = {
+		name = magnate_uprising.7.b
+		add_prestige = 10
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+# Pretender seeks push their claim in the chaos
+country_event = {
+	id = magnate_uprising.8
+	title = "magnate_uprising.8.t"
+	desc = "magnate_uprising.8.d"
+	picture = CIVIL_WAR_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		has_country_flag = chose_crown
+	}
+	
+	# How dare they.
+	option = {
+		name = magnate_uprising.8.a
+		random_owned_province = {
+			limit = {
+				is_in_capital_area = yes
+			}
+			spawn_rebels = {
+				type = pretender_rebels
+				size = 2
+			}
+		}
+	}
+}
+
+
+# Bayvic stands against the League
+country_event = {
+	id = magnate_uprising.9
+	title = "magnate_uprising.9.t"
+	desc = "magnate_uprising.9.d"
+	picture = CITY_VIEW_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		any_owned_province = {
+			culture = city_goblin
+			is_in_capital_area = yes
+		}
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+	
+	# Great
+	option = {
+		name = magnate_uprising.9.a
+		trigger = {
+			has_country_flag = chose_crown
+		}
+		every_owned_province = {
+			limit = { culture = city_goblin }
+			clear_strongholds = yes
+		}
+		add_manpower = 3
+	}
+	
+	# Those Traitors
+	option = {
+		name = magnate_uprising.9.b
+		trigger = {
+			has_country_flag = chose_magnates
+		}
+		random_owned_province = {
+			limit = { culture = city_goblin is_in_capital_area = yes }
+			add_hostile_stronghold = yes
+		}
+	}
+}
+
+# Defectors from enemy side
+country_event = {
+	id = magnate_uprising.10
+	title = "magnate_uprising.10.t"
+	desc = "magnate_uprising.10.d"
+	picture = DIPLOMACY_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+	
+	# Great
+	option = {
+		name = magnate_uprising.10.a
+		trigger = {
+			has_country_flag = chose_crown
+		}
+		add_manpower = 5
+	}
+	
+	# Great
+	option = {
+		name = magnate_uprising.10.b
+		trigger = {
+			has_country_flag = chose_magnates
+		}
+		add_manpower = 5
+	}
+}
+
+# All stronghold, small rebels
+country_event = {
+	id = magnate_uprising.11
+	title = "magnate_uprising.11.t"
+	desc = "magnate_uprising.11.d"
+	picture = REVOLUTION_eventPicture
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		any_owned_province = {
+			has_hostile_stronghold = yes 
+		}
+		OR = {
+			has_country_flag = chose_magnates
+			has_country_flag = chose_crown
+		}
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = magnate_uprising.11.a
+		every_owned_province = {
+			limit = { has_hostile_stronghold = yes }
+			spawn_magnate_uprising_rebels_small = yes
+		}
+	}
+}
+
+
+# NL is declared
+country_event = {
+	id = magnate_uprising.100
+	title = "magnate_uprising.100.t"
+	desc = "magnate_uprising.100.d"
+	picture = LIBERUM_VETO_eventPicture
+	
+	major = yes
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = magnate_uprising.100.a
+		hidden_effect = {
+			change_government = republic
+		}
+		add_government_reform = northern_league_magnates
+		override_country_name = NORTHERN_LEAGUE
+		hidden_effect = {
+			kill_ruler = yes
+		}
+	}
+}
