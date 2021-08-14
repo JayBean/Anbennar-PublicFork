@@ -1,3 +1,4 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
 ########################################
 # Raj Events                         #
 ########################################
@@ -23,6 +24,7 @@ country_event = {
 					value = 30
 				}
 			}
+			calc_raj_max_allowed_senaptia = yes
 		}
 	}
 	
@@ -109,7 +111,7 @@ province_event = {
 			limit = {
 				owner = { has_reform = raja_reform }
 			}
-			custom_tooltip = claiming_the_shogunate_tooltip
+			custom_tooltip = claiming_the_raj_tooltip
 			
 			raj_cohesion_change_absolute = { amount = -10 }
 		}
@@ -325,43 +327,44 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 				}
 			}
 			AND = {
-				OR = {
-					overlord = {
-						great_daimyo_vassal = 15
-					}
-					overlord = {
-						NOT = { num_of_subjects = 100 }
-						great_daimyo_vassal = 13
-					}
-					overlord = {
-						NOT = { num_of_subjects = 70 }
-						great_daimyo_vassal = 11
-					}
-					overlord = {
-						NOT = { num_of_subjects = 50 }
-						great_daimyo_vassal = 9
-					}
-					overlord = {
-						NOT = { num_of_subjects = 35 }
-						great_daimyo_vassal = 7
-					}
-					overlord = {
-						NOT = { num_of_subjects = 25 }
-						great_daimyo_vassal = 5
-					}
-					overlord = {
-						NOT = { num_of_subjects = 15 }
-						great_daimyo_vassal = 3
-					}
-				}
-				NOT = {
-					overlord = {
+				# OR = {
+					# overlord = {
+						# great_daimyo_vassal = 15
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 100 }
+						# great_daimyo_vassal = 13
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 70 }
+						# great_daimyo_vassal = 11
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 50 }
+						# great_daimyo_vassal = 9
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 35 }
+						# great_daimyo_vassal = 7
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 25 }
+						# great_daimyo_vassal = 5
+					# }
+					# overlord = {
+						# NOT = { num_of_subjects = 15 }
+						# great_daimyo_vassal = 3
+					# }
+				# }
+				raj_above_allowed_senaptia = yes
+				overlord = {
+					NOT = {
 						any_subject_country = {
 							is_subject_of_type = great_daimyo_vassal
 							NOT = { has_country_modifier = prabhi_recently_promoted }
 							NOT = { has_country_modifier = raj_mandate_senapti_primacy }
 							NOT = { tag = ROOT }
-							total_development = ROOT
+							ROOT = { total_development = PREV }
 						}
 					}
 				}
@@ -388,6 +391,9 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 				has_reform = senapti_reform
 			}
 			add_government_reform = prabhi_reform
+		}
+		hidden_effect = {
+			4411 = { change_variable = { raj_current_num_of_senaptia = -1 } }
 		}
 	}
 }
@@ -555,6 +561,7 @@ country_event = { #Tell the Raj that there is a new potential Senpati
 			add_government_reform = senapti_reform
 			hidden_effect = { clr_country_flag = potential_senapti }
 		}
+		hidden_effect = { 4411 = { change_variable = { raj_current_num_of_senaptia = 1 } } }
 	}
 	
 	option = { #We don't need any more Senapti
@@ -600,7 +607,7 @@ country_event = { #Tell the Raj that there is a new potential Senpati
 				duration = 3650 #10 years
 			}
 			hidden_effect = { clr_country_flag = potential_senapti }
-		}
+		} #! Notify of rejection
 	}
 }
 
@@ -3796,8 +3803,19 @@ country_event = { #Requesting Raj Mandates
 		ai_chance = {
 			factor = 10
 			modifier = {
-				factor = 2
-				overlord = { NOT = { has_disaster = rahen_corrupt_court } }
+				factor = 0
+				overlord = { has_disaster = rahen_corrupt_court }
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					4411 = {
+						check_variable = {
+							which = raj_cohesion
+							value = 80
+						}
+					}
+				}
 			}
 		}
 		name = rahenraj.1002.c
@@ -4881,7 +4899,7 @@ country_event = { #The Raja demands we return conquered territory
 				num_of_loans = 1
 			}
 		}
-		name = rahenraj.1008.a
+		name = rahenraj.1008.b
 		
 		transfer_uncored_province_value_to_overlord = yes
 		add_adm_power = -10
@@ -4922,7 +4940,7 @@ country_event = { #The Raja demands we return conquered territory
 				army_size = FROM
 			}
 		}
-		name = rahenraj.1008.a
+		name = rahenraj.1008.c
 		
 		if = {
 			limit = { 4411 = { NOT = { range = ROOT } NOT = { is_core = ROOT } } }
@@ -4996,11 +5014,16 @@ country_event = { #A Raj falling apart
 		}
 	}
 	
-	option = {
+	option = { #! Notify the Raja
 		ai_chance = { factor = 1 }
 		name = rahenraj.1100.a
 		
-		raj_cohesion_change = { amount = 2 }
+		hidden_effect = {
+			overlord = {
+				country_event = { id = rahenraj.1104 }
+			}
+		}
+		raj_cohesion_change = { amount = 5 }
 		grant_independence = yes
 		if = {
 			limit = {
@@ -5012,6 +5035,7 @@ country_event = { #A Raj falling apart
 			add_government_reform = indep_prabhi_reform
 		}
 	}
+	#! Alt option to choose to stay a part of the Raj
 }
 country_event = { #Nigh collapse of the Raj
 	id = rahenraj.1101
@@ -5114,7 +5138,157 @@ country_event = { #Stabalisation of the Raj
 		name = rahenraj.1103.a
 		
 		add_stability = 1
-		raj_cohesion_change_absolute = 10
+		raj_cohesion_change_absolute = { amount = 10 }
+	}
+}
+country_event = { #[From.GetName] has left the Raj!
+	id = rahenraj.1104
+	title = rahenraj.1104.t
+	desc = rahenraj.1104.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #Oh no!
+		ai_chance = { factor = 1 }
+		name = rahenraj.1104.a
+		
+		add_prestige = -5
+	}
+}
+country_event = { #Someone seems to be sabotaging the Raj!
+	id = rahenraj.1105
+	title = rahenraj.1105.t
+	desc = rahenraj.1105.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #Oh no!
+		ai_chance = { factor = 1 }
+		name = rahenraj.1105.a
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = -1 }
+		}
+	}
+}
+
+#Ministerial Census
+country_event = { #To Subject: Visit of the Censors
+	id = rahenraj.1200
+	title = rahenraj.1200.t
+	desc = rahenraj.1200.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #Grant them full access to our ledgers
+		ai_chance = { factor = 1 }
+		name = rahenraj.1200.a
+		add_country_modifier = {
+			name = raj_census_full_access_to_ledgers
+			duration = 3650
+		}
+		raj_cohesion_change = { amount = 0.5 }
+	}
+	option = { #There are some things we would rather they do not see
+		ai_chance = { factor = 1 }
+		name = rahenraj.1200.b
+		add_country_modifier = {
+			name = raj_census_limited_access_to_ledgers
+			duration = 3650
+		}
+		raj_cohesion_change = { amount = -0.5 }
+		custom_tooltip = raj_raja_may_intervene_for_ministries_tt
+	}
+	
+	after = {
+		#if ministry influence is too low, send message to Raja and ask if they want to send extra administrators to the appropriate region
+		if = {
+			limit = {
+				NOT = {
+					estate_influence = {
+						estate = estate_raj_ministries
+						influence = 20
+					}
+				}
+			}
+			overlord = {
+				country_event = {
+					id = rahenraj.1201
+					days = 14
+					random = 30
+				}
+			}
+		}
+	}
+}
+
+country_event = { # Ministries failing their administration in FROM
+	id = rahenraj.1201
+	title = rahenraj.1201.t
+	desc = rahenraj.1201.d
+	picture = WESTERNISATION_eventPicture
+
+	is_triggered_only = yes
+
+	option = { # It's time for an intervention!
+		name = rahenraj.1201.a
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = rahenraj.1202
+				}
+			}
+		}
+		tooltip = {
+			FROM = {
+				add_estate_influence_modifier = {
+					estate = estate_raj_ministries
+					desc = EST_VAL_INTERVENTION_FROM_THE_RAJA
+					influence = 20
+					duration = 3590
+				}
+			}
+		}
+		add_adm_power = -25
+		add_dip_power = -25
+	}
+	option = { # We have other priorities currently
+		name = rahenraj.1201.b
+		ai_chance = {
+			factor = 1
+		}
+		add_country_modifier = {
+			name = raj_neglected_provincial_administration
+			duration = 3590
+		}
+		
+	}
+}
+
+country_event = { # A Delegation from the Raja
+	id = rahenraj.1202
+	title = rahenraj.1202.t
+	desc = rahenraj.1202.d
+	picture = WESTERNISATION_eventPicture
+
+	is_triggered_only = yes
+
+	option = { # I see...
+		name = rahenraj.1202.a
+		ai_chance = {
+			factor = 1
+		}
+		add_estate_influence_modifier = {
+			estate = estate_raj_ministries
+			desc = EST_VAL_INTERVENTION_FROM_THE_RAJA
+			influence = 20
+			duration = 3650
+		}
 	}
 }
 
@@ -5138,6 +5312,7 @@ country_event = { #The Raj management event
 		
 		calc_raj_total_dev = yes
 		raj_cohesion_yearly_tick = yes
+		calc_raj_max_allowed_senaptia = yes
 	}
 }
 
@@ -5158,7 +5333,7 @@ country_event = { #ai raj subjects to get spy network on raja
 	}
 	
 	option = {
-		ai_chance = { factor = 10 }
+		ai_chance = { factor = 20 }
 		name = rahenraj.1000.a
 		
 		

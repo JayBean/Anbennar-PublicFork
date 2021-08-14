@@ -1,3 +1,4 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
 update_artifice_points = {
 	if = {
 		limit = { has_estate = estate_artificers }
@@ -6,13 +7,7 @@ update_artifice_points = {
 				which = MaxArtificePoints
 				value = 0
 			}
-			#all of this doesn't need to be calcualted every time. If we ensured that everything that can effect artifice ponts adds or subtracts from the max when it happens, then I could make this much less performance intensive.
-			#that isn't set up currently, but I'll work on it in a seperate fork
-			#once it's done, we only need to to calculate province resources, innovativeness, estates, buildings, tech and institutions (thanks paradox for not including shit in on_actions). 
-			#So that at least removes racial admin/mils and religions
-			#man I'm gonna have to figure out how to optimize this shit
-
-			#some of these should be placed in the static variable
+			# If you're adding a modifier here make sure to also add it to the artifice localization (in artifice_l_english and anb_custom_artifice_localization) otherwise it will not show up in game
 		
 			#gov reforms
 			#gov reforms can be made to count as a technocracy by adding count_gov_as_technocracy to their effect and reset_gov_is_technocracy to their removed_effect
@@ -35,6 +30,17 @@ update_artifice_points = {
 					value = 10
 				}
 			}
+			
+			#5 points for having a university, nothing more from universities please.
+			if = {
+				limit = {
+					university = 1
+				}
+				change_variable = {
+					which = MaxArtificePoints
+					value = 5
+				}
+			}
 		
 			#artificer admin/mil/religion
 			if = {
@@ -48,6 +54,17 @@ update_artifice_points = {
 				change_variable = {
 					which = MaxArtificePoints
 					value = 5
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_modifier = dwarven_administration
+					}
+				}
+				change_variable = {
+					which = MaxArtificePoints
+					value = 2
 				}
 			}
 			if = {
@@ -76,14 +93,12 @@ update_artifice_points = {
 				}
 			}
 		
-			#trolls get a penalty because they are stupid. elves, harimari and dwarves get a penalty because they are traditionalist. Emerald orcs because they hate technology
-		
+			#trolls get a penalty because they are stupid. elves, harimari get a penalty because they are traditionalist. Emerald orcs because they hate technology
 			if = {
 				limit = {
 					OR = {
 						has_country_modifier = troll_administration
 						has_country_modifier = elven_administration
-						has_country_modifier = dwarven_administration
 						has_country_modifier = harimari_administration
 						#culture = emerald_orc
 					}
@@ -99,7 +114,6 @@ update_artifice_points = {
 					OR = {
 						has_country_modifier = troll_military
 						has_country_modifier = elven_military
-						has_country_modifier = dwarven_military
 						has_country_modifier = harimari_military
 						#culture = emerald_orc
 					}
@@ -131,7 +145,7 @@ update_artifice_points = {
 				}
 				subtract_variable = {
 					which = MaxArtificePoints
-					value = 5
+					value = 10
 				}
 			}
 			if = {
@@ -157,39 +171,30 @@ update_artifice_points = {
 					value = 3
 				}
 			}
+			else = {
+				subtract_variable = {
+					which = MaxArtificePoints
+					value = 10
+				}
+			}
 			if = {
 				limit = {
 					has_institution = industrialization
 				}
 				change_variable = {
 					which = MaxArtificePoints
-					value = 10
+					value = 5
 				}
 			}
 		
 			#buildings
 		
-			#a gnome/goblin/kobold technocracy with indsutrialization embraced that follows the thought would have 16 points before anything else. Enough for a full set of basic inventions
+			#a gnome/goblin/kobold technocracy with industrialization embraced that follows the thought would have 16 points before anything else. Enough for a full set of basic inventions
 		
 			#estates
 			#+4 for every tier of artificer influence, -4 for every tier of mage influence.
 			# mages influence will reduce artificers influence and vice versa
 			#If you want both artifice and magic, you need to have a lot of other sources of points
-			if = {
-				limit = {
-					has_estate = estate_mages
-					NOT = {
-						estate_influence = {
-							estate = estate_mages
-							influence = 20
-						}	
-					}
-				}
-				subtract_variable = {
-					which = MaxArtificePoints
-					value = 2 #offsets the base 2 from manufacotries. Gives a reason to expel the mages
-				}
-			}
 			if = {
 				limit = {
 					estate_influence = {
@@ -224,6 +229,18 @@ update_artifice_points = {
 				subtract_variable = {
 					which = MaxArtificePoints
 					value = 4
+				}
+			}
+			else_if = {
+				limit = {
+					estate_influence = {
+						estate = estate_mages
+						influence = 0
+					}
+				}
+				subtract_variable = {
+					which = MaxArtificePoints
+					value = 2
 				}
 			}
 		
@@ -320,36 +337,19 @@ update_artifice_points = {
 				}
 			}
 		
-			#techs
-			if = {
-				limit = {
-					adm_tech = 32
-				}
-				change_variable = {
-					which = MaxArtificePoints
-					value = 5
-				}
-			}
-			if = {
-				limit = {
-					dip_tech = 32
-				}
-				change_variable = {
-					which = MaxArtificePoints
-					value = 5
-				}
-			}
-			if = {
-				limit = {
-					mil_tech = 32
-				}
-				change_variable = {
-					which = MaxArtificePoints
-					value = 5
-				}
-			}
-		
 			#damestear/coal/precursor relics. CNs don't get points from resources they own
+			set_variable = {
+				which = CoalArtificePoints
+				value = 0
+			}
+			set_variable = {
+				which = DamestearArtificePoints
+				value = 0
+			}
+			set_variable = {
+				which = RelicsArtificePoints
+				value = 0
+			}
 			if = {
 				limit = {
 					damestear = 1
@@ -364,7 +364,11 @@ update_artifice_points = {
 					owner = {
 						change_variable = {
 							which = MaxArtificePoints
-							value = 5
+							value = 3
+						}
+						change_variable = {
+							which = DamestearArtificePoints
+							value = 3
 						}
 					}
 				}
@@ -383,7 +387,11 @@ update_artifice_points = {
 					owner = {
 						change_variable = {
 							which = MaxArtificePoints
-							value = 3
+							value = 5
+						}
+						change_variable = {
+							which = RelicsArtificePoints
+							value = 5
 						}
 					}
 				}
@@ -403,6 +411,10 @@ update_artifice_points = {
 						change_variable = {
 							which = MaxArtificePoints
 							value = 1  #coal is already valuable as fuck. And it isn't really magical
+						}
+						change_variable = {
+							which = CoalArtificePoints
+							value = 1
 						}
 					}
 				}
@@ -427,7 +439,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 5
+									value = 3
+								}
+								change_variable = {
+									which = DamestearArtificePoints
+									value = 3
 								}
 							}
 						}
@@ -452,7 +468,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 3
+									value = 5
+								}
+								change_variable = {
+									which = RelicsArtificePoints
+									value = 5
 								}
 							}
 						}
@@ -479,23 +499,23 @@ update_artifice_points = {
 									which = MaxArtificePoints
 									value = 1
 								}
+								change_variable = {
+									which = CoalArtificePoints
+									value = 1
+								}
 							}
 						}
 					}
 				}
 			}
-		
+			
 			#static sources from things like missions and upkeep
 			change_variable = {
 				which = MaxArtificePoints
 				which = StaticArtificePoints
 			}
-		
-			subtract_variable = {
-				which = MaxArtificePoints
-				which = ArtificeUpkeep
-			}
-		
+			
+			# Floor at 0
 			if = {
 				limit = {
 					NOT = {
@@ -505,23 +525,41 @@ update_artifice_points = {
 						}
 					}
 				}
+				set_variable = {
+					which = MaxArtificePoints
+					value = 0
+				}
+			}
+			
+			set_variable = {
+				which = RemainingArtificePoints
+				value = 0
+			}
+			
+			change_variable = {
+				which = RemainingArtificePoints
+				which = MaxArtificePoints
+			}
+			
+			subtract_variable = {
+				which = RemainingArtificePoints
+				which = ArtificeUpkeep
+			}
+		
+			# If over capacity
+			if = {
+				limit = {
+					NOT = {
+						check_variable = {
+							which = RemainingArtificePoints
+							value = 0
+						}
+					}
+				}
 				add_country_modifier = artificers_over_artifice_capacity
 			}
 			else = {
 				remove_country_modifier = artificers_over_artifice_capacity
-			}
-
-			set_variable = {
-				which = TotalArtificePoints
-				value = 0
-			}
-			change_variable = {
-				which = TotalArtificePoints
-				which = MaxArtificePoints
-			}
-			change_variable = {
-				which = TotalArtificePoints
-				which = ArtificeUpkeep
 			}
 		}
 	}
@@ -729,6 +767,12 @@ artifice_research_rewards = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_arithmatons
 			}
+			modifier = {
+				factor = 0
+				NOT = {
+					has_institution = manufactories
+				}
+			}
 		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_apparitional_communicator
@@ -779,25 +823,9 @@ artifice_research_rewards = {
 				has_country_flag = unlocked_artifice_invention_viewcatcher
 			}
 		}
-#		10 = {
-#			set_country_flag = unlocked_artifice_invention_conversation_calibrator
-#			ROOT = { country_event = { id = artifice_inventions.104 } }
-#			modifier = {
-#				factor = 2
-#				has_country_flag = artifice_research_brilliance
-#			}
-#			modifier = {
-#				factor = 0
-#				NOT = { has_country_flag = artifice_research_society }
-#			}
-#			modifier = {
-#				factor = 0
-#				has_country_flag = unlocked_artifice_invention_conversation_calibrator
-#			}
-#		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_conversation_calibrator
-			ROOT = { country_event = { id = artifice_inventions.105 } }
+			ROOT = { country_event = { id = artifice_inventions.104 } }
 			modifier = {
 				factor = 2
 				has_country_flag = artifice_research_brilliance
@@ -812,7 +840,25 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = gnomish }
+				NOT = {
+					culture_group = gnomish
+				}
+			}
+		}
+		10 = {
+			set_country_flag = unlocked_artifice_invention_centipedal_chests
+			ROOT = { country_event = { id = artifice_inventions.105 } }
+			modifier = {
+				factor = 2
+				has_country_flag = artifice_research_brilliance
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_society }
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = unlocked_artifice_invention_centipedal_chests
 			}
 		}
 		10 = {
@@ -951,7 +997,6 @@ artifice_research_rewards = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_artificer_exo_arms
 			}
-			country_event = { id = artifice_invention.1 }
 		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_t_wave_transceivers
@@ -1465,6 +1510,10 @@ artifice_research_rewards = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_arcane_blaster
 			}
+			modifier = {
+				factor = 0
+				NOT = { has_institution = industrialization }
+			}
 		}
 
 
@@ -1839,7 +1888,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { has_country_flag = artifice_research_military }
+				NOT = { has_country_flag = artifice_research_society }
 			}
 			modifier = {
 				factor = 0
@@ -1961,7 +2010,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = businori }
+				NOT = { OR = { culture_group = businori tag = A33 } }
 			}
 		}
 		10 = {
@@ -2147,23 +2196,6 @@ artifice_research_rewards = {
 			}
 		}
 		10 = {
-			set_country_flag = unlocked_artifice_invention_remedial_tinctures
-			# custom_tooltip = invention_remedial_tinctures_tt
-			ROOT = { country_event = { id = artifice_inventions.807 } }
-			modifier = {
-				factor = 2
-				has_country_flag = artifice_research_machinery
-			}
-			modifier = {
-				factor = 0
-				NOT = { has_country_flag = artifice_research_industry }
-			}
-			modifier = {
-				factor = 0
-				has_country_flag = unlocked_artifice_invention_remedial_tinctures
-			}
-		}
-		10 = {
 			set_country_flag = unlocked_artifice_invention_commercial_sky_galleons
 			# custom_tooltip = invention_commercial_sky_galleons_tt
 			ROOT = { country_event = { id = artifice_inventions.808 } }
@@ -2222,6 +2254,26 @@ artifice_research_rewards = {
 			modifier = {
 				factor = 0
 				NOT = { culture_group = bulwari } 
+			}
+		}
+		10 = {
+			set_country_flag = unlocked_artifice_invention_gene_food_cultivation
+			ROOT = { country_event = { id = artifice_inventions.914 } }
+			modifier = {
+				factor = 2
+				has_country_flag = artifice_research_machinery
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_industry }
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = unlocked_artifice_invention_gene_food_cultivation
+			}
+			modifier = {
+				factor = 0
+				has_institution = enlightenment
 			}
 		}
 
@@ -2711,436 +2763,13 @@ artifice_research_rewards = {
 			}
 		}
 	}
-		#cleanup
-		clr_country_flag = artifice_research_brilliance
-		clr_country_flag = artifice_research_technomancy
-		clr_country_flag = artifice_research_machinery
 	
-		clr_country_flag = artifice_research_society
-		clr_country_flag = artifice_research_industry
-		clr_country_flag = artifice_research_military
-}
-
-artifice_breakdown = {
-	if = {
-		limit = {
-			has_government_attribute = is_technocracy
-		}
-		custom_tooltip = "+10 - Has a Technocratic government"
-	}
-	else_if = {
-		limit = {
-			has_government_attribute = is_magocracy
-		}
-		custom_tooltip = "-10 - Has a Magocratic government"
-	}
-
-
-	#artificer admin/mil/religion
-	if = {
-		limit = {
-			OR = {
-				has_country_modifier = gnomish_administration
-				has_country_modifier = goblin_administration
-				has_country_modifier = kobold_administration
-			}
-		}
-		custom_tooltip = "+5 - Has gnomish, goblin, or kobold administration"
-	}
-	if = {
-		limit = {
-			OR = {
-				has_country_modifier = gnomish_military
-				has_country_modifier = goblin_military
-				has_country_modifier = kobold_military
-			}
-		}
-		custom_tooltip = "+5 - Has gnomish, goblin, or kobold military"
-	}
-	if = {
-		limit = {
-			OR = {
-				religion = ravelian
-				religion = the_thought
-			}
-		}
-		custom_tooltip = "+3 - Has a pro-Artificer religion (Ravelian, The Thought)"
-	}
-
-	#trolls get a penalty because they are stupid. elves, harimari and dwarves get a penalty because they are traditionalist. Emerald orcs because they hate technology
-
-	if = {
-		limit = {
-			OR = {
-				has_country_modifier = troll_administration
-				has_country_modifier = elven_administration
-				has_country_modifier = dwarven_administration
-				has_country_modifier = harimari_administration
-			}
-		}
-		custom_tooltip = "-2 - Has troll, elf, harimari, or dwarf administration."
-	}
-
-	if = {
-		limit = {
-			OR = {
-				has_country_modifier = troll_military
-				has_country_modifier = elven_military
-				has_country_modifier = dwarven_military
-				has_country_modifier = harimari_military
-			}
-		}
-		custom_tooltip = "-2 - Has troll, elf, harimari, or dwarf military."
-	}
-	#deepwoods fey hate tech
-	if = {
-		limit = {
-			OR = {
-				religion = fey_court
-				religion = ashentree_pact
-			}
-		}
-		custom_tooltip = "-2 - Has a anti-Artificer religion (Fey Court, Ashentree Pact)"
-	}
-	#liches and witch kings
-	if = {
-		limit = {
-			has_ruler_flag = lich_ruler
-		}
-		custom_tooltip = "-10 - Liches have no need for artifice, and see artificers as a threat."
-	}
-	if = {
-		limit = {
-			OR = {
-				has_ruler_modifier = witch_king_modifier
-				has_country_flag = witch_king_flag
-			}
-			NOT = {
-				has_ruler_flag = lich_ruler
-			}
-		}
-		custom_tooltip = "-5 - Witch Kings have no need for artifice and see it as a threat to their power"
-	}
-
-	#institutions
-	if = {
-		limit = {
-			has_institution = manufactories
-		}
-		custom_tooltip = "+3 - Embraced the manufactories institution"
-	}
-	if = {
-		limit = {
-			has_institution = industrialization
-		}
-		custom_tooltip = "+10 - Embraced the industrialization institution"
-	}
-
-	#estates
-	if = {
-		limit = {
-			has_estate = estate_mages
-			NOT = {
-				estate_influence = {
-					estate = estate_mages
-					influence = 20
-				}	
-			}
-		}
-		custom_tooltip = "-2 - Have the Mages estate in your country"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_mages
-				influence = 60
-			}
-		}
-		custom_tooltip = "-12 - 60% Mages influence"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_mages
-				influence = 40
-			}
-		}
-		custom_tooltip = "-8 - 40% Mages influence"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_mages
-				influence = 20
-			}
-		}
-		custom_tooltip = "-4 - 20% Mages influence"
-	}
-
-	if = {
-		limit = {
-			has_estate = estate_artificers
-			NOT = {
-				estate_influence = {
-					estate = estate_artificers
-					influence = 20
-				}	
-			}
-		}
-		custom_tooltip = "+2 - Has the Artificers estate in your country"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_artificers
-				influence = 60
-			}
-		}
-		custom_tooltip = "+12 - 60% Artificers influence"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_artificers
-				influence = 40
-			}
-		}
-		custom_tooltip = "+8 - 40% Artificers influence"
-	}
-	else_if = {
-		limit = {
-			estate_influence = {
-				estate = estate_artificers
-				influence = 20
-			}
-		}
-		custom_tooltip = "+4 - 20% Artificers Influence"
-	}
-
-		
-	#innovativeness
-	if = {
-		limit = {
-			innovativeness = 100
-		}
-		custom_tooltip = "+5 - 100 innovativeness"
-	}
-	else_if = {
-		limit = {
-			innovativeness = 80
-		}
-		custom_tooltip = "+4 - 80 innovativeness"
-	}
-	else_if = {
-		limit = {
-			innovativeness = 60
-		}
-		custom_tooltip = "+3 - 60 innovativeness"
-	}
-	else_if = {
-		limit = {
-			innovativeness = 40
-		}
-		custom_tooltip = "+2 - 40 innovativeness"
-	}
-	else_if = {
-		limit = {
-			innovativeness = 20
-		}
-		custom_tooltip = "+1 - 20 innovativeness"
-	}
-
-	#techs
-	if = {
-		limit = {
-			adm_tech = 32
-		}
-		custom_tooltip = "+5 - Admin Tech 32"
-	}
-	if = {
-		limit = {
-			dip_tech = 32
-		}
-		custom_tooltip = "+5 - Dip Tech 32"
-	}
-	if = {
-		limit = {
-			mil_tech = 32
-		}
-		custom_tooltip = "+5 - Mil Tech 32"
-	}
-	#setting up the TT
-	hidden_effect = {
-		set_variable = {
-			which = DamestearArtificePoints
-			value = 0
-		}
-		if = {
-			limit = {
-				damestear = 1
-				NOT = {
-					is_colonial_nation = yes
-				}
-			}
-			every_owned_province = {
-				limit = {
-					trade_goods = damestear
-				}
-				owner = {
-					change_variable = {
-						which = DamestearArtificePoints
-						value = 5
-					}
-				}
-			}
-		}
-		#resources owned by CNs
-		if = {
-			limit = {
-				any_subject_country = {
-					damestear = 1
-				}
-			}
-			every_subject_country = {
-				limit = {
-					is_colonial_nation = yes
-				}
-				every_owned_province = {
-					limit = {
-						trade_goods = damestear
-					}
-					owner = {
-						overlord = {
-							change_variable = {
-								which = DamestearArtificePoints
-								value = 5
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	#resources
-	custom_tooltip = damestear_points_tt
-	hidden_effect = {
-		set_variable = {
-			which = RelicsArtificePoints
-			value = 0
-		}
-		if = {
-			limit = {
-				precursor_relics = 1
-				NOT = {
-					is_colonial_nation = yes
-				}
-			}
-			every_owned_province = {
-				limit = {
-					trade_goods = precursor_relics
-				}
-				owner = {
-					change_variable = {
-						which = RelicsArtificePoints
-						value = 3
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_subject_country = {
-					precursor_relics = 1
-				}
-			}
-			every_subject_country = {
-				limit = {
-					is_colonial_nation = yes
-				}
-				every_owned_province = {
-					limit = {
-						trade_goods = precursor_relics
-					}
-					owner = {
-						overlord = {
-							change_variable = {
-								which = RelicsArtificePoints
-								value = 3
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	custom_tooltip = relics_points_tt
-	hidden_effect = {
-		set_variable = {
-			which = CoalArtificePoints
-			value = 0
-		}
-		if = {
-			limit = {
-				coal = 1
-				NOT = {
-					is_colonial_nation = yes
-				}
-			}
-			every_owned_province = {
-				limit = {
-					trade_goods = coal
-				}
-				owner = {
-					change_variable = {
-						which = CoalArtificePoints
-						value = 1  #coal is already valuable as fuck. And it isn't really magical
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_subject_country = {
-					coal = 1
-				}
-			}
-			every_subject_country = {
-				limit = {
-					is_colonial_nation = yes
-				}
-				every_owned_province = {
-					limit = {
-						trade_goods = coal
-					}
-					owner = {
-						overlord = {
-							change_variable = {
-								which = CoalArtificePoints
-								value = 1
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	custom_tooltip = coal_points_tt
-
-	hidden_effect = {
-		set_variable = {
-			which = TotalArtificePoints
-			value = 0
-		}
-		change_variable = {
-			which = TotalArtificePoints
-			which = MaxArtificePoints
-		}
-		change_variable = {
-			which = TotalArtificePoints
-			which = ArtificeUpkeep
-		}
-	}
-
-	custom_tooltip = artificer_points_static_tt
-	custom_tooltip = artificer_points_upkeep_tt
+	#cleanup
+	clr_country_flag = artifice_research_brilliance
+	clr_country_flag = artifice_research_technomancy
+	clr_country_flag = artifice_research_machinery
+	
+	clr_country_flag = artifice_research_society
+	clr_country_flag = artifice_research_industry
+	clr_country_flag = artifice_research_military
 }

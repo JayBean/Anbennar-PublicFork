@@ -1,3 +1,4 @@
+# � <-- This is here to make sure that the encoding stays ANSI, do not remove it
 #When adding effects directly in on_actions always consider if it would be best to do so through a scripted effect. on_actions with a lot of script in them are harder to get an overview of.
 
 # Anbennar Added Stuff
@@ -38,10 +39,11 @@ on_startup = {
 		anbennar_setup.9		#Global Setup for Racial Admin Mil #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
 		anbennar_setup.10		#Sets up Greentide Adventurer opinion
 		anbennar_setup.12
-		#anbennar_setup.13		#Adds a hacky delay to prevent existing adventurers colonizing straight away
+		anbennar_setup.13		#Adds a hacky delay to prevent existing adventurers colonizing straight away
 		#estate_organization.1		#Give unassigned countries appropriate modifier - does anbennar_setup.6 for rest of game
 		kheteratan_events.1		#Sets up Khetarch for Kheterata
 		#kobold_events.1 		#Sets up for kobolds
+		diggy.40				#Remnant Legacy event
 		diggy.108				#Dwarovar Claimer event
 		diggy.106				#Random setup for cavern stuff
 		diggy.110				#AI Discover shit, Hold setup  #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
@@ -58,9 +60,11 @@ on_startup = {
 		magic_ruler.8			#Sets up magic for rulers with undefined skills
 		anbennar_setup.17		#exodus goblin invasion
 		flavor_corintar.3		#Adds Lothane Bluetusk's Leadership to Corintar
-		flavor_gawed.4			#Derek Deland Setup and explanation
 		religious_leagues.10	#Starting religious peace
 		flavor_neckcliffe.1		#Neckcliffe intro event and setting up the debuffs
+		flavor_arverynn.0		#Arverynn intro and Sarda setup
+		flavor_trompolere.0		#Trompolere intro event
+		flavor_toarnen.1		#The Whitecliffs burghers uprising of 1356
 		
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -86,6 +90,8 @@ on_startup = {
 		#artifice
 		#anbennar_setup.18
 		anbennar_setup.19
+		migration_force_settle.2
+		great_conqueror.1				#GC setup
 
 	}
 
@@ -95,6 +101,13 @@ on_startup = {
 		days = 32
 	}
 
+	#Derek Deland Setup and explanation
+	A13 = {
+		country_event = {
+			id = flavor_gawed.4
+			days = 1
+		}
+	}
 	
 	# every_country = {
 		# country_event = { id = anbennar_setup.9 days = 2 }
@@ -103,10 +116,30 @@ on_startup = {
 	if = {
 		limit = {
 			is_year = 1444
-			has_reform = adventurer_reform
-			NOT = { capital_scope = { continent = serpentspine } }
+			capital_scope = {
+				OR = {
+					superregion = escann_superregion 
+					region = forlorn_vale_region
+				}
+				NOT = { region = dostanor_region region = ourdia_region }
+			}
+			NOT = {
+				culture_group = orcish
+				culture_group = goblin
+			}
+			NOT = { tag = A32 }	#Dont let Ibevar and Orda Aldresia get this 
+			NOT = { tag = A77 }
 		}
 		country_event = { id = greentide.0 days = 1 }
+	}
+	
+	# AI need this event on day 1 or they release shit
+	if = {
+		limit = {
+			tag = A30
+			ai = yes
+		}
+		country_event = { id = flavor_wex.2 }
 	}
 	
 	if = {
@@ -135,6 +168,19 @@ on_startup = {
 			culture = white_reachman
 		}
 		country_event = { id = greentide.3 days = 1 }
+	}
+	
+	if = {
+		limit = {
+			tag = A32
+			NOT = { has_country_flag = ibevar_reformation_flag }
+		}
+		set_country_flag = ibevar_reformation_flag
+		add_disaster_progress = { disaster = ibevar_reformation value = 100 }
+		every_owned_province = {
+			limit = { has_province_modifier = ibevar_old_tradition }
+			set_variable = { ibReform = 100 }
+		}
 	}
 
 	#########     Racial Pop Stuff     ###########
@@ -311,24 +357,31 @@ on_religion_change = {
 			}
 		}
 	}
-	if = {
-		limit = {
-			religion = catholic
-			has_ruler_flag = personal_catholic_sympathies
-		}
-		country_event = { id = protestantism_events.19 }
-	}
-	if = {
-		limit = {
-			religion = protestant
-		}
-		set_country_flag = converted_to_protestantism
-	}
+	# Anbennar
+	# if = {
+		# limit = {
+			# religion = catholic
+			# has_ruler_flag = personal_catholic_sympathies
+		# }
+		# country_event = { id = protestantism_events.19 }
+	# }
+	# if = {
+		# limit = {
+			# religion = protestant
+		# }
+		# set_country_flag = converted_to_protestantism
+	# }
 	if = {
 		limit = {
 			religion = corinite
 		}
 		set_country_flag = converted_to_corinite
+	}
+	if = {
+		limit = {
+			religion = ravelian
+		}
+		set_country_flag = converted_to_ravelian
 	}
 	if = {
 		limit = { has_country_modifier = bav_religious_mandate_mod }
@@ -520,6 +573,10 @@ on_war_won = {
 		ROOT = { country_event = { id = goldisland.13 } }
 	}
 	centaur_won_war_count = yes
+	if = {
+		limit = { tag = Z43 has_ruler_flag = sicrheior_son }
+		change_variable = { nbWarWon = 1 }
+	}
 	# federation_religious_war = yes
 
 	# Adenica wars won counter
@@ -551,6 +608,32 @@ on_war_won = {
 				}
 			}
 			change_variable = { adenicaOrcWarsWon = 1 }
+		}
+	}
+
+	# Castanor wars won against beasts & evil counter
+	if = {
+		limit = {
+			TAG = B32
+		}
+		if = {
+			limit = { 
+				FROM = {
+					OR = {
+						monstrous_culture = yes
+						is_evil = yes
+					}
+				}
+			}
+			change_variable = { castanorWarsWonAgainstBeastsBarbarismEvil = 1 }
+		}
+	}
+	
+	#Raja winning war
+	if = {
+		limit = { has_reform = raja_reform }
+		FROM = {
+			raj_cohesion_change = { amount = 0.1 }
 		}
 	}
 	
@@ -631,6 +714,7 @@ on_war_lost = {
     }
 	if = {
 		limit = {
+			FROM = { is_emperor = yes }
 			NOT = { has_country_flag = reined_in_for_shadow_kingdom }
 			NOT = { has_global_flag = italians_leave_hre }
 			is_emperor = no
@@ -664,6 +748,15 @@ on_war_lost = {
 			days = 0
 		}
 	}
+	
+	#Raja losing war
+	if = {
+		limit = { has_reform = raja_reform }
+		FROM = {
+			raj_cohesion_change = { amount = -0.1 }
+		}
+	}
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -692,6 +785,7 @@ on_battle_lost_country = {
 	if = {
 		limit = { NOT = { FROM = { tag = REB } } }
 		centaur_battle_count_lost = yes
+		aelnar_battle_count_lost = yes
 	}
 }
 
@@ -729,6 +823,7 @@ on_battle_won_province = {
 		owner = { country_event = { id = center_of_revolution.1600 } }
 	}
 	
+	#Anbennar
 	if = {
 		limit = {
 			from = { 
@@ -741,6 +836,29 @@ on_battle_won_province = {
 			}
 		}
 		owner = { country_event = { id = flavor_sugamber.9 } }
+	}
+	
+	if = {
+		limit = {
+			NOT = { FROM = { tag = REB } }
+			Z43 = { has_ruler_flag = sicrheior_son }
+		}
+		Z43 = {
+			change_variable = { nbSonBattleWon = 1 }
+			change_variable = { totalBattle = 1 }
+			set_variable = {
+				which = battleWinRate
+				which = nbSonBattleWon
+			}
+			divide_variable = {
+				which = battleWinRate
+				which = totalBattle
+			}
+			multiply_variable = {
+				which = battleWinRate
+				value = 100
+			}
+		}
 	}
 
 	random_events = {
@@ -766,45 +884,156 @@ on_battle_won_unit = {
 			country_event = { id = flavor_malacnar.6 }
 		}
     }
+	if = {	# Edhardrachon battles
+		limit = {
+			unit_owner = { tag = B61 }
+			is_ruler_commanding_unit = yes
+		}
+		B61 = {
+			change_variable = {
+				which = patricianCastanBattlesWon
+				value = 1
+			}
+		}
+	}
+	if = {
+		limit = {
+			unit_owner = { tag = B32 }
+			enemy_unit = { unit_owner = { tag = B61 } }
+		}
+		if = {
+			limit = { enemy_unit = { is_ruler_commanding_unit = yes } }
+			B32 = { change_variable = { which = battlesWonAgainstPatricianCastan value = 1 } }
+		}
+		if = {
+			limit = { enemy_unit = { general_with_name = "Elecast, the Burnished Wing" } }
+			B32 = { change_variable = { which = battlesWonAgainstElecast value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstElecast value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.210 } }
+				}
+			}
+		}
+		else_if = {
+			limit = { enemy_unit = { general_with_name = "Gracos, the Leaden Breath" } }
+			B32 = { change_variable = { which = battlesWonAgainstGracos value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstGracos value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.208 } }
+				}
+			}
+		}
+		else_if = {
+			limit = { enemy_unit = { general_with_name = "Erella, the Argent Claw" } }
+			B32 = { change_variable = { which = battlesWonAgainstErella value = 1 } }
+			random_list = {
+				# Nothing happens
+				10 = { }
+				1 = {
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 2 } }
+					}
+					modifier = {
+						factor = 5
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 4 } }
+					}
+					modifier = {
+						factor = 10
+						B32 = { check_variable = { which = battlesWonAgainstErella value = 6 } }
+					}
+					B32 = { country_event = { id = flavor_castanor.209 } }
+				}
+			}
+		}
+	}
 }
 
 # #Unit Scope OnAction for Battle Lost
 on_battle_lost_unit = {
-    if = {
-        limit = {
-            unit_owner = {
-                tag = F29
-            }
-            is_ruler_commanding_unit = yes
-			enemy_unit = {
-				unit_owner = {
-					tag = F46
-				}
-				is_ruler_commanding_unit = yes
-			}
-        }
-        F46 = {
-            country_event = { id = zokka_jaddari_war.2 }
-        }
-    }
 	if = {
-		limit = {
-			unit_owner = {
-				tag = F46
-            }
-            is_ruler_commanding_unit = yes
-			enemy_unit = {
+		limit = { NOT = { is_year = 1465 } } #No point checking for these after early game
+		if = {
+			limit = {
 				unit_owner = {
 					tag = F29
 				}
 				is_ruler_commanding_unit = yes
+				enemy_unit = {
+					unit_owner = {
+						tag = F46
+					}
+					is_ruler_commanding_unit = yes
+				}
 			}
-        }
-        F29 = {
-            country_event = { id = zokka_jaddari_war.4 }
-        }
-    }
-    if = {
+			F46 = {
+				country_event = { id = zokka_jaddari_war.2 }
+			}
+		}
+		if = {
+			limit = {
+				unit_owner = {
+					tag = F46
+				}
+				is_ruler_commanding_unit = yes
+				enemy_unit = {
+					unit_owner = {
+						tag = F29
+					}
+					is_ruler_commanding_unit = yes
+				}
+			}
+			F29 = {
+				country_event = { id = zokka_jaddari_war.4 }
+			}
+		}
+		if = {	#Slaying Trompolere's warlord
+			limit = {
+				unit_owner = {
+					has_ruler_flag = alaran
+					NOT = { heir_age = 15 }
+				}
+				is_ruler_commanding_unit = yes
+				any_country = {
+					core_claim = G36
+				}
+			}
+			enemy_unit = {
+				unit_owner = {
+					country_event = { id = flavor_trompolere.1 }
+				}
+			}
+		}
+	}
+    else = {	#For events that happen post-1465
         limit = {
             unit_owner = {
                 tag = Z50
@@ -875,6 +1104,7 @@ on_siege_won_country = {
 		deepwoods.22
 	}
 	clr_vampire_hideout = yes
+	castanor_succession_war_shift_momentum_siege = yes
 	random_events = {
 		10 = army_professionalism_events.1 #City Sacked
 		100 = 0
@@ -914,6 +1144,11 @@ on_siege_won_province = {
 		}
 		owner = { country_event = { id = center_of_revolution.1600 } }
 	}
+	# Anbennar
+	if = {
+		limit = { owner = { has_disaster = magnate_uprising } }
+		magnate_uprising_siege_won_effects = yes
+	}
 }
 
 # province
@@ -926,6 +1161,11 @@ on_siege_lost_province =  {
 		vampires_estate_events.15
 		cavegoblinflavor.15
 	}
+	
+	if = {
+		limit = { FROM = { tag = Z43 has_country_flag = harvesting_connadh } } #Aelnar 
+		province_event = { id = aelnar.103 }
+	}
 }
 
 # province
@@ -934,11 +1174,31 @@ on_siege_lost_province =  {
 on_abandon_colony = {
 }
 
+# province
+# root = location, from = country that owns it
+# Fired right after the great project is constructed
+on_great_project_constructed = {
+}
+
 # OBS: Consider that the following on_actions can be called for Personal Union juniors as well.
 # country
 on_new_monarch = {
 	# crimean_succession_effect = yes #Scripted effect
 	# slesvig_question_effect = yes #Scripted effect
+	
+	#Anbennar
+	if = {
+		limit = {
+			has_dlc = "Rights of Man"
+			government = theocracy
+			OR = {
+				ruler_is_elven = yes
+				ruler_is_dwarven = yes
+				ruler_is_gnomish = yes
+			}
+		}
+		set_ruler_flag = long_lived_theocracy
+	}
 	if = {
 		limit = {
 			has_consort_regency = no
@@ -946,7 +1206,7 @@ on_new_monarch = {
 				has_province_modifier = domain_of_spouses_family
 			}
 		}
-		random_owned_province = {
+		every_owned_province = {
 			limit = { has_province_modifier = domain_of_spouses_family }
 			remove_province_modifier = domain_of_spouses_family
 		}
@@ -958,7 +1218,7 @@ on_new_monarch = {
 				has_province_modifier = home_of_consort
 			}
 		}
-		random_owned_province = {
+		every_owned_province = {
 			limit = { has_province_modifier = home_of_consort }
 			remove_province_modifier = home_of_consort
 		}
@@ -977,6 +1237,7 @@ on_new_monarch = {
 	# hab_remove_mission_mods_if_not_emperor_effect = yes
 	# thu_remain_von_wettin_effect = yes
 	# ladislaus_postumus_union_effect = yes
+	set_runelink_level = yes
 	events = {
 	
 		#Anbennar
@@ -984,6 +1245,7 @@ on_new_monarch = {
 		#anbennar_setup.6			#setup mage organization for new country - handled by mage_organization.1
 		anbennar_setup.7			#Setup for evil/witch king opinions
 		anbennar_setup.9			#Setup for racial admin mil
+		anbennar_setup.19			#Setup for artifice system
 		# racial_modifiers.5		#Racial admin change if unmatching
 		# racial_modifiers.6		#Racial mil change if unmatching
 		magic_ruler.8				#gives magic schools
@@ -1003,7 +1265,8 @@ on_new_monarch = {
 		rahenraj.5				#To ensure Harimari rulers in Rahen
 		rahenraj.1000			#To make sure newly independent Prabhi and Senapti have the proper government
 		the_command.3			#Hobgoblin faction influence
-		flavor_blademarches.3 #Blademarches succession event
+		flavor_blademarches.3 	#Blademarches succession event
+		aelnar.82				#Sicrheior Son
 		flavor_telgeir.1		# Vanbury can replace new dynasty
 		
 		#Black Castanor Trial
@@ -1026,6 +1289,9 @@ on_new_monarch = {
 		silver_families.6		#Silebor
 		silver_families.7		#Silurion
 		silver_families.8		#Silgarion
+		
+		# Magnate Council determines whether to support monarch
+		flavor_gawed.5
 	}
 	
 	country_event = { id = estate_organization.1 days = 35 }		#choose magical organization for mage estate
@@ -1035,6 +1301,10 @@ on_new_monarch = {
 	country_event = { id = racial_modifiers.6 days = 1 }			#Racial mil change if unmatching
 
 	country_event = { id = monstrous.100 days = 35 }
+	if = {
+		limit = { is_year = 1445 }
+		country_event = { id = great_conqueror.0 days = 35 }
+	}
 
 	if = {
 		limit = {
@@ -1169,11 +1439,20 @@ on_monarch_death = {
 		flavor_blademarches.3 #Blademarches succession event
 		castanortrials.99	# Castanorian Interregnum
 		flavor_corintar.4	#Bluetusk's Retirement
-		vampires_estate_events.13 # Revival
+		verkaldromak.71		#Verkal Dromak election from mages
 		magic_project_lichdom.12 # Revival
 		vampire_ruler.33 # Vampire Heir Returns
+		flavor_castanor.211 # One of the Castans during disaster dies
 	}
+	country_event = { id = 	vampires_estate_events.13  days = 1 } # Revival													   
 	country_event = { id = magic_misc_events.4 days = 60 } #Undead Army
+	if = {
+		limit = {
+			has_reform = godhood_reform
+			NOT = { has_country_flag = elven_constellation_done }
+		}
+		country_event = { id = aelnar.65 days = 10 }
+	}
 }
 
 # country
@@ -1186,15 +1465,22 @@ on_regent = {
 }
 
 # country
+on_extend_regency = {
+}
+
+# country
 on_new_term_election = {
 	events = {
 		700		# Election event
 		elections.720		# Dutch Republic
-		elections.900		#Allclan Nezkaru Council
 		pirates.1
+		
+		#Anbennar
+		elections.900		#Allclan Nezkaru Council
 		diggy_fallen.9
 		flavor_roilsard.12	# Roilsard Special
 		marlliande.1
+		flavour_reuyel.1
 	}
 }
 
@@ -1215,10 +1501,13 @@ on_death_election = {
 		701		# Election event
 		elections.721		# Dutch Republic
 		elections.800		# Lottery election
+		
+		#Anbennar
 		diggy_fallen.9
 		flavor_roilsard.13	# Roilsard Special
 		marlliande.2
 		elections.901
+		flavour_reuyel.2
 	}
 }
 
@@ -1226,6 +1515,8 @@ on_death_election = {
 on_death_foreign_slave_ruler = {
 	events = {
 		#mamluk_events.0
+		
+		#Anbennar
 		slave_ruler_election.0
 	}
 }
@@ -1449,7 +1740,7 @@ on_emperor_elected = {
 		}
 	}
 
-	ROOT = {
+	emperor = {
 		save_global_event_target_as = Emperor
 		country_event = { id = long_lived_emperor.1 }
 	}
@@ -1676,6 +1967,8 @@ on_government_change = {
 			}
 		}
 	}
+	
+	#Anbennar
 	if = {
 		limit = {
 			THIS = {
@@ -1919,6 +2212,10 @@ on_dismantle_revolution = {
 # province
 on_adm_development = {
 	if = {
+		limit = { religion = corinite }
+		owner = { add_karma = 0.2 }
+	}
+	if = {
 		limit = { has_province_modifier = jaddari_blessed_land }
 		random = {
 			chance = 25
@@ -1945,10 +2242,42 @@ on_adm_development = {
 			hidden = yes
 		}
 	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_tax = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
+		}
+	}
 }
 
 # province
 on_dip_development = {
+	if = {
+		limit = { religion = corinite }
+		owner = { add_karma = 0.2 }
+	}
 	if = {
 		limit = { has_active_triggered_province_modifier = gold_hold }
 		add_base_production = 1
@@ -1980,10 +2309,42 @@ on_dip_development = {
 			hidden = yes
 		}
 	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_production = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
+		}
+	}
 }
 
 # province
 on_mil_development = {
+	if = {
+		limit = { religion = corinite }
+		owner = { add_karma = 0.2 }
+	}
 	if = {
 		limit = { has_province_modifier = jaddari_blessed_land }
 		random = {
@@ -2009,6 +2370,34 @@ on_mil_development = {
 			name = devved_castonath_recently_dummy
 			duration = 1825
 			hidden = yes
+		}
+	}
+	# Castanor stuff
+	if = {
+		limit = { owner = { TAG = B32 } }
+		if = {
+			limit = {
+				OR = {
+					region = inner_castanor_region
+					region = south_castanor_region
+					region = west_castanor_region
+				}
+				owner = { mission_completed = castanor_home_of_humanity }
+			}
+			random = {
+				chance = 25
+				add_base_manpower = 1
+			}
+		}
+		if = {
+			limit = {
+				area = castonath_area
+				owner = { mission_completed = castanor_modernizing_castonath }
+			}
+			change_variable = {
+				which = numTimesCastonathDevved
+				value = 1
+			}
 		}
 	}
 }
@@ -2052,7 +2441,7 @@ on_colonial_pulse = {
 		125 = anb_colonial.1
 		125 = anb_colonial.2
 		125 = anb_colonial.3
-		125 = anb_colonial.4
+		125 = anb_colonial.4	#disabled cos its lame
 		125 = anb_colonial.5
 		125 = anb_colonial.6
 		125 = anb_colonial.7
@@ -2226,67 +2615,6 @@ on_bi_yearly_pulse = {
 		125 = culture_religion_events.22
 		125 = culture_religion_events.23
 
-		#Mamluk Events
-		
-		# 175 = mamluk_events.1
-		# 175 = mamluk_events.2
-		# 175 = mamluk_events.3
-		# 235 = mamluk_events.4
-		# 185 = mamluk_events.5
-		# 175 = mamluk_events.6
-		# 250 = mamluk_events.7
-		# 185 = mamluk_events.10
-		# 185 = mamluk_events.11
-		# 235 = mamluk_events.12
-
-		#Colonization of Siberia
-		# 125 = siberian_events.2
-		# 125 = siberian_events.3
-		# 125 = siberian_events.4
-		# 125 = siberian_events.5
-		# 125 = siberian_events.6
-		
-		#Russian Principalities
-		
-		# 100 = russian_principality_events.1
-		# 125 = russian_principality_events.2
-		# 125 = russian_principality_events.3
-		# 125 = russian_principality_events.4
-		# 125 = russian_principality_events.6
-		# 125 = russian_principality_events.5
-		# 125 = russian_principality_events.7
-		# 100 = russian_principality_events.8
-		# 75 = russian_principality_events.9
-		# 125 = russian_principality_events.10
-		
-		#Tsardoms
-		
-		# 125 = russian_tsardom_events.1
-		# 125 = russian_tsardom_events.2
-		# 125 = russian_tsardom_events.3
-		# 100 = russian_tsardom_events.4
-		# 125 = russian_tsardom_events.5
-		# 100 = russian_tsardom_events.6
-		# 100 = russian_tsardom_events.7
-		# 100 = russian_tsardom_events.8
-		# 125 = russian_tsardom_events.9
-		# 125 = russian_tsardom_events.10
-		# 100 = russian_tsardom_events.11
-		
-		#Streltsy Events
-		# 125 = streltsy_events.1
-		# 125 = streltsy_events.3
-		# 125 = streltsy_events.4
-		# 125 = streltsy_events.5
-		# 100 = streltsy_events.6
-		
-		#Orthodox Metropolitans
-		# 125 = patriarch_events.1
-		# 125 = patriarch_events.2
-		# 125 = patriarch_events.3
-		# 75 = patriarch_events.4
-		# 75 = patriarch_events.5
-		
 		# Old Centralisation/Decentralisation
 		100 = 806
 
@@ -2309,73 +2637,8 @@ on_bi_yearly_pulse = {
 		100 = trade.10
 		100 = trade.11
 		100 = trade.12
-		
-		# Catholic  Events      
-		# 100 = catholic_flavor.4 
-		# 100 = catholic_flavor.5 
-		# 100 = catholic_flavor.6 
-		# 100 = catholic_flavor.7 
-		# 100 = catholic_flavor.8 
-		# 100 = catholic_flavor.9 
-		# 100 = catholic_flavor.10
-		#ravelian equivalent
-
-		#Ravelian Society Events
-		100 = ravelian.103
-		100 = ravelian.104
-		100 = ravelian.105
-		100 = ravelian.106
-		100 = ravelian.107
-		100 = ravelian.108
-		100 = ravelian.109
-
-		100 = ravelian.200
-		100 = ravelian.201
-		100 = ravelian.202
-		100 = ravelian.203
-		100 = ravelian.204
-		100 = ravelian.205
-		100 = ravelian.206
-		100 = ravelian.207
-
-		#Ravelian Reform Events
-		100 = ravelian.301
-		100 = ravelian.302
-		100 = ravelian.304
-		100 = ravelian.305
-		100 = ravelian.306
-		100 = ravelian.307
-		100 = ravelian.308
-		100 = ravelian.309
-		100 = ravelian.310
-		100 = ravelian.311
-		100 = ravelian.312
-
-		100 = ravelian.400
-		100 = ravelian.401
-		100 = ravelian.402
-		100 = ravelian.403
-		100 = ravelian.404
-
-		100 = ravelian.500
-		100 = ravelian.501
-		100 = ravelian.502
-		100 = ravelian.503
-		100 = ravelian.504
-
-		100 = ravelian.600
-		100 = ravelian.601
-		100 = ravelian.602
-		100 = ravelian.603
-		100 = ravelian.604
-
-		100 = ravelian.700
-		100 = ravelian.701
-		100 = ravelian.702
-		100 = ravelian.703
 
 
-		
 		# Tradegoods events
 		100 = 6418
 		100 = 6419
@@ -2432,19 +2695,6 @@ on_bi_yearly_pulse = {
 		100 = corruption_event.19
 		100 = corruption_event.20
 
-		# Trade League Events
-		100 = trade_league.1
-		100 = trade_league.2
-		100 = trade_league.3
-		100 = trade_league.4
-		100 = trade_league.7
-		100 = trade_league.8
-		100 = trade_league.9
-		100 = trade_league.10
-		100 = trade_league.11
-		100 = trade_league.12
-		100 = trade_league.13
-		100 = trade_league.14
 
 		# Institution Events
 		#Feudalism Spread Events:
@@ -2513,6 +2763,20 @@ on_bi_yearly_pulse = {
 		50 = personality_events.57
 		50 = personality_events.58
 
+		# Trade League Events
+		100 = trade_league.1
+		100 = trade_league.2
+		100 = trade_league.3
+		100 = trade_league.4
+		100 = trade_league.7
+		100 = trade_league.8
+		100 = trade_league.9
+		100 = trade_league.10
+		100 = trade_league.11
+		100 = trade_league.12
+		100 = trade_league.13
+		100 = trade_league.14
+
 		#Industrial Revolution
 
 		200 = industrialization_events.7
@@ -2569,6 +2833,21 @@ on_bi_yearly_pulse = {
 
 		2000 = 0 #was 1250
 	}
+	
+	if = {
+		limit = { has_estate_privilege = estate_burghers_magnate_council }
+		random_list = {
+			20 = { country_event = { id = flavor_gawed.5 days = 30 } }
+			20 = { country_event = { id = flavor_gawed.6 days = 30 } }
+			20 = { country_event = { id = flavor_gawed.7 days = 30 } }
+			5 = { country_event = { id = flavor_gawed.8 days = 30 } }
+			20 = { country_event = { id = flavor_gawed.9 days = 30 } }
+			20 = { country_event = { id = flavor_gawed.10 days = 30 } }
+			20 = { country_event = { id = flavor_gawed.11 days = 30 } }
+			
+			500 = {}
+		}
+	}
 }
 
 on_bi_yearly_pulse_2 = {
@@ -2602,13 +2881,12 @@ on_bi_yearly_pulse_2 = {
 on_bi_yearly_pulse_3 = {
 
 	#Fire estate agenda if you have that privilege
-	on_bi_yearly_pulse_estate_privileges_effect = yes
+	# NOTE DOING THIS THROUGH RANDOM EVENT NOW WITH estate_privileges_and_agendas_events.4 INSTEAD!
+	#on_bi_yearly_pulse_estate_privileges_effect = yes
 
 	events = {
 		#muslim_school_events.20 #Pick School
 		high_philosophy_events.0	#Pick School
-		
-		race_setup_events.3 #Unmatching Tolerances - Fixes level of tolerance towards other races
 		
 		kheionai.2
 		# kheionai.3
@@ -2630,6 +2908,8 @@ on_bi_yearly_pulse_3 = {
 		cavegoblinflavor.1 #cave goblin modernization
 		
 		flavor_malacnar.8 #checks if you have fought lately
+
+		flavor_castanor.38 # Adds coal to a random Deepwoods province if coal is unlocked and you've burned down the Deepwoods
 	}
 	random_events = {
 		100 = new_court_flavour_events.21 #religious resignation
@@ -2707,22 +2987,7 @@ on_bi_yearly_pulse_4 = {
 		100 = 5063
 		100 = 6014
 
-		# Anglican Events
-		# 100 = anglican_events.1
-		# 100 = anglican_events.2
-		# 100 = anglican_events.3
-		# 100 = anglican_events.4
-		# 100 = anglican_events.5
-		# 100 = anglican_events.6
-		# 100 = anglican_events.7
-		# 100 = anglican_events.8
-		# 100 = anglican_events.9
-		# 100 = anglican_events.10
-		# 100 = anglican_events.11
-		# 100 = anglican_events.12
-		# 100 = anglican_events.13
-		# 150 = anglican_events.15
-		
+
 		# Innovativeness
 		100 = innovativeness_events.1
 		100 = innovativeness_events.2
@@ -2770,9 +3035,9 @@ on_bi_yearly_pulse_4 = {
 		100 = expel_minority_events.4
 		100 = expel_minority_events.5
 		
-		# Papal Tithe Events	#need AnbennarNewVer pass
+		# Papal Tithe Events	#Anbennarized
 		100 = curia.1
-		100 = curia.2
+		#100 = curia.2	#its italian bankers so
 		100 = curia.4
 		100 = curia.9	
 		100 = curia.10
@@ -2780,21 +3045,21 @@ on_bi_yearly_pulse_4 = {
 		100 = curia.12
 		
 		# Defender of the Faith
-		# 100 = dotf.1
-		# 100 = dotf.4
-		# 100 = dotf.6
-		# 100 = dotf.7
+		100 = dotf.1
+		100 = dotf.4
+		100 = dotf.6
+		100 = dotf.7
 		
 		# Mercenaries
-		# 100 = mercs.1
-		# 100 = mercs.2
-		# 100 = mercs.3
-		# 100 = mercs.4
-		# 100 = mercs.7
-		# 100 = mercs.7
-		# 100 = mercs.8
-		# 100 = mercs.10
-		# 100 = mercs.11
+		100 = mercs.1
+		100 = mercs.2
+		100 = mercs.3
+		100 = mercs.4
+		100 = mercs.7
+		100 = mercs.7
+		100 = mercs.8
+		100 = mercs.10
+		100 = mercs.11
 
 		# Espionage
 		100 = espionage_events.1
@@ -2807,7 +3072,7 @@ on_bi_yearly_pulse_4 = {
 		# 100 = french_revolution.303
 		
 		# Papacy events
-		# 100 = papacy_events.6
+		100 = papacy_events.6
 
 		# Professionalism
 		100 = army_professionalism_events.4
@@ -2820,7 +3085,7 @@ on_bi_yearly_pulse_4 = {
 		75 = army_professionalism_events.12
 		100 = army_professionalism_events.13
 		75 = army_professionalism_events.16
-		
+
 		# Agenda from the Estates
 		1000 = estate_privileges_and_agendas_events.4
 
@@ -2835,13 +3100,221 @@ on_bi_yearly_pulse_4 = {
 		150 = adventuring.9
 		150 = adventuring.10
 
+		# Adenica random chance to proc horse and hunt events on a per ruler basis after requisite missions completed
+		100 = flavor_adenica.10
+		100 = flavor_adenica.1
+
 		2000 = 0
 	}
 }
 
+
+on_bi_yearly_pulse_5 = {
+	random_events = { #all these were shifted from on_bi_yearly_pulse_1
+		# # Anglican Events
+		# 100 = anglican_events.1
+		# 100 = anglican_events.2
+		# 100 = anglican_events.3
+		# 100 = anglican_events.4
+		# 100 = anglican_events.5
+		# 100 = anglican_events.6
+		# 100 = anglican_events.7
+		# 100 = anglican_events.8
+		# 100 = anglican_events.9
+		# 100 = anglican_events.10
+		# 100 = anglican_events.11
+		# 100 = anglican_events.12
+		# 100 = anglican_events.13
+		# 150 = anglican_events.15
+		
+		# # Hussite Events
+		# 100 = hussite.1
+		# 100 = hussite.2
+		# 100 = hussite.3
+		# 100 = hussite.4
+		# 100 = hussite.5
+		# 100 = hussite.6
+		# 100 = hussite.7
+
+
+		# #Mamluk Events
+
+		# 175 = mamluk_events.1
+		# 175 = mamluk_events.2
+		# 175 = mamluk_events.3
+		# 235 = mamluk_events.4
+		# 185 = mamluk_events.5
+		# 175 = mamluk_events.6
+		# 250 = mamluk_events.7
+		# 185 = mamluk_events.10
+		# 185 = mamluk_events.11
+		# 235 = mamluk_events.12
+
+		# #Colonization of Siberia
+		# 125 = siberian_events.2
+		# 125 = siberian_events.3
+		# 125 = siberian_events.4
+		# 125 = siberian_events.5
+		# 125 = siberian_events.6
+
+		# #Russian Principalities
+
+		# 100 = russian_principality_events.1
+		# 125 = russian_principality_events.2
+		# 125 = russian_principality_events.3
+		# 125 = russian_principality_events.4
+		# 125 = russian_principality_events.6
+		# 125 = russian_principality_events.5
+		# 125 = russian_principality_events.7
+		# 100 = russian_principality_events.8
+		# 75 = russian_principality_events.9
+		# 125 = russian_principality_events.10
+
+		# #Tsardoms
+
+		# 125 = russian_tsardom_events.1
+		# 125 = russian_tsardom_events.2
+		# 125 = russian_tsardom_events.3
+		# 100 = russian_tsardom_events.4
+		# 125 = russian_tsardom_events.5
+		# 100 = russian_tsardom_events.6
+		# 100 = russian_tsardom_events.7
+		# 100 = russian_tsardom_events.8
+		# 125 = russian_tsardom_events.9
+		# 125 = russian_tsardom_events.10
+		# 100 = russian_tsardom_events.11
+
+		# #Streltsy Events
+		# 125 = streltsy_events.1
+		# 125 = streltsy_events.3
+		# 125 = streltsy_events.4
+		# 125 = streltsy_events.5
+		# 100 = streltsy_events.6
+
+		# #Orthodox Metropolitans
+		# 125 = patriarch_events.1
+		# 125 = patriarch_events.2
+		# 125 = patriarch_events.3
+		# 75 = patriarch_events.4
+		# 75 = patriarch_events.5
+
+		# Catholic  Events      
+		# 100 = catholic_flavor.4 
+		# 100 = catholic_flavor.5 
+		# 100 = catholic_flavor.6 
+		# 100 = catholic_flavor.7 
+		# 100 = catholic_flavor.8 
+		# 100 = catholic_flavor.9 
+		# 100 = catholic_flavor.10
+		#ravelian equivalent
+
+		#Ravelian Society Events
+		100 = ravelian.103
+		100 = ravelian.104
+		100 = ravelian.105
+		100 = ravelian.106
+		100 = ravelian.107
+		100 = ravelian.108
+		100 = ravelian.109
+
+		100 = ravelian.200
+		100 = ravelian.201
+		100 = ravelian.202
+		100 = ravelian.203
+		100 = ravelian.204
+		100 = ravelian.205
+		100 = ravelian.206
+		100 = ravelian.207
+
+		#Ravelian Reform Events
+		100 = ravelian.301
+		100 = ravelian.302
+		100 = ravelian.304
+		100 = ravelian.305
+		100 = ravelian.306
+		100 = ravelian.307
+		100 = ravelian.308
+		100 = ravelian.309
+		100 = ravelian.310
+		100 = ravelian.311
+		100 = ravelian.312
+
+		100 = ravelian.400
+		100 = ravelian.401
+		100 = ravelian.402
+		100 = ravelian.403
+		100 = ravelian.404
+
+		100 = ravelian.500
+		100 = ravelian.501
+		100 = ravelian.502
+		100 = ravelian.503
+		100 = ravelian.504
+
+		100 = ravelian.600
+		100 = ravelian.601
+		100 = ravelian.602
+		100 = ravelian.603
+		100 = ravelian.604
+
+		100 = ravelian.700
+		100 = ravelian.701
+		100 = ravelian.702
+		100 = ravelian.703
+
+		100 = corinite.200
+		100 = corinite.201
+		100 = corinite.202
+		100 = corinite.203
+		100 = corinite.204
+		100 = corinite.205
+		100 = corinite.206
+		100 = corinite.207
+		100 = corinite.208
+		100 = corinite.209
+		100 = corinite.210
+		100 = corinite.211
+		# 100 = corinite.212
+		# 100 = corinite.213
+		# 100 = corinite.214
+		# 100 = corinite.215
+
+		# # Japanese Daimyos
+		# 15 = flavor_jap.10
+		# 50 = flavor_jap.28
+		# 100 = flavor_jap.40
+		# 100 = flavor_jap.42
+		# 100 = flavor_jap.43
+		# 100 = flavor_jap.45
+		# 100 = flavor_jap.49
+		# 100 = flavor_jap.51
+		# 100 = flavor_jap.52
+		# 100 = flavor_jap.53
+		# 100 = flavor_jap.54
+		# 100 = flavor_jap.55
+
+
+
+		# # China
+		# 75 = meritocracy_events.1
+		# 75 = meritocracy_events.2
+		# 75 = meritocracy_events.3
+		# 75 = meritocracy_events.4
+		# 75 = meritocracy_events.5
+		# 50 = china_events.11
+		# 25 = china_events.12
+		# 25 = china_events.24
+
+		2000 = 0
+	}
+}
+
+
+
 # country random events
 on_thri_yearly_pulse = {
 	random_events = {
+
 		# Republics
 		100 = republics.4
 		100 = republics.5
@@ -2936,30 +3409,7 @@ on_thri_yearly_pulse = {
 		100 = devotion_events.218
 		100 = devotion_events.219
 
-		# Japanese Daimyos
-		# 15 = flavor_jap.10
-		# 50 = flavor_jap.28
-		# 100 = flavor_jap.40
-		# 100 = flavor_jap.42
-		# 100 = flavor_jap.43
-		# 100 = flavor_jap.45
-		# 100 = flavor_jap.49
-		# 100 = flavor_jap.51
-		# 100 = flavor_jap.52
-		# 100 = flavor_jap.53
-		# 100 = flavor_jap.54
-		# 100 = flavor_jap.55
-		
 
-		# China
-		75 = meritocracy_events.1
-		75 = meritocracy_events.2
-		75 = meritocracy_events.3
-		75 = meritocracy_events.4
-		75 = meritocracy_events.5
-		# 50 = china_events.11
-		# 25 = china_events.12
-		# 25 = china_events.24
 
 		#Center of Revolution - post-spawn (higher weighting than others as they are only relevant briefly)
 		200 = center_of_revolution.1
@@ -3076,6 +3526,8 @@ on_thri_yearly_pulse_2 = {
 		race_setup_events.4		#Add minorities to province / Culture Conversion - 
 		race_setup_events.5		#Culture Conversion - turns minorities into majorities cleanup
 		race_setup_events.9		#Expel/Purge opinionsrace_setup_events.9		#Expel/Purge opinions
+
+		migration_force_settle.1
 	}
 }
 
@@ -3156,6 +3608,8 @@ on_thri_yearly_pulse_4 = {
 		# 50 = china_events.58
 		# 10 = china_events.59
 		# 50 = china_events.60
+		
+		#Anbennar
 		10 = allclan_council.999
 		10 = allclan_council.998
 		10 = allclan_council.997
@@ -3194,6 +3648,14 @@ on_four_year_pulse = {
 		100 = colonial_nation.130
 		100 = colonial_nation.132
 		100 = colonial_nation.134
+		100 = colonial_nation.182
+		100 = colonial_nation.183
+		100 = colonial_nation.184
+		100 = colonial_nation.185
+		100 = colonial_nation.186
+		100 = colonial_nation.187
+		100 = colonial_nation.188
+		100 = colonial_nation.189
 		10 = colonial_nation.140
 		10 = colonial_nation.142
 		10 = colonial_nation.144
@@ -3259,6 +3721,31 @@ on_four_year_pulse = {
 		100 = republic_factions.22
 		100 = republic_factions.23
 		100 = republic_factions.24
+
+		# Anbennar - Technocracy Factions
+		100 = artificer_factions.2
+		100 = artificer_factions.3
+		100 = artificer_factions.4
+		100 = artificer_factions.5
+		100 = artificer_factions.6
+		100 = artificer_factions.7
+		100 = artificer_factions.8
+		100 = artificer_factions.9
+		100 = artificer_factions.10
+		100 = artificer_factions.11
+		
+		# Anbennar - Northern League Mangate Factions
+		
+		100 = flavor_gawed.14
+		100 = flavor_gawed.15
+		100 = flavor_gawed.16
+		100 = flavor_gawed.17
+		100 = flavor_gawed.18
+		100 = flavor_gawed.19
+		100 = flavor_gawed.20
+		100 = flavor_gawed.21
+		100 = flavor_gawed.22
+		100 = flavor_gawed.23
 
 		# Revolutionary Republic Factions
 
@@ -3375,8 +3862,28 @@ on_four_year_pulse = {
 		# 100 = china_events.41
 		# 100 = china_events.42
 		# 100 = china_events.44
+
+		# 10 = tortoise.1 # Galapagos Island Tortoises
 		
-		1000 = 0	
+		# 100 = flavor_pue.5
+		
+		# #Totemism Events	- we need to do our own of this eventually when we use totemism properly
+		# 100 = totemism_flavor.1
+		# 100 = totemism_flavor.7
+		# 100 = totemism_flavor.8
+		# 100 = totemism_flavor.10
+		# 100 = totemism_flavor.11
+		# 100 = totemism_flavor.13
+		# 100 = totemism_flavor.14
+		# 100 = totemism_flavor.15
+		# 100 = totemism_flavor.16
+		# 100 = totemism_flavor.17
+		# 100 = totemism_flavor.18
+		
+		# #Volcano Events
+		# 75 = volcano_events.2
+
+		1000 = 0
 	}
 }
 
@@ -3575,6 +4082,7 @@ on_four_year_pulse_2 = {
 on_four_year_pulse_3 = {
 	events = {
 		fragments.2000
+		anb_ruler.10		#Long-lived theocracy abdication
 	}
 }
 
@@ -3874,12 +4382,67 @@ on_five_year_pulse = {
 		100 = ideagroups.1909
 		100 = ideagroups.1910
 
+		# Horde Ideas		10 (8g 2b)
+		100 = ideagroups.1922
+		100 = ideagroups.1923
+		100 = ideagroups.1924
+		100 = ideagroups.1925
+		100 = ideagroups.1926
+		100 = ideagroups.1927
+		100 = ideagroups.1928
+		100 = ideagroups.1929
+		100 = ideagroups.1930
+		100 = ideagroups.1931
+		
+		#Theocracy Ideas		11 (9g 2b)
+		100 = ideagroups.1911
+		100 = ideagroups.1912
+		100 = ideagroups.1913
+		100 = ideagroups.1914
+		100 = ideagroups.1915
+		100 = ideagroups.1916
+		100 = ideagroups.1917
+		100 = ideagroups.1918
+		100 = ideagroups.1919
+		100 = ideagroups.1920
+		100 = ideagroups.1921
+
+		# Indigenous		10 (6g 4b)
+		100 = ideagroups.1932
+		100 = ideagroups.1933
+		100 = ideagroups.1934
+		100 = ideagroups.1935
+		100 = ideagroups.1936
+		100 = ideagroups.1937
+		100 = ideagroups.1938
+		100 = ideagroups.1939
+		100 = ideagroups.1940
+		100 = ideagroups.1941
+		
 		1000 = 0
 	}
 
 	events = {
 		#seven_cities_events.1000 #Clearing of Seven Cities Hunt when goal is no longer possible
-		fragments.2000	#Our version
+		# fragments.2000	#Already done in the four years pulse
+		racial_modifiers.3  #Military Force Switch if Oppressed - Civilized races
+		racial_modifiers.4  #Military Force Switch if Oppressed - Monstrous races
+
+		#Favored by the Gods Regent Court Events
+		favored_RC.1
+		favored_RC.4
+		favored_RC.7
+		favored_RC.10
+		favored_RC.13
+		favored_RC.16
+		favored_RC.19
+		favored_RC.22
+		favored_RC.25
+		favored_RC.28
+		favored_RC.31
+		favored_RC.34
+		favored_RC.37
+		#favored_RC.40
 	}
 }
 
@@ -4063,7 +4626,15 @@ on_five_year_pulse_2 = {
 }
 
 on_five_year_pulse_3 = {
-
+	REB = {
+		if = {
+			limit = { has_global_flag = runetimer }
+			clr_global_flag = runetimer
+		}
+		else = {
+			set_global_flag = runetimer
+		}
+	}
 	random_events = {
 		100 = propagate_religion_events.1
 		100 = propagate_religion_events.2
@@ -4078,8 +4649,10 @@ on_five_year_pulse_3 = {
 		1000 = 0
 	}
 	events = {
-        	corins_circle.100
-    	}
+		corins_circle.100
+		diggy_fallen.10		#Runefather's Maw upkeep Increase
+		# race_setup_events.3 #Unmatching Tolerances - Fixes level of tolerance towards other races
+    }
 
 }
 
@@ -4267,7 +4840,7 @@ on_conquistador_empty = {
 		50 = fragments.706
 		
 
-		2000 = 0
+		1800 = 0
 	}
 }
 
@@ -4567,10 +5140,12 @@ on_province_religion_converted = {
 
 # province
 on_province_culture_converted = {
-	owner = {
-		country_event = { id = race_setup_events.4 }	#Culture Conversion - turns majorities into minorities
-		country_event = { id = race_setup_events.5 }	#Culture Conversion - turns minorities into majorities cleanup
-	}
+	# owner = { #Handle with the province event effect under
+		# country_event = { id = race_setup_events.4 }	#Culture Conversion - turns majorities into minorities
+		# country_event = { id = race_setup_events.5 }	#Culture Conversion - turns minorities into majorities cleanup
+	# }
+	
+	province_event = { id = race_setup_events.15 days = 3 }
 	
 	if = {
 		limit = {
@@ -4581,6 +5156,36 @@ on_province_culture_converted = {
 		hidden_effect = {
 			remove_province_modifier = phoenix_empire_the_sun_outshines_the_moon
 			owner = { add_adm_power = 25 }
+		}
+	}
+	if = {
+		limit = {
+			has_province_modifier = Z26_axzo_vurte
+			NOT = { culture = greenscale_kobold }
+		}
+		remove_province_modifier = Z26_axzo_vurte
+	}
+
+	if = {
+		limit = {
+			owner = { tag = B32 }
+			OR = {
+				has_province_modifier = castanor_culture_convert_100
+				has_province_modifier = castanor_culture_convert_95
+				has_province_modifier = castanor_culture_convert_90
+				has_province_modifier = castanor_culture_convert_85
+				has_province_modifier = castanor_culture_convert_80
+				has_province_modifier = castanor_culture_convert_75
+			}
+			culture = castanorian
+		}
+		hidden_effect = {
+			remove_province_modifier = castanor_culture_convert_100
+			remove_province_modifier = castanor_culture_convert_95
+			remove_province_modifier = castanor_culture_convert_90
+			remove_province_modifier = castanor_culture_convert_85
+			remove_province_modifier = castanor_culture_convert_80
+			remove_province_modifier = castanor_culture_convert_75
 		}
 	}
 }
@@ -4623,6 +5228,7 @@ on_province_owner_change = {
 		rahenraj.1
 		rahen.1
 		unraveling.10
+		diggy.124 #Black Orc Trophies
 	}
 	if = {
 		limit = {
@@ -4646,27 +5252,6 @@ on_province_owner_change = {
 		change_religion = owner
 	}
 	
-#	if = {
-#		limit = {
-#			OR = {
-#				has_province_modifier = wine_bonus_prod
-#				has_province_modifier = grain_bonus_prod
-#			}
-#			OR = {
-#				FROM = { has_reform = monastic_breweries_reform }
-#				FROM = { has_reform = wine_lord_reform }
-#				FROM = { has_reform = roilsard_elective_reform }
-#			}
-#			NOT = {
-#				owner = { has_reform = monastic_breweries_reform }
-#				owner = { has_reform = wine_lord_reform }
-#				owner = { has_reform = roilsard_elective_reform }
-#			}
-#		}
-#		remove_province_modifier = wine_bonus_prod
-#		remove_province_modifier = grain_bonus_prod
-#	}
-	
 	if = {
 		limit = {
 			NOT = {
@@ -4675,9 +5260,8 @@ on_province_owner_change = {
 					has_province_modifier = grain_bonus_prod
 				}
 			}
-			OR = {
-				owner = { has_reform = monastic_breweries_reform }
-			}
+			owner = { has_reform = monastic_breweries_reform }
+			NOT = { FROM = { has_reform = monastic_breweries_reform } }
 		}
 		hidden_effect = {
 			if = {
@@ -4702,6 +5286,7 @@ on_province_owner_change = {
 			}
 		}
 	}
+
 	if = {
 		limit = {
 			NOT = {
@@ -4814,30 +5399,6 @@ on_province_owner_change = {
 			hidden = yes
 		}
 	}
-	#I have no fucking idea what this was supposed to do
-	#if = {
-	#	limit = {
-	#		primary_culture = cave_goblin
-	#		NOT = {
-	#			capital_scope = {
-	#				OR = {
-	#					has_terrain = dwarven_hold
-	#					has_terrain = dwarven_hold_surface
-	#				}
-	#			}
-	#		}
-	#		ai = yes
-	#	}
-	#	random_owned_province = {
-	#		limit = {
-	#			OR = {
-	#				has_terrain = dwarven_hold
-	#				has_terrain = dwarven_hold_surface
-	#			}
-	#		}
-	#		province_event = { id = cavegoblinflavor.3000 }
-	#	}
-	#}
 
 	if = {
 		limit = {
@@ -4855,24 +5416,112 @@ on_province_owner_change = {
 			id = ravelian.21
 		}
 	}
+	
+	if = {
+		limit = {
+			owner = {
+				NOT = { tag = Z45 }
+				NOT = { tag = Z26 }
+			}
+			has_province_modifier = vrorenwood_company
+		}
+		remove_province_modifier = vrorenwood_company
+	}
+	
+	if = {
+		limit = { owner = { tag = I89 NOT = { has_country_flag = centaur_no_zeal } } }
+		trigger_switch = {
+			on_trigger = superregion
+			
+			bulwar_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = burning_spear_revolt } has_faction = burning_spear } }
+					add_province_modifier = { name = centaur_burning_spear_territory duration = -1 }
+				}
+			}
+			escann_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = verdant_bliss_revolt } has_faction = verdant_bliss } }
+					add_province_modifier = { name = centaur_verdant_bliss_territory duration = -1 }
+				}
+			}
+			deepwoods_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = verdant_bliss_revolt } has_faction = verdant_bliss } }
+					add_province_modifier = { name = centaur_verdant_bliss_territory duration = -1 }
+				}
+			}
+			rahen_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = tiger_bane_revolt } has_faction = tiger_bane } }
+					add_province_modifier = { name = centaur_tiger_bane_territory duration = -1 }
+				}
+			}
+			south_haless_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = tiger_bane_revolt } has_faction = tiger_bane } }
+					add_province_modifier = { name = centaur_tiger_bane_territory duration = -1 }
+				}
+			}
+			gerudia_superregion = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = raging_blizzard_revolt } has_faction = raging_blizzard } }
+					add_province_modifier = { name = centaur_raging_blizzard_territory duration = -1 }
+				}
+			}
+		}
+		trigger_switch = {
+			on_trigger = region
+			
+			alenic_frontier_region = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = raging_blizzard_revolt } has_faction = raging_blizzard } }
+					add_province_modifier = { name = centaur_raging_blizzard_territory duration = -1 }
+				}
+			}
+			dragon_coast_region = {
+				if = {
+					limit = { owner = { NOT = { has_country_flag = raging_blizzard_revolt } has_faction = raging_blizzard } }
+					add_province_modifier = { name = centaur_raging_blizzard_territory duration = -1 }
+				}
+			}
+		}
+		if = {
+			limit = {
+				owner = { NOT = { has_country_flag = vine_tearer_revolt } has_faction = vine_tearer }
+				continent = africa
+				NOT = { superregion = bulwar_superregion }
+			}
+			add_province_modifier = { name = centaur_vine_tearer_territory duration = -1 }
+		}
+		if = {
+			limit = {
+				owner = { NOT = { has_country_flag = rosen_rider_revolt } has_faction = rosen_rider }
+				superregion = western_cannor_superregion
+				NOT = { region = alenic_frontier_region }
+				NOT = { region = dragon_coast_region }
+			}
+			add_province_modifier = { name = centaur_rosen_rider_territory duration = -1 }
+		}
+	}
+	
+	
+	# Removed degenerated Ruinborn from province and potentially infestation
+	if = {
+		limit = { culture = bloodfeeders }
+		province_event = { id = infestation_bloodfeeder.2001 }
+	}
+	else_if = {
+		limit = { culture = silent_watchers }
+		province_event = { id = infestation_silent_watcher.2001 }
+	}
+	else_if = {
+		limit = { culture = ice_sleepers }
+		province_event = { id = infestation_ice_sleeper.2001 }
+	}
 
-	# if = {
-		# limit = {
-			# owned_by = SRU
-			# exists = ARA
-		# }
-		# ARA = {
-			# set_country_flag = ARA_defeat_saruhan
-		# }
-	# }
-	# if = {
-		# limit = {
-			# NOT = { owner = { religion_group = muslim } }
-			# has_province_modifier = sufi_shrine
-		# }
-		# remove_province_modifier = sufi_shrine
-	# }
 	on_province_owner_change_estate_privileges_effect = yes
+	province_event = { id = race_setup_events.15 days = 3 }
 }
 
 # country
@@ -4939,17 +5588,17 @@ on_harmonized_vajrayana = {
 
 # country
 on_russian_sudebnik = {
-
+	country_event = { id = flavor_gawed.100 }
 }
 
 # country
 on_russian_oprichnina = {
-
+	country_event = { id = flavor_gawed.101 }
 }
 
 # country
 on_russian_streltsy = {
-
+	country_event = { id = flavor_gawed.102 }
 }
 
 # province
@@ -4966,6 +5615,17 @@ on_refuse_tribute = {
 
 # country
 on_leader_recruited = {
+	if = {
+		limit = {
+			has_estate_privilege = estate_nobles_command_of_the_military
+		}
+		add_estate_influence_modifier = {
+			estate = estate_nobles
+			influence = 5
+			duration = 3650
+			desc = EST_VAL_NOBLE_LEADER
+		}
+	}
 	if = {
 		limit = {
 			has_faction = hob_lion_command
@@ -5033,6 +5693,10 @@ on_revolutionary_guard_raised = {
 }
 
 on_reform_enacted = {
+	if = {
+		limit = { religion = corinite }
+		add_karma = 20
+	}
 }
 
 on_reform_changed = {
@@ -5051,11 +5715,9 @@ on_center_of_trade_downgrade = {
 
 on_culture_promoted = {
 	country_event = { id = race_setup_events.6 }
-	country_event = { id = racial_modifiers.5 }	#Racial Admin and Military - on primary culture change
 	country_event = { id = racial_modifiers.7 }	#Save primary culture
 	country_event = { id = racial_modifiers.8 }	#Change back primary culture if the country has a locked administration
 	country_event = { id = monstrous.102 days = 35 } #Remove opinion if no longer monstrous, 35days delay to let the triggered modifier update itself
-	
 }
 
 # FROM = Previous Country, ROOT = Province
@@ -5080,8 +5742,17 @@ on_company_chartered = {
 
 # ROOT = Overlord, FROM = Minor
 on_dependency_gained = {
-	events = {
-		dutch_republic.31 # States General falls under a PU
+	if = {
+		limit = {
+			FROM = {
+				has_reform = dutch_republic
+			}
+		}
+		ROOT = {
+			country_event = {
+				id = dutch_republic.31
+			}# States General falls under a PU
+		}
 	}
 }
 
@@ -5094,17 +5765,6 @@ on_dependency_lost = {
 on_create_vassal = {
 	if = {
 		limit = {
-			has_dlc = "Emperor"
-			FROM = {
-				is_revolutionary = yes
-			}
-		}
-		change_government = republic
-		add_government_reform = junior_revolutionary_republic_reform
-		set_country_flag = had_revolution
-	}
-	if = {
-		limit = {
 			tag = Z97
 		}
 		change_government = theocracy
@@ -5113,7 +5773,7 @@ on_create_vassal = {
 		adopt_reform_progress = FROM
 	}
 	
-	country_event = { id = monstrous.100 days = 40 }
+	country_event = { id = monstrous.100 days = 35 }
 }
 
 # ROOT = Country establishing it
@@ -5214,7 +5874,7 @@ on_country_released = {
 		id = anbennar_setup.19
 		days = 0
 	}
-	country_event = { id = monstrous.100 days = 20 }
+	country_event = { id = monstrous.100 days = 35 }
 	
 	if = {
 		limit = { NOT = { has_dlc = "Emperor" } }
@@ -5291,12 +5951,14 @@ on_trade_good_changed = {
 				has_province_modifier = grain_bonus_prod
 				has_province_modifier = artifice_ageifier_bonus
 				has_province_modifier = artifice_pearl_cultivator_bonus
+				has_province_modifier = wine_lord_wine
 			}
 		}
 		remove_province_modifier = wine_bonus_prod
 		remove_province_modifier = grain_bonus_prod
 		remove_province_modifier = artifice_ageifier_bonus
 		remove_province_modifier = artifice_pearl_cultivator_bonus
+		remove_province_modifier = wine_lord_wine
 	}
 	hidden_effect = {
 		if = {
@@ -5304,12 +5966,26 @@ on_trade_good_changed = {
 				trade_goods = wine
 				OR = {
 					FROM = { has_reform = monastic_breweries_reform }
-					FROM = { has_reform = wine_lord_reform }
 				}
 			}
 			remove_province_modifier = grain_bonus_prod
 			add_province_modifier = { 
 				name = wine_bonus_prod
+				duration = -1
+				hidden = yes
+			}
+		}
+		if = {
+			limit = {
+				trade_goods = wine
+				OR = {
+					FROM = { has_reform = wine_lord_reform }
+					FROM = { has_reform = roilsard_elective }
+					FROM = { has_reform = wineport_merchants }
+				}
+			}
+			add_province_modifier = { 
+				name = wine_lord_wine
 				duration = -1
 				hidden = yes
 			}
@@ -5365,6 +6041,11 @@ on_loan_repaid = {
 
 # this = country
 on_rebels_break_country = {
+	add_country_modifier = {
+		name = just_lost_to_rebels
+		duration = 10
+		hidden = yes
+	}
 }
 
 # this = country
@@ -5419,17 +6100,6 @@ on_post_mil_advisor_fired = {
 
 # this = new client state, from = parent country
 on_create_client_state = {
-	if = {
-		limit = {
-			has_dlc = "Emperor"
-			FROM = {
-				is_revolutionary = yes
-			}
-			government = republic
-		}
-		add_government_reform = junior_revolutionary_republic_reform
-		set_country_flag = had_revolution
-	}
 	country_event = { id = racial_modifiers.6 days = 1 }	#Racial mil change if unmatching
 	country_event = {
 		id = anbennar_setup.19
@@ -5467,11 +6137,35 @@ on_conquest = {
 			}
 			OR = {
 				FROM = { has_estate = estate_castonath_patricians }
-				FROM = { has_country_flag = castonath_patricians_curtailing }
+				FROM = { has_country_flag = castonath_patricians_curtailing_relationship }
+				owner = { has_country_flag = castonath_patricians_curtailing_relationship }
+				owner = { has_estate = estate_castonath_patricians }
 			}
 		}
 		if = {
-			limit = { FROM = { has_country_flag = castonath_patricians_curtailing } }
+			limit = {
+				owner = { has_estate = estate_castonath_patricians }
+			}
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+		}
+		else_if = {
+			limit = {
+				owner = { has_country_flag = castonath_patricians_curtailing_relationship }
+			}
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+			castonath_patricians_decrease_influence_effect = yes
+			add_province_modifier = {
+				name = castonath_patricians_curtailing
+				duration = 3650
+			}
+		}
+		if = {
+			limit = { FROM = { has_country_flag = castonath_patricians_curtailing_relationship } }
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_some
 				duration = -1
@@ -5485,6 +6179,7 @@ on_conquest = {
 						influence = 80
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_full
@@ -5499,6 +6194,7 @@ on_conquest = {
 						influence = 60
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_significant
@@ -5513,6 +6209,7 @@ on_conquest = {
 						influence = 40
 					}
 				}
+				NOT = { owner = { TAG = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_considerable
@@ -5520,9 +6217,12 @@ on_conquest = {
 			}
 		}
 		else = {
-			add_permanent_province_modifier = {
-				name = castonath_patrician_influence_some
-				duration = -1
+			if = {
+				limit = { owner = { NOT = { TAG = B61 } } }
+				add_permanent_province_modifier = {
+					name = castonath_patrician_influence_some
+					duration = -1
+				}
 			}
 		}
 	}
@@ -5575,5 +6275,110 @@ on_country_creation = {
 	country_event = {
 		id = anbennar_setup.19
 		days = 0
+	}
+}
+
+# ROOT = country, FROM = country they fled from
+on_cossacks_receive_serfs = {
+}
+
+# ROOT = country
+on_culture_demoted = {
+}
+
+# ROOT = country
+on_primary_culture_changed = {
+	country_event = { id = racial_modifiers.5 }	#Racial Admin and Military - on primary culture change
+	if = {
+		limit = {
+			NOT = { primary_culture = black_orc }
+		}
+		remove_country_modifier = black_orc_trophy_khugdihr
+		remove_country_modifier = black_orc_trophy_haraz_orldhum
+		remove_country_modifier = black_orc_trophy_amldihr
+		remove_country_modifier = black_orc_trophy_krakdhumvror
+		remove_country_modifier = black_orc_trophy_dur_vazhatun
+		remove_country_modifier = black_orc_trophy_orlazam_az_dihr
+		remove_country_modifier = black_orc_trophy_mithradhum
+		remove_country_modifier = black_orc_trophy_er_natvir
+		remove_country_modifier = black_orc_trophy_verkal_kozenad
+		remove_country_modifier = black_orc_trophy_hul_jorkad
+		remove_country_modifier = black_orc_trophy_orlghelovar
+		remove_country_modifier = black_orc_trophy_shazstundihr
+		remove_country_modifier = black_orc_trophy_arg_ordstun
+		remove_country_modifier = black_orc_trophy_verkal_skomdihr
+		remove_country_modifier = black_orc_trophy_ovdal_lodhum
+		remove_country_modifier = black_orc_trophy_gor_burad
+		remove_country_modifier = black_orc_trophy_gor_vazumbog
+		remove_country_modifier = black_orc_trophy_hehodovar
+		remove_country_modifier = black_orc_trophy_seghdihr
+		remove_country_modifier = black_orc_trophy_verkal_gulan
+		remove_country_modifier = black_orc_trophy_gor_ozumbrog
+		remove_country_modifier = black_orc_trophy_ovdal_kanzad
+		remove_country_modifier = black_orc_trophy_grozumdihr
+		remove_country_modifier = black_orc_trophy_ovdal_az_an
+		remove_country_modifier = black_orc_trophy_hul_az_krakazol
+		remove_country_modifier = black_orc_trophy_tuwad_dhumankon
+		remove_country_modifier = black_orc_trophy_gronstunad
+		remove_country_modifier = black_orc_trophy_verkal_dromak
+	}
+	else = {
+		hold_province = {
+			province_event = { id = diggy.124 }
+		}
+	}
+}
+
+# ROOT = country #For the government mechanic, not recruiting cossacks
+on_raise_cossacks = {
+}
+on_federation_leader_change = {
+	if = {
+		limit = { tag = FROM }
+		disband_federation = THIS
+	}
+	else = {
+		# New strongest member becomes the new federation leader
+		set_federation_leader = THIS
+	}
+}
+
+#FROM = country pillaged, ROOT = country doing the pillaging
+on_pillaged_capital = {
+}
+
+#FROM = country dev was transferred from, ROOT = country doing the transferring
+on_transfer_development = {
+}
+
+on_colonial_type_change = {
+	clr_country_flag = encourage_cash_crops_flag
+}
+
+on_estate_led_regency = {
+}
+
+on_estate_led_regency_surpassed = {
+	if = {
+		limit = {
+			num_of_powerful_estates = 1
+			has_estate_led_regency = {
+				estate = any
+			}
+			NOT = {
+				estate_led_regency_influence = 70
+			}
+		}
+		country_event = { id = estate_regency_events.1 }
+	}
+}
+
+on_extended_regency = {
+	random_events = {
+		100 = extended_regency_events.4
+		100 = extended_regency_events.5
+		100 = extended_regency_events.6
+		
+		300 = 0
 	}
 }

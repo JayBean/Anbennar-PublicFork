@@ -1,3 +1,4 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
 namespace = ynn_barges
 
 # Your ruler die
@@ -11,31 +12,63 @@ country_event = {
 	
 	trigger = {
 		religion = ynn_river_worship
-		capital_scope = { superregion = ynn_superregion }
+		capital_scope = {
+			OR = { 
+				superregion = ynn_superregion
+				region = forest_of_the_cursed_ones_region
+			}
+		}
 		ruler_age = 16 #so it doesn't trigger for regents
 		NOT = {
-			OR = {
-				has_country_flag = big_barges
-				has_country_flag = normal_barges
-				has_country_flag = little_barges
-			}
+			is_lesser_in_union = yes
+			has_country_flag = big_barges
+			has_country_flag = normal_barges
+			has_country_flag = little_barges
 		}
 	}
 	
 	# Big barge
 	option = {
         name = ynn_barges.1.a
-        ai_chance = { factor = 20 }
+        ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0.01
+				num_of_loans = 1
+			}
+			modifier = {
+				factor = 0.01
+				is_bankrupt = yes
+			}
+			modifier = {
+				factor = 0.1
+				ruler_has_personality = greedy_personality
+			}
+		}
 		add_years_of_income = -0.95
 		add_prestige = 10
 		add_stability_or_adm_power = yes
 		hidden_effect = { set_country_flag = big_barges }
-		hidden_effect = { ynnic_barge_effect = yes }
+		hidden_effect = { country_event = { id = ynn_barges.101 } }
 	}
 	# Normal barge
 	option = {
         name = ynn_barges.1.b
-        ai_chance = { factor = 35 }
+        ai_chance = {
+			factor = 7
+			modifier = {
+				factor = 0.01
+				num_of_loans = 3
+			}
+			modifier = {
+				factor = 0.01
+				is_bankrupt = yes
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = greedy_personality
+			}
+		}
 		add_years_of_income = -0.5
 		add_prestige = 5
 		random = {
@@ -43,20 +76,28 @@ country_event = {
 			add_stability_or_adm_power = yes
 		}
 		hidden_effect = { set_country_flag = normal_barges }
-		hidden_effect = { ynnic_barge_effect = yes }
+		hidden_effect = { country_event = { id = ynn_barges.101 } }
 	}
 	# Little barge
 	option = {
         name = ynn_barges.1.c
-        ai_chance = { factor = 40 }
+        ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0.2
+				is_bankrupt = yes
+			}
+		}
 		add_years_of_income = -0.2
 		hidden_effect = { set_country_flag = little_barges }
-		hidden_effect = { ynnic_barge_effect = yes }
+		hidden_effect = { country_event = { id = ynn_barges.101 } }
 	}
 	# No barge
 	option = {
         name = ynn_barges.1.e
-        ai_chance = { factor = 5 }
+        ai_chance = {
+			factor = 1
+		}
 		add_prestige = -10
 		random = {
 			chance = 50
@@ -66,56 +107,99 @@ country_event = {
 }
 
 # Dam Checkpoint
-country_event = {
+province_event = {
 	id = ynn_barges.2
 	title = ynn_barges.2.t
-	desc = ynn_barges.2.d
+	desc = {
+		trigger = {
+			NOT = { owned_by = FROM }
+		}
+	   desc = ynn_barges.2.d1
+	}
+	desc = {
+	   trigger = {
+			owned_by = FROM
+		}
+	   desc = ynn_barges.2.d2
+	}
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = ynnic_barge_province
 	
 	is_triggered_only = yes
 	
 	trigger = {
 		always = yes
 	}
+
+	immediate = {	#just using "goto = from" seems to do nothing
+		hidden_effect = {
+			if = {
+				limit = { owned_by = FROM }
+				ROOT = {
+					save_event_target_as = ynnic_barge_province
+				}
+			}
+			else = {
+				from = {
+					capital_scope = {
+						save_event_target_as = ynnic_barge_province
+					}
+				}
+			}
+		}
+	}
 	
 	# Let them go through
 	option = {
         name = ynn_barges.2.a
-		trigger = { NOT = { ROOT = { tag = FROM } } }
-        ai_chance = { 
+		trigger = { NOT = { owned_by = FROM } }
+        ai_chance = { 	#it's a 200-100 tossup assuming it's two ynnic countries with neutral relations
 			factor = 100
 			
 			modifier = {
 				factor = 2
-				has_opinion = {
-					who = FROM
-					value = 50
+				owner = { religion = ynn_river_worship }
+			}
+			
+			modifier = {
+				factor = 2
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 50
+					}
 				}
 			}
 			modifier = {
 				factor = 2
-				has_opinion = {
-					who = FROM
-					value = 100
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 100
+					}
 				}
 			}
 			modifier = {
 				factor = 2
-				has_opinion = {
-					who = FROM
-					value = 150
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 150
+					}
 				}
-			}
-			modifier = {
-				factor = 2
-				religion = ynn_river_worship
 			}
 		}
-		add_prestige = 2
-		add_trust = {
-			who = FROM
-			value = 5
-			mutual = yes
+		
+		FROM = {
+			add_prestige = 1
+		}
+		owner = {
+			add_prestige = 1
+			add_trust = {
+				who = FROM
+				value = 5
+				mutual = yes
+			}
 		}
 		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 10 random = 5 } } }
 	}
@@ -123,53 +207,73 @@ country_event = {
 	# Ask for toll money
 	option = {
         name = ynn_barges.2.b
-		trigger = { NOT = { ROOT = { tag = FROM } } }
+		trigger = { NOT = { owned_by = FROM } }
         ai_chance = { 
 			factor = 50
 			
 			modifier = {
 				factor = 2
 				NOT = {
-					has_opinion = {
-						who = FROM
-						value = 50
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = 50
+						}
 					}
 				}
 			}
-			
 			modifier = {
 				factor = 2
 				NOT = {
-					has_opinion = {
-						who = FROM
-						value = 0
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = 0
+						}
 					}
 				}
 			}
-			
 			modifier = {
 				factor = 2
 				NOT = {
-					has_opinion = {
-						who = FROM
-						value = -50
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = -50
+						}
 					}
 				}
 			}
 			modifier = {
 				factor = 5
-				NOT = { religion = ynn_river_worship }
-				NOT = { tag = H51 } #Freemarches
+				owner = { is_rival = FROM }
+			}
+			
+			modifier = {
+				factor = 2
+				owner = { num_of_loans = 2 }
 			}
 			modifier = {
+				factor = 4
+				owner = { is_bankrupt = yes }
+			}
+			modifier = {
+				factor = 4
+				owner = { ruler_has_personality = greedy_personality }
+			}
+			
+			modifier = {
 				factor = 5
-				is_rival = FROM
+				NOT = { owner = { religion = ynn_river_worship } }
 			}
 		}
-		add_trust = {
-			who = FROM
-			value = -2
-			mutual = yes
+		
+		owner = {
+			add_trust = {
+				who = FROM
+				value = -2
+				mutual = yes
+			}
 		}
 		FROM = { country_event = { id = ynn_barges.3 days = 10 random = 5 } }
 	}
@@ -177,36 +281,60 @@ country_event = {
 	# Do not let them pass
 	option = {
         name = ynn_barges.2.c
-		trigger = { NOT = { ROOT = { tag = FROM } } }
+		trigger = {
+			NOT = { owned_by = FROM }
+			NOT = { controlled_by = FROM }
+		}
         ai_chance = { 
 			factor = 10
 			
 			modifier = {
 				factor = 100
-				personality = malevolent_personality
+				owner = {
+					ruler_has_personality = malevolent_personality
+				}
 			}
 			
 			modifier = {
 				factor = 5
-				is_rival = FROM
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = -50
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 5
+				owner = {
+					is_rival = FROM
+				}
 			}
 		}
 		
-		FROM = {  country_event = { id = ynn_barges.7 days = 10 random = 5 } }
-		add_trust = {
-			who = FROM
-			value = -7
-			mutual = yes
+		owner = {
+			add_trust = {
+				who = FROM
+				value = -7
+				mutual = yes
+			}
 		}
+		FROM = {  country_event = { id = ynn_barges.7 days = 10 random = 5 } }
 	}
+	
 	#We own the dam
 	option = {
         name = ynn_barges.2.e
         ai_chance = { factor = 100 }
-		trigger = { ROOT = { tag = FROM } }
-		add_adm_power = 10
-		add_mil_power = 10
-		add_dip_power = 10
+		trigger = { owned_by = FROM }
+		
+		owner = {
+			add_adm_power = 10
+			add_mil_power = 10
+			add_dip_power = 10
+		}
 		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 10 random = 5 } } }
 	}
 }
@@ -217,6 +345,7 @@ country_event = {
 	title = ynn_barges.3.t
 	desc = ynn_barges.3.d
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = from
 	
 	is_triggered_only = yes
 	
@@ -224,51 +353,108 @@ country_event = {
 		always = yes
 	}
 	
+	#Force it open
+	option = {
+        name = ynn_barges.3.c
+		highlight = yes
+		trigger = { FROM = { controlled_by = ROOT } }
+        ai_chance = {
+			factor = 1000
+		}
+		add_prestige = 5
+		hidden_effect = { country_event = { id = ynn_barges.100 days = 10 random = 5 } }
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = { FROM = { owned_by = ROOT } }
+				}
+				FROM = { owner = { country_event = { id = ynn_barges.10 days = 10 random = 5 } } }
+			}
+		}
+	}
 	#Pay them
 	option = {
         name = ynn_barges.3.a
-        ai_chance = { factor = 80 }
+        ai_chance = {
+			factor = 80
+			modifier = {
+				factor = 2
+				has_country_flag = big_barges	#sunk cost fallacy
+			}
+			
+			 modifier = {
+				factor = 0.5
+				num_of_loans = 2
+			}
+			 modifier = {
+				factor = 0.5
+				num_of_loans = 4
+			}
+			 modifier = {
+				factor = 0.25
+				is_bankrupt = yes
+			}
+			 modifier = {
+				factor = 0.1
+				ruler_has_personality = greedy_personality
+			}
+		}
 		add_treasury = -50
-		hidden_effect = { FROM = { country_event = { id = ynn_barges.4 days = 10 random = 5 } } }
+		hidden_effect = { FROM = { province_event = { id = ynn_barges.4 days = 10 random = 5 } } }
 	}
 	# How dare they
 	option = {
         name = ynn_barges.3.b
-        ai_chance = { factor = 20  modifier = { factor = 20 NOT = { treasury = 50 } } }
+        ai_chance = { factor = 20 }
 		add_prestige = -5
-		hidden_effect = { FROM = { country_event = { id = ynn_barges.5 days = 10 random = 5 } } }
+		hidden_effect = { FROM = { province_event = { id = ynn_barges.5 days = 10 random = 5 } } }
 	}
 }
 
 #They paid us
-country_event = {
+province_event = {
 	id = ynn_barges.4
 	title = ynn_barges.4.t
 	desc = ynn_barges.4.d
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = paid_toll_capital
 	
 	is_triggered_only = yes
 	
 	trigger = {
 		always = yes
+	}
+		
+	immediate = {
+		hidden_effect = {
+			from = {
+				capital_scope = {
+					save_event_target_as = paid_toll_capital
+				}
+			}
+		}
 	}
 	
 	#Let them go through
 	option = {
         name = ynn_barges.4.a
         ai_chance = { factor = 20 }
-		add_prestige = 5
-		add_treasury = 50
+		
+		owner = {
+			add_prestige = 5
+			add_treasury = 50
+		}
 		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 10 random = 5 } } }
 	}
 }
 
 #They don't pay us
-country_event = {
+province_event = {
 	id = ynn_barges.5
 	title = ynn_barges.5.t
 	desc = ynn_barges.5.d
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = paid_toll_capital
 	
 	is_triggered_only = yes
 	
@@ -276,11 +462,23 @@ country_event = {
 		always = yes
 	}
 	
+	immediate = {
+		hidden_effect = {
+			from = {
+				capital_scope = {
+					save_event_target_as = paid_toll_capital
+				}
+			}
+		}
+	}
+	
 	#Too bad, block the barge
 	option = {
         name = ynn_barges.5.a
         ai_chance = { factor = 20 }
-		add_prestige = -5
+		owner = {
+			add_prestige = -5
+		}
 		hidden_effect = { FROM = { country_event = { id = ynn_barges.6 days = 10 random = 5 } } }
 	}
 }
@@ -318,13 +516,14 @@ country_event = {
 	title = ynn_barges.7.t
 	desc = ynn_barges.7.d
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = from
 	
 	is_triggered_only = yes
 	
 	trigger = {
 		always = yes
 	}
-	
+
 	#Those bastard
 	option = {
         name = ynn_barges.7.a
@@ -339,38 +538,203 @@ country_event = {
 }
 
 #Another king is dead
-country_event = {
+province_event = {
 	id = ynn_barges.8
 	title = ynn_barges.8.t
-	desc = ynn_barges.8.d
+	desc = {
+		trigger = {
+			NOT = { owned_by = FROM }
+		}
+	   desc = ynn_barges.8.d1
+	}
+	desc = {
+	   trigger = {
+			owned_by = FROM
+		}
+	   desc = ynn_barges.8.d2
+	}
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = ynnic_barge_province
 	
 	is_triggered_only = yes
 	
 	trigger = {
 		always = yes
 	}
-	
+
+	immediate = {	#just using "goto = from" seems to do nothing
+		hidden_effect = {
+			if = {
+				limit = { owned_by = FROM }
+				ROOT = {
+					save_event_target_as = ynnic_barge_province
+				}
+			}
+			else = {
+				from = {
+					capital_scope = {
+						save_event_target_as = ynnic_barge_province
+					}
+				}
+			}
+		}
+	}
 	
 	#Let it go through
 	option = {
         name = ynn_barges.8.a
         ai_chance = { factor = 10 }
+		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 1 random = 3 } } }
 	}
+	
 	#Make a little ritual
 	option = {
         name = ynn_barges.8.b
-        ai_chance = { factor = 10 }
-		add_years_of_income = -0.1
-		add_prestige = 5
+        ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0.5
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = 0
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = -50
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.01
+				is_bankrupt = yes
+			}
+		}
+		
+		owner = {
+			add_years_of_income = -0.1
+		}
+		FROM = {
+			add_prestige = 5
+		}
+		if = {
+			limit = {
+				NOT = { owned_by = FROM }
+			}
+			owner = {
+				add_trust = {
+					who = FROM
+					value = 5
+					mutual = yes
+				}
+			}
+		}
+		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 1 random = 3 } } }
 	}
+	
 	#A big ceremony
 	option = {
         name = ynn_barges.8.c
-        ai_chance = { factor = 10 }
-		add_years_of_income = -0.5
-		add_adm_power = 20
-		add_dip_power = 20
+        ai_chance = {
+			factor = 6
+			modifier = {
+				factor = 0.5
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = 0
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 1.5
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 50
+					}
+				}
+			}
+			modifier = {
+				factor = 1.5
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 100
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = 0
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				NOT = {
+					owner = {
+						has_opinion = {
+							who = FROM
+							value = -50
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				num_of_loans = 3
+			}
+			modifier = {
+				factor = 0.01
+				is_bankrupt = yes
+			}
+		}
+				
+		owner = {
+			add_years_of_income = -0.5
+		}
+		if = {
+			limit = {
+				NOT = { owned_by = FROM }
+			}
+			FROM = {
+				add_adm_power = 10
+				add_dip_power = 10
+			}
+			owner = {
+				add_adm_power = 10
+				add_dip_power = 10
+				add_trust = {
+					who = FROM
+					value = 10
+					mutual = yes
+				}
+			}
+		}
+		else = {
+			owner = {
+				add_adm_power = 20
+				add_dip_power = 20
+			}
+		}
+		hidden_effect = { FROM = { country_event = { id = ynn_barges.100 days = 1 random = 3 } } }
 	}
 }
 
@@ -388,7 +752,89 @@ country_event = {
 	}
 	
 	immediate = {
-		hidden_effect = { ynn_reward_setup = yes }
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = little_barges
+				}
+				if = {
+					limit = {
+						has_country_flag = ynn_barge_distance_1
+					}
+					set_country_flag = ynn_reward_1
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_2
+					}
+					set_country_flag = ynn_reward_2
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_3
+					}
+					set_country_flag = ynn_reward_3
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = normal_barges
+				}
+				if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_0
+					}
+					set_country_flag = ynn_reward_2
+				}
+				if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_1
+					}
+					set_country_flag = ynn_reward_3
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_2
+					}
+					set_country_flag = ynn_reward_4
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_3
+					}
+					set_country_flag = ynn_reward_5
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = big_barges
+				}
+				if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_0
+					}
+					set_country_flag = ynn_reward_4
+				}
+				if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_1
+					}
+					set_country_flag = ynn_reward_5
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_2
+					}
+					set_country_flag = ynn_reward_6
+				}
+				else_if = {	
+					limit = {
+						has_country_flag = ynn_barge_distance_3
+					}
+					set_country_flag = ynn_reward_7
+				}
+			}
+		}
 	}
 	
 	#That's cool
@@ -400,10 +846,426 @@ country_event = {
 	}
 }
 
+#They force their way through
+country_event = {
+	id = ynn_barges.10
+	title = ynn_barges.10.t
+	desc = ynn_barges.10.d
+	picture = KING_SICK_IN_BED_eventPicture
+	goto = paid_toll_capital
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = {
+			from = {
+				capital_scope = {
+					save_event_target_as = paid_toll_capital
+				}
+			}
+		}
+	}
+	
+	#Crap
+	option = {
+        name = ynn_barges.10.a
+        ai_chance = { factor = 20 }
+		add_prestige = -5
+	}
+}
+
+#Barge falls down into the lake
+province_event = {
+	id = ynn_barges.11
+	title = ynn_barges.11.t
+	desc = {
+		trigger = {
+			owner = { tag = G42 }
+		}
+	   desc = ynn_barges.11.d1
+	}
+	desc = {
+	   trigger = {
+			NOT = {
+				owner = { tag = G42 }
+				1133 = { has_discovered = ROOT }
+			}
+		}
+	   desc = ynn_barges.11.d2
+	}
+	desc = {
+	   trigger = {
+			NOT = { owner = { tag = G42 } }
+			1133 = { has_discovered = ROOT }
+		}
+	   desc = ynn_barges.11.d3
+	}
+	picture = COLONIZATION_eventPicture
+	goto = ynnic_lake_province
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { owner = { religion = ynn_river_worship } }
+	}
+
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = { FROM = { capital_scope = { has_discovered = ROOT } } }
+				from = {
+					capital_scope = {
+						save_event_target_as = ynnic_lake_province
+					}
+				}
+			}
+			else = {
+				ROOT = {
+					save_event_target_as = ynnic_lake_province
+				}
+			}
+		}
+	}
+	
+	# Tribute from heaven, awesome
+	option = {
+        name = ynn_barges.11.a
+		trigger = {
+			owner = { tag = G42 }
+		}
+        ai_chance = { 
+			factor = 1
+		}
+		
+		if = {
+			limit = { owner = { capital_scope = { has_discovered = FROM } } }
+			random = { 
+				chance = 50
+				
+				FROM = {
+					add_trust = {
+						who = ROOT
+						value = -20
+					}
+					add_opinion = {
+						who = ROOT
+						modifier = ynn_barge_looted
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				FROM = { monthly_income = 15 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 150 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 75 }
+			}
+			else = {
+				owner = { add_treasury = 27 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 10 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 100 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 50 }
+			}
+			else = {
+				owner = { add_treasury = 18 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 7.5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 70 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 35 }
+			}
+			else = {
+				owner = { add_treasury = 13.5 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 50 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 25 }
+			}
+			else = {
+				owner = { add_treasury = 9 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 2.5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 24 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 12 }
+			}
+			else = {
+				owner = { add_treasury = 4.5 }
+			}
+		}
+		else = {
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 10 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 5 }
+			}
+			else = {
+				owner = { add_treasury = 1.8 }
+			}
+		}
+	}
+	
+	# Loot the barge
+	option = {
+        name = ynn_barges.11.b
+		trigger = {
+			NOT = { owner = { tag = G42 } }
+		}
+        ai_chance = {
+			factor = 50
+			
+			modifier = {
+				factor = 0.5
+				NOT = { FROM = { monthly_income = 2.5 } } #Is it worth it to be grave robbers for a pittance?
+			}
+			modifier = {
+				factor = 0.5
+				FROM = { has_country_flag = little_barges }
+			}
+			
+			modifier = {
+				factor = 5
+				owner = { is_rival = FROM }
+			}
+			
+			modifier = {
+				factor = 2
+				owner = { num_of_loans = 2 }
+			}
+			modifier = {
+				factor = 4
+				owner = { is_bankrupt = yes }
+			}
+			modifier = {
+				factor = 10
+				owner = { ruler_has_personality = greedy_personality }
+			}
+			modifier = {
+				factor = 10
+				owner = { ruler_has_personality = malevolent_personality }
+			}
+		}
+		
+		random = { 
+			chance = 50
+			
+			FROM = {
+				add_trust = {
+					who = ROOT
+					value = -20
+				}
+				add_opinion = {
+					who = ROOT
+					modifier = ynn_barge_looted
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				FROM = { monthly_income = 15 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 150 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 75 }
+			}
+			else = {
+				owner = { add_treasury = 27 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 10 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 100 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 50 }
+			}
+			else = {
+				owner = { add_treasury = 18 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 7.5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 70 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 35 }
+			}
+			else = {
+				owner = { add_treasury = 13.5 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 50 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 25 }
+			}
+			else = {
+				owner = { add_treasury = 9 }
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { monthly_income = 2.5 }
+			}
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 24 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 12 }
+			}
+			else = {
+				owner = { add_treasury = 4.5 }
+			}
+		}
+		else = {
+			if = {
+				limit = { FROM = { has_country_flag = big_barges } }
+				owner = { add_treasury = 10 }
+			}
+			else_if = {
+				limit = { FROM = { has_country_flag = normal_barges } }
+				owner = { add_treasury = 5 }
+			}
+			else = {
+				owner = { add_treasury = 1.8 }
+			}
+		}
+	}
+	
+	# Don't be a grave robber
+	option = {
+        name = ynn_barges.11.c
+		trigger = {
+			NOT = { owner = { tag = G42 } }
+		}
+        ai_chance = { 
+			factor = 10
+			
+			modifier = {
+				factor = 2
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 50
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 100
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				owner = {
+					has_opinion = {
+						who = FROM
+						value = 150
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 10
+				owner = { ruler_has_personality = pious_personality }
+			}
+			modifier = {
+				factor = 10
+				owner = { ruler_has_personality = righteous_personality }
+			}
+		}
+		
+		FROM = {
+			add_trust = {
+				who = ROOT
+				value = 5
+				mutual = yes
+			}
+		}
+	}
+}
+
 #####################
 # Background Event
 #####################
-country_event = {
+country_event = {	#Previously ynnic_barge_advance effect
 	id = ynn_barges.100
 	title = ynn_barges.100.t
 	desc = ynn_barges.100.d
@@ -418,29 +1280,127 @@ country_event = {
 	
 	immediate = {
 		if = {
-			limit = { has_country_flag = ynn_dam_one }
-			clr_country_flag = ynn_dam_one
-			set_country_flag = ynn_dam_three
+			limit = { has_country_flag = ynn_dam_vels_bacar }
+			clr_country_flag = ynn_dam_vels_bacar
+			set_country_flag = ynn_dam_adbrabohvi
 		}
 		else_if = {
-			limit = { has_country_flag = ynn_dam_two }
-			clr_country_flag = ynn_dam_two
-			set_country_flag = ynn_dam_three
+			limit = { has_country_flag = ynn_dam_adbrabohvi }
+			clr_country_flag = ynn_dam_adbrabohvi
 		}
 		else_if = {
-			limit = { has_country_flag = ynn_dam_three }
-			clr_country_flag = ynn_dam_three
-			set_country_flag = ynn_dam_four
+			limit = { has_country_flag = ynn_dam_mocbarja }
+			clr_country_flag = ynn_dam_mocbarja
+			set_country_flag = ynn_dam_vels_bacar
 		}
 		else_if = {
-			limit = { has_country_flag = ynn_dam_four }
-			clr_country_flag = ynn_dam_four
+			limit = { has_country_flag = ynn_dam_bosancovac }
+			clr_country_flag = ynn_dam_bosancovac
+			set_country_flag = ynn_dam_vels_bacar
 		}
 	}
 	
 	option = {
         name = ynn_barges.100.a
         ai_chance = { factor = 100 }
-		ynnic_barge_advance = yes
+		
+		if = {
+			limit = { has_country_flag = ynn_dam_vels_bacar }
+			1138 = { province_event = { id = ynn_barges.2 days = 25 random = 10 } }
+		}
+		else_if = {
+			limit = { has_country_flag = ynn_dam_adbrabohvi }
+			1133 = { province_event = { id = ynn_barges.8 days = 25 random = 10 } }
+		}
+		else = {
+			ROOT = { country_event = { id = ynn_barges.9 days = 10 random = 5 } }
+			1031 = { province_event = { id = ynn_barges.11 days = 9 } }
+		}
+	}
+}
+
+country_event = {	#Previously ynnic_barge_effect effect
+	id = ynn_barges.101
+	title = ynn_barges.101.t
+	desc = ynn_barges.101.d
+	picture = KING_SICK_IN_BED_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = {
+        name = ynn_barges.101.a
+        ai_chance = { factor = 100 }
+		
+		if = {
+			limit = { capital_scope = { province_group = adbrabohvi_dam_near } }
+			set_country_flag = ynn_barge_distance_0
+			set_country_flag = ynn_dam_adbrabohvi
+			1133 = { province_event = { id = ynn_barges.8 days = 25 random = 10 } }
+		}
+		else_if = {
+			limit = { capital_scope = { province_group = vels_bacar_dam_near } }
+			set_country_flag = ynn_barge_distance_1
+			set_country_flag = ynn_dam_vels_bacar
+			1138 = { province_event = { id = ynn_barges.2 days = 25 random = 10 } }
+		}
+		else_if = {
+			limit = { capital_scope = { province_group = mocbarja_dam_near } }
+			set_country_flag = ynn_barge_distance_2
+			set_country_flag = ynn_dam_mocbarja
+			1186 = { province_event = { id = ynn_barges.2 days = 25 random = 10 } }
+		}
+		else_if = {
+			limit = { capital_scope = { province_group = bosancovac_dam_near } }
+			set_country_flag = ynn_barge_distance_2
+			set_country_flag = ynn_dam_bosancovac
+			1165 = { province_event = { id = ynn_barges.2 days = 25 random = 10 } }
+		}
+		else_if = {
+			limit = {
+				capital_scope = {
+					OR = {
+						province_group = mocbarja_dam_far
+						region = rzenta_region
+					}
+				}
+			}
+			set_country_flag = ynn_barge_distance_3
+			set_country_flag = ynn_dam_mocbarja
+			1186 = { province_event = { id = ynn_barges.2 days = 30 random = 15 } }
+		}
+		else_if = {
+			limit = {
+				capital_scope = {
+					OR = {
+						province_group = bosancovac_dam_far
+						region = forest_of_the_cursed_ones_region
+					}
+				}
+			}
+			set_country_flag = ynn_barge_distance_3
+			set_country_flag = ynn_dam_bosancovac
+			1165 = { province_event = { id = ynn_barges.2 days = 30 random = 15 } }
+		}
+		else_if = {
+			limit = { capital_scope = { province_group = vels_bacar_dam_far } }
+			set_country_flag = ynn_barge_distance_2
+			set_country_flag = ynn_dam_vels_bacar
+			1138 = { province_event = { id = ynn_barges.2 days = 30 random = 15 } }
+		}
+		else_if = {
+			limit = { capital_scope = { province_group = adbrabohvi_dam_far } }
+			set_country_flag = ynn_barge_distance_2
+			set_country_flag = ynn_dam_adbrabohvi
+			1133 = { province_event = { id = ynn_barges.8 days = 30 random = 15 } }
+		}
+		else = {
+			set_country_flag = ynn_barge_distance_0
+			ROOT = { country_event = { id = ynn_barges.9 days = 10 random = 5 } }
+		}
 	}
 }

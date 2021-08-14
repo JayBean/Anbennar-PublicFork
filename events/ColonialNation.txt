@@ -1,3 +1,4 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
 namespace = colonial_nation
 
 # Tariffs Too High
@@ -293,8 +294,9 @@ country_event = {
 		days = 1
 		modifier = {
 			factor = 1.25
-			any_ally = {
+			any_country = {
 				primitives = yes
+				alliance_with = ROOT
 			}
 		}
 	}
@@ -918,6 +920,10 @@ country_event = {
 	picture = REFORM_eventPicture
 
 	is_triggered_only = yes
+
+	trigger = {
+		is_free_or_tributary_trigger = yes	#This event should only really trigger when the colony becomes independent
+	}
 	
 	immediate = {
 		hidden_effect = {
@@ -941,7 +947,7 @@ country_event = {
 			}
 		}
 		change_government = monarchy
-		set_legacy_government = administrative_monarchy
+		#set_legacy_government = administrative_monarchy
 		kill_ruler = yes
 	}
 	option = {
@@ -956,7 +962,7 @@ country_event = {
 			}
 		}
 		remove_government_reform = colonial_government
-		set_legacy_government = administrative_republic
+		#set_legacy_government = administrative_republic
 		kill_ruler = yes
 	}
 }
@@ -4468,5 +4474,703 @@ country_event = {
 		name = "colonial_nation.EVTOPTA181"	# Good news!
 		add_liberty_desire = -5
 		add_tariff_value = -0.01
+	}
+}
+
+
+###############################################
+# Events for New Colonial Types 1.31
+# (written by Veronica Pazos)
+###############################################
+
+# Corrupted Governor
+country_event = {
+	id = colonial_nation.182
+	title = colonial_nation.182.t
+	desc = colonial_nation.182.d
+	picture = CORRUPTION_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = crown_colony
+		corruption = 3
+		OR = {
+			NOT = { adm = 3 }
+			ruler_has_bad_adm_personality = yes
+		}
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = {
+		name = colonial_nation.182.a
+		add_years_of_income = -0.15
+		random_owned_province = {
+			add_unrest = 1
+		}
+		random_owned_province = {
+			add_unrest = 1
+		}
+		add_ruler_modifier = {
+			name = colonial_corrupted_governor
+		}
+	}
+}
+
+# New Governor Appointed
+country_event = {
+	id = colonial_nation.183
+	title = colonial_nation.183.t
+	desc = colonial_nation.183.d
+	picture = {
+		trigger = { has_dlc = "Mandate of Heaven" }
+		picture = ADVISOR_eventPicture
+	}
+	picture = {
+		trigger = { NOT = { has_dlc = "Mandate of Heaven" } }
+		picture = LIBERUM_VETO_eventPicture
+	}
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = crown_colony
+		NOT = { dip = 3 }
+		NOT = { adm = 2 }
+		NOT = { mil = 2 }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = { #pick a new governor
+		name = colonial_nation.183.a
+		exile_ruler_as = colonial_exiled_governor
+		define_ruler = {
+			culture = ROOT
+			ADM = 4
+			DIP = 3
+			MIL = 3
+		}
+		random = {
+			chance = 50
+			random_owned_province = {
+				spawn_rebels = {
+					type = noble_rebels
+					size = 1
+				}
+			}
+		}
+	}
+	
+	option = { #let the old one rule
+		name = colonial_nation.183.b
+		trigger = {
+			NOT = { has_ruler_modifier = colonial_corrupted_governor }
+		}
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = 10
+		}
+		random = {
+			chance = 50
+			random_owned_province = {
+				spawn_rebels = {
+					type = nationalist_rebels
+					size = 1
+				}
+			}
+		}
+	}
+}
+
+# Company Is in Debt!
+country_event = {
+	id = colonial_nation.184
+	title = colonial_nation.184.t
+	desc = colonial_nation.184.d
+	picture = BANKRUPCY_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = private_enterprise
+		NOT = { treasury = 150 }
+		OR = {
+			num_of_loans = 3
+			is_in_large_debt = yes
+		}
+		NOT = { stability = 0 }
+		NOT = { has_country_flag = colonial_company_in_debt }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			set_country_flag = colonial_company_in_debt 
+		}
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = { #take care of it
+		name = colonial_nation.184.a
+		add_adm_power = -100
+		add_dip_power = -100
+		area = {
+			limit = { owned_by = ROOT }
+			add_unrest = -1
+		}
+		add_corruption = -0.5
+	}	
+	
+	option = { #it's surely nothing
+		name = colonial_nation.184.b
+		capital_scope = {
+			area = {
+				limit = { owned_by = ROOT }
+				add_unrest = 1
+			}
+		}
+	}
+}
+	
+# Revoke Royal Charter
+country_event = {
+	id = colonial_nation.185
+	title = colonial_nation.185.t
+	desc = colonial_nation.185.d
+	picture = DIPLOMACY_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = private_enterprise
+		NOT = { treasury = 200 }
+		num_of_loans = 5
+		NOT = { stability = 1 }
+		has_country_flag = colonial_company_in_debt
+		NOT = { has_country_flag = revoked_royal_charter }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	option = { #okay...
+		name = colonial_nation.185.a
+		change_subject_type = {
+			subject_type = crown_colony 
+		}
+		capital_scope = {
+			add_unrest = 1
+		}
+		add_liberty_desire = 10
+		add_stability = -1
+		set_country_flag = revoked_royal_charter
+	}
+}
+
+# Colonist Incentives
+country_event = {
+	id = colonial_nation.186
+	title = colonial_nation.186.t
+	desc = colonial_nation.186.d
+	picture = {
+		trigger = { has_dlc = "Mandate of Heaven" }
+		picture = CITY_DEVELOPMENT_eventPicture
+	}	
+	picture = {
+		trigger = { NOT = { has_dlc = "Mandate of Heaven" } }
+		picture = ELECTION_REPUBLICAN_eventPicture
+	}
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		OR = {
+			is_subject_of_type = private_enterprise
+			is_subject_of_type = crown_colony
+			is_subject_of_type = self_governing_colony
+		}
+		NOT = { development = 70 }
+		NOT = { manpower_percentage = 0.9 }
+		stability = 0
+		has_adm_advisor = yes
+		NOT = { has_country_flag = colonist_incentives }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = {
+		name = colonial_nation.186.a
+		add_country_modifier = {
+			name = colonist_incentives
+			duration = 3650
+		}
+		if = {
+			limit = {
+				NOT = { manpower_percentage = 1 }
+			}
+			add_manpower = 1
+		}
+		add_years_of_income = -0.2
+		set_country_flag = colonist_incentives
+	}
+}
+
+# Burghers Are Unhappy With the Noble Oligarchy
+country_event = {
+	id = colonial_nation.187
+	title = colonial_nation.187.t
+	desc = colonial_nation.187.d
+	picture = GREAT_BUILDING_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = self_governing_colony
+		estate_influence = {
+			estate = estate_nobles
+			influence = 20
+		}
+		NOT = {
+			estate_loyalty = {
+				estate = estate_burghers
+				loyalty = 75
+			}
+		}
+		OR = {
+			advisor = diplomat
+			advisor = commandant
+			advisor = grand_captain
+		}
+		NOT = { has_country_flag = unhappy_burghers }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			set_country_flag = unhappy_burghers
+		}
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = { #side with them
+		name = colonial_nation.187.a
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = 10
+		}
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = -10
+		}
+	}
+	
+	option = { #protect the nobles
+		name = colonial_nation.187.b
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = 10
+		}
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = -10
+		}
+	}
+}
+
+# Nobles Are Unhappy With the Burghers Oligarchy
+country_event = {
+	id = colonial_nation.188
+	title = colonial_nation.188.t
+	desc = colonial_nation.188.d
+	picture = {
+		trigger = { has_dlc = "Mandate of Heaven" }
+		picture = COURT_eventPicture
+	}	
+	picture = {
+		trigger = { NOT = { has_dlc = "Mandate of Heaven" } }
+		picture = GREAT_BUILDING_eventPicture
+	}
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = self_governing_colony
+		estate_influence = {
+			estate = estate_burghers
+			influence = 20
+		}
+		NOT = {
+			estate_loyalty = {
+				estate = estate_nobles
+				loyalty = 75
+			}
+		}
+		OR = {
+			advisor = statesman
+			advisor = trader
+			advisor = master_of_mint
+		}
+		NOT = { has_country_flag = unhappy_nobles }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	immediate = {
+		hidden_effect = {
+			set_country_flag = unhappy_nobles
+		}
+	}
+	
+	option = { #side with the nobles
+		name = colonial_nation.188.a
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = 10
+		}
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = -10
+		}
+	}
+	
+	option = { #protect the burghers
+		name = colonial_nation.188.b
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = 10
+		}
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = -10
+		}
+	}
+}
+
+# Another Company Wants to Overthrow Yours
+country_event = {
+	id = colonial_nation.189
+	title = colonial_nation.189.t
+	desc = colonial_nation.189.d
+	picture = {
+		trigger = { has_dlc = "Mandate of Heaven" }
+		picture = CITY_VIEW_eventPicture
+	}	
+	picture = {
+		trigger = { NOT = { has_dlc = "Mandate of Heaven" } }
+		picture = CIVIL_WAR_eventPicture
+	}
+	
+	trigger = {
+		has_dlc = "Leviathan"
+		is_subject_of_type = private_enterprise
+		unrest = 3
+		NOT = { treasury = 500 }
+		NOT = { has_country_flag = rival_company }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			set_country_flag = rival_company 
+		}
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = { #our administrator will deal with this
+		name = colonial_nation.189.a
+		trigger = {
+			has_adm_advisor = yes
+		}
+		add_adm_power = -50
+		add_prestige = -2
+	}
+	
+	option = { #ask for church mediation
+		name = colonial_nation.189.b
+		trigger = {
+			religion = catholic
+			OR = {
+				employed_advisor = {
+					type = theologian
+					religion = catholic
+				}
+				employed_advisor = {
+					type = inquisitor
+					religion = catholic
+				}
+			}
+		}
+		random_owned_province = {
+			limit = {
+				NOT = { religion = catholic }
+			}
+			add_province_modifier = {
+				name = colonial_missionaries
+				duration = 3650
+			}
+		}
+		add_estate_loyalty = {
+			estate = estate_church
+			loyalty = 10
+		}
+	}
+	
+	option = { #we should spread some rumors about their real reputation
+		name = colonial_nation.189.c
+		trigger = {
+			dip_tech = 3
+			OR = {
+				has_dip_advisor = yes
+				ruler_has_personality_ancestor = { key = silver_tongue }
+				consort_has_personality = silver_tongue_personality
+				ruler_has_good_dip_personality = yes
+				dip = 4
+			}
+		}
+		add_dip_power = -50
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = -5
+		}
+	}
+	
+	option = { #seize these seditionists!
+		name = colonial_nation.189.e
+		capital_scope = {
+			spawn_rebels = {
+				type = pretender_rebels
+				size = 2
+			}
+		}
+	}
+}
+
+# Absent Governor
+country_event = {
+	id = colonial_nation.190
+	title = colonial_nation.190.t
+	desc = colonial_nation.190.d
+	picture = REVOLUTION_eventPicture
+	goto = absent_governor_province
+
+	trigger = {
+		any_owned_province = {
+			is_colony = yes
+		}
+		has_dlc = "Leviathan"
+		OR = {
+			is_colonial_nation = yes
+			owner = {
+				is_colonial_nation = yes
+			}
+		}	
+		NOT = { has_province_flag = absent_governor }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					is_colony = yes
+				}
+				save_event_target_as = absent_governor_province
+			}
+			set_province_flag = absent_governor
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 300
+	}
+	
+	option = {
+		name = colonial_nation.190.a
+		event_target:absent_governor_province = {
+			add_unrest = 2
+		}
+	}
+}
+
+# Miracle in Colonial Province
+province_event = {
+	id = colonial_nation.191
+	title = colonial_nation.191.t
+	desc = colonial_nation.191.d
+	picture = RELIGION_eventPicture
+	goto = ROOT
+
+	trigger = {
+		has_dlc = "Leviathan"
+		OR = {
+			is_colony = yes
+			owner = {
+				is_colonial_nation = yes
+			}
+		}		
+		NOT = { is_year = 1700 }
+		religion = catholic
+		owner = {
+			NOT = { stability = 2 }
+		}
+		NOT = { has_province_flag = miraculous_colony }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			set_province_flag = miraculous_colony
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 300
+	}
+	
+	option = { #exploit the pilgrims
+		name = colonial_nation.191.a
+		if = {
+			limit = {
+				NOT = { has_building = temple }
+			}
+			add_building = temple
+		}
+		else = {
+			owner = {
+				add_estate_loyalty = {
+					estate = estate_church
+					loyalty = 5
+				}
+			}
+		}
+	}
+	
+	option = { #we must inform the pope immediately!
+		name = colonial_nation.191.b 
+		trigger = { owner = { NOT = { tag = PAP } } }
+		owner = {
+			add_papal_influence = 10
+		}
+		add_province_modifier = {
+			name = miraculous_colony
+			duration = 1825
+		}
+	}
+	
+	option = { #nonsense
+		name = colonial_nation.191.c
+		owner = {
+			add_adm_power = 50
+			add_estate_loyalty = {
+				estate = estate_church
+				loyalty = -5
+			}
+		}
+		add_unrest = 1
+	}
+}
+
+# Assign special colonial government reforms to the different types of colonies
+country_event = {
+	id = colonial_nation.192
+	title = colonial_nation.192.t
+	desc = colonial_nation.192.d
+	picture = HARBOUR_eventPicture
+
+	trigger = {
+		has_dlc = "Leviathan"
+		is_colonial_nation = yes
+		OR = {
+			AND = {
+				is_subject_of_type = crown_colony
+				NOT = { has_reform = crown_colony_government }
+			}
+			AND = {
+				is_subject_of_type = private_enterprise
+				NOT = { has_reform = private_enterprise_colony_government }
+			}
+			AND = {
+				is_subject_of_type = self_governing_colony
+				NOT = { has_reform = self_governing_colony_government }
+			}
+		}
+		NOT = { has_country_flag = colonial_nation_government_assignment_failed }	#To avoid that the event infinitely triggers when the assigment fails
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	hidden = yes
+	
+	option = { #exploit the pilgrims
+		name = colonial_nation.192.a
+
+		if = {
+			limit = {
+				is_subject_of_type = crown_colony
+			}
+			if = {
+				limit = {
+					NOT = { government = republic }
+				}
+				change_government = republic
+			}
+			add_government_reform = crown_colony_government
+		}
+		else_if = {
+			limit = {
+				is_subject_of_type = private_enterprise
+			}
+			if = {
+				limit = {
+					NOT = { government = republic }
+				}
+				change_government = republic
+			}
+			add_government_reform = private_enterprise_colony_government
+		}
+		else_if = {
+			limit = {
+				is_subject_of_type = self_governing_colony
+			}
+			if = {
+				limit = {
+					NOT = { government = republic }
+				}
+				change_government = republic
+			}
+			add_government_reform = self_governing_colony_government
+		}
+		else = {
+			set_country_flag = colonial_nation_government_assignment_failed	
+			#This flag is here to ensure that this event doesn't get triggered infinitely times if the proper government reform assignment fails
+		}
+		
+		ai_chance = {
+			factor = 1
+		}
 	}
 }
