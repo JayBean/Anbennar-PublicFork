@@ -1,0 +1,105 @@
+nsc_investigate_action = {
+	category = influence
+	
+	require_acceptance = no
+	
+	is_visible = {
+		has_country_flag = nsc_investigation_enabled
+		FROM = {
+			has_country_flag = nsc_investigation_enabled
+			NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
+		}
+    }
+	
+	is_allowed = {
+		num_of_diplomats = 2
+		custom_trigger_tooltip = {
+			tooltip = nsc_not_has_already_investigated_tt
+			FROM = {
+				NOT = { has_country_flag = nsc_was_fully_investigated_by_@ROOT }
+				NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
+			}
+		}
+		custom_trigger_tooltip = {
+			tooltip = nsc_cant_investigate_vassals_tt
+			FROM = {
+				OR = {
+					is_subject = no
+					is_subject_of_type = tributary_state
+					overlord = { NOT = { has_country_flag = nsc_investigation_enabled } }
+				}
+			}
+		}
+		custom_trigger_tooltip = {
+			tooltip = nsc_vassals_cant_investigate_tt
+			OR = {
+				is_subject = no
+				is_subject_of_type = tributary_state
+			}
+		}
+		NOT = { is_in_war = { casus_belli = cb_nsc_investigation attacker_leader = FROM } }
+	}
+
+    on_accept = {
+		if = { limit = { FROM = { NOT = { has_country_flag = nsc_was_investigated_by_@ROOT } } } #So the diplo action is can't be spammed to increase your NSC level
+			FROM = { set_country_flag = nsc_was_investigated_by_@ROOT }
+			if = { limit = { FROM = { is_chosen_country = yes } }
+				add_incident_variable_value = { incident = incident_summit_of_samartal value = -1 }
+			}
+			else = {
+				add_incident_variable_value = { incident = incident_summit_of_samartal value = 1 }
+			}
+		}
+		FROM = {
+			#save_event_target_as = nsc_@ROOT_investigation_of_@FROM
+			set_country_flag = nsc_is_investigated_by_@ROOT
+			set_country_flag = nsc_investigation_just_started_by_@ROOT
+			add_opinion = { who = ROOT modifier = nsc_has_investigated_us }
+			#country_event = { id = new_sun_cult.184 }
+		}
+		nsc_add_investigation_ongoing_modifier = yes
+		clr_country_flag = nsc_investigation_stopped_@FROM
+		country_event = { id = new_sun_cult.183 }
+	}
+	
+	ai_will_do = {
+		OR = {
+			is_neighbor_of = FROM
+			all_known_country = {
+				OR = {
+					NOT = { has_country_flag = nsc_investigation_enabled }
+					NOT = { is_neighbor_of = ROOT }
+					is_subject = yes
+					has_country_flag = nsc_is_investigated_by_@ROOT
+					has_country_flag = nsc_was_fully_investigated_by_@ROOT
+				}
+			}
+		}
+	}
+}
+
+nsc_cancel_investigate_action = {
+	category = influence
+	
+	require_acceptance = no
+	
+	is_visible = {
+		FROM = { has_country_flag = nsc_is_investigated_by_@ROOT }
+    }
+	
+	is_allowed = {
+		custom_trigger_tooltip = {
+			tooltip = nsc_has_already_cancelled_investigation_tt
+			FROM = { has_country_flag = nsc_is_investigated_by_@ROOT }
+		}
+	}
+
+    on_accept = {
+		FROM = { clr_country_flag = nsc_is_investigated_by_@ROOT }
+		nsc_remove_investigation_ongoing_modifier = yes
+	}
+	
+	ai_will_do = {
+		always = no
+	}
+}
