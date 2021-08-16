@@ -1,3 +1,4 @@
+# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
 update_artifice_points = {
 	if = {
 		limit = { has_estate = estate_artificers }
@@ -6,13 +7,7 @@ update_artifice_points = {
 				which = MaxArtificePoints
 				value = 0
 			}
-			#all of this doesn't need to be calcualted every time. If we ensured that everything that can effect artifice ponts adds or subtracts from the max when it happens, then I could make this much less performance intensive.
-			#that isn't set up currently, but I'll work on it in a seperate fork
-			#once it's done, we only need to to calculate province resources, innovativeness, estates, buildings, tech and institutions (thanks paradox for not including shit in on_actions). 
-			#So that at least removes racial admin/mils and religions
-			#man I'm gonna have to figure out how to optimize this shit
-
-			#some of these should be placed in the static variable
+			# If you're adding a modifier here make sure to also add it to the artifice localization (in artifice_l_english and anb_custom_artifice_localization) otherwise it will not show up in game
 		
 			#gov reforms
 			#gov reforms can be made to count as a technocracy by adding count_gov_as_technocracy to their effect and reset_gov_is_technocracy to their removed_effect
@@ -35,6 +30,17 @@ update_artifice_points = {
 					value = 10
 				}
 			}
+			
+			#5 points for having a university, nothing more from universities please.
+			if = {
+				limit = {
+					university = 1
+				}
+				change_variable = {
+					which = MaxArtificePoints
+					value = 5
+				}
+			}
 		
 			#artificer admin/mil/religion
 			if = {
@@ -48,6 +54,17 @@ update_artifice_points = {
 				change_variable = {
 					which = MaxArtificePoints
 					value = 5
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_modifier = dwarven_administration
+					}
+				}
+				change_variable = {
+					which = MaxArtificePoints
+					value = 2
 				}
 			}
 			if = {
@@ -76,14 +93,12 @@ update_artifice_points = {
 				}
 			}
 		
-			#trolls get a penalty because they are stupid. elves, harimari and dwarves get a penalty because they are traditionalist. Emerald orcs because they hate technology
-		
+			#trolls get a penalty because they are stupid. elves, harimari get a penalty because they are traditionalist. Emerald orcs because they hate technology
 			if = {
 				limit = {
 					OR = {
 						has_country_modifier = troll_administration
 						has_country_modifier = elven_administration
-						has_country_modifier = dwarven_administration
 						has_country_modifier = harimari_administration
 						#culture = emerald_orc
 					}
@@ -99,7 +114,6 @@ update_artifice_points = {
 					OR = {
 						has_country_modifier = troll_military
 						has_country_modifier = elven_military
-						has_country_modifier = dwarven_military
 						has_country_modifier = harimari_military
 						#culture = emerald_orc
 					}
@@ -350,11 +364,11 @@ update_artifice_points = {
 					owner = {
 						change_variable = {
 							which = MaxArtificePoints
-							value = 5
+							value = 3
 						}
 						change_variable = {
 							which = DamestearArtificePoints
-							value = 5
+							value = 3
 						}
 					}
 				}
@@ -373,11 +387,11 @@ update_artifice_points = {
 					owner = {
 						change_variable = {
 							which = MaxArtificePoints
-							value = 3
+							value = 5
 						}
 						change_variable = {
 							which = RelicsArtificePoints
-							value = 3
+							value = 5
 						}
 					}
 				}
@@ -425,11 +439,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 5
+									value = 3
 								}
 								change_variable = {
 									which = DamestearArtificePoints
-									value = 5
+									value = 3
 								}
 							}
 						}
@@ -454,11 +468,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 3
+									value = 5
 								}
 								change_variable = {
 									which = RelicsArtificePoints
-									value = 3
+									value = 5
 								}
 							}
 						}
@@ -516,14 +530,29 @@ update_artifice_points = {
 					value = 0
 				}
 			}
+			
+			set_variable = {
+				which = RemainingArtificePoints
+				value = 0
+			}
+			
+			change_variable = {
+				which = RemainingArtificePoints
+				which = MaxArtificePoints
+			}
+			
+			subtract_variable = {
+				which = RemainingArtificePoints
+				which = ArtificeUpkeep
+			}
 		
 			# If over capacity
 			if = {
 				limit = {
 					NOT = {
 						check_variable = {
-							which = MaxArtificePoints
-							value = ArtificeUpkeep
+							which = RemainingArtificePoints
+							value = 0
 						}
 					}
 				}
@@ -809,6 +838,12 @@ artifice_research_rewards = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_conversation_calibrator
 			}
+			modifier = {
+				factor = 0
+				NOT = {
+					culture_group = gnomish
+				}
+			}
 		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_centipedal_chests
@@ -962,7 +997,6 @@ artifice_research_rewards = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_artificer_exo_arms
 			}
-			country_event = { id = artifice_invention.1 }
 		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_t_wave_transceivers
@@ -1642,7 +1676,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = eordellon_ruinborn_elf }
+				NOT = { culture_group = eordan_ruinborn_elf }
 			}
 		}
 
