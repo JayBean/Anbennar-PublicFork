@@ -92,7 +92,7 @@ on_startup = {
 		anbennar_setup.19
 		migration_force_settle.2
 		great_conqueror.1				#GC setup
-
+		new_sun_cult.7 			#NSC setup in case MoH is disabled
 	}
 
 	#update_artifice_points = yes
@@ -340,23 +340,23 @@ on_religion_change = {
 		}
 		set_consort_religion = ROOT
 	}
-	if = {
-		limit = {
-			NOT = { religion = orthodox }
-		}
-		every_known_country = {
-			limit = {
-				reverse_has_opinion_modifier = {
-					who = ROOT
-					modifier = closed_down_the_patriarchate
-				}
-			}
-			reverse_remove_opinion = {
-				who = ROOT
-				modifier = closed_down_the_patriarchate
-			}
-		}
-	}
+	# if = {
+	# 	limit = {
+	# 		NOT = { religion = orthodox }
+	# 	}
+	# 	every_known_country = {
+	# 		limit = {
+	# 			reverse_has_opinion_modifier = {
+	# 				who = ROOT
+	# 				modifier = closed_down_the_patriarchate
+	# 			}
+	# 		}
+	# 		reverse_remove_opinion = {
+	# 			who = ROOT
+	# 			modifier = closed_down_the_patriarchate
+	# 		}
+	# 	}
+	# }
 	# Anbennar
 	# if = {
 		# limit = {
@@ -402,6 +402,9 @@ on_religion_change = {
 			remove_province_modifier = sufi_shrine
 		}
 	}
+	
+	update_nsc_level_secondary_effects = yes
+	
 	events = {
 		# muslim_school_events.20 #Pick School
 		high_philosophy_events.0
@@ -665,6 +668,15 @@ on_war_won = {
 			}
 		}
 	}
+	
+	#Sun elf winning war
+	if = {
+		limit = {
+			is_chosen_country = yes
+			religion = bulwari_sun_cult
+		}
+		clr_country_flag = nsc_lost_war
+	}
 
 	# if = {
 		# limit = {
@@ -757,6 +769,15 @@ on_war_lost = {
 		}
 	}
 	
+	#Sun elf losing war
+	if = {
+		limit = {
+			is_chosen_country = yes
+			religion = bulwari_sun_cult
+		}
+		set_country_flag = nsc_lost_war
+	}
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -770,6 +791,9 @@ on_battle_won_country = {
 	if = {
 		limit = { NOT = { FROM = { tag = REB } } }
 		centaur_battle_count_win = yes
+	}
+	if = { limit = { OR = { has_disaster = dukeldar has_disaster = nsc_dinam_elutur } }
+		change_variable = { which = dukeldarBattlesWonVar value = 1 }
 	}
 }
 
@@ -786,6 +810,9 @@ on_battle_lost_country = {
 		limit = { NOT = { FROM = { tag = REB } } }
 		centaur_battle_count_lost = yes
 		aelnar_battle_count_lost = yes
+	}
+	if = { limit = { OR = { has_disaster = dukeldar has_disaster = nsc_dinam_elutur } }
+		change_variable = { which = dukeldarBattlesWonVar value = -1 }
 	}
 }
 
@@ -858,6 +885,20 @@ on_battle_won_province = {
 				which = battleWinRate
 				value = 100
 			}
+		}
+	}
+	
+	if = { limit = { has_province_flag = nsc_duel } #Mages vs Artificers duel during the 'Rise of Artificery' NSC incident
+		if = { limit = { NOT = { has_province_flag = nsc_duel_null } }
+			if = { limit = { from = { tag = REB is_rebel_type = artificer_duelists_rebels } }
+				owner = { country_event = { id = new_sun_cult.203 } }
+			}
+			else_if = { limit = { from = { tag = REB is_rebel_type = mage_duelists_rebels } }
+				owner = { country_event = { id = new_sun_cult.204 } }
+			}
+		}
+		else = {
+			owner = { country_event = { id = new_sun_cult.205 } }
 		}
 	}
 
@@ -975,6 +1016,26 @@ on_battle_won_unit = {
 			}
 		}
 	}
+	if = {
+        limit = {
+            unit_owner = {
+                is_chosen_country = yes
+				religion = bulwari_sun_cult
+				has_dlc = "Mandate of Heaven"
+				isolationism = 4
+            }
+            is_ruler_commanding_unit = yes
+        }
+        unit_owner = { change_variable = { which = battlesWonBySunElfRuler value = 1 } }
+		if = { limit = { unit_owner = { check_variable = { which = battlesWonBySunElfRuler value = 5 } } }
+			if = { limit = { unit_owner = { check_variable = { which = battlesWonBySunElfRuler value = 10 } } }
+				country_event = { id = new_sun_cult.4 }
+			}
+			else = {
+				country_event = { id = new_sun_cult.3 }
+			}
+		}
+    }
 }
 
 # #Unit Scope OnAction for Battle Lost
@@ -1349,6 +1410,13 @@ on_new_monarch = {
 		50 = dynastic_events.5	
 		# 25 = harem_events.7		#Failed Policy of Fratricide
 	}
+	
+	#NSC effects
+	refresh_nsc_incidents_ui = yes
+	update_nsc_level_secondary_effects = yes
+	if = { limit = { religion = bulwari_sun_cult }
+		set_variable = { which = battlesWonBySunElfRuler value = 0 }
+	}
 }
 
 on_new_consort = {
@@ -1443,6 +1511,7 @@ on_monarch_death = {
 		magic_project_lichdom.12 # Revival
 		vampire_ruler.33 # Vampire Heir Returns
 		flavor_castanor.211 # One of the Castans during disaster dies
+		new_sun_cult.5 #Shitty new ruler makes NSC level drop
 	}
 	country_event = { id = 	vampires_estate_events.13  days = 1 } # Revival													   
 	country_event = { id = magic_misc_events.4 days = 60 } #Undead Army
@@ -2212,10 +2281,6 @@ on_dismantle_revolution = {
 # province
 on_adm_development = {
 	if = {
-		limit = { religion = corinite }
-		owner = { add_karma = 0.2 }
-	}
-	if = {
 		limit = { has_province_modifier = jaddari_blessed_land }
 		random = {
 			chance = 25
@@ -2223,10 +2288,10 @@ on_adm_development = {
 		}
 	}
 	jaddari_deioderan_dev_counter_update = yes
-	if = {
-		limit = { owner = { has_country_flag = federation_state_council } }
-		governing_point_adm = yes
-	}
+	# if = {
+		# limit = { owner = { has_country_flag = federation_state_council } }
+		# governing_point_adm = yes
+	# }
 	if = {
 		limit = { 
 			owner = { has_estate = estate_castonath_patricians }
@@ -2275,10 +2340,6 @@ on_adm_development = {
 # province
 on_dip_development = {
 	if = {
-		limit = { religion = corinite }
-		owner = { add_karma = 0.2 }
-	}
-	if = {
 		limit = { has_active_triggered_province_modifier = gold_hold }
 		add_base_production = 1
 	}
@@ -2290,10 +2351,10 @@ on_dip_development = {
 		}
 	}
 	jaddari_deioderan_dev_counter_update = yes
-	if = {
-		limit = { owner = { has_country_flag = federation_state_council } }
-		governing_point_dip = yes
-	}
+	# if = {
+		# limit = { owner = { has_country_flag = federation_state_council } }
+		# governing_point_dip = yes
+	# }
 	if = {
 		limit = { 
 			owner = { has_estate = estate_castonath_patricians }
@@ -2342,10 +2403,6 @@ on_dip_development = {
 # province
 on_mil_development = {
 	if = {
-		limit = { religion = corinite }
-		owner = { add_karma = 0.2 }
-	}
-	if = {
 		limit = { has_province_modifier = jaddari_blessed_land }
 		random = {
 			chance = 25
@@ -2353,10 +2410,10 @@ on_mil_development = {
 		}
 	}
 	jaddari_deioderan_dev_counter_update = yes
-	if = {
-		limit = { owner = { has_country_flag = federation_state_council } }
-		governing_point_mil = yes
-	}
+	# if = {
+		# limit = { owner = { has_country_flag = federation_state_council } }
+		# governing_point_mil = yes
+	# }
 	if = {
 		limit = { 
 			owner = { has_estate = estate_castonath_patricians }
@@ -2875,6 +2932,7 @@ on_bi_yearly_pulse_2 = {
 		id = anbennar_setup.19
 		days = 0
 	}
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -2981,9 +3039,9 @@ on_bi_yearly_pulse_4 = {
 
 		100 = 9472
 		100 = 3097
-		100 = 5005
+		# 100 = 5005
 		100 = 5026
-		100 = 5037
+		# 100 = 5037
 		100 = 5063
 		100 = 6014
 
@@ -4651,6 +4709,7 @@ on_five_year_pulse_3 = {
 	events = {
 		corins_circle.100
 		diggy_fallen.10		#Runefather's Maw upkeep Increase
+		new_sun_cult.161		#tension increase event in Bulwar
 		# race_setup_events.3 #Unmatching Tolerances - Fixes level of tolerance towards other races
     }
 
@@ -5254,6 +5313,20 @@ on_province_owner_change = {
 	
 	if = {
 		limit = {
+			culture = no_culture
+		}
+		change_culture = owner
+	}
+	
+	if = {
+		limit = {
+			religion = no_religion
+		}
+		change_religion = owner
+	}
+	
+	if = {
+		limit = {
 			NOT = {
 				OR = {
 					has_province_modifier = wine_bonus_prod
@@ -5718,6 +5791,7 @@ on_culture_promoted = {
 	country_event = { id = racial_modifiers.7 }	#Save primary culture
 	country_event = { id = racial_modifiers.8 }	#Change back primary culture if the country has a locked administration
 	country_event = { id = monstrous.102 days = 35 } #Remove opinion if no longer monstrous, 35days delay to let the triggered modifier update itself
+	update_nsc_level_secondary_effects = yes
 }
 
 # FROM = Previous Country, ROOT = Province
@@ -5754,11 +5828,13 @@ on_dependency_gained = {
 			}# States General falls under a PU
 		}
 	}
+	
+	FROM = { update_nsc_level_secondary_effects = yes } 
 }
 
 # ROOT = Overlord, FROM = Minor
 on_dependency_lost = {
-
+	FROM = { update_nsc_level_secondary_effects = yes }
 }
 
 # ROOT = New vassal, FROM = Overlord
