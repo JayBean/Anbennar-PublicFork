@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-LizstarFork"
+path="mod/anbennar-eu4-fork-lizstar"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.31.*"
