@@ -1,3 +1,4 @@
+# � <-- This is here to make sure that the encoding stays ANSI, do not remove it
 # INSTRUCTIONS:
 #
 # condition				A diplomatic action can have any number of condition blocks, each with its own
@@ -230,6 +231,30 @@ declarewar = {
 		}
 	}
 	
+	condition = { #Can't declare independence if you have a NSC level 3 or more (lvl 3 in the code = lvl 4 in the loc/interface)
+		tooltip = NSC_LEVEL_VASSAL
+		potential = {
+			is_subject_of = FROM
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+			FROM = { is_chosen_country = yes }
+			is_chosen_country = no
+		}
+		allow = {
+			NOT = { isolationism = 3 }
+		}
+	}
+	
+	condition = { #Can't declare war while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_SUMMIT
+		potential = {
+			has_country_flag = nsc_samartal_masquerade
+		}
+		allow = {
+			FROM = { NOT = { has_country_flag = nsc_samartal_masquerade } }
+		}
+	}
+	
 	effect = {
 		if = {
 			limit = { 
@@ -331,6 +356,16 @@ declarewar = {
 			20 = {
 				change_controller = A15
 			}
+		}
+		if = {
+			limit = {
+				is_subject_of = FROM
+				religion = bulwari_sun_cult
+				has_dlc = "Mandate of Heaven"
+				FROM = { is_chosen_country = yes }
+				is_chosen_country = no
+			}
+			add_stability = -1
 		}
 	}
 }
@@ -829,11 +864,25 @@ royal_marriage = {
 	condition = {
 		tooltip = MONO_GENDERED
 		potential = {
-			ROOT = { ruler_is_harpy = yes }
+			ROOT = {
+				OR = {
+					ruler_is_harpy = yes
+					AND = {
+						has_regency = yes
+						heir_is_harpy = yes
+					}
+				}
+			}
 		}
 		allow = {
 			FROM = {
-				NOT = { ruler_is_harpy = yes }
+				NOT = {
+					ruler_is_harpy = yes
+					AND = {
+						has_regency = yes
+						heir_is_harpy = yes
+					}
+				}
 			}
 		}
 	}
@@ -970,18 +1019,18 @@ vassalaction = {
 			}
 			FROM = { is_at_war = no }
 		}
-		effect = {
-			if = { # this makes it visible i using it on someone who would lose it
-				limit = {
-					FROM = {
-						has_country_modifier = dwarovar_claimer
-					}
-				}
+	}
+	effect = {
+		if = { # this makes it visible i using it on someone who would lose it
+			limit = {
 				FROM = {
-					country_event = {
-						id = diggy.122
-						days = 0
-					}
+					has_country_modifier = dwarovar_claimer
+				}
+			}
+			FROM = {
+				country_event = {
+					id = diggy.122
+					days = 0
 				}
 			}
 		}
@@ -1018,6 +1067,16 @@ form_coalition = {
 					value = -50
 				}
 			}
+		}
+	}
+	
+	condition = { #Can't form coalition while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_TRAGEDY_COALITION
+		potential = {
+			religion = bulwari_sun_cult
+		}
+		allow = {
+			NOT = { has_country_flag = nsc_was_at_samartal }
 		}
 	}
 }
@@ -1094,4 +1153,16 @@ request_to_join_federation = {
             NOT = { FROM = { federation_size = 4 } }
         }
     }
+}
+
+callaction = {
+	condition = { #Can't call to arms while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_TRAGEDY_CALL
+		potential = {
+			is_in_war = { casus_belli = cb_nsc_investigation }
+		}
+		allow = {
+			overlord_of = FROM #allows vassals to join
+		}
+	}
 }
