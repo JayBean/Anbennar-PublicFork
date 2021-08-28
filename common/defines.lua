@@ -1401,7 +1401,7 @@ NMilitary = {
 	AREA_REBEL_SUPPRESSION_MULTIPLIER = 5.0,		-- Armies suppressing rebels in areas adds this/<number of suppressed provinces> to rebel suppression in affected provinces.
 
 	BANNER_USES_CONSTRUCTION = 0,
-	STRELTSY_USES_CONSTRUCTION = 1,
+	STRELTSY_USES_CONSTRUCTION = 0,
 	COSSACKS_USES_CONSTRUCTION = 1,
 	JANISSARIES_USES_CONSTRUCTION = 0,
 	RAJPUT_USES_CONSTRUCTION = 1,
@@ -2402,16 +2402,16 @@ NNationDesigner = {
 
 NGovernment = {
 	SELECT_HEIR_FROM_HAREM_AT_MONARCH_AGE = 30, -- The age in years when an heir is selected if the government "has_harem" flag is set.
-	RUSSIAN_ABILITY_COST = 100,
+	RUSSIAN_ABILITY_COST = 100, -- This is used for Magnates government, it might be reusable if you want to investigate that
 	RUSSIAN_ABILITY_POOL_SIZE = 150,
 	RUSSIAN_ABILITY_BASE_GAIN = 3,
-	RUSSIAN_ABILITY_SUDEBNIK_MIN_AUTONOMY = 10,
+	RUSSIAN_ABILITY_SUDEBNIK_MIN_AUTONOMY = 0, -- Anbennar changed to 0, was 10
 	RUSSIAN_ABILITY_SUDEBNIK_AUTONOMY_CHANGE = -10,
-	RUSSIAN_ABILITY_OPRICHNINA_THRESHOLD = 0.3,
+	RUSSIAN_ABILITY_OPRICHNINA_THRESHOLD = 0, -- Anbennar changed to 0, was 0.3
 	RUSSIAN_ABILITY_OPRICHNINA_AI_THRESHOLD = 0.85, -- AI will use ability when revolt risk is 90%, or when they have full power
-	RUSSIAN_ABILITY_OPRICHNINA_CHANGE = -0.3,
+	RUSSIAN_ABILITY_OPRICHNINA_CHANGE = -0.3, 
 	RUSSIAN_ABILITY_STRELTSY_WE_CHANGE = -2,
-	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0.2,
+	RUSSIAN_ABILITY_STRELTSY_SPAWN_SIZE = 0.2, -- Anbennar change to -100 vanilla was 0.2
 
 	IQTA_POLICY_COOLDOWN_YEARS = 20,
 	EFFICIENT_FARMING_DUCAT_MULTIPLIER = 2,
