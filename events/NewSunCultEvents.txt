@@ -194,7 +194,7 @@ province_event = {
 	}
 }
 
-#Lucian Carter arrives in the Drolas (Betelis province)
+#Lucian Carter 2
 province_event = {
 	id = new_sun_cult.9
 	title = new_sun_cult.9.t
@@ -278,59 +278,7 @@ province_event = {
 	}
 }
 
-#test
-country_event = {
-	id = new_sun_cult.10
-	title = new_sun_cult.10.t
-	desc = new_sun_cult.10.d
-	picture = DIPLOMACY_eventPicture
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { nsc_calculate_army_strength_ratio = { who = FROM other_wars_ratio = 0.5 } }
-	}
-	
-	#
-	option = {
-		name = new_sun_cult.10.a
-		FROM = { country_event = { id = new_sun_cult.185 } }
-	}
-}
-
-country_event = {
-	id = new_sun_cult.11
-	title = new_sun_cult.11.t
-	desc = new_sun_cult.11.d
-	picture = DIPLOMACY_eventPicture
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { nsc_calculate_army_strength_ratio = { who = FROM other_wars_ratio = 0.5 } }
-	}
-	
-	#
-	option = {
-		name = new_sun_cult.11.a
-		F21 = { country_event = { id = new_sun_cult.185 days = 10 } }
-	}
-}
-
-country_event = {
-	id = new_sun_cult.12
-	title = new_sun_cult.12.t
-	desc = new_sun_cult.12.d
-	picture = DIPLOMACY_eventPicture
-	
-	is_triggered_only = yes
-	
-	#
-	option = {
-		name = new_sun_cult.11.a
-		F21 = { country_event = { id = new_sun_cult.10 } }
-	}
-}
+#id 10 to 14 available
 
 #--------------------------------------------#
 #---------------# Disasters #----------------#
@@ -385,7 +333,7 @@ country_event = {
 	}
 }
 
-#Military desertions
+#Military demand more pay
 country_event = {
 	id = new_sun_cult.17
 	title = new_sun_cult.17.t
@@ -398,9 +346,20 @@ country_event = {
 		hidden_effect = { country_event = { id = new_sun_cult.18 days = 120 random = 120 } }
 	}
 	
+	#Refuse
 	option = {
 		name = new_sun_cult.17.a
-		add_manpower = -5
+		custom_tooltip = nsc_troops_likely_to_desert_tt
+		set_country_flag = dukeldar_likely_desertions
+		set_country_flag = dukeldar_desertions
+	}
+	
+	#Accept
+	option = {
+		name = new_sun_cult.17.b
+		add_country_modifier = { name = nsc_army_more_paid duration = 3650 }
+		custom_tooltip = nsc_troops_less_likely_to_desert_tt
+		set_country_flag = dukeldar_desertions
 	}
 }
 
@@ -433,16 +392,40 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.20 days = 120 random = 120 } }
+		hidden_effect = {
+			country_event = { id = new_sun_cult.20 days = 120 random = 120 }
+			set_variable = { which = numRebelProvinceVar value = -1 }
+			every_owned_province = { ROOT = { change_variable = { which = numRebelProvinceVar value = 1 } } }
+			divide_variable = { which = numRebelProvinceVar value = 4 }
+			while = {
+				limit = {
+					check_variable = { which = numRebelProvinceVar value = 1 }
+					NOT = { num_of_owned_provinces_with = { has_province_flag = dukeldar_rebellion value = 10 } }
+				}
+				random_owned_province = {
+					limit = {
+						is_capital = no
+						NOT = { has_province_flag = dukeldar_rebellion }
+					}
+					ROOT = { change_variable = { which = numRebelProvinceVar value = -1 } }
+					spawn_rebels = { type = anti_tax_rebels size = 1 }
+					set_province_flag = dukeldar_rebellion
+				}
+			}
+		}
 	}
 	
 	option = {
 		name = new_sun_cult.19.a
-		
+		random_owned_province = {
+			limit = { is_capital = no }
+			spawn_rebels = { type = anti_tax_rebels size = 3 }
+			set_province_flag = dukeldar_rebellion
+		}
 	}
 }
 
-#Rebellions
+#Mages
 country_event = {
 	id = new_sun_cult.20
 	title = new_sun_cult.20.t
@@ -471,12 +454,76 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.40 days = 120 random = 120 } }
+		hidden_effect = {
+			if = { limit = { capital_scope = { region = bulwar_proper_region } }
+				F39 = { save_event_target_as = bulwari_origin }
+				set_saved_name = {
+					key = dukedal_pretender
+					type = advisor
+					scope = event_target:bulwari_origin
+				}
+			}
+			else_if = { limit = { capital_scope = { region = far_bulwar_region } }
+				U20 = { save_event_target_as = surani_origin }
+				set_saved_name = {
+					key = dukedal_pretender
+					type = advisor
+					scope = event_target:surani_origin
+				}
+			}
+			else = {
+				U19 = { save_event_target_as = bahari_origin }
+				set_saved_name = {
+					key = dukedal_pretender
+					type = advisor
+					scope = event_target:bahari_origin
+				}
+			}
+			capital_scope = {
+				spawn_rebels = {
+					size = 3
+					leader = dukedal_pretender
+					type = pretender_rebels
+					culture = zanite
+					win = yes
+				}
+				set_province_flag = dukeldar_pretender_province
+				random_neighbor_province = {
+					limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+					spawn_rebels = {
+						size = 2
+						type = pretender_rebels
+						culture = zanite
+						win = yes
+					}
+					set_province_flag = dukeldar_pretender_province
+				}
+			}
+			random_owned_province = {
+				limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+				spawn_rebels = {
+					size = 2
+					type = pretender_rebels
+					culture = zanite
+					win = yes
+				}
+				set_province_flag = dukeldar_pretender_province
+				random_neighbor_province = {
+					limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+					spawn_rebels = {
+						size = 2
+						type = pretender_rebels
+						culture = zanite
+						win = yes
+					}
+					set_province_flag = dukeldar_pretender_province
+				}
+			}
+		}
 	}
 	
 	option = {
 		name = new_sun_cult.21.a
-		
 	}
 }
 
@@ -490,9 +537,27 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		any_owned_province = {
+			religion = bulwari_sun_cult
+			NOT = { has_province_flag = dukeldar_conversion }
+		}
+	}
+	
 	option = {
 		name = new_sun_cult.22.a
-		
+		random_owned_province = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { has_province_flag = dukeldar_conversion }
+			}
+			set_province_flag = dukeldar_conversion
+			change_religion = the_jadd
+			random = {
+				chance = 50
+				spawn_rebels = { type = the_jadd_rebels size = 1 }
+			}
+		}
 	}
 }
 
@@ -505,9 +570,27 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		any_owned_province = {
+			religion = bulwari_sun_cult
+			NOT = { has_province_flag = dukeldar_conversion }
+		}
+	}
+	
 	option = {
 		name = new_sun_cult.23.a
-		
+		random_owned_province = {
+			limit = {
+				religion = bulwari_sun_cult
+				NOT = { has_province_flag = dukeldar_conversion }
+			}
+			set_province_flag = dukeldar_conversion
+			change_religion = old_bulwari_sun_cult
+			random = {
+				chance = 50
+				spawn_rebels = { type = old_bulwari_sun_cult_rebels size = 1 }
+			}
+		}		
 	}
 }
 
@@ -553,8 +636,7 @@ country_event = {
 	}
 }
 
-#Disaster end
-#
+#Desertion
 country_event = {
 	id = new_sun_cult.25
 	title = new_sun_cult.25.t
@@ -563,21 +645,87 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		has_country_flag = dukeldar_desertions
+		manpower = 1
+	}
+	
 	option = {
 		name = new_sun_cult.25.a
+		if = { limit = { NOT = { max_manpower = 20 } }
+			add_manpower = -1
+		}
+		else_if = { limit = { NOT = { max_manpower = 30 } }
+			add_manpower = -1.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 40 } }
+			add_manpower = -2
+		}
+		else_if = { limit = { NOT = { max_manpower = 50 } }
+			add_manpower = -2.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 60 } }
+			add_manpower = -3
+		}
+		else_if = { limit = { NOT = { max_manpower = 70 } }
+			add_manpower = -3.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 80 } }
+			add_manpower = -4
+		}
+		else_if = { limit = { NOT = { max_manpower = 90 } }
+			add_manpower = -4.5
+		}
+		else = {
+			add_manpower = -5
+		}
+	}
+}
+
+#Disaster end
+#
+country_event = {
+	id = new_sun_cult.26
+	title = new_sun_cult.26.t
+	desc = { trigger = { NOT = { has_country_flag = dukedal_lost } } desc = new_sun_cult.26.da }
+	desc = { trigger = { has_country_flag = dukedal_lost } desc = new_sun_cult.26.db }
+	picture = { trigger = { NOT = { has_country_flag = dukedal_lost } } picture = ARTWORK_eventPicture }
+	picture = { trigger = { has_country_flag = dukedal_lost } picture = ARTWORK_eventPicture }
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = new_sun_cult.26.a
+		trigger = { NOT = { has_country_flag = dukedal_lost } }
 		increase_nsc_isolation_level = yes
+		remove_country_modifier = nsc_army_more_paid
+	}
+	
+	option = {
+		name = new_sun_cult.26.b
+		trigger = { has_country_flag = dukedal_lost }
+		clr_country_flag = dukedal_lost
+		remove_country_modifier = nsc_army_more_paid
+	}
+	
+	after = {
 		remove_country_modifier = nsc_rebellious_administration_1
 		remove_country_modifier = nsc_rebellious_administration_2
 		remove_country_modifier = nsc_rebellious_administration_3
 		remove_country_modifier = nsc_rebellious_administration_4
 		remove_country_modifier = nsc_rebellious_administration_5
 		remove_country_modifier = nsc_rebellious_administration_6
-	}
-	
-	after = {
+		set_country_flag = nsc_dukeldar_end
 		clr_country_flag = nsc_lost_war
 		clr_country_flag = nsc_dukeldar_end
 		clr_country_flag = nsc_admin_on_strike
+		clr_country_flag = dukeldar_likely_desertions
+		clr_country_flag = dukeldar_desertions
+		every_owned_province = {
+			clr_province_flag = dukeldar_rebellion
+			clr_province_flag = dukeldar_conversion
+			clr_province_flag = dukeldar_pretender_province
+		}
 	}
 }
 
@@ -585,26 +733,6 @@ country_event = {
 
 #Disaster start
 #Dinam Elutur Start
-country_event = {
-	id = new_sun_cult.27
-	title = new_sun_cult.27.t
-	desc = new_sun_cult.27.d
-	picture = ARTWORK_eventPicture
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.28 days = 120 random = 120 } }
-	}
-	
-	option = {
-		name = new_sun_cult.27.a
-		
-	}
-}
-
-#Main events
-#
 country_event = {
 	id = new_sun_cult.28
 	title = new_sun_cult.28.t
@@ -614,11 +742,27 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.18 days = 120 random = 120 } }
+		hidden_effect = { country_event = { id = new_sun_cult.29 days = 120 random = 120 } }
 	}
 	
 	option = {
 		name = new_sun_cult.28.a
+		
+	}
+}
+
+#Main events
+#
+country_event = {
+	id = new_sun_cult.29
+	title = new_sun_cult.29.t
+	desc = new_sun_cult.29.d
+	picture = ARTWORK_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = new_sun_cult.29.a
 		
 	}
 }
@@ -1063,7 +1207,6 @@ country_event = {
 	option = {
 		name = new_sun_cult.58.b
 		ai_chance = { factor = 0 }
-		highlight = yes
 		clr_country_flag = nsc_reining_in_populace
 	}
 }
@@ -1417,6 +1560,9 @@ country_event = {
 		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = -1 }
 		add_country_modifier = { name = nsc_lowered_vassal_levies duration = 3650 }
+		every_subject_country = {
+			add_country_modifier = { name = nsc_lowered_vassal_levies_vassal duration = 3650 }
+		}
 		clr_country_flag = nsc_appeasing_vassals
 	}
 	
@@ -1431,6 +1577,9 @@ country_event = {
 		custom_tooltip = nsc_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_bulwar_under_threat value = -1 }
 		add_country_modifier = { name = nsc_lowered_vassal_troops duration = 3650 }
+		every_subject_country = {
+			add_country_modifier = { name = nsc_lowered_vassal_troops_vassal duration = 3650 }
+		}
 		clr_country_flag = nsc_appeasing_vassals
 	}
 	
@@ -2024,41 +2173,6 @@ country_event = {
 	}
 }
 
-#Pledge Score
-country_event = {
-	id = new_sun_cult.76
-	title = new_sun_cult.76.t
-	desc = new_sun_cult.76.d
-	picture = GOOD_WITH_MONARCH_eventPicture
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { nsc_calculate_pledge_score = yes }
-	}
-	
-	#Proclaim the pledge fulfilled
-	option = {
-		name = new_sun_cult.76.a
-		trigger = { check_variable = { which = ScoreVar value = 66 } }
-		ai_chance = { factor = 100 }
-		country_event = { id = new_sun_cult.77 }
-	}
-	
-	#Go back
-	option = {
-		name = new_sun_cult.76.b
-		ai_chance = {
-			factor = 1
-			modifier = { factor = 0 check_variable = { which = ScoreVar value = 66 } }
-		}
-		clr_country_flag = nsc_pledge_menu
-		if = { limit = { ai = yes }
-			set_country_flag = nsc_ai_pledge_menu
-		}
-	}
-}
-
 #Incident end
 country_event = {
 	id = new_sun_cult.77
@@ -2092,7 +2206,7 @@ country_event = {
 				ai = yes
 			}
 		}
-		picture = BATTLE_eventPicture
+		picture = COURT_eventPicture
 	}
 	picture = {
 		trigger = {
@@ -2205,6 +2319,7 @@ country_event = {
 		clr_country_flag = nsc_ai_took_vassal_decision
 		clr_country_flag = nsc_pledge_menu
 		clr_country_flag = nsc_ai_pledge_menu
+		clr_country_flag = azka_evran_gathering_army
 		remove_country_modifier = nsc_admin_reformed
 		remove_country_modifier = nsc_admin_kinda_reformed
 		remove_country_modifier = nsc_flustered_populace
@@ -6163,6 +6278,7 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			set_country_flag = nsc_samartal_masquerade				#Player can't declare war too now
+			set_variable = { which = investigationAgainstVar value = 0 }
 			if = {
 				limit = {
 					NOT = { has_global_flag = nsc_explosion_balcony }
@@ -6328,9 +6444,7 @@ country_event = {
 	desc = { trigger = { has_country_flag = nsc_same_room_as_explosion } desc = new_sun_cult.173.da }
 	desc = { trigger = { has_country_flag = nsc_adjacent_room_as_explosion } desc = new_sun_cult.173.db }
 	desc = { trigger = { has_country_flag = nsc_far_from_explosion } desc = new_sun_cult.173.dc }
-	picture = { trigger = { has_country_flag = nsc_same_room_as_explosion } picture = DEATH_OF_HEIR_eventPicture }
-	picture = { trigger = { has_country_flag = nsc_adjacent_room_as_explosion } picture = KING_SICK_IN_BED_eventPicture }
-	picture = { trigger = { has_country_flag = nsc_far_from_explosion } picture = BAD_WITH_MONARCH_eventPicture }
+	picture = PLAGUE_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -6370,7 +6484,7 @@ country_event = {
 	id = new_sun_cult.174
 	title = new_sun_cult.174.t
 	desc = new_sun_cult.174.d
-	picture = ECONOMY_eventPicture
+	picture = ACCUSATION_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7066,8 +7180,6 @@ country_event = {
 	
 	hidden = yes
 	
-	#hidden = yes
-	
 	trigger = {
 		has_country_flag = nsc_investigation_enabled
 		FROM = {
@@ -7104,7 +7216,7 @@ country_event = {
 	id = new_sun_cult.186
 	title = new_sun_cult.186.t
 	desc = new_sun_cult.186.d
-	picture = ACCUSATION_eventPicture
+	picture = NOBLE_ESTATE_TAKE_OVER_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7140,7 +7252,9 @@ country_event = {
 		hidden_effect = { 
 			clr_country_flag = nsc_is_investigated_by_@FROM
 			clr_country_flag = nsc_@FROM_diplomat_sent
+			set_country_flag = nsc_has_expelled_@FROM
 			FROM = { country_event = { id = new_sun_cult.188 } }
+			change_variable = { which = investigationAgainstVar value = -1 }
 		}
 	}
 }
@@ -7150,7 +7264,7 @@ country_event = {
 	id = new_sun_cult.187
 	title = new_sun_cult.187.t
 	desc = new_sun_cult.187.d
-	picture = ANGRY_MOB_eventPicture
+	picture = BURGHER_ESTATE_UPSET_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7187,7 +7301,9 @@ country_event = {
 		hidden_effect = { 
 			clr_country_flag = nsc_is_investigated_by_@FROM
 			clr_country_flag = nsc_@FROM_diplomat_sent
+			set_country_flag = nsc_has_expelled_@FROM
 			FROM = { country_event = { id = new_sun_cult.188 } }
+			change_variable = { which = investigationAgainstVar value = -1 }
 		}
 	}
 }
@@ -7204,7 +7320,7 @@ country_event = {
 		trigger = { is_in_war = { casus_belli = cb_nsc_investigation attacker_leader = FROM } }
 		desc = new_sun_cult.188.db
 	}
-	picture = TRADEGOODS_eventPicture
+	picture = ACCUSATION_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7253,7 +7369,7 @@ country_event = {
 	id = new_sun_cult.189
 	title = new_sun_cult.189.t
 	desc = new_sun_cult.189.d
-	picture = BIG_BOOK_eventPicture
+	picture = NOBLE_ESTATE_DEMANDS_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7270,6 +7386,7 @@ country_event = {
 			FROM = {
 				set_country_flag = nsc_was_fully_investigated_by_@ROOT
 				clr_country_flag = nsc_is_investigated_by_@ROOT
+				change_variable = { which = investigationAgainstVar value = -1 }
 				country_event = { id = new_sun_cult.190 }
 			}
 			nsc_remove_investigation_ongoing_modifier = yes
@@ -7286,7 +7403,7 @@ country_event = {
 	id = new_sun_cult.190
 	title = new_sun_cult.190.t
 	desc = new_sun_cult.190.d
-	picture = BIG_BOOK_eventPicture
+	picture = NOBLE_ESTATE_DEMANDS_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7340,6 +7457,7 @@ country_event = {
 	option = {
 		name = new_sun_cult.192.a
 		hidden_effect = { nsc_remove_investigation_ongoing_modifier = yes }
+		
 	}
 }
 
@@ -7356,15 +7474,7 @@ country_event = {
 		desc = new_sun_cult.193.db
 	}
 	desc = { trigger = { NOT = { incident_variable_value = { incident = incident_summit_of_samartal value = -2 } } } desc = new_sun_cult.193.dc }
-	picture = { trigger = { incident_variable_value = { incident = incident_summit_of_samartal value = 3 } } picture = ANGRY_MOB_eventPicture }
-	picture = {
-		trigger = {
-			NOT = { incident_variable_value = { incident = incident_summit_of_samartal value = 3 } }
-			incident_variable_value = { incident = incident_summit_of_samartal value = -2 }
-		}
-		picture = CORRUPTION_eventPicture
-	}
-	picture = { trigger = { NOT = { incident_variable_value = { incident = incident_summit_of_samartal value = -2 } } } picture = DEBATE_REPUBLICAN_eventPicture }
+	picture = CIVIL_WAR_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -7407,6 +7517,7 @@ country_event = {
 			clr_country_flag = nsc_was_investigated_by_@ROOT
 			clr_country_flag = nsc_was_fully_investigated_by_@ROOT
 			clr_country_flag = nsc_is_investigated_by_@ROOT
+			clr_country_flag = nsc_has_expelled_@ROOT
 			ROOT = { clr_country_flag = nsc_investigation_stopped_@PREV }
 		}
 	}
@@ -7417,7 +7528,7 @@ country_event = {
 	id = new_sun_cult.194
 	title = new_sun_cult.194.t
 	desc = new_sun_cult.194.d
-	picture = BIG_BOOK_eventPicture
+	picture = ACCUSATION_eventPicture
 	
 	is_triggered_only = yes
 	
@@ -8151,6 +8262,11 @@ country_event = {
 	option = {
 		name = new_sun_cult.206.a
 		trigger = { has_country_flag = nsc_excavation_successful }
+		ai_chance = {
+			factor = 25
+			modifier = { factor = 10 ruler_has_personality = mage_personality }
+			modifier = { factor = 5 ruler_has_personality = careful_personality }
+		}
 		custom_tooltip = nsc_much_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_rise_of_artificery value = -2 }
 		add_estate_loyalty = { estate = estate_mages loyalty = 10 }
@@ -8167,6 +8283,12 @@ country_event = {
 	option = {
 		name = new_sun_cult.206.b
 		trigger = { has_country_flag = nsc_excavation_successful }
+		ai_chance = {
+			factor = 25
+			modifier = { factor = 10 ruler_has_personality = free_thinker_personality }
+			modifier = { factor = 5 ruler_has_personality = scholar_personality }
+			modifier = { factor = 0 ruler_has_personality = mage_personality }
+		}
 		custom_tooltip = nsc_much_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_rise_of_artificery value = 2 }
 		add_estate_loyalty = { estate = estate_mages loyalty = -10 }
@@ -8183,6 +8305,7 @@ country_event = {
 	option = {
 		name = new_sun_cult.206.c
 		trigger = { has_country_flag = nsc_excavation_successful }
+		ai_chance = { factor = 25 }
 		add_country_modifier = { name = nsc_both_relics duration = 9125 }
 		every_owned_province = {
 			limit = { has_province_flag = nsc_excavation_target }
@@ -8195,6 +8318,11 @@ country_event = {
 	#Keep it for yourself
 	option = {
 		name = new_sun_cult.206.e
+		ai_chance = {
+			factor = 25
+			modifier = { factor = 5 ruler_has_personality = greedy_personality }
+			modifier = { factor = 0 NOT = { estate_loyalty = { estate = estate_mages loyalty = 35 } } }
+		}
 		trigger = { has_country_flag = nsc_excavation_successful }
 		add_estate_loyalty = { estate = estate_mages loyalty = -5 }
 		every_owned_province = {
@@ -8343,7 +8471,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8396,7 +8524,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8478,7 +8606,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8558,7 +8686,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8693,7 +8821,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8769,7 +8897,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8819,7 +8947,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8866,10 +8994,10 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	#Send a big delegation
+	#Send a big delegation - with heir
 	option = {
 		name = new_sun_cult.217.a
-		trigger = { heir_age = 15 }
+		trigger = { has_heir = yes heir_age = 15 }
 		ai_chance = {
 			factor = 10
 			modifier = { factor = 2 NOT = { isolationism = 2 } }
@@ -8877,7 +9005,7 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
@@ -8886,9 +9014,37 @@ country_event = {
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = -3 }
 		add_years_of_income = -0.5
 		add_prestige = 15
+		exile_heir_as = exiled_heir_@ROOT
 		hidden_effect = {
-			exile_heir_as = exiled_heir_@ROOT
 			set_ruler_flag = was_ruler_when_heir_left
+			set_country_flag = nsc_sent_heir
+			random_list = {
+				50 = { country_event = { id = new_sun_cult.218 days = 365 random = 60 } }			#Cube speaks
+				50 = { country_event = { id = new_sun_cult.219 days = 365 random = 60 } }			#Cube doesn't give a shit about you
+			}
+		}
+	}
+	
+	#Send a big delegation - without heir
+	option = {
+		name = new_sun_cult.217.b
+		trigger = { OR = { has_heir = no NOT = { heir_age = 15 } } }
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 2 NOT = { isolationism = 2 } }
+			modifier = { factor = 5 NOT = { isolationism = 1 } }
+			modifier = {
+				factor = 0
+				is_vassal = yes
+				overlord = { religion = bulwari_sun_cult }
+				NOT = { liberty_desire = 50 }
+			}
+		}
+		custom_tooltip = nsc_much_chosen_role_down_tt
+		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = -3 }
+		add_years_of_income = -0.5
+		add_prestige = 15
+		hidden_effect = {
 			random_list = {
 				50 = { country_event = { id = new_sun_cult.218 days = 365 random = 60 } }			#Cube speaks
 				50 = { country_event = { id = new_sun_cult.219 days = 365 random = 60 } }			#Cube doesn't give a shit about you
@@ -8898,7 +9054,7 @@ country_event = {
 	
 	#Send a moderate delegation
 	option = {
-		name = new_sun_cult.217.b
+		name = new_sun_cult.217.c
 		ai_chance = {
 			factor = 60
 		}
@@ -8916,7 +9072,7 @@ country_event = {
 	
 	#Don't go
 	option = {
-		name = new_sun_cult.217.c
+		name = new_sun_cult.217.e
 		ai_chance = {
 			factor = 30
 			modifier = { factor = 10 isolationism = 4 }
@@ -8950,25 +9106,27 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
 		custom_tooltip = nsc_much_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = -3 }
-		add_stability_or_adm_power = yes
-		set_heir = exiled_heir_@ROOT
-		set_heir_religion = ravelian
-		if = {
-			limit = {
-				NOT = { has_ruler_flag = was_ruler_when_heir_left }
-				has_regency = no
-			}
-			custom_tooltip = nsc_ruler_will_step_down_tt
-			hidden_effect = {
-				set_country_flag = nsc_no_level_loss
-				kill_ruler = yes
-				add_stability_or_adm_power = yes
+		add_prestige = 25
+		if = { limit = { has_country_flag = nsc_sent_heir }
+			set_heir = exiled_heir_@ROOT
+			set_heir_religion = ravelian
+			if = {
+				limit = {
+					NOT = { has_ruler_flag = was_ruler_when_heir_left }
+					has_regency = no
+				}
+				custom_tooltip = nsc_ruler_will_step_down_tt
+				hidden_effect = {
+					set_country_flag = nsc_no_level_loss
+					kill_ruler = yes
+					add_stability_or_adm_power = yes
+				}
 			}
 		}
 	}
@@ -8983,11 +9141,15 @@ country_event = {
 			modifier = { factor = 5 isolationism = 4 }
 		}
 		custom_tooltip = nsc_much_chosen_role_up_tt
+		if = { limit = { has_country_flag = nsc_sent_heir }
+			custom_tooltip = nsc_heir_is_banned_tt
+		}
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = 2 }
 		reduce_stability_or_adm_power = yes
 	}
 	
 	after = {
+		clr_country_flag = nsc_sent_heir
 		clr_country_flag = nsc_no_level_loss
 		clr_ruler_flag = was_ruler_when_heir_left
 		country_event = { id = new_sun_cult.220 days = 365 }
@@ -9013,18 +9175,20 @@ country_event = {
 		}
 		custom_tooltip = nsc_much_chosen_role_up_tt
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = 3 }
-		add_stability_or_adm_power = yes
-		set_heir = exiled_heir_@ROOT
-		if = {
-			limit = {
-				NOT = { has_ruler_flag = was_ruler_when_heir_left }
-				has_regency = no
-			}
-			custom_tooltip = nsc_ruler_will_step_down_tt
-			hidden_effect = {
-				set_country_flag = nsc_no_level_loss
-				kill_ruler = yes
-				add_stability_or_adm_power = yes
+		add_prestige = 25
+		if = { limit = { has_country_flag = nsc_sent_heir }
+			set_heir = exiled_heir_@ROOT
+			if = {
+				limit = {
+					NOT = { has_ruler_flag = was_ruler_when_heir_left }
+					has_regency = no
+				}
+				custom_tooltip = nsc_ruler_will_step_down_tt
+				hidden_effect = {
+					set_country_flag = nsc_no_level_loss
+					kill_ruler = yes
+					add_stability_or_adm_power = yes
+				}
 			}
 		}
 	}
@@ -9040,29 +9204,32 @@ country_event = {
 			modifier = {
 				factor = 0
 				is_vassal = yes
-				overlord = { religion = new_sun_cult }
+				overlord = { religion = bulwari_sun_cult }
 				NOT = { liberty_desire = 50 }
 			}
 		}
 		custom_tooltip = nsc_much_chosen_role_down_tt
 		add_incident_variable_value = { incident = incident_spread_of_ravelianism value = -2 }
 		reduce_stability_or_adm_power = yes
-		set_heir = exiled_heir_@ROOT
-		if = {
-			limit = {
-				NOT = { has_ruler_flag = was_ruler_when_heir_left }
-				has_regency = no
-			}
-			custom_tooltip = nsc_ruler_will_step_down_tt
-			hidden_effect = {
-				set_country_flag = nsc_no_level_loss
-				kill_ruler = yes
-				add_stability_or_adm_power = yes
+		if = { limit = { has_country_flag = nsc_sent_heir }
+			set_heir = exiled_heir_@ROOT
+			if = {
+				limit = {
+					NOT = { has_ruler_flag = was_ruler_when_heir_left }
+					has_regency = no
+				}
+				custom_tooltip = nsc_ruler_will_step_down_tt
+				hidden_effect = {
+					set_country_flag = nsc_no_level_loss
+					kill_ruler = yes
+					add_stability_or_adm_power = yes
+				}
 			}
 		}
 	}
 	
 	after = {
+		clr_country_flag = nsc_sent_heir
 		clr_country_flag = nsc_no_level_loss
 		clr_ruler_flag = was_ruler_when_heir_left
 		country_event = { id = new_sun_cult.220 days = 365 }
@@ -9076,8 +9243,8 @@ country_event = {
 	desc = { trigger = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } } desc = new_sun_cult.220.da }
 	desc = {
 		trigger = {
-				NOT = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } }
-				incident_variable_value = { incident = incident_spread_of_ravelianism value = -4 }
+			NOT = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } }
+			incident_variable_value = { incident = incident_spread_of_ravelianism value = -4 }
 		}
 		desc = new_sun_cult.220.db
 	}
@@ -9085,8 +9252,8 @@ country_event = {
 	picture = { trigger = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } } picture = WESTERNIZATION_eventPicture }
 	picture = {
 		trigger = {
-				NOT = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } }
-				incident_variable_value = { incident = incident_spread_of_ravelianism value = -4 }
+			NOT = { incident_variable_value = { incident = incident_spread_of_ravelianism value = 6 } }
+			incident_variable_value = { incident = incident_spread_of_ravelianism value = -4 }
 		}
 		picture = PIETY_eventPicture
 	}
