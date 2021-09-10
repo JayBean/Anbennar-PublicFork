@@ -294,10 +294,30 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		ai = no
+	}
+	
 	immediate = {
 		hidden_effect = {
-			country_event = { id = new_sun_cult.16 days = 120 random = 120 }
-			set_variable = { which = dukeldarBattlesWonVar value = 0 }
+			country_event = { id = new_sun_cult.16 days = 270 random = 180 }
+			set_country_flag = has_nsc_disaster
+			set_variable = { which = nscDisasterScoreVar value = 0 }
+			set_variable = { which = totalMonthlyNscDisasterScoreVar value = 0 }
+			set_variable = { which = nscDisasterConversionScoreVar value = 0 }
+			set_variable = { which = nscDisasterBattleWonScoreVar value = 0 }
+			set_variable = { which = nscDisasterBattleLostScoreVar value = 0 }
+			set_variable = { which = nscDisasterHereticConversionsVar value = 0 }
+			every_owned_province = {
+				limit = {
+					OR = {
+						religion = the_jadd
+						religion = old_bulwari_sun_cult
+					}
+				}
+				set_province_flag = dukeldar_conversion
+			}
+			nsc_update_monthly_disaster_score = yes
 		}
 	}
 	
@@ -320,16 +340,36 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.17 days = 120 random = 120 } }
+		hidden_effect = { country_event = { id = new_sun_cult.17 days = 270 random = 180 } }
 	}
 	
+	#Fuck them
 	option = {
 		name = new_sun_cult.16.a
+		custom_tooltip = nsc_advisors_likely_to_desert_tt
 		remove_advisor_by_category = ADM
 		remove_advisor_by_category = DIP
 		remove_advisor_by_category = MIL
-		add_country_modifier = { name = nsc_rebellious_administration_1 duration = -1 }
-		set_country_flag = nsc_admin_on_strike
+		add_country_modifier = { name = nsc_rebellious_administration duration = -1 }
+		add_country_modifier = { name = nsc_admin_on_strike duration = 365 }
+		set_country_flag = nsc_administatrion_on_strike
+	}
+	
+	#Raise pay
+	option = {
+		name = new_sun_cult.16.b
+		custom_tooltip = nsc_advisors_less_likely_to_desert_tt
+		add_country_modifier = { name = nsc_advisor_more_paid duration = -1 }
+		remove_advisor_by_category = ADM
+		remove_advisor_by_category = DIP
+		remove_advisor_by_category = MIL
+		add_country_modifier = { name = nsc_rebellious_administration duration = -1 }
+		add_country_modifier = { name = nsc_admin_on_strike duration = 180 }
+		set_country_flag = nsc_administatrion_on_strike
+	}
+	
+	after = {
+		hidden_effect = { nsc_update_monthly_disaster_score = yes }
 	}
 }
 
@@ -343,14 +383,13 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.18 days = 120 random = 120 } }
+		hidden_effect = { country_event = { id = new_sun_cult.18 days = 270 random = 180 } }
 	}
 	
 	#Refuse
 	option = {
 		name = new_sun_cult.17.a
 		custom_tooltip = nsc_troops_likely_to_desert_tt
-		set_country_flag = dukeldar_likely_desertions
 		set_country_flag = dukeldar_desertions
 	}
 	
@@ -376,13 +415,27 @@ country_event = {
 		hidden_effect = { country_event = { id = new_sun_cult.19 days = 120 random = 120 } }
 	}
 	
+	#Accept
 	option = {
 		name = new_sun_cult.18.a
-		
+		give_estate_land_share_gigantic = { estate = estate_church }
+		add_estate_influence_modifier = {
+			estate = estate_church
+			desc = nsc_church_deal
+			influence = 20
+			duration = 7300
+		}
+		add_country_modifier = { name = nsc_clergy_support duration = -1 }
+	}
+	
+	#Refuse
+	option = {
+		name = new_sun_cult.18.b
+		add_estate_loyalty = { estate = estate_church loyalty = -10 }
 	}
 }
 
-#Workers on strike
+#Populace protesting
 country_event = {
 	id = new_sun_cult.19
 	title = new_sun_cult.19.t
@@ -393,39 +446,100 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			country_event = { id = new_sun_cult.20 days = 120 random = 120 }
-			set_variable = { which = numRebelProvinceVar value = -1 }
+			country_event = { id = new_sun_cult.20 days = 270 random = 180 }
+			set_variable = { which = numRebelProvinceVar value = -12 }
 			every_owned_province = { ROOT = { change_variable = { which = numRebelProvinceVar value = 1 } } }
 			divide_variable = { which = numRebelProvinceVar value = 4 }
-			while = {
-				limit = {
-					check_variable = { which = numRebelProvinceVar value = 1 }
-					NOT = { num_of_owned_provinces_with = { has_province_flag = dukeldar_rebellion value = 10 } }
-				}
-				random_owned_province = {
+			if = { limit = { check_variable = { which = numRebelProvinceVar value = 10 } }
+				set_variable = { which = numRebelProvinceVar value = 9 }
+			}
+			set_variable = { which = twoThirdRebelProvinceVar which = numRebelProvinceVar }
+			change_variable = { which = twoThirdRebelProvinceVar value = 1 }
+			divide_variable = { which = twoThirdRebelProvinceVar value = 1.5 }
+			set_variable = { which = oneThirdRebelProvinceVar which = numRebelProvinceVar }
+			change_variable = { which = oneThirdRebelProvinceVar value = 1 }
+			divide_variable = { which = oneThirdRebelProvinceVar value = 3 }
+			
+			random_owned_province = {
+				limit = { is_capital = no }
+				spawn_rebels = { type = anti_tax_rebels size = 3 }
+				set_province_flag = dukeldar_rebellion
+				while = {
 					limit = {
-						is_capital = no
-						NOT = { has_province_flag = dukeldar_rebellion }
+						ROOT = {
+							check_variable = { which = numRebelProvinceVar value = 1 }
+							check_variable = { which = numRebelProvinceVar which = twoThirdRebelProvinceVar }
+						}
+					}
+					random_neighbor_province = {
+						limit = {
+							is_capital = no
+							NOT = { has_province_flag = dukeldar_rebellion }
+						}
+						spawn_rebels = { type = anti_tax_rebels size = 1 }
+						set_province_flag = dukeldar_rebellion
 					}
 					ROOT = { change_variable = { which = numRebelProvinceVar value = -1 } }
-					spawn_rebels = { type = anti_tax_rebels size = 1 }
-					set_province_flag = dukeldar_rebellion
 				}
 			}
+			
+			random_owned_province = {
+				limit = {
+					is_capital = no
+					NOT = { has_province_flag = dukeldar_rebellion }
+				}
+				spawn_rebels = { type = anti_tax_rebels size = 3 }
+				set_province_flag = dukeldar_rebellion
+				while = {
+					limit = {
+						ROOT = {
+							check_variable = { which = numRebelProvinceVar value = 1 }
+							check_variable = { which = numRebelProvinceVar which = oneThirdRebelProvinceVar }
+						}
+					}
+					random_neighbor_province = {
+						limit = {
+							is_capital = no
+							NOT = { has_province_flag = dukeldar_rebellion }
+						}
+						spawn_rebels = { type = anti_tax_rebels size = 1 }
+						set_province_flag = dukeldar_rebellion
+					}
+					ROOT = { change_variable = { which = numRebelProvinceVar value = -1 } }
+				}
+			}
+			
+			random_owned_province = {
+				limit = {
+					is_capital = no
+					NOT = { has_province_flag = dukeldar_rebellion }
+				}
+				spawn_rebels = { type = anti_tax_rebels size = 3 }
+				set_province_flag = dukeldar_rebellion
+				while = {
+					limit = { ROOT = { check_variable = { which = numRebelProvinceVar value = 1 } } }
+					random_neighbor_province = {
+						limit = {
+							is_capital = no
+							NOT = { has_province_flag = dukeldar_rebellion }
+						}
+						spawn_rebels = { type = anti_tax_rebels size = 1 }
+						set_province_flag = dukeldar_rebellion
+					}
+					ROOT = { change_variable = { which = numRebelProvinceVar value = -1 } }
+				}
+			}
+			
+			nsc_update_monthly_disaster_score = yes
 		}
 	}
 	
 	option = {
 		name = new_sun_cult.19.a
-		random_owned_province = {
-			limit = { is_capital = no }
-			spawn_rebels = { type = anti_tax_rebels size = 3 }
-			set_province_flag = dukeldar_rebellion
-		}
 	}
 }
 
-#Mages
+#Nobility backs you up
 country_event = {
 	id = new_sun_cult.20
 	title = new_sun_cult.20.t
@@ -435,12 +549,25 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.21 days = 120 random = 120 } }
+		hidden_effect = { country_event = { id = new_sun_cult.21 days = 270 random = 180 } }
 	}
 	
+	#Cool
 	option = {
 		name = new_sun_cult.20.a
-		
+		add_stability_or_adm_power = yes
+		add_estate_influence_modifier = {
+			estate = estate_nobles
+			desc = nsc_nobility_backing
+			influence = 20
+			duration = 7300
+		}
+	}
+	
+	#Fuck off
+	option = {
+		name = new_sun_cult.20.b
+		add_estate_loyalty = { estate = estate_nobles loyalty = -10 }
 	}
 }
 
@@ -479,6 +606,20 @@ country_event = {
 					scope = event_target:bahari_origin
 				}
 			}
+			
+			set_variable = { which = numPretenderProvinceVar value = -15 }
+			every_owned_province = { ROOT = { change_variable = { which = numPretenderProvinceVar value = 1 } } }
+			divide_variable = { which = numPretenderProvinceVar value = 5 }
+			if = { limit = { check_variable = { which = numPretenderProvinceVar value = 7 } }
+				set_variable = { which = numPretenderProvinceVar value = 6 }
+			}
+			set_variable = { which = twoThirdPretenderProvinceVar which = numPretenderProvinceVar }
+			change_variable = { which = twoThirdPretenderProvinceVar value = 1 }
+			divide_variable = { which = twoThirdPretenderProvinceVar value = 1.5 }
+			set_variable = { which = oneThirdPretenderProvinceVar which = numPretenderProvinceVar }
+			change_variable = { which = oneThirdPretenderProvinceVar value = 1 }
+			divide_variable = { which = oneThirdPretenderProvinceVar value = 3 }
+			
 			capital_scope = {
 				spawn_rebels = {
 					size = 3
@@ -488,19 +629,32 @@ country_event = {
 					win = yes
 				}
 				set_province_flag = dukeldar_pretender_province
-				random_neighbor_province = {
-					limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
-					spawn_rebels = {
-						size = 2
-						type = pretender_rebels
-						culture = zanite
-						win = yes
+				while = {
+					limit = {
+						ROOT = {
+							check_variable = { which = numPretenderProvinceVar value = 1 }
+							check_variable = { which = numPretenderProvinceVar which = twoThirdPretenderProvinceVar }
+						}
 					}
-					set_province_flag = dukeldar_pretender_province
+					random_neighbor_province = {
+						limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+						spawn_rebels = {
+							size = 2
+							type = pretender_rebels
+							culture = zanite
+							win = yes
+						}
+						set_province_flag = dukeldar_pretender_province
+					}
+					ROOT = { change_variable = { which = numPretenderProvinceVar value = -1 } }
 				}
 			}
+			
 			random_owned_province = {
-				limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+				limit = {
+					NOT = { controlled_by = REB }
+					NOT = { has_province_flag = dukeldar_pretender_province }
+				}
 				spawn_rebels = {
 					size = 2
 					type = pretender_rebels
@@ -508,89 +662,130 @@ country_event = {
 					win = yes
 				}
 				set_province_flag = dukeldar_pretender_province
-				random_neighbor_province = {
-					limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
-					spawn_rebels = {
-						size = 2
-						type = pretender_rebels
-						culture = zanite
-						win = yes
+				while = {
+					limit = {
+						ROOT = {
+							check_variable = { which = numPretenderProvinceVar value = 1 }
+							check_variable = { which = numPretenderProvinceVar which = oneThirdPretenderProvinceVar }
+						}
 					}
-					set_province_flag = dukeldar_pretender_province
+					random_neighbor_province = {
+						limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+						spawn_rebels = {
+							size = 2
+							type = pretender_rebels
+							culture = zanite
+							win = yes
+						}
+						set_province_flag = dukeldar_pretender_province
+					}
+					ROOT = { change_variable = { which = numPretenderProvinceVar value = -1 } }
 				}
 			}
+			
+			random_owned_province = {
+				limit = {
+					NOT = { controlled_by = REB }
+					NOT = { has_province_flag = dukeldar_pretender_province }
+				}
+				spawn_rebels = {
+					size = 2
+					type = pretender_rebels
+					culture = zanite
+					win = yes
+				}
+				set_province_flag = dukeldar_pretender_province
+				while = {
+					limit = { ROOT = { check_variable = { which = numPretenderProvinceVar value = 1 } } }
+					random_neighbor_province = {
+						limit = { NOT = { has_province_flag = dukeldar_pretender_province } }
+						spawn_rebels = {
+							size = 2
+							type = pretender_rebels
+							culture = zanite
+							win = yes
+						}
+						set_province_flag = dukeldar_pretender_province
+					}
+					ROOT = { change_variable = { which = numPretenderProvinceVar value = -1 } }
+				}
+			}
+			
+			nsc_update_monthly_disaster_score = yes
 		}
 	}
 	
 	option = {
 		name = new_sun_cult.21.a
+		add_legitimacy = -10
+		add_republican_tradition = -3
+		add_devotion = -10
+		set_country_flag = nsc_dukeldar_pretender_spawned
 	}
 }
 
 #Monthly events
 #Province converts to Jadd
-country_event = {
+province_event = {
 	id = new_sun_cult.22
 	title = new_sun_cult.22.t
 	desc = new_sun_cult.22.d
 	picture = ARTWORK_eventPicture
+	goto = ROOT
 	
 	is_triggered_only = yes
 	
 	trigger = {
-		any_owned_province = {
-			religion = bulwari_sun_cult
-			NOT = { has_province_flag = dukeldar_conversion }
-		}
+		NOT = { check_variable = { which = nscDisasterHereticConversionsVar value = 50 } }
 	}
 	
-	option = {
-		name = new_sun_cult.22.a
-		random_owned_province = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { has_province_flag = dukeldar_conversion }
-			}
+	immediate = {
+		hidden_effect = {
 			set_province_flag = dukeldar_conversion
 			change_religion = the_jadd
 			random = {
 				chance = 50
 				spawn_rebels = { type = the_jadd_rebels size = 1 }
 			}
-		}
-	}
-}
-
-#Province converts to OSC
-country_event = {
-	id = new_sun_cult.23
-	title = new_sun_cult.23.t
-	desc = new_sun_cult.23.d
-	picture = ARTWORK_eventPicture
-	
-	is_triggered_only = yes
-	
-	trigger = {
-		any_owned_province = {
-			religion = bulwari_sun_cult
-			NOT = { has_province_flag = dukeldar_conversion }
+			change_variable = { which = nscDisasterHereticConversionsVar value = 1 }
+			nsc_update_monthly_disaster_score = yes
 		}
 	}
 	
 	option = {
-		name = new_sun_cult.23.a
-		random_owned_province = {
-			limit = {
-				religion = bulwari_sun_cult
-				NOT = { has_province_flag = dukeldar_conversion }
-			}
+		name = new_sun_cult.22.a
+	}
+}
+
+#Province converts to OSC
+province_event = {
+	id = new_sun_cult.23
+	title = new_sun_cult.23.t
+	desc = new_sun_cult.23.d
+	picture = ARTWORK_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { check_variable = { which = nscDisasterHereticConversionsVar value = 50 } }
+	}
+	
+	immediate = {
+		hidden_effect = {
 			set_province_flag = dukeldar_conversion
 			change_religion = old_bulwari_sun_cult
 			random = {
 				chance = 50
 				spawn_rebels = { type = old_bulwari_sun_cult_rebels size = 1 }
 			}
-		}		
+			change_variable = { which = nscDisasterHereticConversionsVar value = 1 }
+			nsc_update_monthly_disaster_score = yes
+		}
+	}
+	
+	option = {
+		name = new_sun_cult.23.a
 	}
 }
 
@@ -604,35 +799,66 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		has_country_flag = nsc_admin_on_strike
+		has_country_flag = nsc_administatrion_on_strike
 		has_advisor = yes
 	}
 	
+	#Do everything to make them to stay
 	option = {
 		name = new_sun_cult.24.a
-		remove_advisor_by_category = ADM
-		remove_advisor_by_category = DIP
-		remove_advisor_by_category = MIL
-		if = { limit = { has_country_modifier = nsc_rebellious_administration_1 }
-			remove_country_modifier = nsc_rebellious_administration_1
-			add_country_modifier = { name = nsc_rebellious_administration_2 duration = -1 }
+		if = { limit { employed_advisor = { category = ADM } }
+			add_adm_power = -50
 		}
-		else_if = { limit = { has_country_modifier = nsc_rebellious_administration_2 }
-			remove_country_modifier = nsc_rebellious_administration_2
-			add_country_modifier = { name = nsc_rebellious_administration_3 duration = -1 }
+		if = { limit { employed_advisor = { category = DIP } }
+			add_dip_power = -50
 		}
-		else_if = { limit = { has_country_modifier = nsc_rebellious_administration_3 }
-			remove_country_modifier = nsc_rebellious_administration_3
-			add_country_modifier = { name = nsc_rebellious_administration_4 duration = -1 }
+		if = { limit { employed_advisor = { category = MIL } }
+			add_mil_power = -50
 		}
-		else_if = { limit = { has_country_modifier = nsc_rebellious_administration_4 }
-			remove_country_modifier = nsc_rebellious_administration_4
-			add_country_modifier = { name = nsc_rebellious_administration_5 duration = -1 }
+	}
+	
+	#Try to make them to stay
+	option = {
+		name = new_sun_cult.24.b
+		if = { limit { employed_advisor = { category = ADM } }
+			add_adm_power = -25
+			random = {
+				chance = 50
+				remove_advisor_by_category = ADM
+			}
 		}
-		else_if = { limit = { has_country_modifier = nsc_rebellious_administration_5 }
-			remove_country_modifier = nsc_rebellious_administration_5
-			add_country_modifier = { name = nsc_rebellious_administration_6 duration = -1 }
+		if = { limit { employed_advisor = { category = DIP } }
+			add_dip_power = -25
+			random = {
+				chance = 50
+				remove_advisor_by_category = DIP
+			}
 		}
+		if = { limit { employed_advisor = { category = MIL } }
+			add_mil_power = -25
+			random = {
+				chance = 50
+				remove_advisor_by_category = MIL
+			}
+		}
+	}
+	
+	#Fuck 'em
+	option = {
+		name = new_sun_cult.24.c
+		if = { limit { employed_advisor = { category = ADM } }
+			remove_advisor_by_category = ADM
+		}
+		if = { limit { employed_advisor = { category = DIP } }
+			remove_advisor_by_category = DIP
+		}
+		if = { limit { employed_advisor = { category = MIL } }
+			remove_advisor_by_category = MIL
+		}
+	}
+	
+	after = {
+		nsc_update_monthly_disaster_score = yes
 	}
 }
 
@@ -650,6 +876,7 @@ country_event = {
 		manpower = 1
 	}
 	
+	#sight...
 	option = {
 		name = new_sun_cult.25.a
 		if = { limit = { NOT = { max_manpower = 20 } }
@@ -676,8 +903,104 @@ country_event = {
 		else_if = { limit = { NOT = { max_manpower = 90 } }
 			add_manpower = -4.5
 		}
-		else = {
+		else_if = { limit = { NOT = { max_manpower = 100 } }
 			add_manpower = -5
+		}
+		else_if = { limit = { NOT = { max_manpower = 110 } }
+			add_manpower = -5.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 120 } }
+			add_manpower = -6
+		}
+		else_if = { limit = { NOT = { max_manpower = 130 } }
+			add_manpower = -6.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 140 } }
+			add_manpower = -7
+		}
+		else_if = { limit = { NOT = { max_manpower = 150 } }
+			add_manpower = -7.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 160 } }
+			add_manpower = -8
+		}
+		else_if = { limit = { NOT = { max_manpower = 170 } }
+			add_manpower = -8.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 180 } }
+			add_manpower = -9
+		}
+		else_if = { limit = { NOT = { max_manpower = 190 } }
+			add_manpower = -9.5
+		}
+		else = {
+			add_manpower = -10
+		}
+	}
+	
+	#Sight + Pay them more
+	option = {
+		name = new_sun_cult.25.b
+		trigger = { NOT = { has_country_flag = dukeldar_desertions } }
+		add_country_modifier = { name = nsc_army_more_paid duration = 3650 }
+		custom_tooltip = nsc_troops_less_likely_to_desert_tt
+		set_country_flag = dukeldar_desertions
+		if = { limit = { NOT = { max_manpower = 20 } }
+			add_manpower = -1
+		}
+		else_if = { limit = { NOT = { max_manpower = 30 } }
+			add_manpower = -1.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 40 } }
+			add_manpower = -2
+		}
+		else_if = { limit = { NOT = { max_manpower = 50 } }
+			add_manpower = -2.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 60 } }
+			add_manpower = -3
+		}
+		else_if = { limit = { NOT = { max_manpower = 70 } }
+			add_manpower = -3.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 80 } }
+			add_manpower = -4
+		}
+		else_if = { limit = { NOT = { max_manpower = 90 } }
+			add_manpower = -4.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 100 } }
+			add_manpower = -5
+		}
+		else_if = { limit = { NOT = { max_manpower = 110 } }
+			add_manpower = -5.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 120 } }
+			add_manpower = -6
+		}
+		else_if = { limit = { NOT = { max_manpower = 130 } }
+			add_manpower = -6.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 140 } }
+			add_manpower = -7
+		}
+		else_if = { limit = { NOT = { max_manpower = 150 } }
+			add_manpower = -7.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 160 } }
+			add_manpower = -8
+		}
+		else_if = { limit = { NOT = { max_manpower = 170 } }
+			add_manpower = -8.5
+		}
+		else_if = { limit = { NOT = { max_manpower = 180 } }
+			add_manpower = -9
+		}
+		else_if = { limit = { NOT = { max_manpower = 190 } }
+			add_manpower = -9.5
+		}
+		else = {
+			add_manpower = -10
 		}
 	}
 }
@@ -694,32 +1017,42 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	#Won disaster
 	option = {
 		name = new_sun_cult.26.a
-		trigger = { NOT = { has_country_flag = dukedal_lost } }
+		trigger = { NOT = { has_country_flag = dukedal_lost } ai = no }
 		increase_nsc_isolation_level = yes
+		custom_tooltip = nsc_dukeldar_will_be_back_tt
 		remove_country_modifier = nsc_army_more_paid
+		remove_country_modifier = nsc_clergy_support
 	}
 	
+	#Lost disaster
 	option = {
 		name = new_sun_cult.26.b
-		trigger = { has_country_flag = dukedal_lost }
+		trigger = { has_country_flag = dukedal_lost ai = no }
+		custom_tooltip = nsc_dukeldar_will_be_back_tt
 		clr_country_flag = dukedal_lost
 		remove_country_modifier = nsc_army_more_paid
+		remove_country_modifier = nsc_clergy_support
+	}
+	
+	#AI bypass
+	option = {
+		name = new_sun_cult.26.c
+		trigger = { ai = yes }
+		increase_nsc_isolation_level = yes
 	}
 	
 	after = {
-		remove_country_modifier = nsc_rebellious_administration_1
-		remove_country_modifier = nsc_rebellious_administration_2
-		remove_country_modifier = nsc_rebellious_administration_3
-		remove_country_modifier = nsc_rebellious_administration_4
-		remove_country_modifier = nsc_rebellious_administration_5
-		remove_country_modifier = nsc_rebellious_administration_6
+		remove_country_modifier = nsc_admin_on_strike
+		remove_country_modifier = nsc_advisor_more_paid
+		remove_country_modifier = nsc_rebellious_administration
 		set_country_flag = nsc_dukeldar_end
+		clr_country_flag = has_nsc_disaster
 		clr_country_flag = nsc_lost_war
-		clr_country_flag = nsc_dukeldar_end
-		clr_country_flag = nsc_admin_on_strike
-		clr_country_flag = dukeldar_likely_desertions
+		clr_country_flag = nsc_dukeldar_pretender_spawned
+		clr_country_flag = nsc_administatrion_on_strike
 		clr_country_flag = dukeldar_desertions
 		every_owned_province = {
 			clr_province_flag = dukeldar_rebellion
@@ -4727,10 +5060,11 @@ country_event = {
 					nsc_init_choice_variables_effect = yes
 				}
 			}
+			set_country_flag = had_nsc_incident_flag
+			clr_country_flag = nsc_choice_a
+			clr_country_flag = nsc_choice_b
+			clr_country_flag = nsc_choice_c
 		}
-		clr_country_flag = nsc_choice_a
-		clr_country_flag = nsc_choice_b
-		clr_country_flag = nsc_choice_c
 	}
 	
 	#High unity
@@ -4835,7 +5169,6 @@ country_event = {
 	
 	after = {
 		clr_country_flag = active_nsc_incident_flag
-		set_country_flag = had_nsc_incident_flag
 	}
 }
 
@@ -5822,14 +6155,14 @@ country_event = {
 			100 = {
 				trigger = { NOT = { check_variable = { which = nscNoTensionEvent value = 10 } } }
 				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 9 } }
-				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 8 } }
-				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 7 } }
-				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 6 } }
-				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 5 } }
-				modifier = { factor = 0.5 check_variable = { which = nscNoTensionEvent value = 4 } }
-				modifier = { factor = 0.7 check_variable = { which = nscNoTensionEvent value = 3 } }
-				modifier = { factor = 0.75 check_variable = { which = nscNoTensionEvent value = 2 } }
-				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 1 } }
+				modifier = { factor = 0.66 check_variable = { which = nscNoTensionEvent value = 8 } }
+				modifier = { factor = 0.75 check_variable = { which = nscNoTensionEvent value = 7 } }
+				modifier = { factor = 0.8 check_variable = { which = nscNoTensionEvent value = 6 } }
+				modifier = { factor = 0.85 check_variable = { which = nscNoTensionEvent value = 5 } }
+				modifier = { factor = 0.85 check_variable = { which = nscNoTensionEvent value = 4 } }
+				modifier = { factor = 0.85 check_variable = { which = nscNoTensionEvent value = 3 } }
+				modifier = { factor = 0.9 check_variable = { which = nscNoTensionEvent value = 2 } }
+				modifier = { factor = 0.9 check_variable = { which = nscNoTensionEvent value = 1 } }
 				modifier = { factor = 0.5 NOT = { calc_true_if = { all_known_country = { is_incident_potential = incident_summit_of_samartal } amount = 20 } } }
 				modifier = { factor = 0 NOT = { calc_true_if = { all_known_country = { is_incident_potential = incident_summit_of_samartal } amount = 11 } } }
 				modifier = { factor = 0 is_year = 1480 }
@@ -6348,7 +6681,7 @@ country_event = {
 	#Send your heir
 	option = {
 		name = new_sun_cult.171.b
-		trigger = { has_heir = yes }
+		trigger = { has_heir = yes heir_age = 15 }
 		ai_chance = {
 			factor = 1
 			modifier = {

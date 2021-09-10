@@ -1,5 +1,5 @@
 #--------------#New Sun Cult#--------------#
-
+# � <-- This is here to make sure that the encoding stays ANSI, do not remove it
 
 increase_nsc_isolation_level = {
 	if = {
@@ -123,6 +123,65 @@ refresh_nsc_incidents_ui = {
 		change_religion = bulwari_sun_cult
 		clr_country_flag = updating_isolationism_window
 	}
+}
+
+#For the disasters
+
+nsc_disaster_province_conversion_effect = {
+	if = { limit = { has_province_flag = dukeldar_conversion }
+		owner = {
+			export_to_variable = { which = numOfCitiesVar value = num_of_cities }
+			set_variable = { which = tempNscDisasterScoreVar value = 25 }
+			divide_variable = { which = tempNscDisasterScoreVar which = numOfCitiesVar }
+			change_variable = { which = nscDisasterConversionScoreVar which = tempNscDisasterScoreVar }
+		}
+	}
+}
+
+nsc_update_monthly_disaster_score = {
+	set_variable = { which = monthlyNscDisasterScoreVar value = 0 }
+	if = { limit = { employed_advisor = { category = ADM } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = DIP } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = MIL } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { stability = 1 }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+	
+	export_to_variable = { which = numOfRebelArmiesVar value = num_of_rebel_armies }
+	export_to_variable = { which = numOfRebelProvincesVar value = num_of_rebel_controlled_provinces }
+	
+	if = {
+		limit = {
+			OR = { 
+				check_variable = { which = numOfRebelArmiesVar value = 1 }
+				check_variable = { which =  numOfRebelProvincesVar value = 1 }
+			}
+		}
+		set_variable = { which = disasterRebelArmiesScoreVar which = numOfRebelArmiesVar }
+		multiply_variable = { which = disasterRebelArmiesScoreVar value = -0.25 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelArmiesScoreVar }
+		set_variable = { which = disasterRebelProvincesScoreVar which = numOfRebelProvincesVar }
+		multiply_variable = { which = disasterRebelProvincesScoreVar value = -0.10 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelProvincesScoreVar }
+	}
+	else = {
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+}
+
+nsc_calculate_total_disaster_score = {
+	nsc_update_monthly_disaster_score = yes
+	change_variable = { which = totalMonthlyNscDisasterScoreVar which = monthlyNscDisasterScoreVar }
+	set_variable = { which = nscDisasterScoreVar which = totalMonthlyNscDisasterScoreVar }
+	change_variable = { which = nscDisasterScoreVar which = nscDisasterConversionScoreVar }
+	change_variable = { which = nscDisasterScoreVar which = nscDisasterBattleWonScoreVar }
+	subtract_variable = { which = nscDisasterScoreVar which = nscDisasterBattleLostScoreVar }
 }
 
 #For the Bulwar Under Threat incident
