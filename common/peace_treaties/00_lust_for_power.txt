@@ -7,7 +7,7 @@
 # Nor do they support setting provinces (like cede province) or third party countries (like annull treaties) as targets.
 # FROM = The dude that receive it THIS = The dude that launch the shit
 # Example:
-po_black_invasion = {
+po_lust_for_power = {
 	# The following strings need localization: 
 	#		"make_dummy_desc" (uses text processing, supporting bracket notation) ("[FROM.GetName] becomes a [THIS.GetName] Dummy")
 	#		"CB_ALLOWED_make_dummy" (uses plain localization) ("Enforced Dumbness")
@@ -18,7 +18,7 @@ po_black_invasion = {
 	power_projection = humiliated_rival # "power_projection" will only be applied if giver is your rival.
 	power_cost_base = 0.0 # Base factor for diplomatic power cost when treaty is not allowed by casus belli. Scales with war score cost.
 	prestige_base = 0.3 # Base factor for prestige gain and loss. Scales with war score cost.
-	ae_base = 1 # Base factor for aggressive expansion. Scales with war score cost.
+	ae_base = 0 # Base factor for aggressive expansion. Scales with war score cost.
 	warscore_cost = {
 		# Which of the giver's provinces' war score costs are included and by how much. All entries default to 0. Any combination of entries can be used. Try negative values at your own risk.
 		all_provinces = 1.0 # All the giver's provinces
@@ -30,21 +30,41 @@ po_black_invasion = {
 		cancelled_subject = 0.0 # This one should not be relevant here since Giver can't be a cancelled subject. Including anyway for completeness
 		concede_colonial_region = 0.0 # Ditto
 	}
-	warscore_cap = 100 # Warscore cost will never go above this value. Only enabled if non-negative. This value defaults to -1.
+	warscore_cap = 50 # Warscore cost will never go above this value. Only enabled if non-negative. This value defaults to -1.
 	requires_demand_independence = no # Whether this can be demanded by the former subject in an independence war without also demanding independence.
 	is_make_subject = no # This will make the treaty mutually exclusive with other treaties that makes the giver a subject, or that explicitly frees the giver from their current overlord.
-	requires_is_allowed = yes # If set to "yes", treaty will only be visible when explicitly allowed by casus belli. If not, it will be available but cost diplomatic power.
+	requires_is_allowed = no # If set to "yes", treaty will only be visible when explicitly allowed by casus belli. If not, it will be available but cost diplomatic power.
 	
 	is_visible = { # Defaults to equivalent of "always = yes"
-		always = yes
+		is_subject_of_type = acolyte_dominion
+		FROM = { is_subject_of_type = acolyte_dominion }
 	}
 	is_allowed = { # Defaults to equivalent of "always = yes"
 		always = yes
 	}
 	effect = { # Defaults to empty effect (which makes error log entry but is safe)
-		hidden_effect = { FROM = { set_country_flag = black_invasion_target } }
-		hidden_effect = { country_event = { id = black_demesne.100 } } #Update influence before the event
-		country_event = { id = black_demesne.2 }
+		REB = { set_variable = { acolyte_annex = 0 } }
+		FROM = {
+			every_owned_province = {
+				REB = { change_variable = { acolyte_annex = 1 } }
+			}
+		}
+		REB = { divide_variable = { acolyte_annex = 2 } }
+		while = {
+			limit = { REB = { check_variable = { acolyte_annex = 1 } } }
+			FROM = {
+				random_owned_province = {
+					add_core = ROOT
+					cede_province = ROOT
+				}
+				if = {
+					limit = { check_variable = { aInfluence = 0 } }
+					subtract_variable = { aInfluence = 1 }
+				}
+			}
+			change_variable = { aInfluence = 1 }
+			REB = { subtract_variable = { acolyte_annex = 1 } }
+		}
 	}
 	ai_weight = { # Defaults to always evaluate to 0
 		export_to_variable = {
