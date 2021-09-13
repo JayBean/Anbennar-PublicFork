@@ -315,6 +315,7 @@ country_event = {
 						religion = old_bulwari_sun_cult
 					}
 				}
+				remove_province_modifier = "religious_zeal_at_conv"
 				set_province_flag = dukeldar_conversion
 			}
 			nsc_update_monthly_disaster_score = yes
@@ -323,9 +324,10 @@ country_event = {
 	
 	option = {
 		name = new_sun_cult.15.a
-		add_stability = -3
-		capital_scope = { spawn_rebels = { type = anti_tax_rebels size = 3 } }
-		set_country_flag = nsc_dukeldar_start
+		if = { limit = { ai = no }
+			add_stability = -3
+			capital_scope = { spawn_rebels = { type = anti_tax_rebels size = 3 } }
+		}
 	}
 }
 
@@ -1017,6 +1019,18 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		if = {
+			limit = {
+				OR = {
+					NOT = { religion = bulwari_sun_cult }
+					is_chosen_country = no
+				}
+			}
+			set_country_flag = dukedal_lost
+		}
+	}
+	
 	#Won disaster
 	option = {
 		name = new_sun_cult.26.a
@@ -1034,8 +1048,81 @@ country_event = {
 	option = {
 		name = new_sun_cult.26.b
 		trigger = { has_country_flag = dukedal_lost ai = no }
+		add_prestige = -50
 		custom_tooltip = nsc_dukeldar_will_be_back_tt
 		clr_country_flag = dukedal_lost
+		clr_country_flag = locked_racial_administration
+		
+		if = { limit = { religion = old_bulwari_sun_cult }
+			if = {
+				limit = {
+					OR = {
+						primary_culture = sun_elf
+						primary_culture = dawn_elf
+					}
+				}
+				if = { limit = { capital_scope = { region = far_bulwar_region } }
+					change_primary_culture = surani
+				}
+				else_if = { limit = { capital_scope = { region = bahar_region } }
+					change_primary_culture = bahari
+				}
+				else = {
+					change_primary_culture = zanite
+				}
+			}
+			if = { limit = { OR = { heir_culture = sun_elf heir_culture = dawn_elf } }
+				kill_heir = yes
+			}
+			if = { limit = { OR = { consort_culture = sun_elf consort_culture = dawn_elf } }
+				remove_consort = yes
+			}
+			if = { limit = { OR = { ruler_culture = sun_elf ruler_culture = dawn_elf } }
+				kill_ruler = yes
+			}
+		}
+		
+		if = { limit = { tag = F38 }
+			if = {
+				limit = {
+					NOT = { primary_culture = sun_elf }
+					NOT = { religion = the_jadd }
+					NOT = { exists = F52 }
+				}
+				change_tag = F52
+				swap_non_generic_missions = yes
+				hidden_effect = { restore_country_name = yes }
+				if = {
+					limit = { has_idea = F38_mantle_of_the_conqueror }
+					swap_free_idea_group = yes
+				}
+				lock_racial_admin = yes
+				set_country_flag = formed_great_bulwar_flag
+			}
+			else_if = {
+				limit = {
+					religion = the_jadd
+					NOT = { exists = F51 }
+				}
+				change_tag = F51
+				hidden_effect = { restore_country_name = yes }
+				swap_non_generic_missions = yes
+				if = {
+					limit = { has_idea = F38_mantle_of_the_conqueror }
+					swap_free_idea_group = yes
+				}
+				if = { limit = { NOT = { government = monarchy } }
+					change_government = monarchy
+				}
+				add_government_reform = jadd_empire
+				if = { limit = { has_dlc = "Dharma" }
+					add_government_reform = jadd_nobility
+				}
+				country_event = { id = jadd_empire.1 }
+				set_country_flag = formed_jadd_empire_flag
+			}
+		}
+		
 		remove_country_modifier = nsc_army_more_paid
 		remove_country_modifier = nsc_clergy_support
 	}
@@ -1070,6 +1157,39 @@ country_event = {
 #Disaster start
 #Dinam Elutur Start
 country_event = {
+	id = new_sun_cult.27
+	title = new_sun_cult.27.t
+	desc = new_sun_cult.27.d
+	picture = ARTWORK_eventPicture
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			country_event = { id = new_sun_cult.28 days = 365 random = 180 }
+			set_country_flag = has_nsc_disaster
+			set_variable = { which = nscDisasterScoreVar value = 0 }
+			set_variable = { which = totalMonthlyNscDisasterScoreVar value = 0 }
+			set_variable = { which = nscDisasterConversionScoreVar value = 0 }
+			set_variable = { which = nscDisasterBattleWonScoreVar value = 0 }
+			set_variable = { which = nscDisasterBattleLostScoreVar value = 0 }
+			set_variable = { which = nscDisasterHereticConversionsVar value = 0 }
+			nsc_update_monthly_disaster_score = yes
+		}
+	}
+	
+	option = {
+		name = new_sun_cult.27.a
+		if = { limit = { ai = no }
+			add_stability = -3
+			capital_scope = { spawn_rebels = { type = anti_tax_rebels size = 3 } }
+		}
+	}
+}
+
+#Main events
+#Administration goes on strike
+country_event = {
 	id = new_sun_cult.28
 	title = new_sun_cult.28.t
 	desc = new_sun_cult.28.d
@@ -1078,17 +1198,40 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.29 days = 120 random = 120 } }
+		hidden_effect = { country_event = { id = new_sun_cult.29 days = 365 random = 180 } }
 	}
 	
+	#Fuck them
 	option = {
 		name = new_sun_cult.28.a
-		
+		custom_tooltip = nsc_advisors_likely_to_desert_tt
+		remove_advisor_by_category = ADM
+		remove_advisor_by_category = DIP
+		remove_advisor_by_category = MIL
+		add_country_modifier = { name = nsc_rebellious_administration duration = -1 }
+		add_country_modifier = { name = nsc_admin_on_strike duration = 365 }
+		set_country_flag = nsc_administatrion_on_strike
+	}
+	
+	#Raise pay
+	option = {
+		name = new_sun_cult.28.b
+		custom_tooltip = nsc_advisors_less_likely_to_desert_tt
+		add_country_modifier = { name = nsc_advisor_more_paid duration = -1 }
+		remove_advisor_by_category = ADM
+		remove_advisor_by_category = DIP
+		remove_advisor_by_category = MIL
+		add_country_modifier = { name = nsc_rebellious_administration duration = -1 }
+		add_country_modifier = { name = nsc_admin_on_strike duration = 180 }
+		set_country_flag = nsc_administatrion_on_strike
+	}
+	
+	after = {
+		hidden_effect = { nsc_update_monthly_disaster_score = yes }
 	}
 }
 
-#Main events
-#
+#Military demand more pay
 country_event = {
 	id = new_sun_cult.29
 	title = new_sun_cult.29.t
@@ -1097,29 +1240,97 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		#hidden_effect = { country_event = { id = new_sun_cult.30 days = 365 random = 180 } }
+	}
+	
+	#Refuse
 	option = {
 		name = new_sun_cult.29.a
-		
+		custom_tooltip = nsc_troops_likely_to_desert_tt
+		set_country_flag = dukeldar_desertions
+	}
+	
+	#Accept
+	option = {
+		name = new_sun_cult.29.b
+		add_country_modifier = { name = nsc_army_more_paid duration = 3650 }
+		custom_tooltip = nsc_troops_less_likely_to_desert_tt
+		set_country_flag = dukeldar_desertions
 	}
 }
 
 #Monthly events
 #
 
-#Disaster End
+#Disaster end
 #
 country_event = {
 	id = new_sun_cult.40
 	title = new_sun_cult.40.t
-	desc = new_sun_cult.40.d
-	picture = ARTWORK_eventPicture
+	desc = { trigger = { NOT = { has_country_flag = dinam_elutur_lost } } desc = new_sun_cult.40.da }
+	desc = { trigger = { has_country_flag = dinam_elutur_lost } desc = new_sun_cult.40.db }
+	picture = { trigger = { NOT = { has_country_flag = dinam_elutur_lost } } picture = ARTWORK_eventPicture }
+	picture = { trigger = { has_country_flag = dinam_elutur_lost } picture = ARTWORK_eventPicture }
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		if = {
+			limit = {
+				OR = {
+					NOT = { religion = bulwari_sun_cult }
+					is_chosen_country = yes
+				}
+			}
+			set_country_flag = dinam_elutur_lost
+		}
+	}
+	
+	#Won disaster
 	option = {
 		name = new_sun_cult.40.a
-		decrease_nsc_isolation_level = yes
-		clr_country_flag = nsc_dinam_elutur_end
+		trigger = { NOT = { has_country_flag = dinam_elutur_lost } ai = no }
+		increase_nsc_isolation_level = yes
+		if = { limit = { NOT = { isolationism = 2 } }
+			increase_nsc_isolation_level = yes
+		}
+		custom_tooltip = nsc_dinam_elutur_will_be_back_tt
+		remove_country_modifier = nsc_army_more_paid
+		remove_country_modifier = nsc_clergy_support
+	}
+	
+	#Lost disaster
+	option = {
+		name = new_sun_cult.40.b
+		trigger = { has_country_flag = dinam_elutur_lost ai = no }
+		custom_tooltip = nsc_dinam_elutur_will_be_back_tt
+		clr_country_flag = dinam_elutur_lost
+		remove_country_modifier = nsc_army_more_paid
+		remove_country_modifier = nsc_clergy_support
+	}
+	
+	#AI bypass
+	option = {
+		name = new_sun_cult.40.c
+		trigger = { ai = yes }
+		increase_nsc_isolation_level = yes
+	}
+	
+	after = {
+		remove_country_modifier = nsc_admin_on_strike
+		remove_country_modifier = nsc_advisor_more_paid
+		remove_country_modifier = nsc_rebellious_administration
+		set_country_flag = nsc_dukeldar_end
+		clr_country_flag = has_nsc_disaster
+		clr_country_flag = nsc_lost_war
+		clr_country_flag = nsc_dukeldar_pretender_spawned
+		clr_country_flag = nsc_administatrion_on_strike
+		clr_country_flag = dukeldar_desertions
+		every_owned_province = {
+			clr_province_flag = dukeldar_rebellion
+			clr_province_flag = dukeldar_pretender_province
+		}
 	}
 }
 
