@@ -1,0 +1,953 @@
+namespace = black_demesne
+
+##A new acolyte take the throne
+country_event = {
+	id = black_demesne.1
+	title = black_demesne.1.t
+	desc = black_demesne.1.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		tag = Z99
+		any_subject_country = {
+			is_subject_of_type = acolyte_dominion
+			NOT = {
+				calc_true_if = {
+					all_known_country = {
+						check_variable = {
+							which = aInfluence
+							which = PREV
+						}
+					}
+					amount = 1
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_subject_country = {
+				limit = { 
+					is_subject_of_type = acolyte_dominion
+					NOT = {
+						calc_true_if = {
+							all_known_country = {
+								check_variable = {
+									which = aInfluence
+									which = PREV
+								}
+							}
+							amount = 1
+						}
+					}
+				}
+				save_event_target_as = country
+				set_country_flag = old_dominion
+				exile_ruler_as = black_heir
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = { country_event = { id = black_demesne.100 } }
+	}
+	
+	option = {
+		name = black_demesne.1.a
+		ai_chance = { factor = 40 }
+		set_ruler = black_heir
+		hidden_effect = { clr_ruler_flag = mage_ruler_general }
+		add_ruler_modifier = {
+			name = new_sorcerer_king
+			duration = 3650
+		}
+	}
+}
+
+##The Demesne Expand
+#Black Invasion
+country_event = {
+	id = black_demesne.2
+	title = black_demesne.2.t
+	desc = black_demesne.2.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		tag = Z99
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_known_country = {
+				limit = { has_country_flag = black_invasion_target }
+				save_event_target_as = country
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = { event_target:country = { clr_country_flag = black_invasion_target } }
+		hidden_effect = { country_event = { id = black_demesne.100 } }
+	}
+	
+	#Share the Lands as per your Land Distribution Law
+	option = {
+		name = black_demesne.2.a
+		ai_chance = { factor = 40 }
+		trigger = { calc_true_if = { all_subject_country = { is_subject_of_type = acolyte_dominion } amount = 1 } }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_subject_country = { grant_independence = yes }
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			REB = { ROOT = { set_variable = { which = nbProvBlack which = PREV } } }
+			if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_10 }
+				multiply_variable = { nbProvBlack = 0.1 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_20 }
+				multiply_variable = { nbProvBlack = 0.2 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_30 }
+				multiply_variable = { nbProvBlack = 0.3 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_40 }
+				multiply_variable = { nbProvBlack = 0.4 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_50 }
+				multiply_variable = { nbProvBlack = 0.5 }
+			}
+			REB = { subtract_variable = { which = nbProvBlack which = ROOT } }
+			while = {
+				limit = { check_variable = { nbProvBlack = 0 } }
+				subtract_variable = { nbProvBlack = 1 }
+				event_target:country = {
+					random_owned_province = {
+						cede_province = ROOT
+						remove_loot = { who = ROOT amount = 100 }
+					}
+				}
+			}
+			acolytes_land_distribution_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+	
+	#Share the Lands but only for your acolyte
+	option = {
+		name = black_demesne.2.b
+		ai_chance = { factor = 40 }
+		trigger = { calc_true_if = { all_subject_country = { is_subject_of_type = acolyte_dominion } amount = 1 } }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_subject_country = { grant_independence = yes }
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			acolytes_land_distribution_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+	
+	#Annex the Land
+	option = {
+		name = black_demesne.2.c
+		ai_chance = { factor = 40 }
+		if = {
+			limit = { event_target:country = { total_development = 1000 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 100
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 900 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 90
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 800 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 80
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 700 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 70
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 600 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 60
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 500 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 50
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 400 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 40
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 300 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 30
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 200 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 20
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 100 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 10
+			}
+		}
+		else_if = {
+			limit = { event_target:country = { total_development = 0 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 5
+			}
+		}
+		custom_tooltip = annex_everything_no_core_tooltip
+		hidden_effect = {
+			event_target:country = {
+				every_owned_province = {
+					cede_province = ROOT
+				}
+			}
+		}
+	}
+	
+	#Create new Acolyte
+	option = {
+		name = black_demesne.2.e
+		ai_chance = { factor = 100 }
+		highlight = yes
+		trigger = {
+			black_demesne_has_available_acolyte = yes
+			black_demesne_can_have_another_acolyte = yes
+		}
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_subject_country = { grant_independence = yes }
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			REB = { ROOT = { set_variable = { which = nbProvBlack which = PREV } } }
+			if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_10 }
+				multiply_variable = { nbProvBlack = 0.1 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_20 }
+				multiply_variable = { nbProvBlack = 0.2 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_30 }
+				multiply_variable = { nbProvBlack = 0.3 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_40 }
+				multiply_variable = { nbProvBlack = 0.4 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_50 }
+				multiply_variable = { nbProvBlack = 0.5 }
+			}
+			REB = { subtract_variable = { which = nbProvBlack which = ROOT } }
+			while = {
+				limit = { check_variable = { nbProvBlack = 0 } }
+				subtract_variable = { nbProvBlack = 1 }
+				event_target:country = {
+					random_owned_province = {
+						cede_province = ROOT
+						remove_loot = { who = ROOT amount = 100 }
+					}
+				}
+			}
+			REB = { multiply_variable = { nbProvBlack = 0.7 } }
+			acolytes_land_distribution_effect = yes
+			new_acolyte_after_conquest_effect = yes
+		}
+	}
+}
+
+#The Apostle
+country_event = {
+	id = black_demesne.3
+	title = black_demesne.3.t
+	desc = black_demesne.3.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = { set_country_flag = debug_menu }
+		hidden_effect = {
+			if = {
+				limit = { ai = no }
+				set_variable = { foo = 0 }
+				export_to_variable = {
+					which = foo
+					value = years_of_income
+				}
+				multiply_variable = { foo = 0.03 }
+				divide_variable = { foo = 1000 }
+				multiply_variable = { foo = 1000 }
+			}
+		}
+	}
+	after = {
+		hidden_effect = { clr_country_flag = debug_menu country_event = { id = black_demesne.100 } }
+	}
+	
+	#Core
+	option = {
+		name = black_demesne.3.a
+		ai_chance = { factor = 40 }
+		custom_tooltip = the_apostle_tooltip
+		while = {
+			limit = {
+				AND = {
+					any_owned_province = {
+						is_territory = yes
+						AND = {
+							NOT = { is_core = ROOT }
+							NOT = { has_construction = core }
+						}
+					}
+					adm_power = 50
+				}
+			}
+			random_owned_province = {
+				limit = { 
+					is_territory = yes
+					AND = {
+						NOT = { is_core = ROOT }
+						NOT = { has_construction = core }
+					}
+				}
+				if = {
+					limit = { ai = yes }
+					if = {
+						limit = { overextension_percentage = 1 }
+						add_core_construction = {
+							speed = 0.25
+							cost = 0.5
+						}
+					}
+					else_if = {
+						limit = { overextension_percentage = 0.5 }
+						add_core_construction = {
+							speed = 0.5
+							cost = 0.5
+						}
+					}
+					else = {
+						limit = { overextension_percentage = 0.5 }
+						add_core_construction = {
+							speed = 0.75
+							cost = 0.5
+						}
+					}
+				}
+				else = {
+					add_core_construction = {
+						speed = 2
+						cost = 0.75
+					}
+				}
+			}
+			if = {
+				limit = { ai = no }
+				add_years_of_income = -0.03
+			}
+		}
+	}
+	
+	#Go Back
+	option = {
+		name = black_demesne.3.b
+		ai_chance = { factor = 0 }
+	}
+}
+
+#Future of our Dominions
+country_event = {
+	id = black_demesne.4
+	title = black_demesne.4.t
+	desc = black_demesne.4.d
+	picture = COURT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = {
+			FROM = { save_event_target_as = country }
+			FROM = {
+				capital_scope = {
+					save_event_target_as = province
+				}
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			country_event = { id = black_demesne.100 }
+		}
+	}
+	
+	#Share the Land
+	option = {
+		name = black_demesne.4.a
+		ai_chance = { factor = 40 }
+		trigger = { calc_true_if = { all_subject_country = { is_subject_of_type = acolyte_dominion } amount = 2 } NOT = { FROM = { has_country_flag = newly_formed_dominion } } }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			REB = { ROOT = { set_variable = { which = nbProvBlack which = PREV } } }
+			if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_10 }
+				multiply_variable = { nbProvBlack = 0.1 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_20 }
+				multiply_variable = { nbProvBlack = 0.2 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_30 }
+				multiply_variable = { nbProvBlack = 0.3 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_40 }
+				multiply_variable = { nbProvBlack = 0.4 }
+			}
+			else_if = {
+				limit = { has_estate_privilege = estate_acolytes_land_share_50 }
+				multiply_variable = { nbProvBlack = 0.5 }
+			}
+			REB = { subtract_variable = { which = nbProvBlack which = ROOT } }
+			while = {
+				limit = { check_variable = { nbProvBlack = 0 } }
+				subtract_variable = { nbProvBlack = 1 }
+				event_target:country = {
+					random_owned_province = {
+						cede_province = ROOT
+						remove_loot = { who = ROOT amount = 100 }
+						add_core = ROOT
+					}
+				}
+			}
+			acolytes_land_distribution_with_core_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT add_core = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+	
+	#Split the Land
+	option = {
+		name = black_demesne.4.b
+		ai_chance = { factor = 40 }
+		trigger = { calc_true_if = { all_subject_country = { is_subject_of_type = acolyte_dominion } amount = 2 } NOT = { FROM = { has_country_flag = newly_formed_dominion } } }
+		hidden_effect = {
+			set_variable = { nbProvBlack = 0 }
+			REB = { set_variable = { nbProvBlack = 0 } }
+			event_target:country = {
+				every_subject_country = { grant_independence = yes }
+				every_owned_province = {
+					REB = { change_variable = { nbProvBlack = 1 } }
+				}
+			}
+			acolytes_land_distribution_with_core_effect = yes
+			event_target:country = { every_owned_province = { cede_province = ROOT add_core = ROOT remove_loot = { who = ROOT amount = 100 } } }
+		}
+	}
+	
+	#Annex the Land
+	option = {
+		name = black_demesne.4.c
+		ai_chance = { factor = 40 }
+		trigger = { NOT = { FROM = { has_country_flag = newly_formed_dominion } } }
+		if = {
+			limit = { FROM = { total_development = 1000 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 100
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 900 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 90
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 800 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 80
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 700 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 70
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 600 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 60
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 500 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 50
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 400 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 40
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 300 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 30
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 200 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 20
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 100 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 10
+			}
+		}
+		else_if = {
+			limit = { FROM = { total_development = 0 } }
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 5
+			}
+		}
+		FROM = { ROOT = { inherit = PREV } }
+	}
+	
+	#New Leader
+	option = {
+		name = black_demesne.4.e
+		ai_chance = { factor = 150 }
+		FROM = { 
+			define_ruler = {  culture = black_demesner hide_skills = yes }
+		}
+		if = {
+			limit = { FROM = { has_country_flag = newly_formed_dominion } }
+			hidden_effect = { 
+				FROM = { clr_country_flag = newly_formed_dominion }
+			}
+		}
+		else = {
+			custom_tooltip = divide_influence_by_two_tooltip
+			hidden_effect = {
+				FROM = { divide_variable = { aInfluence = 2 } }
+			}
+		}
+	}
+}
+
+#A New Acolyte?
+country_event = {
+	id = black_demesne.5
+	title = black_demesne.5.t
+	desc = black_demesne.5.d
+	picture = COURT_eventPicture
+	
+	mean_time_to_happen = {
+		months = 180
+	}
+	
+	trigger = {
+		tag = Z99
+		has_estate = estate_acolytes
+		is_at_war = no
+		black_demesne_can_have_another_acolyte = yes
+		black_demesne_has_available_acolyte = yes
+	}
+	
+	immediate = {
+		random_owned_province = {
+			limit = { 
+				is_in_capital_area = yes
+				is_capital = no
+			}
+			save_event_target_as = province
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			country_event = { id = black_demesne.100 }
+		}
+	}
+	
+	#Create a new acolyte for AI #FINISH THAT SHIT YOU LAZY FUCK
+	option = {
+		name = black_demesne.5.a
+		ai_chance = { factor = 40 }
+		trigger = { ai = yes }
+		hidden_effect = {
+			event_target:province = {
+				set_province_flag = new_acolyte
+				every_neighbor_province = {
+					limit = { is_capital = no }
+					set_province_flag = new_acolyte
+					every_neighbor_province = {
+						limit = { is_capital = no }
+						set_province_flag = new_acolyte
+					}
+				}				
+			}
+		}
+	}
+	
+	#Create a new acolyte for Player
+	option = {
+		name = black_demesne.5.a
+		ai_chance = { factor = 40 }
+		trigger = { ai = no }
+		if = {
+			limit = { NOT = { any_owned_province = { has_state_edict = acolyte_territory_edict } } }
+			custom_tooltip = new_acolyte_no_edict_tooltip
+			add_absolutism = 5
+			every_subject_country = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				add_liberty_desire = 5
+			}
+		}
+		else = {
+			custom_tooltip = new_acolyte_tooltip
+			hidden_effect = {
+				new_acolyte_mtth_effect = yes
+			}
+		}
+	}
+	
+	#We will not create one right now
+	option = {
+		name = black_demesne.5.b
+		ai_chance = { factor = 0 }
+		add_absolutism = 5
+		every_subject_country = {
+			limit = { is_subject_of_type = acolyte_dominion }
+			add_liberty_desire = 5
+		}
+	}
+}
+
+
+##################
+#DEBUG EVENT
+##################
+
+#Influence Counter
+country_event = {
+	id = black_demesne.100
+	title = black_demesne.100.t
+	desc = black_demesne.100.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		tag = Z99
+	}
+	
+	option = {		
+		name = "black_demesne.100.a"
+		ai_chance = { factor = 40 }
+		REB = { set_variable = { aInfluence = 0 } }
+		REB = { set_variable = { totalInfluence = 0 } }
+		every_subject_country = {
+			limit = { is_subject_of_type = acolyte_dominion }
+			REB = {
+				set_variable = {
+					which = aInfluence
+					which = PREV
+				}
+				change_variable = {
+					which = totalInfluence
+					which = aInfluence
+				}
+			}
+		}
+		if = {
+			limit = { Z75 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z75 = {
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z76 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z76 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z77 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z77 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z78 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z78 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z79 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z79 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z80 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z80 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+		if = {
+			limit = { Z81 = { exists = yes is_subject_of_type = acolyte_dominion is_subject_of = Z99 } }
+			REB = {
+				Z81 = { 
+					set_variable = { which = percInfluence which = aInfluence }
+					set_variable = { which = totalInfluence which = PREV }
+					divide_variable = { which = percInfluence which = totalInfluence }
+					multiply_variable = { percInfluence = 100 }
+				}
+			}
+		}
+	}
+}
+
+#War between acolyte
+country_event = {
+	id = black_demesne.101
+	title = black_demesne.101.t
+	desc = black_demesne.101.d
+	picture = COURT_eventPicture
+	
+	hidden = yes
+	
+	mean_time_to_happen = {
+		# years = 4
+		years = 1
+	}
+	
+	trigger = {
+		is_subject_of_type = acolyte_dominion
+		is_at_war = no
+		any_known_country = {
+			is_subject_of_type = acolyte_dominion 
+			NOT = { alliance_with = ROOT }
+			NOT = { truce_with = ROOT }
+		}
+		ai = yes
+	}
+	
+	immediate = {
+		random_known_country = {
+			limit = { 
+				is_subject_of_type = acolyte_dominion 
+				NOT = { alliance_with = ROOT }
+				NOT = { truce_with = ROOT }
+			}
+			save_event_target_as = country
+		}
+	}
+	
+	#No War
+	option = {		
+		name = "black_demesne.101.a"
+		ai_chance = { 
+			factor = 80
+			
+			modifier = {
+				factor = 4
+				
+				NOT = {
+					army_strength = {
+						who = event_target:country
+						value = 0.8
+					}
+				}
+			}
+		}
+	}
+	
+	#Declare War
+	option = {		
+		name = "black_demesne.101.b"
+		ai_chance = { 
+			factor = 20
+			
+			modifier = {
+				factor = 4
+				
+				army_strength = {
+					who = event_target:country
+					value = 1
+				}
+			}
+			
+			modifier = {
+				factor = 10
+				
+				army_strength = {
+					who = event_target:country
+					value = 1.5
+				}
+			}
+			
+			modifier = {
+				factor = 1.5
+				
+				NOT = {
+					has_opinion = {
+						who = event_target:country
+						value = 50
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 1.5
+				
+				NOT = {
+					has_opinion = {
+						who = event_target:country
+						value = 0
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 10
+				
+				army_strength = {
+					who = event_target:country
+					value = 1
+				}
+				event_target:country = {
+					has_ruler_flag = damned_acolyte
+				}
+			}
+		}
+		
+		declare_war_with_cb = {
+			who = event_target:country
+			casus_belli = cb_imperial
+		}
+		
+	}
+}
