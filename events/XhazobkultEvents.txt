@@ -20,6 +20,13 @@ country_event = {
 		every_owned_province = {
 			xhazobkult_set_appropriate_modifier = yes
 		}
+		country_event = {
+			id = xhazobkult_events.2000
+		}
+		set_variable = {
+			which = total_gathered_sacrifices
+			value = 0
+		}
 	}
 }
 
@@ -556,18 +563,323 @@ country_event = { #The demon refuses: ruler lives (go mad?)
 	}
 }
 
-country_event = {
+#Sacrifices
+province_event = { #Build Pyre
 	id = xhazobkult_events.1100
 	title = xhazobkult_events.1100.t
 	desc = xhazobkult_events.1100.d
 	picture = MILITARY_CAMP_eventPicture
 	
-	is_triggered_only = yes
+	trigger = {
+		has_state_edict = gather_sacrifices_edict
+		NOT = {
+			any_province_in_state = {
+				OR = {
+					has_building = xhazobkult_pyre
+					has_construction = xhazobkult_pyre
+				}
+			}
+		}
+		NOT = { has_construction = building }
+		owner = { has_country_flag = xhazobkult_prepare_sacrifices_flag }
+	}
 	
-	option = {
+	mean_time_to_happen = {
+		days = 5
+	}
+	
+	option = { #Build Pyre
 		name = xhazobkult_events.1100.a
 		ai_chance = { factor = 1 }
-		generate_estate_agenda = estate_church
-		start_estate_agenda = estate_church
+		add_building_construction = {
+			building = xhazobkult_pyre
+			speed = 1
+			cost = 1
+		}
+	}
+	
+	# option = { #Hold off for now
+		# name = xhazobkult_events.1100.b
+		# ai_chance = { factor = 1 }
+		# #Modifier or something?
+	# }
+}
+province_event = { #Gather Sacrifices
+	id = xhazobkult_events.1101
+	title = xhazobkult_events.1101.t
+	desc = xhazobkult_events.1101.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	trigger = {
+		has_state_edict = gather_sacrifices_edict
+		NOT = { culture_group = gnollish }
+		# any_province_in_state = {
+			# owner = { owns = ROOT }
+			# has_building = xhazobkult_pyre
+		# }
+	}
+	
+	mean_time_to_happen = {
+		days = 365
+		modifier = {
+			factor = 0.6
+			development = 4
+		}
+		modifier = {
+			factor = 0.8
+			development = 10
+		}
+		modifier = {
+			factor = 0.9
+			development = 20
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 20
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 40
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 60
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 80
+		}
+	}
+	
+	option = { 
+		name = xhazobkult_events.1101.a
+		ai_chance = { factor = 1 }
+		
+		if = {
+			limit = { NOT = { development = 4 } }
+			owner = {
+				change_variable = {
+					which = total_gathered_sacrifices
+					value = 1
+				}
+			}
+		}
+		else = {
+			owner = {
+				change_variable = {
+					which = total_gathered_sacrifices
+					value = 2
+				}
+			}
+		}
+		
+		random_list = {
+			1 = {
+				trigger = { base_tax = 2 }
+				add_base_tax = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { base_production = 2 }
+				add_base_production = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { base_manpower = 2 }
+				add_base_manpower = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { NOT = { development = 4 } }
+				add_devastation = 50
+			}
+		}
+	}
+}
+country_event = { #Execute
+	id = xhazobkult_events.1102
+	title = xhazobkult_events.1102.t
+	desc = xhazobkult_events.1102.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = xhazobkult_events.1102.a
+		ai_chance = { factor = 1 }
+		
+		custom_tooltip = xhazobkult_execute_sacrifice_effect_tt
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { which = total_gathered_sacrifices value = 1 } }
+				add_patriarch_authority = 0.01
+				change_variable = { which = total_gathered_sacrifices value = -1 }
+			}
+			set_variable = {
+				which = total_gathered_sacrifices
+				value = 0
+			}
+		}
+	}
+}
+
+country_event = {
+	id = xhazobkult_events.2000
+	title = xhazobkult_events.2000.t
+	desc = xhazobkult_events.2000.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	immediate = {
+		remove_country_modifier = xhazobkult_tributaries_1
+		remove_country_modifier = xhazobkult_tributaries_2
+		remove_country_modifier = xhazobkult_tributaries_3
+		remove_country_modifier = xhazobkult_tributaries_4
+		remove_country_modifier = xhazobkult_tributaries_5
+		remove_country_modifier = xhazobkult_tributaries_6
+		remove_country_modifier = xhazobkult_tributaries_7
+		remove_country_modifier = xhazobkult_tributaries_8
+		remove_country_modifier = xhazobkult_tributaries_9
+		remove_country_modifier = xhazobkult_tributaries_10
+		
+		calc_tributary_dev_proportion = yes
+	}
+	
+	option = {
+		name = xhazobkult_events.2000.a
+		ai_chance = { factor = 1 }
+		
+		if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 1
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_10
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.9
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_9
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.8
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_8
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.7
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_7
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.6
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_6
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.5
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_5
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.4
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_4
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.3
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_3
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.2
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_2
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = { #total development of every tributary subject / current subject => 1
+				check_variable = {
+					which = tributary_dev_proportion
+					value = 0.1
+				}
+			}
+			add_country_modifier = {
+				name = xhazobkult_tributaries_1
+				duration = -1
+				hidden = yes
+			}
+		}
 	}
 }
