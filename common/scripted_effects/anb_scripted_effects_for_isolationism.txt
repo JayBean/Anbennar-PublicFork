@@ -1,25 +1,726 @@
-# í <-- This is here to make sure that the encoding stays ANSI, do not remove it
-increase_NSC_isolation_level = {
+#--------------#New Sun Cult#--------------#
+# ï¿½ <-- This is here to make sure that the encoding stays ANSI, do not remove it
+
+increase_nsc_isolation_level = {
 	if = {
 		limit = {
 			religion = bulwari_sun_cult
-			NOT = { isolationism = 4 }		#not highest isolation level for religion
+			has_dlc = "Mandate of Heaven"
 		}
-		custom_tooltip = nsc_increase_isolation_tt	#Tooltip for specific localization for each religion
-		hidden_effect = { add_isolationism = 1 }
+		if = { limit = { isolationism = 4 }
+			custom_tooltip = nsc_increase_isolation_max_tt 			#already at max
+		}
+		else = {
+			custom_tooltip = nsc_increase_isolation_tt 				#Tooltip for specific localization for each religion
+			hidden_effect = { 
+				add_isolationism = 1
+				if = { limit = { isolationism = 4 is_chosen_country = yes }
+					set_variable = { which = battlesWonBySunElfRuler value = 0 }
+				}
+				update_nsc_level_secondary_effects = yes
+			}
+		}
 	}
 }
 
-decrease_NSC_isolation_level = {
+decrease_nsc_isolation_level = {
 	if = {
 		limit = {
 			religion = bulwari_sun_cult
-			isolationism = 1				#at least one level above lowest isolation for religion
+			has_dlc = "Mandate of Heaven"
 		}
-		custom_tooltip = nsc_decrease_isolation_tt
-		hidden_effect = { add_isolationism = -1 }
+		if = { limit = { isolationism = 1 }
+			custom_tooltip = nsc_decrease_isolation_tt				#Tooltip for specific localization for each religion
+			hidden_effect = {
+				add_isolationism = -1
+				update_nsc_level_secondary_effects = yes
+			}
+		}
+		else = {
+			custom_tooltip = nsc_increase_isolation_min_tt			#Already at min
+		}
 	}
 }
+
+update_nsc_level_secondary_effects = { 								#This effect can be triggered by a NSC level change, a new ruler, a vassalisation, an overlord's new ruler or a conversion
+	if = {
+		limit = {
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+		}
+		
+		if = { limit = { is_chosen_country = yes }
+			remove_country_modifier = NSC_level_4 					#Liberty desire modifiers
+			remove_country_modifier = NSC_level_3
+			remove_country_modifier = NSC_level_0
+		}
+		
+		if = { limit = { isolationism = 4 } 						# = level 5 in the loc/interface
+			remove_country_modifier = NSC_level_3
+			if = { 
+				limit = {
+					is_vassal = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_4 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_4
+			}
+		}
+		else_if = { limit = { isolationism = 3 } 					# = level 4 in the loc/interface
+			remove_country_modifier = NSC_level_4
+			if = {
+				limit = {
+					is_vassal = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_3 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_3
+			}
+		}
+		else_if = { limit = { isolationism = 2 } 					# = level 3 in the loc/interface
+			remove_country_modifier = NSC_level_3
+			country_event = { id = new_sun_cult.1 } 				#humans gets the clergy privilege back
+			country_event = { id = new_sun_cult.2 } 				#lose elven mil
+		}
+		else_if = { limit = { isolationism = 1 } 					# = level 2 in the loc/interface
+			remove_country_modifier = NSC_level_0
+		}
+		else_if = { limit = { isolationism = 0 } 					# = level 1 in the loc/interface
+			if = {
+				limit = {
+					is_vassal = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_0 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_0
+			}
+		}
+	}
+	else = {
+		remove_country_modifier = NSC_level_4
+		remove_country_modifier = NSC_level_3
+		remove_country_modifier = NSC_level_0
+	}
+}
+
+refresh_nsc_incidents_ui = {
+	if = { 
+		limit = {
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+		}
+		set_country_flag = updating_isolationism_window
+		change_religion = cannorian_pantheon
+		change_religion = bulwari_sun_cult
+		clr_country_flag = updating_isolationism_window
+	}
+}
+
+#For the disasters
+
+nsc_disaster_province_conversion_effect = {
+	if = {
+		limit = {
+			OR = {
+				religion = old_bulwari_sun_cult
+				religion = the_jadd
+			}
+		}
+		set_province_flag = dukeldar_conversion
+	}
+	else_if = { limit = { religion = bulwari_sun_cult }
+		if = { limit = { has_province_flag = dukeldar_conversion }
+			owner = {
+				export_to_variable = { which = numOfCitiesVar value = num_of_cities }
+				if = { limit = { check_variable = { which = numOfCitiesVar value = 30 } }
+					set_variable = { which = numOfCitiesVar value = 30 }
+				}
+				set_variable = { which = tempNscDisasterScoreVar value = 30 }
+				divide_variable = { which = tempNscDisasterScoreVar which = numOfCitiesVar }
+				change_variable = { which = nscDisasterConversionScoreVar which = tempNscDisasterScoreVar }
+			}
+		}
+	}
+	else = {
+		clr_province_flag = dukeldar_conversion
+	}
+}
+
+nsc_update_monthly_disaster_score = {
+	set_variable = { which = monthlyNscDisasterScoreVar value = 0 }
+	if = { limit = { employed_advisor = { category = ADM } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = DIP } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = MIL } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { stability = 1 }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+	if = { limit = { stability = 3 }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 1 }
+	}
+	
+	export_to_variable = { which = numOfRebelArmiesVar value = num_of_rebel_armies }
+	export_to_variable = { which = numOfRebelProvincesVar value = num_of_rebel_controlled_provinces }
+	
+	if = {
+		limit = {
+			OR = { 
+				check_variable = { which = numOfRebelArmiesVar value = 1 }
+				check_variable = { which =  numOfRebelProvincesVar value = 1 }
+			}
+		}
+		set_variable = { which = disasterRebelArmiesScoreVar which = numOfRebelArmiesVar }
+		multiply_variable = { which = disasterRebelArmiesScoreVar value = -0.25 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelArmiesScoreVar }
+		set_variable = { which = disasterRebelProvincesScoreVar which = numOfRebelProvincesVar }
+		multiply_variable = { which = disasterRebelProvincesScoreVar value = -0.1 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelProvincesScoreVar }
+	}
+	else = {
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+}
+
+nsc_calculate_total_disaster_score = {
+	nsc_update_monthly_disaster_score = yes
+	change_variable = { which = totalMonthlyNscDisasterScoreVar which = monthlyNscDisasterScoreVar }
+	set_variable = { which = nscDisasterScoreVar which = totalMonthlyNscDisasterScoreVar }
+	change_variable = { which = nscDisasterScoreVar which = nscDisasterConversionScoreVar }
+	change_variable = { which = nscDisasterScoreVar which = nscDisasterBattleWonScoreVar }
+	subtract_variable = { which = nscDisasterScoreVar which = nscDisasterBattleLostScoreVar }
+}
+
+nsc_define_influenceable_vassals = {
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_1_@ROOT
+		save_event_target_as = influenceable_vassal_1
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_2_@ROOT
+		save_event_target_as = influenceable_vassal_2
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_3_@ROOT
+		save_event_target_as = influenceable_vassal_3
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_4_@ROOT
+		save_event_target_as = influenceable_vassal_4
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_5_@ROOT
+		save_event_target_as = influenceable_vassal_5
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_6_@ROOT
+		save_event_target_as = influenceable_vassal_6
+	}
+}
+
+nsc_add_influencing_vassal_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_1 } }
+		add_country_modifier = { name = nsc_influencing_vassal_1 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_2 } }
+		add_country_modifier = { name = nsc_influencing_vassal_2 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_3 } }
+		add_country_modifier = { name = nsc_influencing_vassal_3 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_4 } }
+		add_country_modifier = { name = nsc_influencing_vassal_4 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_5 } }
+		add_country_modifier = { name = nsc_influencing_vassal_5 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_6 } }
+		add_country_modifier = { name = nsc_influencing_vassal_6 duration = -1 }
+	}
+}
+
+nsc_remove_influencing_vassal_modifier = {
+	if = { limit = { has_country_modifier = nsc_influencing_vassal_1 }
+		remove_country_modifier = nsc_influencing_vassal_1
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_2 }
+		remove_country_modifier = nsc_influencing_vassal_2
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_3 }
+		remove_country_modifier = nsc_influencing_vassal_3
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_4 }
+		remove_country_modifier = nsc_influencing_vassal_4
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_5 }
+		remove_country_modifier = nsc_influencing_vassal_5
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_6 }
+		remove_country_modifier = nsc_influencing_vassal_6
+	}
+}
+
+nsc_calculate_unrest_percentage = {
+	set_variable = { which = TotalProvincesVar value = 0 }
+	every_owned_province = {
+		limit = {
+			OR = {
+				has_province_flag = nsc_mayor_target
+				has_province_flag = nsc_merchant_target
+				has_province_flag = nsc_peasant_target
+			}
+		}
+		export_to_variable = { which = TotalUnrestVar value = unrest }
+		ROOT = { change_variable = { which = TotalProvincesVar value = 1 } }
+	}
+	if = { limit = { check_variable = { which = TotalProvinces value = 1 } }
+		divide_variable = { which = TotalUnrestVar which = TotalProvincesVar }
+	}
+}
+
+nsc_calculate_pledge_score = {
+	set_variable = { which = ScoreRightReligionVar value = 0 }
+	set_variable = { which = ScoreOwnedProvinceVar value = 0 }
+	if = { limit = { tag = F21 }
+		set_variable = { which = ProvincesToGetVar value = 12 } #nb of provinces in target province group x2
+		nsc_incident_target_birsartanses = {
+			limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = ROOT } }
+			ROOT = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+		}
+		nsc_incident_target_birsartanses = {
+			limit = { country_or_non_sovereign_subject_holds = ROOT }
+			ROOT = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+		}
+	}
+	if = { limit = { tag = F25 }
+		set_variable = { which = ProvincesToGetVar value = 16 } #nb of provinces in target province group x2
+		nsc_incident_target_sareyand = {
+			limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = ROOT } }
+			ROOT = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+		}
+		nsc_incident_target_sareyand = {
+			limit = { country_or_non_sovereign_subject_holds = ROOT }
+			ROOT = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+		}
+	}
+	if = { limit = { tag = F34 }
+		set_variable = { which = ProvincesToGetVar value = 14 } #nb of provinces in target province group x2
+		nsc_incident_target_azka_evran = {
+			limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = ROOT } }
+			ROOT = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+		}
+		nsc_incident_target_azka_evran = {
+			limit = { country_or_non_sovereign_subject_holds = ROOT }
+			ROOT = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+		}
+	}
+	if = { limit = { tag = F37 }
+		set_variable = { which = ProvincesToGetVar value = 14 } #nb of provinces in target province group x2
+		nsc_incident_target_irrliam = {
+			limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = ROOT } }
+			ROOT = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+		}
+		nsc_incident_target_irrliam = {
+			limit = { country_or_non_sovereign_subject_holds = ROOT }
+			ROOT = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+		}
+	}
+	if = { limit = { tag = F42 }
+		set_variable = { which = ProvincesToGetVar value = 16 } #nb of provinces in target province group x2
+		nsc_incident_target_varamhar = {
+			limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = ROOT } }
+			ROOT = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+		}
+		nsc_incident_target_varamhar = {
+			limit = { country_or_non_sovereign_subject_holds = ROOT }
+			ROOT = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+		}
+	}
+	set_variable = { which = ScorePerProvinceVar value = 50 }
+	divide_variable = { which = ScoreRightReligionVar which = ProvincesToGetVar }
+	divide_variable = { which = ScoreOwnedProvinceVar which = ProvincesToGetVar }
+	divide_variable = { which = ScorePerProvinceVar which = ProvincesToGetVar }
+	multiply_variable = { which = ScoreRightReligionVar value = 50 }
+	multiply_variable = { which =  ScoreOwnedProvinceVar value = 50 }
+	set_variable = { which = ScoreWarVar which = ScoreRightReligionVar }
+	change_variable = { which = ScoreWarVar which = ScoreOwnedProvinceVar }
+
+	set_variable = { which = ScoreVar value = 0 }
+	if = { limit = { stability = 0 } change_variable = { which = ScoreVar value = 1 } }
+	if = { limit = { stability = 1 } change_variable = { which = ScoreVar value = 2 } }
+	if = { limit = { NOT = { war_exhaustion = 1 } } change_variable = { which = ScoreVar value = 2 } }
+	if = { limit = { is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 3 } }
+	if = { limit = { employed_advisor = { category = ADM } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+	if = { limit = { employed_advisor = { category = DIP } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+	if = { limit = { employed_advisor = { category = MIL } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+	if = { limit = { has_estate = estate_church }
+		if = { limit = { estate_loyalty = { estate = estate_church loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+	}
+	if = { limit = { has_estate = estate_nobles }
+		if = { limit = { estate_loyalty = { estate = estate_nobles loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+	}
+	if = { limit = { has_estate = estate_burghers }
+		if = { limit = { estate_loyalty = { estate = estate_burghers loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+	}
+	if = { limit = { has_estate = estate_mages }
+		if = { limit = { estate_loyalty = { estate = estate_mages loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+	}
+	if = { limit = { has_estate = estate_adventurers }
+		if = { limit = { estate_loyalty = { estate = estate_adventurers loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+	}
+	if = { limit = { all_subject_country = { NOT = { liberty_desire = 50 } } } change_variable = { which = ScoreVar value = 4 } }
+	divide_variable = { which = ScoreVar value = 20 } #stability score in % - max score is 20
+	multiply_variable = { which = ScoreVar value = 50 }
+	
+	change_variable = { which = ScoreVar which = ScoreWarVar }
+}
+
+#For the Taelarios incident
+nsc_get_choices_ratio_effect = {
+	if = { limit = { check_variable = { which = nscTotalChoicesVar value = 1 } }
+		divide_variable = { which = nscChoiceAVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceBVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceCVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceEVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceFVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscIrrliamChoicesVar which = nscTotalChoicesVar }
+		multiply_variable = { which = nscChoiceAVar value = 100 }
+		multiply_variable = { which = nscChoiceBVar value = 100 }
+		multiply_variable = { which = nscChoiceCVar value = 100 }
+		multiply_variable = { which = nscChoiceEVar value = 100 }
+		multiply_variable = { which = nscChoiceFVar value = 100 }
+		multiply_variable = { which = nscIrrliamChoicesVar value = 100 }
+	}
+}
+
+nsc_unity_results = {
+	change_variable = { which = nscUnityVar which = nscIrrliamChoicesVar }
+	if = { 
+		limit = {
+			check_variable = { which = nscChoiceAVar which = nscChoiceBVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceCVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceAVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceBVar which = nscChoiceCVar }
+			check_variable = { which = nscChoiceBVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceBVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceBVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceCVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceCVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceCVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceEVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceEVar }
+	}
+	else = { 
+		change_variable = { which = nscUnityVar which = nscChoiceFVar }
+	}
+}
+
+nsc_init_choice_variables_effect = {
+	set_variable = { which = nscChoiceAVar value = 0 }
+	set_variable = { which = nscChoiceBVar value = 0 }
+	set_variable = { which = nscChoiceCVar value = 0 }
+	set_variable = { which = nscChoiceEVar value = 0 }
+	set_variable = { which = nscChoiceFVar value = 0 }
+	set_variable = { which = nscIrrliamChoicesVar value = 0 }
+	set_variable = { which = nscTotalChoicesVar value = 0 }
+	set_variable = { which = nscTempUnityVar value = 0 }
+	clr_country_flag = nsc_ratio_effect_applied
+}
+
+#For the Samartal incident
+nsc_increase_tension_small_effect = {
+	custom_tooltip = nsc_increase_tension_small_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 1 } } }
+}
+
+nsc_increase_tension_medium_effect = {
+	custom_tooltip = nsc_increase_tension_medium_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 2 } } }
+}
+
+nsc_increase_tension_large_effect = {
+	custom_tooltip = nsc_increase_tension_large_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 3 } } }
+}
+
+nsc_add_investigation_ongoing_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_1 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_1 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_2 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_2 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_3 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_3 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_4 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_4 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_5 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_5 duration = -1 }
+	}
+}
+
+nsc_remove_investigation_ongoing_modifier = {
+	if = { limit = { has_country_modifier = nsc_investigation_ongoing_1 }
+		remove_country_modifier = nsc_investigation_ongoing_1
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_2 }
+		remove_country_modifier = nsc_investigation_ongoing_2
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_3 }
+		remove_country_modifier = nsc_investigation_ongoing_3
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_4 }
+		remove_country_modifier = nsc_investigation_ongoing_4
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_5 }
+		remove_country_modifier = nsc_investigation_ongoing_5
+	}
+}
+
+nsc_add_asshole_investigator_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_1 } }
+		add_country_modifier = { name = nsc_asshole_investigators_1 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_2 } }
+		add_country_modifier = { name = nsc_asshole_investigators_2 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_3 } }
+		add_country_modifier = { name = nsc_asshole_investigators_3 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_4 } }
+		add_country_modifier = { name = nsc_asshole_investigators_4 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_5 } }
+		add_country_modifier = { name = nsc_asshole_investigators_5 duration = 1825 }
+	}
+}
+
+nsc_remove_all_investigation_ongoing_modifier = {
+	remove_country_modifier = nsc_investigation_ongoing_1
+	remove_country_modifier = nsc_investigation_ongoing_2
+	remove_country_modifier = nsc_investigation_ongoing_3
+	remove_country_modifier = nsc_investigation_ongoing_4
+	remove_country_modifier = nsc_investigation_ongoing_5
+}
+
+calculate_local_investigation_impact = {
+	REB = {
+		set_variable = { which = nscInvestigaionBoostUpperThreshold value = 0.4 }
+		set_variable = { which = nscInvestigaionBoostMiddleThreshold value = 0.3 }
+		set_variable = { which = nscInvestigaionBoostLowerThreshold value = 0.2 }
+		multiply_variable = { which = nscInvestigaionBoostUpperThreshold which = nscGlobalInvestigationProgress }
+		multiply_variable = { which = nscInvestigaionBoostMiddleThreshold which = nscGlobalInvestigationProgress }
+		multiply_variable = { which = nscInvestigaionBoostLowerThreshold which = nscGlobalInvestigationProgress }
+		
+		set_variable = { which = nbInvestigableCountriesVar value = 0 }
+		set_variable = { which = nscInvestigationProgressVar which = nscLocalInvestigationProgressVar }
+		every_country = {
+			limit = {
+				has_country_flag = nsc_investigation_enabled
+				OR = {
+					is_subject = no
+					is_subject_of_type = tributary_state
+				}
+			}
+			REB = { change_variable = { which = nbInvestigableCountriesVar value = 1 } }
+		}
+		if = { limit = { NOT = { check_variable = { which = nbInvestigableCountriesVar value = 1 } } }
+			set_variable = { which = nbInvestigableCountriesVar value = 1 }
+		}
+		divide_variable = { which = nscInvestigationProgressVar which = nbInvestigableCountriesVar }
+	}
+}
+
+nsc_calculate_army_strength_ratio = {
+	set_variable = { which = willToFight value = 1 }
+	set_variable = { which = maxMilTech value = 3 }
+	every_country = {
+		ROOT = { export_to_variable = { which = milTech value = mil_tech who = PREV } }
+		if = { limit = { ROOT = { check_variable = { which = milTech which = maxMilTech } } }
+			set_variable = { which = maxMilTech which = milTech }
+		}
+	}
+	
+	export_to_variable = { which = ownArmySize value = army_size who = ROOT }
+	export_to_variable = { which = ownMilTech value = mil_tech who = ROOT }
+	export_to_variable = { which = ownManpower value = manpower who = ROOT }
+	subtract_variable = { which = ownMilTech which = maxMilTech }
+	multiply_variable = { which = ownMilTech value = 0.2 }
+	change_variable = { which = ownMilTech value = 1 }
+	multiply_variable = { which = ownArmySize which = ownMilTech } #-20% to army strength for each level mil tech under the max
+	
+	every_subject_country = {
+		limit = { NOT = { is_subject_of_type = tributary_state } }
+		ROOT = {
+			export_to_variable = { which = tempArmySize value = army_size who = PREV }
+			export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+			export_to_variable = { which = tempManpower value = manpower who = PREV }
+			subtract_variable = { which = tempMilTech which = maxMilTech }
+			multiply_variable = { which = tempMilTech value = 0.2 }
+			change_variable = { which = tempMilTech value = 1 }
+			multiply_variable = { which = tempArmySize which = tempMilTech }
+			multiply_variable = { which = tempArmySize value = 0.7 }
+			multiply_variable = { which = tempManpower value = 0.7 }
+			change_variable = { which = ownArmySize which = tempArmySize }
+			change_variable = { which = ownManpower which = tempManpower }
+		}
+	}
+	
+	if = { limit = { is_at_war = yes }
+		every_enemy_country = {
+			ROOT = {
+				export_to_variable = { which = tempArmySize value = army_size who = PREV }
+				export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+				export_to_variable = { which = tempManpower value = manpower who = PREV }
+				subtract_variable = { which = tempMilTech which = maxMilTech }
+				multiply_variable = { which = tempMilTech value = 0.2 }
+				change_variable = { which = tempMilTech value = 1 }
+				multiply_variable = { which = tempArmySize which = tempMilTech }
+				multiply_variable = { which = tempArmySize value = $other_wars_ratio$ }
+				multiply_variable = { which = tempManpower value = $other_wars_ratio$ }
+				change_variable = { which = enemyArmySize which = tempArmySize }
+				change_variable = { which = enemyManpower which = tempManpower }
+			}
+		}
+	}
+	
+	
+	export_to_variable = { which = enemyArmySize value = army_size who = $who$ }
+	export_to_variable = { which = enemyMilTech value = mil_tech who = $who$ }
+	export_to_variable = { which = enemyManpower value = manpower who = $who$ }
+	subtract_variable = { which = enemyMilTech which = maxMilTech }
+	multiply_variable = { which = enemyMilTech value = 0.2 }
+	change_variable = { which = enemyMilTech value = 1 }
+	multiply_variable = { which = enemyArmySize which = enemyMilTech } #-20% to army strength for each level mil tech under the max
+	
+	$who$ = {
+		every_subject_country = {
+			limit = { NOT = { is_subject_of_type = tributary_state } }
+			ROOT = {
+				export_to_variable = { which = tempArmySize value = army_size who = PREV }
+				export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+				export_to_variable = { which = tempManpower value = manpower who = PREV }
+				subtract_variable = { which = tempMilTech which = maxMilTech }
+				multiply_variable = { which = tempMilTech value = 0.2 }
+				change_variable = { which = tempMilTech value = 1 }
+				multiply_variable = { which = tempArmySize which = tempMilTech }
+				multiply_variable = { which = tempArmySize value = 0.7 }
+				multiply_variable = { which = tempManpower value = 0.7 }
+				change_variable = { which = enemyArmySize which = tempArmySize }
+				change_variable = { which = enemyManpower which = tempManpower }
+			}
+		}
+		if = { limit = { is_at_war = yes }
+			every_enemy_country = {
+				ROOT = {
+					export_to_variable = { which = tempArmySize value = army_size who = PREV }
+					export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+					export_to_variable = { which = tempManpower value = manpower who = PREV }
+					subtract_variable = { which = tempMilTech which = maxMilTech }
+					multiply_variable = { which = tempMilTech value = 0.2 }
+					change_variable = { which = tempMilTech value = 1 }
+					multiply_variable = { which = tempArmySize which = tempMilTech }
+					multiply_variable = { which = tempArmySize value = $other_wars_ratio$ }
+					multiply_variable = { which = tempManpower value = $other_wars_ratio$ }
+					change_variable = { which = ownArmySize which = tempArmySize }
+					change_variable = { which = ownManpower which = tempManpower }
+				}
+			}
+		}
+	}
+	
+	if = { limit = { NOT = { check_variable = { which = enemyManpower value = 0 } } }
+		set_variable = { which = enemyManpower value = 0.01 }
+	}
+	
+	set_variable = { which = testOwnArmySize which = ownArmySize }
+	set_variable = { which = testOwnManpower which = ownManpower }
+	set_variable = { which = testEnemyArmySize which = enemyArmySize }
+	set_variable = { which = testEnemyManpower which = enemyManpower }
+	
+	multiply_variable = { which = ownArmySize value = 0.80 }
+	multiply_variable = { which = ownManpower value = 0.20 }
+	multiply_variable = { which = enemyArmySize value = 0.80 }
+	multiply_variable = { which = enemyManpower value = 0.20 }
+	change_variable = { which = ownArmySize which = ownManpower }
+	change_variable = { which = enemyArmySize which = enemyManpower }
+	set_variable = { which = armyStrengthRatio which = ownArmySize }
+	divide_variable = { which = armyStrengthRatio which = enemyArmySize }
+}
+
+#------------------------------------------#
 
 
 increase_runelink_level = {
