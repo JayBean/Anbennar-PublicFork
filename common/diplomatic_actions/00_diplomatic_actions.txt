@@ -1,3 +1,4 @@
+
 # INSTRUCTIONS:
 #
 # condition				A diplomatic action can have any number of condition blocks, each with its own
@@ -215,20 +216,44 @@ declarewar = {
 		}
 	}
 
-	#condition = {
-	#	tooltip = DWAROVAR_AI
-	#	potential = {
-	#		FROM = {
-	#			has_country_modifier = dwarovar_claimer
-	#			ai = yes
-	#		}
-	#	}
-	#	allow = {
-	#		any_owned_province = {
-	#			continent = serpentspine
-	#		}
-	#	}
-	#}
+	condition = {
+		tooltip = DWAROVAR_AI
+		potential = {
+			has_country_modifier = dwarovar_claimer
+			ai = yes
+		}
+		allow = {
+			FROM = {
+				capital_scope = {
+					continent = serpentspine
+				}
+			}
+		}
+	}
+	
+	condition = { #Can't declare independence if you have a NSC level 3 or more (lvl 3 in the code = lvl 4 in the loc/interface)
+		tooltip = NSC_LEVEL_VASSAL
+		potential = {
+			is_subject_of = FROM
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+			FROM = { is_chosen_country = yes }
+			is_chosen_country = no
+		}
+		allow = {
+			NOT = { isolationism = 3 }
+		}
+	}
+	
+	condition = { #Can't declare war while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_SUMMIT
+		potential = {
+			has_country_flag = nsc_samartal_masquerade
+		}
+		allow = {
+			FROM = { NOT = { has_country_flag = nsc_samartal_masquerade } }
+		}
+	}
 	
 	effect = {
 		if = {
@@ -320,6 +345,35 @@ declarewar = {
 				country_event = { id = escanni_wars.12 days = 1 }
 			}
 		}
+		if = {
+			limit = {
+				tag = A15
+				FROM = { owns = 20 }
+				20 = {
+					has_province_modifier = eilisin_ordoin_contacts
+				}
+			}
+			20 = {
+				change_controller = A15
+			}
+		}
+		if = {
+			limit = {
+				is_subject_of = FROM
+				religion = bulwari_sun_cult
+				has_dlc = "Mandate of Heaven"
+				FROM = { is_chosen_country = yes }
+				is_chosen_country = no
+			}
+			add_stability = -1
+		}
+		if = {
+			limit = {
+				has_country_modifier = roadwarrior_truce
+			}
+			remove_country_modifier = roadwarrior_truce
+			country_event = { id = roadwarrior.8 days = 1825 }
+		}
 	}
 }
 
@@ -345,6 +399,10 @@ allianceaction = {
 						area = cursewood_area
 						area = whistlevale_area
 					}
+					NOT = { # Stop Corvuria allying adventurers, bad Corvuria
+						region = dostanor_region 
+						region = ourdia_region 
+					}
 				}
 			}
 		}
@@ -353,7 +411,7 @@ allianceaction = {
 	condition = {
 		tooltip = ONLY_ADV_SERPENT
 		potential = {
-			has_reform = adventurer_reform
+			has_reform = dwarovar_adventurer_reform
 			NOT = { is_year = 1600 }
 			capital_scope = { continent = serpentspine }
 		}
@@ -813,11 +871,25 @@ royal_marriage = {
 	condition = {
 		tooltip = MONO_GENDERED
 		potential = {
-			ROOT = { ruler_is_harpy = yes }
+			ROOT = {
+				OR = {
+					ruler_is_harpy = yes
+					AND = {
+						has_regency = yes
+						heir_is_harpy = yes
+					}
+				}
+			}
 		}
 		allow = {
 			FROM = {
-				NOT = { ruler_is_harpy = yes }
+				NOT = {
+					ruler_is_harpy = yes
+					AND = {
+						has_regency = yes
+						heir_is_harpy = yes
+					}
+				}
 			}
 		}
 	}
@@ -906,6 +978,17 @@ annexationaction = {
 	#		}
 	#	}
 	#}
+	condition = {
+		tooltip = ROADWARRIOR_NO_INTEGRATE
+		potential = {
+			ROOT = {
+				has_reform = roadwarrior_great_convoy
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 }
 
 integrationaction = {
@@ -937,6 +1020,17 @@ integrationaction = {
 	#		}
 	#	}
 	#}
+	condition = {
+		tooltip = ROADWARRIOR_NO_INTEGRATE
+		potential = {
+			ROOT = {
+				has_reform = roadwarrior_great_convoy
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 }
 
 vassalaction = {
@@ -954,18 +1048,18 @@ vassalaction = {
 			}
 			FROM = { is_at_war = no }
 		}
-		effect = {
-			if = { # this makes it visible i using it on someone who would lose it
-				limit = {
-					FROM = {
-						has_country_modifier = dwarovar_claimer
-					}
-				}
+	}
+	effect = {
+		if = { # this makes it visible i using it on someone who would lose it
+			limit = {
 				FROM = {
-					country_event = {
-						id = diggy.122
-						days = 0
-					}
+					has_country_modifier = dwarovar_claimer
+				}
+			}
+			FROM = {
+				country_event = {
+					id = diggy.122
+					days = 0
 				}
 			}
 		}
@@ -1004,6 +1098,16 @@ form_coalition = {
 			}
 		}
 	}
+	
+	condition = { #Can't form coalition while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_TRAGEDY_COALITION
+		potential = {
+			religion = bulwari_sun_cult
+		}
+		allow = {
+			NOT = { has_country_flag = nsc_was_at_samartal }
+		}
+	}
 }
 
 request_to_join_trade_league = {
@@ -1034,6 +1138,77 @@ invite_to_trade_league = {
 						country = root
 						share = 1
 					}
+				}
+			}
+		}
+	}
+}
+
+# Anbennar
+invite_to_federation = {
+    condition = {
+        tooltip = ONLY_ADVENTURERS_FEDERATION
+        potential = {
+
+        }
+        allow = {
+			has_reform = adventurer_reform
+        }
+    }
+	condition = {
+        tooltip = TOO_BIG_FEDERATION
+        potential = {
+        }
+        allow = {
+            NOT = { ROOT = { federation_size = 4 } }
+        }
+    }
+}
+
+request_to_join_federation = {
+    condition = {
+        tooltip = ONLY_ADVENTURERS_FEDERATION
+        potential = {
+        }
+        allow = {
+            has_reform = adventurer_reform
+        }
+    }
+	condition = {
+        tooltip = TOO_BIG_FEDERATION
+        potential = {
+        }
+        allow = {
+            NOT = { FROM = { federation_size = 4 } }
+        }
+    }
+}
+
+callaction = {
+	condition = { #Can't call to arms while the Samartal incident is active
+		tooltip = NSC_SAMARTAL_TRAGEDY_CALL
+		potential = {
+			is_in_war = { casus_belli = cb_nsc_investigation }
+		}
+		allow = {
+			OR = {
+				overlord_of = FROM 		#allows vassals to join
+				is_subject_of = FROM	#subject can't be war dec by non NSC countries
+			}
+		}
+	}
+}
+
+tributary_state_action = {
+	condition = {
+		tooltip = YNN_TRIBUTARY_YNNICS
+		potential = {
+		}
+		allow = {
+			NOT = {
+				AND = {
+					culture_group = ynnic_ruinborn_elf
+					FROM = { culture_group = ynnic_ruinborn_elf }
 				}
 			}
 		}

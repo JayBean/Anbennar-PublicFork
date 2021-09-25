@@ -1,0 +1,584 @@
+
+namespace = flavor_trompolere
+
+#Trompolere vs Vels Bacar
+country_event = {
+	id = flavor_trompolere.0
+	title = flavor_trompolere.0.t
+	desc = flavor_trompolere.0.d
+	picture = SIEGE_eventPicture
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		tag = G36
+	}
+	
+	option = {
+		name = flavor_trompolere.0.a  #To war!
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				is_at_war = yes
+			}
+		}
+		1138 = {
+			add_claim = G36
+		}
+		1821 = {
+			add_claim = G36
+		}
+		1878 = {
+			add_claim = G36
+		}
+		ROOT = {
+			declare_war_with_cb = {
+				who = G84
+				casus_belli = cb_conquest
+				war_goal_province = 1138
+			}
+		}
+		hidden_effect = {
+			G84 = {
+				country_event = { id = flavor_vels_bacar.0 }
+			}
+		}
+	}
+	option = {
+		name = flavor_trompolere.0.b #Yeet the ruler to prevent the war
+		ai_chance = {
+			factor = 1
+		}
+		if = {
+			define_heir = {
+				name = "Arfiy"
+				monarch_name = "Arfiy III"
+				dynasty = "yen Cestor"
+				religion = ynn_river_worship
+				max_random_adm = 0
+				max_random_dip = 1
+				max_random_mil = 0
+				adm = 0
+				dip = 1
+				mil = 0	#since fixed = yes doesn't work for heirs
+				culture = sarda
+				male = yes
+				age = 13
+			}
+		}
+		kill_ruler = yes
+	}
+}
+
+#You slay Trompolere's ruler in battle
+country_event = {
+	id = flavor_trompolere.1
+	title = flavor_trompolere.1.t
+	desc = flavor_trompolere.1.d
+	picture = BATTLE_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	major = yes
+	
+	immediate = {
+		G36 = {
+			every_owned_province = {
+				random_core_country = {
+					limit = {
+						exists = no
+					}
+					save_global_event_target_as = trompolere_breakaway_target
+				}
+			}
+			every_owned_province = {
+				limit = {
+					OR = {
+						controlled_by = G36
+						controlled_by = ROOT
+					}
+					NOT = { is_core = ROOT }
+					any_neighbor_province = { owned_by = ROOT }
+					NOT = { is_capital = yes }
+				}
+				set_province_flag = trompolere_seize_flag
+			}
+			random_subject_country = {
+				limit = {
+					is_neighbor_of = ROOT
+				}
+				save_event_target_as = trompolere_subject_target
+			}
+		}
+	}
+	
+	option = {		
+		name = flavor_trompolere.1.a
+		
+		add_prestige = 10
+		
+		G36 = { country_event = { id = flavor_trompolere.4 } }
+		
+		if = {		#you get back any core Trompolere had taken from you
+			limit = { core_claim = G36 }
+			G36 = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
+		
+		custom_tooltip = trompolere_restore_tooltip
+		
+		every_country = {	#countries with cores on Trompolere take them back
+			limit = {
+				core_claim = G36
+				exists = yes
+			}
+			country_event = { id = flavor_trompolere.2 days = 3 }
+			add_opinion = {
+				who = ROOT
+				modifier = opinion_grateful
+			}
+		}
+	
+		if = {	#countries conquered by Trompolere break away, I think it needs to be coded this way or it doesn't work
+			limit = {
+				G36 = {
+					any_owned_province = {
+						any_core_country = {
+							NOT = { tag = ROOT }
+							exists = no
+						}
+					}
+				}
+			}
+			G36 = { country_event = { id = flavor_trompolere.5 days = 31 } }
+		}
+		
+		every_province = {
+			limit = {
+				superregion = ynn_superregion
+			}
+			clr_province_flag = trompolere_seize_flag
+		}
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+	
+	option = {								#SEIZE BORDERING AREA
+		name = flavor_trompolere.1.b
+	
+		trigger = {
+			OR = {
+				G36 = {
+					any_owned_province = {
+						has_province_flag = trompolere_seize_flag
+					}
+				}
+				has_saved_event_target = trompolere_subject_target
+			}
+		}
+		
+		G36 = {
+			every_owned_province = {
+				limit = {
+					has_province_flag = trompolere_seize_flag
+				}
+				cede_province = ROOT
+			}
+		}
+		
+		if = {		#you get back any core Trompolere had taken from you
+			limit = { core_claim = G36 }
+			G36 = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
+		
+		custom_tooltip = trompolere_restore_tooltip
+		
+		if = {
+			limit = {
+				has_saved_event_target = trompolere_subject_target
+			}
+			event_target:trompolere_subject_target = { country_event = { id = flavor_trompolere.7 days = 3 } }
+		}
+		
+		add_prestige = 10
+		
+		G36 = { country_event = { id = flavor_trompolere.4 } }
+		
+		every_country = {
+			limit = {
+				core_claim = G36
+				exists = yes
+				NOT = { tag = ROOT }
+			}
+			if = {
+				limit = {
+					any_core_province = {
+						has_province_flag = trompolere_seize_flag
+					}
+				}
+				country_event = { id = flavor_trompolere.3 days = 3 }
+				add_opinion = {
+					who = ROOT
+					modifier = opinion_disappointed
+				}
+			}
+			else = {
+				country_event = { id = flavor_trompolere.2 days = 3 }	#countries with cores on Trompolere take them back
+				add_opinion = {
+					who = ROOT
+					modifier = opinion_grateful
+				}
+			}
+		}
+		
+		if = {	#countries conquered by Trompolere break away
+			limit = {
+				G36 = {
+					any_owned_province = {
+						any_core_country = {
+							NOT = { tag = ROOT }
+							exists = no
+						}
+					}
+				}
+			}
+			G36 = { country_event = { id = flavor_trompolere.5 days = 31 } }
+		}
+		
+		every_province = {
+			limit = {
+				superregion = ynn_superregion
+			}
+			clr_province_flag = trompolere_seize_flag
+		}
+		
+		ai_chance = {
+			factor = 3
+			
+			modifier = {
+				factor = 0.5
+					
+				any_country = {
+					any_core_province = {
+						has_province_flag = trompolere_seize_flag
+					}
+					reverse_has_opinion = { who = ROOT value = 50 }
+				}
+			}
+			
+			modifier = {
+				factor = 0.5
+					
+				any_country = {
+					any_core_province = {
+						has_province_flag = trompolere_seize_flag
+					}
+					reverse_has_opinion = { who = ROOT value = 100 }
+				}
+			}
+		}
+	}
+}
+
+#Trompolere's neighbours partition it, taking back their land
+country_event = {
+	id = flavor_trompolere.2
+	title = flavor_trompolere.2.t
+	desc = flavor_trompolere.2.d
+	picture = LAND_MILITARY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = flavor_trompolere.2.a
+		
+		G36 = {
+			every_owned_province = {
+				limit = { is_core = ROOT }
+				cede_province = ROOT
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+#The guy defeating Trompolere doesn't return our territories, and eats them for himself
+country_event = {
+	id = flavor_trompolere.3
+	title = flavor_trompolere.3.t
+	desc = flavor_trompolere.3.d
+	picture = LAND_MILITARY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = flavor_trompolere.3.a
+		
+		add_prestige = -10
+
+		add_trust = {
+			who = FROM
+			value = -15
+		}
+		
+		if = {
+			limit = {
+				core_claim = G36
+			}
+			G36 = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+#Alaran is dead, big sad
+country_event = {
+	id = flavor_trompolere.4
+	title = flavor_trompolere.4.t
+	desc = flavor_trompolere.4.d
+	picture = BATTLE_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {	#i cri
+		name = flavor_trompolere.4.a
+		
+		kill_ruler = yes
+		
+		add_prestige = -10
+		
+		every_country = {
+			limit = {
+				war_with = G36
+			}
+			white_peace = G36
+		}
+		
+		if = {
+			limit = {
+				num_of_subjects = 1
+			}
+			release_all_subjects = yes
+		}
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+#Trompolere releases any country it can
+country_event = {
+	id = flavor_trompolere.5
+	title = flavor_trompolere.5.t
+	desc = flavor_trompolere.5.d
+	picture = REFORM_eventPicture
+	
+	is_triggered_only = yes
+	
+	major = yes
+	
+	option = {
+		name = flavor_trompolere.5.a
+		
+		random_owned_province = {
+			limit = {
+				is_core = event_target:trompolere_breakaway_target
+			}
+			random_core_country = {
+				limit = {
+					NOT = { tag = ROOT }
+					exists = no
+				}
+				ROOT = {
+					release = PREV
+				}
+				hidden_effect = {
+					change_government = monarchy
+					add_government_reform = feudalism_reform
+					change_religion = ynn_river_worship
+					
+					define_ruler = {
+						dynasty = original_dynasty
+						religion = ynn_river_worship
+					}
+				}
+			}
+		}
+		
+		event_target:trompolere_breakaway_target = {
+			add_opinion = {
+				who = FROM
+				modifier = freed_from_trompolere
+			}
+		}
+
+		every_country = {	#countries with cores on Trompolere take them back, added here as a failsafe in case anybody gets partially freed mid-way
+			limit = {
+				core_claim = G36
+				exists = yes
+			}
+			country_event = { id = flavor_trompolere.2 days = 3 }
+			add_opinion = {
+				who = FROM
+				modifier = opinion_grateful
+			}
+		}
+		
+		hidden_effect = { FROM = { country_event = { id = flavor_trompolere.6 days = 31 } } }
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+	
+	option = {
+		name = flavor_trompolere.5.b
+		
+		random_owned_province = {
+			limit = {
+				is_core = event_target:trompolere_breakaway_target
+			}
+			random_core_country = {
+				limit = {
+					NOT = { tag = ROOT }
+					exists = no
+				}
+				ROOT = {
+					release = PREV
+				}
+				hidden_effect = {
+					change_government = monarchy
+					add_government_reform = feudalism_reform
+					change_religion = ynn_river_worship
+					
+					define_ruler = {
+						dynasty = original_dynasty	#needs to fix in case there's no original dynasty
+						religion = ynn_river_worship
+					}
+				}
+			}
+		}
+		
+		event_target:trompolere_breakaway_target = {
+			add_opinion = {
+				who = FROM
+				modifier = freed_from_trompolere
+			}
+		}
+
+		every_country = {	#countries with cores on Trompolere take them back, added here as a failsafe in case anybody gets partially freed mid-way
+			limit = {
+				core_claim = G36
+				exists = yes
+			}
+			country_event = { id = flavor_trompolere.2 days = 3 }
+			add_opinion = {
+				who = FROM
+				modifier = opinion_grateful
+			}
+		}
+		
+		switch_tag = event_target:trompolere_breakaway_target
+		
+		hidden_effect = { FROM = { country_event = { id = flavor_trompolere.6 days = 31 } } }
+		
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+#plays over and over until Trompolere has no releasables left
+country_event = {
+	id = flavor_trompolere.6
+	title = flavor_trompolere.6.t
+	desc = flavor_trompolere.6.d
+	picture = REFORM_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		G36 = {
+			any_owned_province = {
+				any_core_country = {
+					NOT = { tag = G36 }
+					exists = no
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		G36 = {
+			every_owned_province = {
+				random_core_country = {
+					limit = {
+						NOT = { tag = G36 }
+					}
+					save_global_event_target_as = trompolere_breakaway_target
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = flavor_trompolere.6.a
+		
+		G36 = { country_event = { id = flavor_trompolere.5 } }
+		
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+#Vassal transfer from Trompolere
+country_event = {
+	id = flavor_trompolere.7
+	title = flavor_trompolere.7.t
+	desc = flavor_trompolere.7.d
+	picture = REFORM_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = flavor_trompolere.7.a
+		
+		FROM = { vassalize = ROOT }
+		
+		add_opinion = {
+			who = FROM
+			modifier = opinion_disappointed
+		}
+	}
+}
