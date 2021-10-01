@@ -20,6 +20,13 @@ country_event = {
 		every_owned_province = {
 			xhazobkult_set_appropriate_modifier = yes
 		}
+		country_event = {
+			id = xhazobkult_events.2000
+		}
+		set_variable = {
+			which = total_gathered_sacrifices
+			value = 0
+		}
 	}
 }
 
@@ -168,6 +175,8 @@ country_event = {
 	desc = xhazobkult_events.3.d
 	picture = MILITARY_CAMP_eventPicture
 	
+	is_triggered_only = yes
+	
 	trigger = {
 		always = no
 		#a province in the state has the Pyre building
@@ -184,6 +193,252 @@ country_event = {
 		ai_chance = { factor = 1 }
 		#Sacrifices are gathered
 		#Time to light the pyre!
+	}
+}
+
+
+
+###########################
+###   Flavour Events    ###
+###########################
+
+country_event = { #Local gnolls do their own ritual
+	id = xhazobkult_events.10
+	title = xhazobkult_events.10.t
+	desc = xhazobkult_events.10.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = xhazobkult
+		any_owned_province = {
+			has_gnollish_minority_trigger = yes
+			NOT = { religion = xhazobkult }
+		}
+	}
+	
+	immediate = {
+		random_owned_province = {
+			limit = { has_gnollish_minority_trigger = yes NOT = { religion = xhazobkult } }
+			save_event_target_as = xhazobkult_random_sacrifice
+		}
+	}
+	
+	option = { #Their sacrifices belong to the state
+		name = xhazobkult_events.10.a
+		ai_chance = { factor = 1 }
+		change_variable = {
+			which = total_gathered_sacrifices
+			value = 1
+		}
+		add_estate_loyalty = {
+			estate = estate_monstrous_tribes
+			loyalty = -5
+		}
+		event_target:xhazobkult_random_sacrifice = {
+			add_devastation = 25
+		}
+	}
+	option = { #Recruit them
+		name = xhazobkult_events.10.b
+		ai_chance = { factor = 1 }
+		add_manpower = 1
+		add_patriarch_authority = 0.001
+		event_target:xhazobkult_random_sacrifice = {
+			add_devastation = 25
+		}
+	}
+	option = { #stop them!
+		name = xhazobkult_events.10.c
+		ai_chance = { factor = 1 }
+		add_estate_loyalty = {
+			estate = estate_monstrous_tribes
+			loyalty = -10
+		}
+	}
+}
+
+country_event = { #Support of the Initiated
+	id = xhazobkult_events.11
+	title = xhazobkult_events.11.t
+	desc = xhazobkult_events.11.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = xhazobkult
+		is_at_war = yes
+		any_owned_province = {
+			has_state_patriach = yes
+		}
+	}
+	
+	option = { #Our Enemies will Bleed!
+		name = xhazobkult_events.11.a
+		ai_chance = { factor = 1 }
+		custom_tooltip = xhazobkult_support_of_the_initiated_tt
+		hidden_effect = {
+			every_owned_province = {
+				limit = { has_state_patriach = yes }
+				owner = { add_manpower = 1 }
+				random_list = {
+					1 = { if = { limit = { controlled_by = ROOT has_siege = no } infantry = ROOT infantry = ROOT } else = { owner = { add_manpower = 1 } } }
+					2 = { if = { limit = { controlled_by = ROOT has_siege = no } infantry = ROOT } else = { owner = { add_manpower = 0.5 } } }
+					1 = { owner = { add_manpower = 1.5 } }
+					1 = { owner = { add_manpower = 1 } }
+					1 = { owner = { add_manpower = 0.5 } }
+					6 = { }
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Gnolls being lazy
+	id = xhazobkult_events.12
+	title = xhazobkult_events.12.t
+	desc = xhazobkult_events.12.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = xhazobkult
+		is_at_war = no
+		any_owned_province = {
+			has_state_patriach = yes
+		}
+	}
+	
+	option = { #It is their right
+		name = xhazobkult_events.12.a
+		ai_chance = { factor = 1 }
+		custom_tooltip = xhazobkult_gnolls_being_lazy_tt
+		hidden_effect = {
+			every_owned_province = {
+				limit = { has_state_patriach = yes }
+				add_province_modifier = {
+					name = xhazobkult_gnolls_being_lazy
+					duration = 3650
+				}
+			}
+		}
+	}
+}
+
+country_event = { #The Voice from Beyond
+	id = xhazobkult_events.13
+	title = xhazobkult_events.13.t #All initiated hear a voice whispering to them
+	desc = xhazobkult_events.13.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = xhazobkult
+		any_owned_province = {
+			has_state_patriach = yes
+		}
+	}
+	
+	option = { #We will listen
+		name = xhazobkult_events.13.a
+		ai_chance = { factor = 1 }
+		random_list = {
+			1 = {
+				custom_tooltip = xhazobkult_gain_cult_prov_adm_tt
+				hidden_effect = {
+					if = {
+						limit = { num_of_owned_provinces_with = { value = 30 has_state_patriach = yes } }
+						add_adm_power = 300
+					}
+					else = {
+						every_owned_province = {
+							limit = { has_state_patriach = yes }
+							owner = { add_adm_power = 10 }
+						}
+					}
+				}
+			}
+			1 = {
+				custom_tooltip = xhazobkult_gain_cult_prov_mil_tt
+				hidden_effect = {
+					if = {
+						limit = { num_of_owned_provinces_with = { value = 30 has_state_patriach = yes } }
+						add_mil_power = 300
+					}
+					else = {
+						every_owned_province = {
+							limit = { has_state_patriach = yes }
+							owner = { add_mil_power = 10 }
+						}
+					}
+				}
+			}
+			1 = {
+				custom_tooltip = xhazobkult_gain_cult_prov_dip_tt
+				hidden_effect = {
+					if = {
+						limit = { num_of_owned_provinces_with = { value = 30 has_state_patriach = yes } }
+						add_dip_power = 300
+					}
+					else = {
+						every_owned_province = {
+							limit = { has_state_patriach = yes }
+							owner = { add_dip_power = 10 }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #The Slacking at the Slave Estates
+	id = xhazobkult_events.14
+	title = xhazobkult_events.14.t
+	desc = xhazobkult_events.14.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		religion = xhazobkult
+		any_owned_province = {
+			has_province_modifier = xhazobkult_slave_estate
+		}
+	}
+	
+	option = { #The Brand of the Xhaz will set them to work
+		name = xhazobkult_events.14.a
+		ai_chance = { factor = 1 }
+		add_patriarch_authority = -0.1
+		custom_tooltip = xhazobkult_brand_of_the_xhaz_tt
+		hidden_effect = {
+			every_owned_province = {
+				limit = { has_province_modifier = xhazobkult_slave_estate }
+				add_province_modifier = {
+					name = xhazobkult_slave_estate_brand_of_the_xhaz
+					duration = 3650
+				}
+			}
+		}
+	}
+	option = { #Let them, maybe they'll calm down
+		name = xhazobkult_events.14.b
+		ai_chance = { factor = 1 }
+		custom_tooltip = xhazobkult_brand_of_the_xhaz_tt
+		hidden_effect = {
+			every_owned_province = {
+				limit = { has_province_modifier = xhazobkult_slave_estate }
+				add_province_modifier = {
+					name = xhazobkult_slave_estate_slackening
+					duration = 3650
+				}
+			}
+		}
 	}
 }
 
@@ -556,18 +811,195 @@ country_event = { #The demon refuses: ruler lives (go mad?)
 	}
 }
 
-country_event = {
+#Sacrifices
+province_event = { #Build Pyre
 	id = xhazobkult_events.1100
 	title = xhazobkult_events.1100.t
 	desc = xhazobkult_events.1100.d
 	picture = MILITARY_CAMP_eventPicture
 	
-	is_triggered_only = yes
+	trigger = {
+		has_state_edict = gather_sacrifices_edict
+		NOT = {
+			any_province_in_state = {
+				OR = {
+					has_building = xhazobkult_pyre
+					has_construction = xhazobkult_pyre
+				}
+			}
+		}
+		NOT = { has_construction = building }
+		owner = { has_country_flag = xhazobkult_prepare_sacrifices_flag }
+	}
 	
-	option = {
+	mean_time_to_happen = {
+		days = 5
+	}
+	
+	option = { #Build Pyre
 		name = xhazobkult_events.1100.a
 		ai_chance = { factor = 1 }
-		generate_estate_agenda = estate_church
-		start_estate_agenda = estate_church
+		add_building_construction = {
+			building = xhazobkult_pyre
+			speed = 1
+			cost = 1
+		}
+	}
+	
+	# option = { #Hold off for now
+		# name = xhazobkult_events.1100.b
+		# ai_chance = { factor = 1 }
+		# #Modifier or something?
+	# }
+}
+province_event = { #Gather Sacrifices
+	id = xhazobkult_events.1101
+	title = xhazobkult_events.1101.t
+	desc = xhazobkult_events.1101.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	trigger = {
+		has_state_edict = gather_sacrifices_edict
+		NOT = { culture_group = gnollish }
+		# any_province_in_state = {
+			# owner = { owns = ROOT }
+			# has_building = xhazobkult_pyre
+		# }
+	}
+	
+	mean_time_to_happen = {
+		days = 365
+		modifier = {
+			factor = 0.6
+			development = 4
+		}
+		modifier = {
+			factor = 0.8
+			development = 10
+		}
+		modifier = {
+			factor = 0.9
+			development = 20
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 20
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 40
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 60
+		}
+		modifier = {
+			factor = 0.6
+			devastation = 80
+		}
+	}
+	
+	option = { 
+		name = xhazobkult_events.1101.a
+		ai_chance = { factor = 1 }
+		
+		if = {
+			limit = { NOT = { development = 4 } }
+			owner = {
+				change_variable = {
+					which = total_gathered_sacrifices
+					value = 1
+				}
+			}
+		}
+		else = {
+			owner = {
+				change_variable = {
+					which = total_gathered_sacrifices
+					value = 2
+				}
+			}
+		}
+		
+		random_list = {
+			1 = {
+				trigger = { base_tax = 2 }
+				add_base_tax = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { base_production = 2 }
+				add_base_production = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { base_manpower = 2 }
+				add_base_manpower = -1
+				add_devastation = 20
+			}
+			1 = {
+				trigger = { NOT = { development = 4 } }
+				add_devastation = 50
+			}
+		}
+	}
+}
+country_event = { #Execute
+	id = xhazobkult_events.1102
+	title = xhazobkult_events.1102.t
+	desc = xhazobkult_events.1102.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = xhazobkult_events.1102.a
+		ai_chance = { factor = 1 }
+		
+		custom_tooltip = xhazobkult_execute_sacrifice_effect_tt
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { which = total_gathered_sacrifices value = 1 } }
+				add_patriarch_authority = 0.01
+				change_variable = { which = total_gathered_sacrifices value = -1 }
+			}
+			set_variable = {
+				which = total_gathered_sacrifices
+				value = 0
+			}
+		}
+	}
+}
+
+country_event = {
+	id = xhazobkult_events.2000
+	title = xhazobkult_events.2000.t
+	desc = xhazobkult_events.2000.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	immediate = {
+		remove_country_modifier = xhazobkult_tributaries_1
+		remove_country_modifier = xhazobkult_tributaries_2
+		remove_country_modifier = xhazobkult_tributaries_3
+		remove_country_modifier = xhazobkult_tributaries_4
+		remove_country_modifier = xhazobkult_tributaries_5
+		remove_country_modifier = xhazobkult_tributaries_6
+		remove_country_modifier = xhazobkult_tributaries_7
+		remove_country_modifier = xhazobkult_tributaries_8
+		remove_country_modifier = xhazobkult_tributaries_9
+		remove_country_modifier = xhazobkult_tributaries_10
+		
+		calc_tributary_dev_proportion = yes
+	}
+	
+	option = {
+		name = xhazobkult_events.2000.a
+		ai_chance = { factor = 1 }
+		
+		xhazobkult_calc_tributary_proportion = yes
+		xhazobkult_privilege_the_weak_serve_the_strong_effect = yes
 	}
 }
