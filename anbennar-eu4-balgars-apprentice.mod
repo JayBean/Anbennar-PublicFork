@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="anbennar-eu4-balgars-apprentice"
+path="mod/anbennar-eu4-balgars-apprentice"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.31.*"
