@@ -63,15 +63,21 @@ A73_Remove_Wex = {
 	A73_new_markets = {
 		icon = mission_market
 		required_missions = { A73_invitations }
+
+		provinces_to_highlight = {
+			province_id = 308
+			NOT = { has_trade_building_trigger = yes }
+			has_discovered = ROOT
+		}
 		
 		trigger = {
-			OR = {
-				AND = {
-					splendor = 200
-					treasury = 200
-				}
-				treasury = 400
+			308 = { has_trade_building_trigger = yes }
+			if = {
+				limit = { has_dlc = "Mandate of Heaven" }
+				splendor = 200
+				treasury = 200
 			}
+			else = { treasury = 400 }
 		}
 		
 		effect = {
@@ -91,7 +97,7 @@ A73_Remove_Wex = {
 			}
 			if = {
 				limit = { 
-					NOT = { splendor = 200 }
+					NOT = { has_dlc = "Mandate of Heaven" }
 				}
 				add_treasury = -200
 			}
@@ -101,8 +107,26 @@ A73_Remove_Wex = {
 	A73_deal_vanbury = {
 		icon = mission_dethrone_the_rurikovichs
 		required_missions = { A73_new_markets }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			province_id = 911
+			has_discovered = ROOT
+		}
 		
 		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = "Embargo the owner of Telgeir for 5 years."
+				911 = {
+					owner = {
+						trade_embargo_by = A73
+						had_country_flag = {
+							flag = silverforge_embargo
+							days = 1825
+						}
+					}
+				}
+			}
 			911 = {
 				owner = { 
 					NOT = {
@@ -110,11 +134,6 @@ A73_Remove_Wex = {
 							who = A73
 							value = -50
 						}
-					}
-					trade_embargo_by = A73
-					had_country_flag = {
-						flag = silverforge_embargo
-						days = 1825
 					}
 				}
 			}
@@ -138,14 +157,17 @@ A73_Remove_Wex = {
 		required_missions = { A73_deal_vanbury }
 		
 		trigger = {
-			OR = {
-				A30 = {
-					has_opinion_modifier = {
-						who = ROOT
-						modifier = scornfully_insulted
+			custom_trigger_tooltip = {
+				tooltip = "Scornfully Insult Wex"
+				OR = {
+					A30 = {
+						has_opinion_modifier = {
+							who = ROOT
+							modifier = scornfully_insulted
+						}
 					}
+					NOT = { exists = A30 }
 				}
-				NOT = { exists = A30 }
 			}
 		}
 		
@@ -266,6 +288,12 @@ A73_Remove_Wex = {
 		icon = mission_restore_kiev
 		required_missions = { A73_moon_party }
 		
+		provinces_to_highlight = {
+			area = wexhills_area
+			unrest = 0.1
+			has_discovered = ROOT
+		}
+
 		trigger = {
 			diplomatic_reputation = 4
 			303 = {
@@ -299,7 +327,13 @@ A73_Remove_Wex = {
 		
 		effect = {
 			country_event = { id = silverforge.9 }
-			change_dip = 1
+			if = {
+				limit = {
+					NOT = { dip = 6 }
+				}
+				change_dip = 1
+			}
+			else = { add_dip_power = 50 }
 			add_country_modifier = {
 				name = holding_wexkeep
 				duration = -1
@@ -310,22 +344,49 @@ A73_Remove_Wex = {
 	A73_rebuild_bal_hyl = {
 		icon = mission_portuguese_oman
 		required_missions = { A73_wex_claim }
-		
-		trigger = {
+		provinces_to_highlight = {
+			province_id = 306
 			OR = {
-				AND = {
-					has_dlc = "Mandate of Heaven"
+				NOT = {
+					has_great_project = {
+						type = bal_hyl
+						tier = 2
+					}
+				}
+				NOT = {
+					has_great_project = {
+						type = bal_hyl
+						tier = 3
+					}
+				}
+			}
+		}
+
+		trigger = {
+			if = {
+				limit = { has_dlc = "Leviathan" }
+				OR = {
 					306 = {
 						has_great_project = {
 							type = bal_hyl
 							tier = 2
 						}
 					}
+					306 = {
+						has_great_project = {
+							type = bal_hyl
+							tier = 3
+						}
+					}
 				}
-				AND = {
-					treasury = 4000
-					306 = { has_building = fort_18th }
-					NOT = { has_dlc = "Mandate of Heaven" }
+			}
+			else = {
+				treasury = 4000
+				306 = {
+					OR = {
+						has_building = fort_17th
+						has_building = fort_18th
+					}
 				}
 			}
 			306 = { has_building = ramparts }
@@ -339,9 +400,9 @@ A73_Remove_Wex = {
 					NOT = { has_dlc = "Mandate of Heaven" }
 				}
 				add_treasury = -4000
-				add_adm_power = 100
-				add_dip_power = 100
-				add_mil_power = 100
+				add_adm_power = 50
+				add_dip_power = 50
+				add_mil_power = 50
 			}
 	    }
 	}
@@ -350,17 +411,29 @@ A73_Remove_Wex = {
 		icon = mission_conquer_50_development
 		required_missions = { A73_rebuild_bal_hyl }
 		
+		provinces_to_highlight = {
+			province_id = 306
+			NOT = {
+				has_great_project = {
+					type = bal_hyl
+					tier = 3
+				}
+			}
+			has_discovered = ROOT
+		}
+
 		trigger = {
-			OR = {
+			if = {
+				limit = { has_dlc = "Leviathan" }
 				306 = {
 					has_great_project = {
 						type = bal_hyl
 						tier = 3
 					}
 				}
-				treasury = 7000
+				treasury = 2000
 			}
-			treasury = 2000
+			else = { treasury = 7000 }
 			emperor = {
 				NOT = { tag = A30 }
 				alliance_with = ROOT
@@ -373,19 +446,21 @@ A73_Remove_Wex = {
 		}
 		
 		effect = {
-			add_treasury = -2000
 			if = {
-				limit = {
-					NOT = {
-						has_great_project = {
-							type = bal_hyl
-							tier = 3
-						}
-					}
-				}
-				add_treasury = -5000
+				limit = { NOT = { has_dlc = "Leviathan" } }
+				add_treasury = -7000
 			}
-			add_stability = 2
+			else = { add_treasury = -2000 }
+			if = {
+				limit = { stability = 3 }
+				add_adm_power = 200
+			}
+			else_if = {
+				limit = { stability = 2 }
+				add_stability = 1
+				add_adm_power = 100
+			}
+			else = { add_stability = 2 }
 			change_estate_land_share = {
 				estate = estate_church
 				share = 2
@@ -450,6 +525,12 @@ A73_Remove_Wex = {
 	A73_hilltop = {
 		icon = mission_fortify_rajputana
 		required_missions = { A73_grip_arannen }
+
+		provinces_to_highlight = {
+			province_id = 306
+			NOT = { has_province_flag = surface_mine3 }
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			treasury = 10000
@@ -467,82 +548,83 @@ A73_Remove_Wex = {
 			306 = {
 				clr_province_flag = surface_mine3
 				set_province_flag = surface_mine4
+				custom_tooltip = "Wexkeep gains §MSilverforge Citadel Mine§!"
 				change_province_name = "Bal Hyl"
-				if = {	
-					limit = {
-						has_province_modifier = surface_mine3a
+				hidden_effect = {
+					if = {	
+						limit = {
+							has_province_modifier = surface_mine3a
+						}
+						remove_province_modifier = surface_mine3a
+						add_permanent_province_modifier = {
+							name = surface_mine4a
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine3a
-					add_permanent_province_modifier = {
-						name = surface_mine4a
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3b
+						}
+						remove_province_modifier = surface_mine3b
+						add_permanent_province_modifier = {
+							name = surface_mine4b
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3b
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3c
+						}
+						remove_province_modifier = surface_mine3c
+						add_permanent_province_modifier = {
+							name = surface_mine4c
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine3b
-					add_permanent_province_modifier = {
-						name = surface_mine4b
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3d
+						}
+						remove_province_modifier = surface_mine3d
+						add_permanent_province_modifier = {
+							name = surface_mine4d
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3c
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3e
+						}
+						remove_province_modifier = surface_mine3e
+						add_permanent_province_modifier = {
+							name = surface_mine4e
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine3c
-					add_permanent_province_modifier = {
-						name = surface_mine4c
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3f
+						}
+						remove_province_modifier = surface_mine3f
+						add_permanent_province_modifier = {
+							name = surface_mine4f
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3d
-					}
-					remove_province_modifier = surface_mine3d
-					add_permanent_province_modifier = {
-						name = surface_mine4d
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3e
-					}
-					remove_province_modifier = surface_mine3e
-					add_permanent_province_modifier = {
-						name = surface_mine4e
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3f
-					}
-					remove_province_modifier = surface_mine3f
-					add_permanent_province_modifier = {
-						name = surface_mine4f
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine3g
-					}
-					remove_province_modifier = surface_mine3g
-					add_permanent_province_modifier = {
-						name = surface_mine4g
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine3g
+						}
+						remove_province_modifier = surface_mine3g
+						add_permanent_province_modifier = {
+							name = surface_mine4g
+							duration = -1
+						}
 					}
 				}
 			}
 		}
 	}
-
-
 }
 
 A73_soldier_up = {
@@ -557,6 +639,12 @@ A73_soldier_up = {
 	A73_best_armor = {
 		icon = mission_armoury
 		required_missions = { }
+
+		provinces_to_highlight = {
+			province_id = 308
+			NOT = { has_production_building_trigger = yes }
+			has_discovered = ROOT
+		}
 				
 		trigger = {
 			custom_trigger_tooltip = {
@@ -590,13 +678,21 @@ A73_soldier_up = {
 		required_missions = { A73_best_armor }
 		
 		trigger = {
+		if = {
+			limit = { has_estate = estate_nobles }
 			estate_loyalty = { estate = estate_nobles loyalty = 50 }
+		}
+		else = { mil_power = 50 }
 			estate_loyalty = { estate = estate_burghers loyalty = 50 }
 			estate_influence = { estate = estate_burghers influence = 50 }
 		}
 		
 		effect = {
 			country_event = { id = silverforge.1 }
+			if = {
+				limit = { NOT = { has_estate = estate_nobles } }
+				add_mil_power = -50
+			}
 	    }	
 	}
 
@@ -625,6 +721,12 @@ A73_soldier_up = {
 	A73_land_survey = {
 		icon = mission_sail_to_the_east_indies
 		required_missions = { A73_new_markets A73_crafty_soldiers A73_expand_admin }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			area = high_esmar_area
+			has_discovered = ROOT
+		}
 
 		trigger = {
 			high_esmar_area = {
@@ -677,21 +779,30 @@ A73_soldier_up = {
 	A73_get_esmaraine = {
 		icon = mission_city_prosperity
 		required_missions = { A73_mine_boom }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			OR = {
+				province_id = 308
+				province_id = 901
+				province_id = 280
+				province_id = 266
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
-			OR = {
-				ROOT = { owns_core_province = 266 }
-				AND = {
-					A44 = {
-						exists = yes
-						has_opinion = {
-							who = ROOT
-							value = 100
-						}
+			if = {
+				limit = { exists = A44 }
+				A44 = {
+					has_opinion = {
+						who = ROOT
+						value = 100
 					}
-					treasury = 800
 				}
+				treasury = 800
 			}
+			else = { owns_core_province = 266 }
 			num_of_owned_provinces_with = {
 				value = 3
 				region = esmaria_region
@@ -707,19 +818,40 @@ A73_soldier_up = {
 						A73 = { owns_core_province = 266 }        
 					}
 				}
-	
-				create_vassal = A44
-				create_march = A44
-
+				if = {
+					limit = {
+						NOT = {
+							266 = { province_has_center_of_trade_of_level = 2 }
+						}
+					}
+					266 = {
+						add_center_of_trade_level = 2
+						set_local_autonomy = 100
+					}
+					A73 = { add_treasury = -800 }
+				}
+				else_if = {
+					limit = {
+						NOT = {
+							266 = { province_has_center_of_trade_of_level = 3 }
+						}
+					}
+					266 = {
+						add_center_of_trade_level = 2
+						set_local_autonomy = 80
+					}
+					A73 = { add_treasury = -600 }
+				}
+				else = { add_prestige = 20 }
 			}
 			else_if = {
 				limit = { exists = A44 }
-					A44 = {
-						country_event = {
-							id = silverforge.4
-							days = 1
-						}
+				A44 = {
+					country_event = {
+						id = silverforge.4
+						days = 1
 					}
+				}
 			}
 		}
 	}
@@ -729,7 +861,11 @@ A73_soldier_up = {
 		required_missions = { A73_get_esmaraine }
 		
 		trigger = {
-			treasury = 4000
+			if = {
+				limit = { 266 = { owned_by = A73 } }
+				treasury = 3600
+			}
+			else = { treasury = 2800 }
 			has_idea_group = trade_ideas
 		}
 		
@@ -748,7 +884,7 @@ A73_soldier_up = {
 					}
 				}
 				308 = { add_center_of_trade_level = 2 }
-				add_treasury = -1500
+				add_treasury = -1000
 			}
 			else_if = {
 				limit = {
@@ -761,7 +897,7 @@ A73_soldier_up = {
 					}
 				}
 				308 = { add_center_of_trade_level = 1 }
-				add_treasury = -1500
+				add_treasury = -1000
 			}
 			if = {
 				limit = {
@@ -777,7 +913,7 @@ A73_soldier_up = {
 					}
 				}
 				901 = { add_center_of_trade_level = 2 }
-				add_treasury = -1250
+				add_treasury = -1000
 			}
 			else_if = {
 				limit = {
@@ -790,7 +926,7 @@ A73_soldier_up = {
 					}
 				}
 				901 = { add_center_of_trade_level = 1 }
-				add_treasury = -1250
+				add_treasury = -1000
 			}
 			if = {
 				limit = {
@@ -806,7 +942,7 @@ A73_soldier_up = {
 					}
 				}
 				280 = { add_center_of_trade_level = 2 }
-				add_treasury = -1250
+				add_treasury = -800
 			}
 			else_if = {
 				limit = {
@@ -819,7 +955,7 @@ A73_soldier_up = {
 					}
 				}
 				280 = { add_center_of_trade_level = 1 }
-				add_treasury = -1250
+				add_treasury = -800
 			}
 			if = {
 				limit = {
@@ -835,6 +971,7 @@ A73_soldier_up = {
 					}
 				}
 				266 = { add_center_of_trade_level = 2 }
+				add_treasury = -800
 			}
 			else_if = {
 				limit = {
@@ -847,6 +984,7 @@ A73_soldier_up = {
 					}
 				}
 				266 = { add_center_of_trade_level = 1 }
+				add_treasury = -800
 			}
 	    }
 	}
@@ -876,6 +1014,12 @@ A73_soldier_up = {
 	A73_balgar_temple = {
 		icon = mission_patronize_art_and_religion
 		required_missions = { }
+
+		provinces_to_highlight = {
+			province_id = 308
+			NOT = { has_building = cathedral }
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			308 = { has_building = cathedral }
@@ -928,6 +1072,20 @@ A73_soldier_up = {
 	A73_coal_iron = {
 		icon = mission_rb_build_furnaces
 		required_missions = { A73_orc_smith }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			province_id = 303
+			OR = {
+				unrest = 0.1
+				local_autonomy = 10
+				NOT = { has_province_flag = surface_mine0 }
+				NOT = { has_province_flag = surface_mine1 }
+				NOT = { has_province_flag = surface_mine2 }
+				NOT = { has_province_flag = surface_mine3 }
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			treasury = 1000
@@ -961,6 +1119,13 @@ A73_soldier_up = {
 	A73_oust_vanbury = {
 		icon = mission_trade_company_region_abroad
 		required_missions = { A73_coal_iron }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			province_id = 911
+			has_province_modifier = vanbury_steel_foundry
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			OR = {
@@ -1023,6 +1188,15 @@ A73_complete_hold = {
 	A73_stoke_furnaces = {
 		icon = mission_machine_of_war
 		required_missions = {  }
+
+		provinces_to_highlight = {
+			OR = {
+				province_id = 912
+				province_id = 308
+			}
+			NOT = { base_production = 10 }
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			912 = { base_production = 10 }
@@ -1050,27 +1224,41 @@ A73_complete_hold = {
 		required_missions = { A73_stoke_furnaces }
 		
 		trigger = {
-			has_estate_privilege = estate_adventurers_generous_quest_rewards
+			custom_trigger_tooltip = {
+				tooltip = "§YAdventurers Estate§! has §YGenerous Quest Rewards§!"
+				has_estate_privilege = estate_adventurers_generous_quest_rewards
+			}
 			mil_power = 100
 			stability = 2
 		}
 
 		effect = {
-			set_estate_privilege = estate_adventurers_organization_licensed_adventurers
-			add_stability = 2
-			add_mil_power = 100
+			custom_tooltip = "§YAdventurers Estate§! gains §YLicensed Adventurers§!"
 			hidden_effect = {
+				set_estate_privilege = estate_adventurers_organization_licensed_adventurers
+				add_stability = 2
+				add_mil_power = 200
 				country_event = {
 					id = silverforge.6
 					days = 365
 				}
 			}
+			add_mil_power = -100
 		}
 	}
 
 	A73_expand_admin = {
 		icon = mission_science
 		required_missions = { A73_escann_adventures }
+
+		provinces_to_highlight = {
+			province_id = 912
+			OR = {
+				NOT = { base_tax = 10 }
+				NOT = { manpower_tax = 6 }
+			}
+			has_discovered = ROOT
+		}
 
 		trigger = {
 			adm_tech = 5
@@ -1141,7 +1329,13 @@ A73_complete_hold = {
 
 		effect = {
 			country_event = { id = silverforge.8 }
-			change_adm = 1
+			if = {
+				limit = {
+					NOT = { adm = 6 }
+				}
+				change_adm = 1
+			}
+			else = { add_adm_power = 50 }
 			add_country_modifier = {
 				name = administrative_investments
 				duration = -1
@@ -1183,8 +1377,15 @@ A73_complete_hold = {
 		required_missions = { A73_expand_admin }
 		
 		trigger = {
-			has_estate_privilege = estate_nobles_levies
-			NOT = { has_estate_privilege = estate_nobles_command_of_the_military }
+			if = {
+				limit = { has_estate = estate_nobles }
+				custom_trigger_tooltip = {
+					tooltip = "§YNobility Estate§! has §YIncreased Levies§! and does not have §RCommand of the Military§!."
+					has_estate_privilege = estate_nobles_levies
+					NOT = { has_estate_privilege = estate_nobles_command_of_the_military }
+				}
+			}
+			else = { recruitmaster = 1 }
 			treasury = 200
 			adm_power = 100
 			mil_power = 50
@@ -1200,6 +1401,7 @@ A73_complete_hold = {
 				name = carver_cartel
 				duration = -1
 			}
+			custom_tooltip = carver_guns_reward_tt
 	    }
 	}
 
@@ -1208,7 +1410,10 @@ A73_complete_hold = {
 		required_missions = { A73_found_carver A73_secure_divide }
 		
 		trigger = {
-			has_estate_privilege = estate_burghers_land_rights
+			custom_trigger_tooltip = {
+				tooltip = "§YMerchant Guilds Estate§! has §YLand Rights§!"
+				has_estate_privilege = estate_burghers_land_rights
+			}
 			num_of_owned_provinces_with = {
 				value = 3
 				has_fort_building_trigger = yes
@@ -1231,6 +1436,17 @@ A73_complete_hold = {
 	A73_welcome_gnome = {
 		icon = mission_guilds_of_barcelona
 		required_missions = { A73_carver_garrisons }
+
+		provinces_to_highlight = {
+			OR = {
+				AND = {
+					province_id = 912
+					NOT = { has_courthouse_building_trigger = yes }
+				}
+				province_id = 271
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			stability = 2
@@ -1274,9 +1490,11 @@ A73_complete_hold = {
 		
 		effect = {
 			every_owned_province = {
-				trade_goods = iron
-				NOT = { province_id = 912 }
-				NOT = { province_id = 308 }
+				limit = {
+					trade_goods = iron
+					NOT = { province_id = 912 }
+					NOT = { province_id = 308 }
+				}
 				add_province_modifier = {
 					name = all_the_iron
 					duration = 7300
@@ -1287,10 +1505,13 @@ A73_complete_hold = {
 
 	A73_carver_influence = {
 		icon = mission_bankers_of_cambay
-		required_missions = { A73_commerce_invest A73_surface_operations }
+		required_missions = { A73_surface_operations }
 		
 		trigger = {
-			has_estate_privilege = estate_burghers_control_over_monetary_policy
+			custom_trigger_tooltip = {
+				tooltip = "§YMerchant Guilds Estate§! has §YControl Over Monetary Policy§!"
+				has_estate_privilege = estate_burghers_control_over_monetary_policy
+			}
 			NOT = { legitimacy_equivalent = 80 }
 		}
 		
@@ -1335,6 +1556,20 @@ A73_complete_hold = {
 	A73_found_strongbellow = {
 		icon = mission_rb_trinity_college_dublin
 		required_missions = { A73_balgar_temple A73_winches }
+
+		provinces_to_highlight = {
+			OR = {
+				AND = {
+					province_id = 308
+					NOT = { has_building = university }
+				}
+				AND = {
+					province_id = 912
+					NOT = { development = 35 }
+				}
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			estate_influence = { estate = estate_burghers influence = 60 }
@@ -1428,11 +1663,23 @@ A73_complete_hold = {
 	A73_complete_hold = {
 		icon = mission_fortifying_the_plain
 		required_missions = { A73_general_corps A73_terraced_farms }
+
+		provinces_to_highlight = {
+			province_id = 912
+			OR = {
+				NOT = { development = 50 }
+				NOT = { has_building = town_hall }
+				NOT = { has_building = counting_house }
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			estate_influence = { estate = estate_burghers influence = 90 }
 			912 = {
 				development = 50
+				has_building = town_hall
+				has_building = counting_house
 			}
 			OR = {
 				any_hired_mercenary_company = {
@@ -1558,10 +1805,7 @@ A73_remove_ibevar = {
 						A73 = { owns_core_province = 271 }        
 					}
 				}
-	
-				create_vassal = A81
-				create_march = A81
-
+				271 = { set_local_autonomy = 100 }
 			}
 			if = {
 				limit = { exists = A81 }
@@ -1593,13 +1837,24 @@ A73_remove_ibevar = {
 		}
 		
 		effect = {
-			add_stability = 1
+			if = {
+				limit = {
+					NOT = { stability = 3 }
+				}
+				add_stability = 1
+			}
+			else = { add_adm_power = 100 }
 		}
 	}
 
 	A73_rose_elves = {
 		icon = mission_alone_in_the_forest
 		required_missions = { A73_secure_divide }
+
+		provinces_to_highlight = {
+			owned_by = A32
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			OR = {
@@ -1651,6 +1906,18 @@ A73_remove_ibevar = {
 	A73_best_elves = {
 		icon = mission_big_house
 		required_missions = { A73_carver_garrisons A73_rose_elves }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			OR = {
+				province_id = 356
+				province_id = 352
+				province_id = 351
+				province_id = 261
+				province_id = 353
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			is_state_core = 356
@@ -1662,7 +1929,13 @@ A73_remove_ibevar = {
 		
 		effect = {
 			country_event = {id = silverforge.10}
-			change_mil = 1
+			if = {
+				limit = {
+					NOT = { mil = 6 }
+				}
+				change_mil = 1
+			}
+			else = { add_mil_power = 50 }
 			add_country_modifier = {
 				name = bested_the_elves
 				duration = -1
@@ -1673,6 +1946,18 @@ A73_remove_ibevar = {
 	A73_old_depot = {
 		icon = mission_priest_church
 		required_missions = { A73_best_elves }
+
+		provinces_to_highlight = {
+			province_id = 263
+			OR = {
+				NOT = { base_tax = 8 }
+				NOT = { base_production = 10 }
+				NOT = { base_manpower = 7 }
+				NOT = { has_building = weapons }
+				NOT = { has_trade_building_trigger = yes }
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			263 = {
@@ -1680,10 +1965,7 @@ A73_remove_ibevar = {
 				base_production = 10
 				base_manpower = 7
 				has_building = weapons
-				OR = {
-					has_building = trade_depot
-					has_building = stock_exchange
-				}
+				has_trade_building_trigger = yes
 			}
 		}
 		
@@ -1752,6 +2034,12 @@ A73_remove_ibevar = {
 	A73_silent_repose = {
 		icon = mission_junnagadh_fort
 		required_missions = { A73_little_green }
+
+		provinces_to_highlight = {
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			province_id = 350
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			treasury = 3000
@@ -1771,10 +2059,16 @@ A73_remove_ibevar = {
 		effect = {
 			add_treasury = -3000
 			every_owned_province = {
-				limit = { culture = moon_elf }
+				limit = {
+					OR = {
+						has_province_modifier = elven_minority_oppressed_small
+						has_province_modifier = elven_minority_coexisting_small
+						has_province_modifier = elven_minority_integrated_small
+					}
+				}
 				add_province_modifier = {
-					name = destroyed_monastary
-					duration = 3650
+					name = destroyed_monastery
+					duration = 1095
 				}
 			}
 			every_owned_province = {
@@ -1786,21 +2080,15 @@ A73_remove_ibevar = {
 					}
 				}
 				add_province_modifier = {
-					name = destroyed_monastary
+					name = destroyed_monastery
 					duration = 2190
 				}
 			}
 			every_owned_province = {
-				limit = {
-					OR = {
-						has_province_modifier = elven_minority_oppressed_small
-						has_province_modifier = elven_minority_coexisting_small
-						has_province_modifier = elven_minority_integrated_small
-					}
-				}
+				limit = { culture = moon_elf }
 				add_province_modifier = {
-					name = destroyed_monastary
-					duration = 1095
+					name = destroyed_monastery
+					duration = 3650
 				}
 			}
 			350 = {
@@ -2134,14 +2422,28 @@ A73_remove_ibevar = {
 	A73_improve_old = {
 		icon = mission_break_sicily
 		required_missions = { A73_moment_silence }
+
+		provinces_to_highlight = {
+			province_id = 263
+			OR = {
+				NOT = { base_tax = 10 }
+				NOT = { base_production = 15 }
+				NOT = { base_manpower = 10 }
+				NOT = { has_building = trade_depot }
+				NOT = { has_production_building_trigger = yes }
+				NOT = { has_courthouse_building_trigger = yes }
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			263 = {
 				base_tax = 10
 				base_production = 15
 				base_manpower = 10
-				has_building = stock_exchange
-				has_building = counting_house
+				has_building = trade_depot
+				has_production_building_trigger = yes
+				has_courthouse_building_trigger = yes
 			}
 		}
 		
@@ -2154,10 +2456,6 @@ A73_remove_ibevar = {
 			263 = {
 				change_province_name = "Adstunad"
 				change_culture = silver_dwarf
-			}
-			set_variable = {
-				which = myWarsWon
-				value = 0
 			}
 	    }
 	}
@@ -2221,12 +2519,25 @@ A73_remove_ibevar = {
 	A73_mountaintop = {
 		icon = mission_portuguese_interference
 		required_missions = { A73_grip_freecestir }
+
+		provinces_to_highlight = {
+			province_id = 350
+			OR = {
+				NOT = { has_province_flag = surface_mine5 }
+				NOT = { has_province_flag = surface_mine6 }
+			}
+			has_discovered = ROOT
+		}
 		
 		trigger = {
 			treasury = 7000
 			350 = {
 				development = 35
-				has_province_flag = surface_mine5
+			}
+			hidden_trigger = {
+				350 = {
+					has_province_flag = surface_mine5
+				}
 			}
 		}
 		
@@ -2236,81 +2547,85 @@ A73_remove_ibevar = {
 				clr_province_flag = surface_mine5
 				set_province_flag = surface_mine6
 				change_trade_goods = coal
+				custom_tooltip = "Silent Repose gains §MSilverforge Citadel Mine§!"
 				change_province_name = "High Seam"
-				if = {	
-					limit = {
-						has_province_modifier = surface_mine5a
+				hidden_effect = {
+					if = {	
+						limit = {
+							has_province_modifier = surface_mine5a
+						}
+						remove_province_modifier = surface_mine5a
+						add_permanent_province_modifier = {
+							name = surface_mine6a
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine5a
-					add_permanent_province_modifier = {
-						name = surface_mine6a
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5b
+						}
+						remove_province_modifier = surface_mine5b
+						add_permanent_province_modifier = {
+							name = surface_mine6b
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5b
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5c
+						}
+						remove_province_modifier = surface_mine5c
+						add_permanent_province_modifier = {
+							name = surface_mine6c
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine5b
-					add_permanent_province_modifier = {
-						name = surface_mine6b
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5d
+						}
+						remove_province_modifier = surface_mine5d
+						add_permanent_province_modifier = {
+							name = surface_mine6d
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5c
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5e
+						}
+						remove_province_modifier = surface_mine5e
+						add_permanent_province_modifier = {
+							name = surface_mine6e
+							duration = -1
+						}
 					}
-					remove_province_modifier = surface_mine5c
-					add_permanent_province_modifier = {
-						name = surface_mine6c
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5f
+						}
+						remove_province_modifier = surface_mine5f
+						add_permanent_province_modifier = {
+							name = surface_mine6f
+							duration = -1
+						}
 					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5d
-					}
-					remove_province_modifier = surface_mine5d
-					add_permanent_province_modifier = {
-						name = surface_mine6d
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5e
-					}
-					remove_province_modifier = surface_mine5e
-					add_permanent_province_modifier = {
-						name = surface_mine6e
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5f
-					}
-					remove_province_modifier = surface_mine5f
-					add_permanent_province_modifier = {
-						name = surface_mine6f
-						duration = -1
-					}
-				}
-				else_if = {
-					limit = {
-						has_province_modifier = surface_mine5g
-					}
-					remove_province_modifier = surface_mine5g
-					add_permanent_province_modifier = {
-						name = surface_mine6g
-						duration = -1
+					else_if = {
+						limit = {
+							has_province_modifier = surface_mine5g
+						}
+						remove_province_modifier = surface_mine5g
+						add_permanent_province_modifier = {
+							name = surface_mine6g
+							duration = -1
+						}
 					}
 				}
 			}
 		}
 	}
 }
+
 A73_orc_stuff = {
 	slot = 5
 	generic = no
@@ -2326,7 +2641,7 @@ A73_orc_stuff = {
 		position = 7
 		
 		trigger = {
-			NOT = { current_age = age_of_discovery }
+			is_religion_enabled = corinite
 		}
 		
 		effect = {
@@ -2340,6 +2655,12 @@ A73_orc_stuff = {
 	A73_balgar_legacy = {
 		icon = mission_court_education
 		required_missions = { A73_upstart }
+
+		provinces_to_highlight = {
+			province_id = 308
+			NOT = { has_tax_building_trigger = yes }
+			has_discovered = ROOT
+		}
 
 		trigger = {
 			OR = {	
@@ -2371,7 +2692,7 @@ A73_orc_stuff = {
 			custom_trigger_tooltip = {
 				tooltip = "Have 10 §MSilverforge Surface Mines§!"
 				num_of_owned_provinces_with = {
-					value = 16
+					value = 10
 					OR = {
 						has_province_flag = surface_mine0
 						has_province_flag = surface_mine1
@@ -2385,38 +2706,35 @@ A73_orc_stuff = {
 			}
 			custom_trigger_tooltip = {
 				tooltip = "Any province has a §MSilverforge Surface Mine§!, greater than 0 unrest, and §MCarver Mercenaries§! are present"
+				
 				OR = {
 					any_hired_mercenary_company = {
 						template = merc_carver_cartel_guns
 						location = {
-							any_owned_province = {
-								unrest = 0.1
-								OR = {
-									has_province_flag = surface_mine0
-									has_province_flag = surface_mine1
-									has_province_flag = surface_mine2
-									has_province_flag = surface_mine3
-									has_province_flag = surface_mine4
-									has_province_flag = surface_mine5
-									has_province_flag = surface_mine6
-								}
+							unrest = 0.1
+							OR = {
+								has_province_flag = surface_mine0
+								has_province_flag = surface_mine1
+								has_province_flag = surface_mine2
+								has_province_flag = surface_mine3
+								has_province_flag = surface_mine4
+								has_province_flag = surface_mine5
+								has_province_flag = surface_mine6
 							}
 						}
 					}
 					any_hired_mercenary_company = {
 						template = merc_carver_cartel_corps
 						location = {
-							any_owned_province = {
-								pure_unrest = 0.1
-								OR = {
-									has_province_flag = surface_mine0
-									has_province_flag = surface_mine1
-									has_province_flag = surface_mine2
-									has_province_flag = surface_mine3
-									has_province_flag = surface_mine4
-									has_province_flag = surface_mine5
-									has_province_flag = surface_mine6
-								}
+							unrest = 0.1
+							OR = {
+								has_province_flag = surface_mine0
+								has_province_flag = surface_mine1
+								has_province_flag = surface_mine2
+								has_province_flag = surface_mine3
+								has_province_flag = surface_mine4
+								has_province_flag = surface_mine5
+								has_province_flag = surface_mine6
 							}
 						}
 					}
@@ -2437,7 +2755,7 @@ A73_orc_stuff = {
 		required_missions = { A73_proselytizing }
 		
 		trigger = {
-			production_income_percentage = 0.4
+			production_income_percentage = 0.33
 		}
 		
 		effect = {
@@ -2476,7 +2794,7 @@ A73_orc_stuff = {
 		
 		trigger = {
 			custom_trigger_tooltip = {
-				tooltip = "Have 14 §MSilverforge Surface Mines§! with §MTerraced Housing§! or better"
+				tooltip = "Have 14 §MSilverforge Surface Mines§! with §MTerraced Housing§! or better, 8 of which also have a §YCourthouse§!."
 				num_of_owned_provinces_with = {
 					value = 14
 					OR = {
@@ -2488,9 +2806,26 @@ A73_orc_stuff = {
 					}
 				}
 			}
+			hidden_trigger = {
+				num_of_owned_provinces_with = {
+					value = 8
+					OR = {
+						has_province_flag = surface_mine2
+						has_province_flag = surface_mine3
+						has_province_flag = surface_mine4
+						has_province_flag = surface_mine5
+						has_province_flag = surface_mine6
+					}
+					has_courthouse_building_trigger = yes
+				}
+			}
 		}
 		
 		effect = {
+			add_country_modifier = {
+				name = ease_admin
+				duration = -1			
+			}
 			every_owned_province = {
 				limit = {
 					custom_trigger_tooltip = {
@@ -2546,6 +2881,7 @@ A73_orc_stuff = {
 				duration = -1			
 			}
 			medium_increase_of_orcish_tolerance_effect = yes
+			custom_tooltip = carver_corps_reward_tt
 	    }
 	}
 
