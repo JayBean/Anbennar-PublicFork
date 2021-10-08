@@ -3,24 +3,29 @@ nsc_dukeldar = {
 		is_chosen_country = yes
 		religion = bulwari_sun_cult
 		has_dlc = "Mandate of Heaven"
-		always = no
+		OR = { 
+			NOT = { has_country_flag = nsc_dukeldar_end }
+			had_country_flag = { flag = nsc_dukeldar_end days = 7300 }
+		}
 	}
 
 	can_start = {
 		has_any_disaster = no
-		custom_trigger_tooltip = {
-			tooltip = nsc_isolationism_level_is_not_2_tt
-			NOT = { isolationism = 2 }
-		}
 		OR = {
 			custom_trigger_tooltip = {
 				tooltip = nsc_isolationism_level_is_not_1_tt
 				NOT = { isolationism = 1 }
 			}
-			custom_trigger_tooltip = {
-				tooltip = nsc_lost_war_tt
-				has_country_flag = nsc_lost_war
-				NOT = { had_country_flag = { flag = nsc_lost_war days = 3650 } }
+			AND = {
+				custom_trigger_tooltip = {
+					tooltip = nsc_isolationism_level_is_not_2_tt
+					NOT = { isolationism = 2 }
+				}
+				custom_trigger_tooltip = {
+					tooltip = nsc_lost_war_tt
+					has_country_flag = nsc_lost_war
+					NOT = { had_country_flag = { flag = nsc_lost_war days = 3650 } }
+				}
 			}
 		}
 	}
@@ -52,6 +57,7 @@ nsc_dukeldar = {
 			}
 		}
 		modifier = { factor = 0.5 NOT = { stability = 1 } }
+		modifier = { factor = 0.5 NOT = { stability = 0 } }
 		modifier = { factor = 0.5 NOT = { adm = 6 } }
 		modifier = { factor = 0.5 NOT = { dip = 6 } }
 		modifier = { factor = 0.5 NOT = { mil = 6 } }
@@ -61,12 +67,12 @@ nsc_dukeldar = {
 		OR = {
 			AND = {
 				custom_trigger_tooltip = {
-					tooltip = nsc_has_defeated_the_pretenders_tt
-					has_country_flag = nsc_dukeldar_end
+					tooltip = nsc_dukeldar_has_proven_yourself_tt
+					check_variable = { which = nscDisasterScoreVar value = 100 }
 				}
 				custom_trigger_tooltip = {
-					tooltip = nsc_has_won_battles_tt
-					check_variable = { which = dukeldarBattlesWonVar value = 10 }
+					tooltip = nsc_has_defeated_the_pretenders_tt
+					has_country_flag = nsc_dukeldar_pretender_spawned
 				}
 				custom_trigger_tooltip = {
 					tooltip = nsc_defeated_heretics_tt
@@ -74,6 +80,11 @@ nsc_dukeldar = {
 						NOT = { religion = old_bulwari_sun_cult }
 						NOT = { religion = the_jadd }
 					}
+				}
+				custom_trigger_tooltip = {
+					tooltip = nsc_no_rebel_province_tt
+					NOT = { num_of_rebel_controlled_provinces = 1 }
+					NOT = { num_of_rebel_armies = 1 }
 				}
 			}
 			custom_trigger_tooltip = {
@@ -84,11 +95,13 @@ nsc_dukeldar = {
 				tooltip = nsc_religion_not_nsc_tt
 				NOT = { religion = bulwari_sun_cult }
 			}
+			hidden_trigger = { ai = yes }
 		}
 	}
 	
 	modifier = {
-		advisor_cost = 0.5
+		global_heretic_missionary_strength = 0.03
+		advisor_cost = 0.25
 		legitimacy = -1
 		republican_tradition = -0.3
 		devotion = -1
@@ -96,28 +109,80 @@ nsc_dukeldar = {
 		global_tax_modifier = -0.25
 		trade_efficiency = -0.25
 		land_morale = -0.10
+		manpower_recovery_speed	= -0.2
 		global_unrest = 5
 	}
 	
 	on_start = new_sun_cult.15
-	on_end = new_sun_cult.24
+	on_end = new_sun_cult.26
 	
 	on_monthly = {
-		events = { }
-		random_events = { 
-			
-			1000 = 0
+		nsc_calculate_total_disaster_score = yes
+		every_owned_province = {
+			limit = {
+				OR = {
+					religion = old_bulwari_sun_cult
+					religion = the_jadd
+				}
+				NOT = { has_province_flag = dukeldar_conversion }
+			}
+			set_province_flag = dukeldar_conversion
+		}
+		random_list = {
+			100 = {
+				random_owned_province = {
+					limit = {
+						religion = bulwari_sun_cult
+						NOT = { has_province_flag = dukeldar_conversion }
+					}
+					province_event = { id = new_sun_cult.22 }
+				}
+			}
+			100 = {
+				random_owned_province = {
+					limit = {
+						religion = bulwari_sun_cult
+						NOT = { has_province_flag = dukeldar_conversion }
+					}
+					province_event = { id = new_sun_cult.23 }
+				}
+			}
+			200 = {
+				modifier = { factor = 0.5 has_country_modifier = nsc_advisor_more_paid }
+				country_event = { id = new_sun_cult.24 }
+			}
+			200 = {
+				modifier = { factor = 0.5 has_country_modifier = nsc_army_more_paid }
+				country_event = { id = new_sun_cult.25 }
+			}
+			400 = {
+				modifier = {
+					factor = 1.25
+					OR = {
+						has_country_modifier = nsc_advisor_more_paid
+						has_country_modifier = nsc_army_more_paid
+					}
+				}
+				modifier = {
+					factor = 1.2
+					has_country_modifier = nsc_army_more_paid
+					has_country_modifier = nsc_advisor_more_paid
+				}
+			}
 		}
 	}
 }
 
 nsc_dinam_elutur = {
 	potential = {
+		always = no
 		religion = bulwari_sun_cult
 		is_chosen_country = no
-		is_subject = no
 		has_dlc = "Mandate of Heaven"
-		always = no
+		OR = { 
+			NOT = { has_country_flag = nsc_dinam_elutur_end }
+			had_country_flag = { flag = nsc_dinam_elutur_end days = 3650 }
+		}
 	}
 
 	can_start = {
@@ -126,14 +191,16 @@ nsc_dinam_elutur = {
 			tooltip = nsc_isolationism_level_is_3_tt
 			isolationism = 3
 		}
+		has_any_disaster = no
+		is_subject = no
 	}
 	
 	can_stop = {
 		custom_trigger_tooltip = {
-			tooltip = nsc_isolationism_level_is_2_tt
+			tooltip = nsc_isolationism_level_is_not_2_tt
 			OR = {
-				isolationism = 2
-				is_chosen_country = no
+				NOT = { isolationism = 2 }
+				is_chosen_country = yes
 				NOT = { religion = bulwari_sun_cult }
 			}
 		}
@@ -155,6 +222,7 @@ nsc_dinam_elutur = {
 			}
 		}
 		modifier = { factor = 0.5 NOT = { stability = 1 } }
+		modifier = { factor = 0.5 NOT = { stability = 0 } }
 		modifier = { factor = 0.5 NOT = { adm = 6 } }
 		modifier = { factor = 0.5 NOT = { dip = 6 } }
 		modifier = { factor = 0.5 NOT = { mil = 6 } }
@@ -162,35 +230,86 @@ nsc_dinam_elutur = {
 	
 	can_end = {
 		OR = {
-			custom_trigger_tooltip = {
-				tooltip = nsc_has_proven_yourself_tt
-				has_country_flag = nsc_dinam_elutur_end
+			AND = {
+				custom_trigger_tooltip = {
+					tooltip = nsc_dinam_elutur_has_proven_yourself_tt
+					check_variable = { which = nscDisasterScoreVar value = 100 }
+				}
+				custom_trigger_tooltip = {
+					tooltip = nsc_has_defeated_the_pretenders_tt
+					has_country_flag = nsc_dinam_elutur_pretender_spawned
+				}
+				custom_trigger_tooltip = {
+					tooltip = nsc_no_rebel_province_tt
+					NOT = { num_of_rebel_controlled_provinces = 1 }
+					NOT = { num_of_rebel_armies = 1 }
+				}
 			}
-			is_chosen_country = yes
-			NOT = { religion = bulwari_sun_cult }
+			custom_trigger_tooltip = {
+				tooltip = nsc_is_chosen_country_tt
+				is_chosen_country = yes
+			}
+			custom_trigger_tooltip = {
+				tooltip = nsc_religion_not_nsc_tt
+				NOT = { religion = bulwari_sun_cult }
+			}
+			hidden_trigger = { ai = yes }
 		}
 	}
 	
 	modifier = {
-		advisor_cost = 0.5
+		advisor_cost = 0.25
 		legitimacy = -1
 		republican_tradition = -0.3
 		devotion = -1
 		stability_cost_modifier = 0.5
 		global_tax_modifier = -0.25
-		trade_efficiency = -0.25
+		church_loyalty_modifier = -20
+		nobles_loyalty_modifier = -20
 		land_morale = -0.10
+		manpower_recovery_speed	= -0.2
 		global_unrest = 5
 	}
 	
-	on_start = new_sun_cult.28
-	on_end = new_sun_cult.40
+	on_start = new_sun_cult.27
+	on_end = new_sun_cult.39
 	
 	on_monthly = {
-		events = { }
-		random_events = { 
-			
-			1000 = 0
+		nsc_calculate_total_disaster_score = yes
+		random_list = {
+			50 = {
+				country_event = { id = new_sun_cult.35 }
+			}
+			100 = {
+				modifier = { factor = 0.5 has_country_flag = dinam_elutur_less_angry_nobles }
+				country_event = { id = new_sun_cult.36 }
+			}
+			200 = {
+				modifier = { factor = 0.5 has_country_flag = nsc_advisor_more_paid }
+				country_event = { id = new_sun_cult.37 }
+			}
+			200 = {
+				modifier = { factor = 0.5 has_country_modifier = nsc_army_more_paid }
+				country_event = { id = new_sun_cult.38 }
+			}
+			400 = {
+				modifier = {
+					factor = 1.25
+					OR = {
+						has_country_modifier = nsc_advisor_more_paid
+						has_country_modifier = nsc_army_more_paid
+					}
+				}
+				modifier = {
+					factor = 1.2
+					has_country_modifier = nsc_army_more_paid
+					has_country_modifier = nsc_advisor_more_paid
+				}
+				modifier = {
+					factor = 1.125
+					has_country_flag = dinam_elutur_less_angry_nobles
+				}
+			}
 		}
 	}
 }
