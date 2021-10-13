@@ -5700,6 +5700,9 @@ ruler_become_vampire = {
 		}
 		add_ruler_personality = immortal_personality
 	}
+	tooltip = {
+		kill_ruler = yes
+	}
 	set_ruler_flag = set_immortality
 	add_ruler_modifier = { 
 		name = vampire_ruler
@@ -6067,114 +6070,119 @@ target_elector_elder_pact = {
 	}
 }
 
-abdicate_emperor_no_reelection = { #Use within emperor scope
-	custom_tooltip = abdicate_emperor_no_reelection_tooltip
-	hidden_effect = {
-		export_to_variable = { #Save emperor's religion
-			which = emperor_religion
-			value = religion
-			who = ROOT
-		}
-		
-		set_country_flag = emperor_religion_change #So changing religion doesn't tank prestige and give conversion zeal modifier
-		if = {
-			limit = { hre_religion_treaty = yes }
-			
-			1 = { #Use province for global variable
-				set_variable = {
-					which = regent_court_electors
-					value = 0
-				}
-				set_variable = {
-					which = corinite_electors
-					value = 0
-				}
-				set_variable = {
-					which = ravelian_electors
-					value = 0
-				}
-			}
-		
-			every_elector = { #Count number of electors for each religion
-				set_country_flag = hre_elector #Save electors
-				trigger_switch = {
-					on_trigger = religion
-					
-					regent_court = { 1 = { change_variable = { which = regent_court_electors value = 1 } } }
-					corinite = { 1 = { change_variable = { which = corinite_electors value = 1 } } }
-					ravelian = { 1 = { change_variable = { which = ravelian_electors value = 1 } } }
-				}
+#Use to remove the emperor from the imperial throne without killing them and without a specific new emperor
+#Can be used within any scope
+abdicate_emperor_no_reelection = {
+	emperor = {
+		custom_tooltip = abdicate_emperor_no_reelection_tooltip
+		hidden_effect = {
+			export_to_variable = { #Save emperor's religion so they can be returned to the correct religion at the end
+				which = emperor_religion
+				value = religion
+				who = ROOT
 			}
 			
-			if = { #Num Regent Court electors >= Num of other religion electors
-				limit = {
-					1 = {
-						check_variable = {
-							which = regent_court_electors
-							which = corinite_electors
-						}
-						check_variable = {
-							which = regent_court_electors
-							which = ravelian_electors
-						}
+			set_country_flag = emperor_religion_change #So changing religion doesn't tank prestige and give conversion zeal modifier, flag referenced in religion file
+			if = { #If there is religious peace, then we need to choose a religion to for the new emperor to be from
+				limit = { hre_religion_treaty = yes }
+				
+				1 = {
+					set_variable = {
+						which = regent_court_electors
+						value = 0
+					}
+					set_variable = {
+						which = corinite_electors
+						value = 0
+					}
+					set_variable = {
+						which = ravelian_electors
+						value = 0
 					}
 				}
-				set_hre_religion = regent_court
-				set_hre_religion_locked = yes #Have to lock religion to remove religious peace
-				change_religion = cannorian_pantheon #Change emperor to dummy religion to remove emperorship
-			}
-			else_if = { #Num Corinite electors >= Num of Ravelian electors since know > Regent Court from the IF
-				limit = {
-					1 = {
-						check_variable = {
-							which = corinite_electors
-							which = ravelian_electors
-						}
+			
+				every_elector = {
+					set_country_flag = hre_elector #Save electors so they can be remade electors at end
+					trigger_switch = {
+						on_trigger = religion
+						
+						regent_court = { 1 = { change_variable = { which = regent_court_electors value = 1 } } }
+						corinite = { 1 = { change_variable = { which = corinite_electors value = 1 } } }
+						ravelian = { 1 = { change_variable = { which = ravelian_electors value = 1 } } }
 					}
 				}
-				set_hre_religion = corinite
-				set_hre_religion_locked = yes
-				change_religion = cannorian_pantheon
-			}
-			else = { #If not above Ravelian has to have most electors
-				set_hre_religion = ravelian
-				set_hre_religion_locked = yes
-				change_religion = cannorian_pantheon
-			}
-			
-			set_hre_religion_treaty = yes #Reapply religious peace
-			
-			every_known_country = { #Reapply electorship to electors removed by locking religion
-				limit = {
-					has_country_flag = hre_elector
-				}
-				clr_country_flag = hre_elector
+				
+				#Religion with most electors chooses emperor with tiebreakers: Regent Court > Corinite > Ravelian
 				if = {
-					limit = { is_elector = no }
-					elector = yes
+					limit = {
+						1 = {
+							check_variable = {
+								which = regent_court_electors
+								which = corinite_electors
+							}
+							check_variable = {
+								which = regent_court_electors
+								which = ravelian_electors
+							}
+						}
+					}
+					set_hre_religion = regent_court
+					set_hre_religion_locked = yes #Have to lock religion to remove religious peace
+					change_religion = cannorian_pantheon #Have to change emperor to dummy religion to remove emperorship
+				}
+				else_if = {
+					limit = {
+						1 = {
+							check_variable = {
+								which = corinite_electors
+								which = ravelian_electors
+							}
+						}
+					}
+					set_hre_religion = corinite
+					set_hre_religion_locked = yes
+					change_religion = cannorian_pantheon
+				}
+				else = {
+					set_hre_religion = ravelian
+					set_hre_religion_locked = yes
+					change_religion = cannorian_pantheon
+				}
+				
+				set_hre_religion_treaty = yes
+				
+				every_known_country = { #Reapply electorship to electors removed by locking religion
+					limit = {
+						has_country_flag = hre_elector
+					}
+					clr_country_flag = hre_elector
+					if = {
+						limit = { is_elector = no }
+						elector = yes
+					}
 				}
 			}
+			else = { #If not religious peace, then we just need to change the emperor's religion
+				change_religion = cannorian_pantheon
+			}
+			
+			change_religion = variable:emperor_religion
+			clr_country_flag = emperor_religion_change
 		}
-		else = {
-			change_religion = cannorian_pantheon
-		}
-		
-		change_religion = variable:emperor_religion #Change former emperor back to original religion
-		clr_country_flag = emperor_religion_change
 	}
 }
 
-#Using make_emperor during a league war will end the war with an unlocked religion
-#Use another effect to determine the outcome
-make_emperor = { #Use within scope for new emperor
+#Using make_emperor during a league war will end the war with an unlocked religion. Use another effect to determine the outcome for that
+#Use within scope for new emperor
+make_emperor = { 
 	custom_tooltip = make_emperor_tooltip
 	hidden_effect = {
-		export_to_variable = { #Save future emperor's religion
+		export_to_variable = { #Save future emperor's religion so they can be returned to the correct religion at the end
 			which = future_emperor_religion
 			value = religion
 			who = ROOT
 		}
-		if = { #Save empire's religion if not religious peace and usurper matches religion else religious peace
+		if = { #Save empire's religion if not religious peace and usurper matches religion else will end with religious peace
 			limit = {
 				hre_religion_treaty = no
 				hre_religion = ROOT
@@ -6187,25 +6195,26 @@ make_emperor = { #Use within scope for new emperor
 				corinite = { set_country_flag = corinite_empire }
 				ravelian = { set_country_flag = ravelian_empire }
 			}
-			if = { #Save if empire religion isn't yet locked
+			if = {
 				limit = { hre_religion_locked = no }
 				set_country_flag = hre_unlocked_religion
 			}
 		}
 		
 		set_country_flag = emperor_religion_change #So changing religion doesn't tank prestige and give conversion zeal modifier
-		every_elector = { #Save electors
+		every_elector = { #Save electors to remake electors at end
 			set_country_flag = hre_elector
 		}
 		
-		set_hre_religion_treaty = yes #Have to set religious peace so empire isn't dismantled
+		set_hre_religion_treaty = yes #Have to set religious peace so empire isn't dismantled during process
 		change_religion = cannorian_pantheon #Change future emperor to dummy religion so they are only option for emperor
 		elector = yes #Need someone to vote you emperor with religious peace
 		set_hre_religion = cannorian_pantheon
 		set_hre_religion_locked = yes
 		
-		# emperor = { #No longer needed in 1.31.5 since just changing the hre religion now also changes the emperor
-			# export_to_variable = { #Save current emperor's religion
+		#No longer needed in 1.31.5 since just changing the hre religion now also changes the emperor. Previous method dismantles empire
+		# emperor = { #Need to change emperor's religion to change emperor
+			# export_to_variable = {
 				# which = emperor_religion
 				# value = religion
 				# who = emperor
@@ -6225,7 +6234,7 @@ make_emperor = { #Use within scope for new emperor
 		set_hre_religion_treaty = yes #Have to go through religious peace so new emperor stays emperor
 		change_religion = variable:future_emperor_religion
 		
-		if = { #Change hre religion back
+		if = { #Change hre religion back if not religious peace
 			limit = { has_country_flag = hre_has_religion }
 			clr_country_flag = hre_has_religion
 			trigger_switch = {
@@ -6235,14 +6244,14 @@ make_emperor = { #Use within scope for new emperor
 				corinite_empire = { set_hre_religion = corinite set_hre_religion_locked = yes clr_country_flag = corinite_empire }
 				ravelian_empire = { set_hre_religion = ravelian set_hre_religion_locked = yes clr_country_flag = ravelian_empire }
 			}
-			if = { #Unlock hre religion if it wasn't locked before
+			if = {
 				limit = { has_country_flag = hre_unlocked_religion }
 				set_hre_religion_locked = no
 				clr_country_flag = hre_unlocked_religion
 			}
 		}
 		
-		elector = no #Remove electorship that gave vote
+		elector = no
 		every_known_country = { #Reapply electorship to electors removed by locking religion
 			limit = {
 				has_country_flag = hre_elector
@@ -6281,7 +6290,7 @@ adventurer_legacy_effect = {
 	country_event = { id = estate_organization.5 days = 35 }		#choose organization for artificer estate
 	
 	custom_tooltip = lose_reform_progress_tt
-	hidden_effect = { change_government_reform_progress = -1000 }
+	hidden_effect = { change_government_reform_progress = -1000 lose_reforms = 10  }
 }
 
 create_war_wizard_effect = {
@@ -9688,11 +9697,25 @@ restore_ruler_stats = {
 }
 
 revival_stat_loss = {
-	random_list = {
-		40 = { change_adm = -1 change_dip = -1 change_mil = -1 }
-		20 = { change_adm = -1 }
-		20 = { change_dip = -1 }
-		20 = { change_mil = -1 }
+	if = {
+		limit = { 
+			has_country_flag = b38_entef_ruler
+			has_country_flag = b38_entef_sarcophagus
+		}
+		random_list = {
+			25 = { }
+			25 = { change_adm = -1 }
+			25 = { change_dip = -1 }
+			25 = { change_mil = -1 }
+		}
+	}
+	else = {
+		random_list = {
+			40 = { change_adm = -1 change_dip = -1 change_mil = -1 }
+			20 = { change_adm = -1 }
+			20 = { change_dip = -1 }
+			20 = { change_mil = -1 }
+		}
 	}
 }
 
@@ -13599,8 +13622,8 @@ roadwarrior_overdrive_effect = {
 						has_building = fort_17th
 					}
 				}
-				add_building = fort_17th
 			}
+			add_building = fort_17th
 		}
 		else_if = {
 			limit = {
@@ -13609,8 +13632,8 @@ roadwarrior_overdrive_effect = {
 						has_building = fort_18th
 					}
 				}
-				add_building = fort_18th
 			}
+			add_building = fort_18th
 		}
 	}
 	move_capital_effect = yes
@@ -14232,8 +14255,8 @@ ynn_cultures = {
 					region = broken_isles_region
 					region = eordand_region
 					region = forest_of_the_cursed_ones_region
-					is_core = H46
-					is_core = H47
+					is_core = H46 #Istralorian Crusaders
+					is_core = H47 #Istranar
 				}
 			}
 			change_culture = istranari
@@ -15146,4 +15169,599 @@ new_acolyte_mtth_effect = {
 			kill_ruler = yes
 		}
 	}
+}
+
+goblinic_shamanism_event = {
+	if = {
+		limit = {
+			religion_group = cannorian
+			ROOT = {  NOT = { has_unlocked_cult = cannorian_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.2 }
+		}
+	}
+	if = {
+		limit = {
+			religion = the_thought
+			ROOT = {  NOT = { has_unlocked_cult = gnomish_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.3 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = dwarven
+			ROOT = {  NOT = { has_unlocked_cult = ancestor_worship_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.4 }
+		}
+	}
+	if = {
+		limit = {
+			religion = godlost
+			ROOT = {  NOT = { has_unlocked_cult = godlost_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.401 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = kheteratan
+			ROOT = {  NOT = { has_unlocked_cult = kheteratan_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.402 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = gnollish
+			ROOT = {  NOT = { has_unlocked_cult = gnollish_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.403 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = elven
+			ROOT = {  NOT = { has_unlocked_cult = elven_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.404 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = bulwari
+			ROOT = {  NOT = { has_unlocked_cult = bulwari_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.405 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = gerudian
+			ROOT = {  NOT = { has_unlocked_cult = gerudian_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.406 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = orcish
+			ROOT = {  NOT = { has_unlocked_cult = orcish_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.407 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = harpy
+			ROOT = {  NOT = { has_unlocked_cult = harpy_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.408 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = fey
+			ROOT = {  NOT = { has_unlocked_cult = fey_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.409 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = raheni
+			ROOT = {  NOT = { has_unlocked_cult = raheni_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.410 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = giantkin
+			ROOT = {  NOT = { has_unlocked_cult = giantkin_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.411 }
+		}
+	}
+	if = {
+		limit = {
+			religion_group = centaur
+			ROOT = {  NOT = { has_unlocked_cult = centaur_cult } }
+		}
+		ROOT = {
+			country_event = { id = goblinic_shamanism_flavor.412 }
+		}
+	}
+}
+
+elikhand_divine_war = {
+	if = {
+		limit = { has_country_modifier = elikhand_divine_4 }
+		remove_country_modifier = elikhand_divine_4
+	}
+	if = {
+		limit = { has_country_modifier = elikhand_divine_3 }
+		remove_country_modifier = elikhand_divine_3
+		add_country_modifier = {
+			name = elikhand_divine_4
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = { has_country_modifier = elikhand_divine_2 }
+		remove_country_modifier = elikhand_divine_2
+		add_country_modifier = {
+			name = elikhand_divine_3
+			duration = -1
+		}
+		custom_tooltip = elikhand_divine
+	}
+	else_if = {
+		limit = { has_country_modifier = elikhand_divine_1 }
+		remove_country_modifier = elikhand_divine_1
+		add_country_modifier = {
+			name = elikhand_divine_2
+			duration = -1
+		}
+		custom_tooltip = elikhand_divine
+	}
+	else = {
+		add_country_modifier = {
+			name = elikhand_divine_1
+			duration = -1
+		}
+		custom_tooltip = elikhand_divine
+	}
+}
+#krakdhumvror
+krak_pick_holds_effect = {
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_1
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_2
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_3
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_4
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_5
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_6
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_7
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_8
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_9
+	}
+	random_owned_province = {
+		limit = {
+			NOT = { has_province_modifier = krak_ice_hold_modifier }
+			NOT = { province_id = 4208 }
+			NOT = { province_id = 4122 }
+			NOT = { province_id = 4128 }
+			NOT = { province_id = 4149 }
+			province_group = hold_province
+			NOT = { has_province_flag = icehold_candidate } 
+		}
+		set_province_flag = icehold_candidate
+		save_event_target_as = candidate_10
+	}
+}
+krak_icehold_cost = {
+	if = {
+		limit = { 
+			estate_influence = {
+				estate = estate_mages
+				influence = 66
+			}
+		}
+		add_adm_power = -100
+		if = {
+			limit = { check_variable = { which = krak_discount_spell value = 1 } } 
+			change_variable = { which = krak_discount_spell value = -1 }
+		}
+		else = { add_years_of_income = -1.25 }
+	}
+	else_if = {
+		limit = { 
+			estate_influence = {
+				estate = estate_mages
+				influence = 33
+			}
+		}
+		add_adm_power = -200
+		if = {
+			limit = { check_variable = { which = krak_discount_spell value = 1 } } 
+			change_variable = { which = krak_discount_spell value = -1 }
+		}
+		else = { add_years_of_income = -2.5 }
+	}
+	else = {
+		add_adm_power = -300
+		if = {
+			limit = { check_variable = { which = krak_discount_spell value = 1 } } 
+			change_variable = { which = krak_discount_spell value = -1 }
+		}
+		else = { add_years_of_income = -3.75 }
+	}
+}
+krak_icehold_effect = {
+	add_permanent_province_modifier = { name = krak_ice_hold_modifier duration = -1 } 
+	if = {
+		limit = { has_dlc = "Mandate of Heaven" }
+		add_province_triggered_modifier = krak_ice_hold_triggered_modifier
+	}
+	else = {
+		add_base_tax = 3
+		add_base_production = 3
+		add_base_manpower = 3
+	}
+}
+krak_add_monarchy_support = {
+	custom_tooltip = krakdhumvror_crisis_monarchy_tooltip
+	hidden_effect = { 
+		random_list = {
+			40 = { change_variable = { which = krak_disaster_monarchy value = 1 } }
+			40 = { change_variable = { which = krak_disaster_monarchy value = 2 } }
+			20 = { change_variable = { which = krak_disaster_monarchy value = 3 } }
+		}
+	}
+}
+krak_add_clan_monarchy_support = {
+	custom_tooltip = krakdhumvror_crisis_monarchy_tooltip2
+	hidden_effect = { 
+		random_list = {
+			40 = { change_variable = { which = krak_disaster_monarchy value = 4 } }
+			40 = { change_variable = { which = krak_disaster_monarchy value = 5 } }
+			20 = { change_variable = { which = krak_disaster_monarchy value = 6 } }
+		}
+	}
+}
+krak_add_republic_support = {
+	custom_tooltip = krakdhumvror_crisis_republic_tooltip
+	hidden_effect = { 
+		random_list = {
+			40 = { change_variable = { which = krak_disaster_republic value = 1 } }
+			40 = { change_variable = { which = krak_disaster_republic value = 2 } }
+			20 = { change_variable = { which = krak_disaster_republic value = 3 } }
+		}
+	}
+}
+krak_add_clan_republic_support = {
+	custom_tooltip = krakdhumvror_crisis_republic_tooltip2
+	hidden_effect = {
+		random_list = {
+			40 = { change_variable = { which = krak_disaster_republic value = 4 } }
+			40 = { change_variable = { which = krak_disaster_republic value = 5 } }
+			20 = { change_variable = { which = krak_disaster_republic value = 6 } }
+		}
+	}
+}
+
+#avamezan horse race
+set_horse_race_rankings = {
+	random_list = {
+		10 = { 616 = { save_event_target_as = jockey_origin_1 } } #Akelses - second (good choice)
+		10 = { 633 = { save_event_target_as = jockey_origin_1 } } #Anzarim Avamezan - third (good choice)
+		10 = { 591 = { save_event_target_as = jockey_origin_1 } } #Kumarkand - fourth (meh choice)
+		10 = { 2909 = { save_event_target_as = jockey_origin_1 } } #Ebbusubtu - best choice
+		10 = { 598 = { save_event_target_as = jockey_origin_1 } } #Surib - fifth (bad choice
+		10 = { 526 = { save_event_target_as = jockey_origin_1 } } #Ovdal Tungr - sixth (dumb choice)
+	}
+	event_target:jockey_origin_1 = { set_province_flag = jockeyed }
+	random_list = {
+		10 = { trigger = { 616 = { NOT = { has_province_flag = jockeyed } } } 616 = { save_event_target_as = jockey_origin_2 } }
+		10 = { trigger = { 633 = { NOT = { has_province_flag = jockeyed } } } 633 = { save_event_target_as = jockey_origin_2 } }
+		10 = { trigger = { 591 = { NOT = { has_province_flag = jockeyed } } } 591 = { save_event_target_as = jockey_origin_2 } }
+		10 = { trigger = { 2909 = { NOT = { has_province_flag = jockeyed } } } 2909 = { save_event_target_as = jockey_origin_2 } }
+		10 = { trigger = { 598 = { NOT = { has_province_flag = jockeyed } } } 598 = { save_event_target_as = jockey_origin_2 } }
+		10 = { trigger = { 526 = { NOT = { has_province_flag = jockeyed } } } 526 = { save_event_target_as = jockey_origin_2 } }
+	}
+	event_target:jockey_origin_2 = { set_province_flag = jockeyed }
+	random_list = {
+		10 = { trigger = { 616 = { NOT = { has_province_flag = jockeyed } } } 616 = { save_event_target_as = jockey_origin_3 } }
+		10 = { trigger = { 633 = { NOT = { has_province_flag = jockeyed } } } 633 = { save_event_target_as = jockey_origin_3 } }
+		10 = { trigger = { 591 = { NOT = { has_province_flag = jockeyed } } } 591 = { save_event_target_as = jockey_origin_3 } }
+		10 = { trigger = { 2909 = { NOT = { has_province_flag = jockeyed } } } 2909 = { save_event_target_as = jockey_origin_3 } }
+		10 = { trigger = { 598 = { NOT = { has_province_flag = jockeyed } } } 598 = { save_event_target_as = jockey_origin_3 } }
+		10 = { trigger = { 526 = { NOT = { has_province_flag = jockeyed } } } 526 = { save_event_target_as = jockey_origin_3 } }
+	}
+	event_target:jockey_origin_3 = { set_province_flag = jockeyed }
+	random_list = {
+		10 = { trigger = { 616 = { NOT = { has_province_flag = jockeyed } } } 616 = { save_event_target_as = jockey_origin_4 } }
+		10 = { trigger = { 633 = { NOT = { has_province_flag = jockeyed } } } 633 = { save_event_target_as = jockey_origin_4 } }
+		10 = { trigger = { 591 = { NOT = { has_province_flag = jockeyed } } } 591 = { save_event_target_as = jockey_origin_4 } }
+		10 = { trigger = { 2909 = { NOT = { has_province_flag = jockeyed } } } 2909 = { save_event_target_as = jockey_origin_4 } }
+		10 = { trigger = { 598 = { NOT = { has_province_flag = jockeyed } } } 598 = { save_event_target_as = jockey_origin_4 } }
+		10 = { trigger = { 526 = { NOT = { has_province_flag = jockeyed } } } 526 = { save_event_target_as = jockey_origin_4 } }
+	}
+	event_target:jockey_origin_4 = { set_province_flag = jockeyed }
+	random_list = {
+		10 = { trigger = { 616 = { NOT = { has_province_flag = jockeyed } } } 616 = { save_event_target_as = jockey_origin_5 } }
+		10 = { trigger = { 633 = { NOT = { has_province_flag = jockeyed } } } 633 = { save_event_target_as = jockey_origin_5 } }
+		10 = { trigger = { 591 = { NOT = { has_province_flag = jockeyed } } } 591 = { save_event_target_as = jockey_origin_5 } }
+		10 = { trigger = { 2909 = { NOT = { has_province_flag = jockeyed } } } 2909 = { save_event_target_as = jockey_origin_5 } }
+		10 = { trigger = { 598 = { NOT = { has_province_flag = jockeyed } } } 598 = { save_event_target_as = jockey_origin_5 } }
+		10 = { trigger = { 526 = { NOT = { has_province_flag = jockeyed } } } 526 = { save_event_target_as = jockey_origin_5 } }
+	}
+	event_target:jockey_origin_5 = { set_province_flag = jockeyed }
+	random_list = {
+		10 = { trigger = { 616 = { NOT = { has_province_flag = jockeyed } } } 616 = { save_event_target_as = jockey_origin_6 } }
+		10 = { trigger = { 633 = { NOT = { has_province_flag = jockeyed } } } 633 = { save_event_target_as = jockey_origin_6 } }
+		10 = { trigger = { 591 = { NOT = { has_province_flag = jockeyed } } } 591 = { save_event_target_as = jockey_origin_6 } }
+		10 = { trigger = { 2909 = { NOT = { has_province_flag = jockeyed } } } 2909 = { save_event_target_as = jockey_origin_6 } }
+		10 = { trigger = { 598 = { NOT = { has_province_flag = jockeyed } } } 598 = { save_event_target_as = jockey_origin_6 } }
+		10 = { trigger = { 526 = { NOT = { has_province_flag = jockeyed } } } 526 = { save_event_target_as = jockey_origin_6 } }
+	}
+	
+	event_target:jockey_origin_1 = { set_variable = { which = horseRaceRank value = 1 } }
+	event_target:jockey_origin_2 = { set_variable = { which = horseRaceRank value = 1 } }
+	event_target:jockey_origin_3 = { set_variable = { which = horseRaceRank value = 1 } }
+	event_target:jockey_origin_4 = { set_variable = { which = horseRaceRank value = 1 } }
+	event_target:jockey_origin_5 = { set_variable = { which = horseRaceRank value = 1 } }
+	event_target:jockey_origin_6 = { set_variable = { which = horseRaceRank value = 1 } }
+	set_variable = { which = tempHorseRaceRank value = 1 }
+	
+	while = { limit = { NOT = { check_variable = { which = tempHorseRaceRank value = 6 } } }
+		change_variable = { which = tempHorseRaceRank value = 1 }
+		
+		random_list = {		#number on the random list is the horse odds, number in the factors in the jockey odds
+			30 = {
+				trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_1 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_1 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_1 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_1 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_1 = { province_id = 526 } }
+				event_target:jockey_origin_1 = { set_province_flag = bulwar_race_ranked }
+			}
+			70 = {
+				trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_2 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_2 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_2 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_2 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_2 = { province_id = 526 } }
+				event_target:jockey_origin_2 = { set_province_flag = bulwar_race_ranked }
+			}
+			5 = {
+				trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_3 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_3 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_3 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_3 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_3 = { province_id = 526 } }
+				event_target:jockey_origin_3 = { set_province_flag = bulwar_race_ranked }
+			}
+			80 = {
+				trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_4 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_4 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_4 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_4 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_4 = { province_id = 526 } }
+				event_target:jockey_origin_4 = { set_province_flag = bulwar_race_ranked }
+			}
+			100 = {
+				trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_5 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_5 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_5 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_5 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_5 = { province_id = 526 } }
+				event_target:jockey_origin_5 = { set_province_flag = bulwar_race_ranked }
+			}
+			50 = {
+				trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = bulwar_race_ranked } } }
+				modifier = { factor = 0.8 event_target:jockey_origin_6 = { province_id = 616 } }
+				modifier = { factor = 0.7 event_target:jockey_origin_6 = { province_id = 633 } }
+				modifier = { factor = 0.4 event_target:jockey_origin_6 = { province_id = 591 } }
+				modifier = { factor = 0.2 event_target:jockey_origin_6 = { province_id = 598 } }
+				modifier = { factor = 0.05 event_target:jockey_origin_6 = { province_id = 526 } }
+				event_target:jockey_origin_6 = { set_province_flag = bulwar_race_ranked }
+			}
+		}
+		
+		event_target:jockey_origin_1 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+		event_target:jockey_origin_2 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+		event_target:jockey_origin_3 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+		event_target:jockey_origin_4 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+		event_target:jockey_origin_5 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+		event_target:jockey_origin_6 = { if = { limit = { NOT = { has_province_flag = bulwar_race_ranked } } change_variable = { which = horseRaceRank value = 1 } } }
+	}
+	
+	random_list = {
+		10 = { event_target:jockey_origin_1 = { save_event_target_as = blue_origin } }
+		10 = { event_target:jockey_origin_2 = { save_event_target_as = blue_origin } }
+		10 = { event_target:jockey_origin_3 = { save_event_target_as = blue_origin } }
+		10 = { event_target:jockey_origin_4 = { save_event_target_as = blue_origin } }
+		10 = { event_target:jockey_origin_5 = { save_event_target_as = blue_origin } }
+		10 = { event_target:jockey_origin_6 = { save_event_target_as = blue_origin } }
+	}
+	event_target:blue_origin = { set_province_flag = coloured }
+	random_list = {
+		10 = { trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_1 = { save_event_target_as = teal_origin } }
+		10 = { trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_2 = { save_event_target_as = teal_origin } }
+		10 = { trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_3 = { save_event_target_as = teal_origin } }
+		10 = { trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_4 = { save_event_target_as = teal_origin } }
+		10 = { trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_5 = { save_event_target_as = teal_origin } }
+		10 = { trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_6 = { save_event_target_as = teal_origin } }
+	}
+	event_target:teal_origin = { set_province_flag = coloured }
+	random_list = {
+		10 = { trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_1 = { save_event_target_as = green_origin } }
+		10 = { trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_2 = { save_event_target_as = green_origin } }
+		10 = { trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_3 = { save_event_target_as = green_origin } }
+		10 = { trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_4 = { save_event_target_as = green_origin } }
+		10 = { trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_5 = { save_event_target_as = green_origin } }
+		10 = { trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_6 = { save_event_target_as = green_origin } }
+	}
+	event_target:green_origin = { set_province_flag = coloured }
+	random_list = {
+		10 = { trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_1 = { save_event_target_as = yellow_origin } }
+		10 = { trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_2 = { save_event_target_as = yellow_origin } }
+		10 = { trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_3 = { save_event_target_as = yellow_origin } }
+		10 = { trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_4 = { save_event_target_as = yellow_origin } }
+		10 = { trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_5 = { save_event_target_as = yellow_origin } }
+		10 = { trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_6 = { save_event_target_as = yellow_origin } }
+	}
+	event_target:yellow_origin = { set_province_flag = coloured }
+	random_list = {
+		10 = { trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_1 = { save_event_target_as = orange_origin } }
+		10 = { trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_2 = { save_event_target_as = orange_origin } }
+		10 = { trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_3 = { save_event_target_as = orange_origin } }
+		10 = { trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_4 = { save_event_target_as = orange_origin } }
+		10 = { trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_5 = { save_event_target_as = orange_origin } }
+		10 = { trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_6 = { save_event_target_as = orange_origin } }
+	}
+	event_target:orange_origin = { set_province_flag = coloured }
+	random_list = {
+		10 = { trigger = { event_target:jockey_origin_1 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_1 = { save_event_target_as = red_origin } }
+		10 = { trigger = { event_target:jockey_origin_2 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_2 = { save_event_target_as = red_origin } }
+		10 = { trigger = { event_target:jockey_origin_3 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_3 = { save_event_target_as = red_origin } }
+		10 = { trigger = { event_target:jockey_origin_4 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_4 = { save_event_target_as = red_origin } }
+		10 = { trigger = { event_target:jockey_origin_5 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_5 = { save_event_target_as = red_origin } }
+		10 = { trigger = { event_target:jockey_origin_6 = { NOT = { has_province_flag = coloured } } } event_target:jockey_origin_6 = { save_event_target_as = red_origin } }
+	}	
+	
+	event_target:jockey_origin_1 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
+	event_target:jockey_origin_2 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
+	event_target:jockey_origin_3 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
+	event_target:jockey_origin_4 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
+	event_target:jockey_origin_5 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
+	event_target:jockey_origin_6 = { clr_province_flag = jockeyed clr_province_flag = bulwar_race_ranked clr_province_flag = coloured }
 }
