@@ -1,0 +1,1795 @@
+
+
+namespace = goldisland
+
+#Control event, decide which route the disaster will take
+country_event = {
+	id = goldisland.0
+	title = goldisland.0.t
+	desc = goldisland.0.d
+	picture = FORT_eventPicture
+	hidden = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = { set_global_flag = federation_crisis_goldisland }
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = {
+		name = goldisland.0.a
+		ai_chance = { factor = 50 }
+		trigger = { NOT = { is_lake_federation_leader = yes } }
+		random_known_country = {
+			limit = { is_lake_federation_leader = yes }
+			country_event = { id = goldisland.1 days = 30 }
+		}
+	}
+	
+	option = {
+		name = goldisland.0.a
+		ai_chance = { factor = 50 }
+		trigger = { is_lake_federation_leader = yes }
+		random_known_country = {
+			limit = { has_country_flag = ultakal_owner  }
+			country_event = { id = goldisland.14 days = 30 }
+		}
+	}
+}
+
+#Crisis - Unlawful occupation of the golden island
+country_event = {
+	id = goldisland.1
+	title = goldisland.1.t
+	desc = goldisland.1.d
+	picture = FORT_eventPicture
+	goto = province
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		5239 = {
+			save_event_target_as = province
+			owner = { save_event_target_as = country }
+		}
+		hidden_effect = { set_global_flag = federation_crisis_goldisland }
+	}
+	
+	trigger = {
+		is_lake_federation_leader = yes
+	}
+	
+	#Ask country to give back the island to it's lawful owner
+	option = {
+		name = goldisland.1.a
+		ai_chance = { factor = 50 }
+		event_target:country = {
+			country_event = { id = goldisland.2 }
+		}
+	}
+}
+
+#Pressure from the Federation Leader
+country_event = {
+	id = goldisland.2
+	title = goldisland.2.t
+	desc = goldisland.2.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	immediate = {
+		5239 = { save_event_target_as = province }
+		random_known_country = {
+			limit = { is_lake_federation_leader = yes NOT = { owns = 5239 } }
+			save_event_target_as = country
+		}
+		J06 = {
+			if = {
+				limit = { NOT = { owns = 5239 } }
+				save_event_target_as = country
+			}
+		}
+		J07 = {
+			if = {
+				limit = { NOT = { owns = 5239 } }
+				save_event_target_as = country
+			}
+		}
+		random_known_country = {
+			limit = { has_country_flag = ultakal_owner NOT = { owns = 5239 } }
+			save_event_target_as = country
+		}
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Give it back
+	option = {
+		name = goldisland.2.a
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 0.01
+				has_country_flag = unlawful_ultakal
+			}
+		}
+		add_treasury = -500
+		if = {
+			limit = { tag = J06 }
+			J07 = { add_treasury = 500 }
+			5239 = {
+				remove_core = J06
+				cede_province = J07
+				add_core = J07
+			}
+			hidden_effect = { 
+				J06 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+				J07 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+				clr_country_flag = ultakal_owner
+			}
+			hidden_effect = { J07 = { set_country_flag = ultakal_owner country_event = { id = goldisland.18 } } }
+		}
+		else_if = {
+			limit = { tag = J07 }
+			J06 = { add_treasury = 500 }
+			5239 = {
+				remove_core = J07
+				cede_province = J06
+				add_core = J06
+			}
+			hidden_effect = { 
+				J06 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+				J07 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+				clr_country_flag = ultakal_owner
+			}
+			hidden_effect = { J06 = { set_country_flag = ultakal_owner country_event = { id = goldisland.18 } } }
+		}
+		else = {
+			5239 = {
+				remove_core = ROOT
+				cede_province = event_target:country
+				add_core = event_target:country
+			}
+			event_target:country = { add_treasury = 500 }
+		}
+		custom_tooltip = restablish_decree_tooltip
+		hidden_effect = { clr_global_flag = federation_crisis_goldisland }
+		hidden_effect = { set_global_flag = federation_golden_island_timer }
+	}
+	
+	#Keep it
+	option = {
+		name = goldisland.2.b
+		ai_chance = { 
+			factor = 15
+			modifier = {
+				factor = 2
+				has_country_flag = unlawful_ultakal
+			}
+		}
+		hidden_effect = { set_global_flag = federation_crisis }
+		country_event = { id = goldisland.3 }
+	}
+}
+
+#The Refusal
+country_event = {
+	id = goldisland.3
+	title = goldisland.3.t
+	desc = goldisland.3.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	immediate = {
+		hidden_effect = {
+			5239 = { 
+				save_event_target_as = province
+				owner = {
+					set_country_flag = support_illegitimate
+					set_country_flag = leader_illegitimate
+					save_global_event_target_as = global_fed_illegitimate
+				}
+			}
+			# Random Country
+			random_known_country = {
+				limit = { has_country_modifier = lake_federation_member not = { owns = 5239 } }
+				save_global_event_target_as = global_fed_legitimate
+			}
+			# Federation Leader
+			random_known_country = {
+				limit = { is_lake_federation_leader = yes not = { owns = 5239 } }
+				save_global_event_target_as = global_fed_legitimate
+			}
+			# 2 Owners
+			J06 = {
+				if = {
+					limit = { NOT = { owns = 5239 } }
+					save_global_event_target_as = global_fed_legitimate
+				}
+			}
+			J07 = {
+				if = {
+					limit = { NOT = { owns = 5239 } }
+					save_global_event_target_as = global_fed_legitimate
+				}
+			}
+			# Legitimate Owner
+			random_known_country = {
+				limit = { has_country_flag = ultakal_owner }
+				save_global_event_target_as = global_fed_legitimate
+			}
+			event_target:global_fed_legitimate = {
+				set_country_flag = support_legitimate
+				set_country_flag = leader_legitimate
+			}
+		}
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = {
+		name = goldisland.3.a
+		ai_chance = { factor = 50 }
+		custom_tooltip = the_refusal_tooltip #Explain that which country join who will depend on their relation with each. You have 5 years to do tho
+		country_event = { id = goldisland.9 days = 2025 } #Should we yield ?
+		hidden_effect = {
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				country_event = { id = goldisland.8 days = 1825 }
+			}
+		}
+		hidden_effect = { set_global_flag = lake_bargaining }
+	}
+}
+
+#Asking for favors to illegitimate
+country_event = {
+	id = goldisland.4
+	title = goldisland.4.t
+	desc = goldisland.4.d
+	picture = FORT_eventPicture
+	goto = province
+	immediate = {
+		hidden_effect = {
+			set_country_flag = asked_illegitimate
+			set_country_flag = waiting_response
+			event_target:global_fed_illegitimate = {
+				capital_scope = { save_event_target_as = province }
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		years = 1
+	}
+	
+	trigger = {
+		has_global_flag = lake_bargaining
+		has_country_modifier = lake_federation_member
+		event_target:global_fed_illegitimate = {
+			OR = {
+				NOT = { has_country_flag = gold_recently_asked }
+				had_country_flag = {
+					flag = gold_recently_asked
+					days = 60
+				}
+			}
+		}
+		NOT = { has_country_flag = support_illegitimate }
+		NOT = { has_country_flag = support_legitimate }
+		NOT = { has_country_flag = asked_illegitimate }
+		NOT = { has_country_flag = waiting_response }
+	}
+	
+	#Ask them money
+	option = {
+		name = goldisland.4.a
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 1.5
+				num_of_loans = 3
+			}
+			modifier = {
+				factor = 1.5
+				ruler_has_personality = greedy_personality
+			}
+		}
+		hidden_effect = { set_country_flag = asked_money }
+		event_target:global_fed_illegitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+	
+	#Ask them mana
+	option = {
+		name = goldisland.4.b
+		ai_chance = { 
+			factor = 60
+			
+			modifier = {
+				factor = 1.5
+				ruler_has_personality = fierce_negotiator_personality
+			}
+		}
+		hidden_effect = { set_country_flag = asked_mana }
+		event_target:global_fed_illegitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+	
+	#Ask them manpower
+	option = {
+		name = goldisland.4.c
+		ai_chance = { 
+			factor = 30
+			modifier = {
+				factor = 1.5
+				NOT = { manpower_percentage = 0.5 }
+			}
+		}
+		trigger = { event_target:global_fed_illegitimate = { manpower = 1 } }
+		hidden_effect = { set_country_flag = asked_manpower }
+		event_target:global_fed_illegitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+}
+
+#Asking for favors to legitimate
+country_event = {
+	id = goldisland.5
+	title = goldisland.5.t
+	desc = goldisland.5.d
+	picture = FORT_eventPicture
+	goto = province
+	immediate = {
+		hidden_effect = {
+			set_country_flag = asked_legitimate
+			set_country_flag = waiting_response
+			event_target:global_fed_legitimate = {
+				capital_scope = { save_event_target_as = province }
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		years = 1
+	}
+	
+	trigger = {
+		has_global_flag = lake_bargaining
+		has_country_modifier = lake_federation_member
+		event_target:global_fed_legitimate = {
+			OR = {
+				NOT = { has_country_flag = gold_recently_asked }
+				had_country_flag = {
+					flag = gold_recently_asked
+					days = 60
+				}
+			}
+		}
+		NOT = { has_country_flag = support_illegitimate }
+		NOT = { has_country_flag = support_legitimate }
+		NOT = { has_country_flag = asked_legitimate }
+		NOT = { has_country_flag = waiting_response }
+	}
+	
+	#Ask them money
+	option = {
+		name = goldisland.5.a
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 1.5
+				num_of_loans = 3
+			}
+			modifier = {
+				factor = 1.5
+				ruler_has_personality = greedy_personality
+			}
+		}
+		hidden_effect = { set_country_flag = asked_money }
+		event_target:global_fed_legitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+	
+	#Ask them mana
+	option = {
+		name = goldisland.5.b
+		ai_chance = { 
+			factor = 60
+			
+			modifier = {
+				factor = 1.5
+				ruler_has_personality = fierce_negotiator_personality
+			}
+		}
+		hidden_effect = { set_country_flag = asked_mana }
+		event_target:global_fed_legitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+	
+	#Ask them manpower
+	option = {
+		name = goldisland.5.c
+		ai_chance = { 
+			factor = 30
+			modifier = {
+				factor = 1.5
+				NOT = { manpower_percentage = 0.5 }
+			}
+		}
+		trigger = { event_target:global_fed_legitimate = { manpower = 1 } }
+		hidden_effect = { set_country_flag = asked_manpower }
+		event_target:global_fed_legitimate = {
+			country_event = { id = goldisland.6 days = 15 }
+		}
+	}
+}
+
+#Giving back favor
+country_event = {
+	id = goldisland.6
+	title = goldisland.6.t
+	desc = goldisland.6.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			FROM = { capital_scope = { save_event_target_as = province } }
+			set_country_flag = gold_recently_asked
+		}
+		
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Big option
+	option = {
+		name = goldisland.6.a
+		ai_chance = {
+			factor = 20
+			modifier = {
+				factor = 0
+				is_rival = FROM
+			}
+			modifier = {
+				factor = 0
+				FROM = { has_country_flag = asked_money }
+				num_of_loans = 3
+			}
+		}
+		trigger = {
+			if = {
+				limit = { FROM = { has_country_flag = asked_manpower } }
+				manpower = 3
+			}
+		}
+		if = {
+			limit = { FROM = { has_country_flag = asked_money } }
+			add_treasury = -150
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_mana } }
+			add_dip_power = -60
+			add_mil_power = -60
+			add_adm_power = -60
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_manpower } }
+			add_manpower = -3
+		}
+		FROM = {
+			hidden_effect = { set_country_flag = given_big }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			country_event = { id = goldisland.7 }
+		}
+	}
+	
+	#Medium option
+	option = {
+		name = goldisland.6.b
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 0
+				is_rival = FROM
+			}
+			modifier = {
+				factor = 0
+				FROM = { has_country_flag = asked_money }
+				num_of_loans = 4
+			}
+		}
+		trigger = {
+			if = {
+				limit = { FROM = { has_country_flag = asked_manpower } }
+				manpower = 2
+			}
+		}
+		if = {
+			limit = { FROM = { has_country_flag = asked_money } }
+			add_treasury = -100
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_mana } }
+			add_dip_power = -40
+			add_mil_power = -40
+			add_adm_power = -40
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_manpower } }
+			add_manpower = -2
+		}
+		FROM = {
+			hidden_effect = { set_country_flag = given_medium }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			country_event = { id = goldisland.7 }
+		}
+	}
+	
+	#Low option
+	option = {
+		name = goldisland.6.c
+		ai_chance = {
+			factor = 40
+			modifier = {
+				factor = 0
+				is_rival = FROM
+			}
+			modifier = {
+				factor = 0
+				FROM = { has_country_flag = asked_money }
+				num_of_loans = 5
+			}
+		}
+		trigger = {
+			if = {
+				limit = { FROM = { has_country_flag = asked_manpower } }
+				manpower = 1
+			}
+		}
+		if = {
+			limit = { FROM = { has_country_flag = asked_money } }
+			add_treasury = -50
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_mana } }
+			add_dip_power = -20
+			add_mil_power = -20
+			add_adm_power = -20
+		}
+		else_if = {
+			limit = { FROM = { has_country_flag = asked_manpower } }
+			add_manpower = -1
+		}
+		FROM = {
+			hidden_effect = { set_country_flag = given_low }
+			add_opinion = { modifier = federation_pos_intrigue who = ROOT }
+			country_event = { id = goldisland.7 }
+		}
+	}
+	
+	#Give nothing
+	option = {
+		name = goldisland.6.e
+		ai_chance = {
+			factor = 20
+			modifier = {
+				factor = 100
+				FROM = { has_country_flag = asked_mana }
+				any_known_country = {
+					tech_difference = 3
+				} 
+			}
+			modifier = {
+				factor = 100
+				FROM = { has_country_flag = asked_money }
+				num_of_loans = 10
+			}
+		}
+		FROM = {
+			hidden_effect = { set_country_flag = given_nothing }
+			add_opinion = { modifier = federation_neg_intrigue who = ROOT }
+			add_opinion = { modifier = federation_neg_intrigue who = ROOT }
+			country_event = { id = goldisland.7 }
+		}
+	}
+}
+
+
+#Favours return
+country_event = {
+	id = goldisland.7
+	title = goldisland.7.t
+	desc = goldisland.7.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = { hidden_effect = { FROM = { capital_scope = { save_event_target_as = province } } } }
+	
+	after = {
+		hidden_effect = {
+			clr_country_flag = waiting_response
+			clr_country_flag = given_nothing
+			clr_country_flag = given_big
+			clr_country_flag = given_medium
+			clr_country_flag = given_low
+			clr_country_flag = asked_money
+			clr_country_flag = asked_mana
+			clr_country_flag = asked_manpower
+		}
+	}
+	
+	#Money
+	option = {
+		name = goldisland.7.a
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = asked_money }
+		trigger_switch = {
+			on_trigger = has_country_flag
+			
+			given_big = { add_treasury = 150 custom_tooltip = given_big_tooltip }
+			given_medium = { add_treasury = 100 custom_tooltip = given_medium_tooltip }
+			given_low = { add_treasury = 50 custom_tooltip = given_low_tooltip }
+			given_nothing = { custom_tooltip = given_nothing_tooltip }
+		}
+	}
+	
+	#Money
+	option = {
+		name = goldisland.7.b
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = asked_mana }
+		trigger_switch = {
+			on_trigger = has_country_flag
+			
+			given_big = { add_dip_power = 60 add_mil_power = 60 add_adm_power = 60 custom_tooltip = given_big_tooltip }
+			given_medium = { add_dip_power = 40 add_mil_power = 40 add_adm_power = 40 custom_tooltip = given_medium_tooltip }
+			given_low = { add_dip_power = 20 add_mil_power = 20 add_adm_power = 20 custom_tooltip = given_low_tooltip }
+			given_nothing = { custom_tooltip = given_nothing_tooltip }
+		}
+	}
+	
+	#Money
+	option = {
+		name = goldisland.7.c
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = asked_manpower }
+		trigger_switch = {
+			on_trigger = has_country_flag
+			
+			given_big = { add_manpower = 3 custom_tooltip = given_big_tooltip }
+			given_medium = { add_manpower = 2 custom_tooltip = given_medium_tooltip }
+			given_low = { add_manpower = 1 custom_tooltip = given_low_tooltip }
+			given_nothing = { custom_tooltip = given_nothing_tooltip }
+		}
+	}
+}
+
+#Choosing a side
+country_event = {
+	id = goldisland.8
+	title = goldisland.8.t
+	desc = goldisland.8.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { has_country_flag = leader_legitimate }
+		NOT = { has_country_flag = leader_illegitimate }
+	}
+	
+	#Legitimate
+	option = {
+		name = goldisland.8.a
+		ai_chance = {
+			factor = 100
+			
+			modifier = {
+				factor = 0.8
+				event_target:global_fed_legitimate = { NOT = { reverse_has_opinion = { who = ROOT value = 0 } } }
+			}
+			
+			modifier = {
+				factor = 0.7
+				event_target:global_fed_legitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -50 } } }
+			}
+			
+			modifier = {
+				factor = 0.6
+				event_target:global_fed_legitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -100 } } }
+			}
+			
+			modifier = {
+				factor = 0.5
+				event_target:global_fed_legitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -150 } } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_legitimate = { reverse_has_opinion = { who = ROOT value = 50 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_legitimate = { reverse_has_opinion = { who = ROOT value = 100 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_legitimate = { reverse_has_opinion = { who = ROOT value = 150 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_legitimate = { reverse_has_opinion = { who = ROOT value = 180 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_legitimate = { reverse_has_opinion = { who = ROOT value = 200 } }
+			}
+			
+			modifier = {
+				factor = 0
+				event_target:global_fed_legitimate = { ROOT = { is_rival = PREV } }
+			}
+			
+			modifier = {
+				factor = 100
+				event_target:global_fed_legitimate = { ROOT = { alliance_with = PREV } }
+			}
+		}
+		custom_tooltip = support_legitimate_tooltip
+		hidden_effect = { set_country_flag = support_legitimate }
+	}
+	
+	#Illegitimate
+	option = {
+		name = goldisland.8.b
+		ai_chance = { 
+			factor = 100
+			
+			modifier = {
+				factor = 0.8
+				event_target:global_fed_illegitimate = { NOT = { reverse_has_opinion = { who = ROOT value = 0 } } }
+			}
+			
+			modifier = {
+				factor = 0.7
+				event_target:global_fed_illegitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -50 } } }
+			}
+			
+			modifier = {
+				factor = 0.6
+				event_target:global_fed_illegitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -100 } } }
+			}
+			
+			modifier = {
+				factor = 0.5
+				event_target:global_fed_illegitimate = { NOT = { reverse_has_opinion = { who = ROOT value = -150 } } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_illegitimate = { reverse_has_opinion = { who = ROOT value = 50 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_illegitimate = { reverse_has_opinion = { who = ROOT value = 100 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_illegitimate = { reverse_has_opinion = { who = ROOT value = 150 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_illegitimate = { reverse_has_opinion = { who = ROOT value = 180 } }
+			}
+			
+			modifier = {
+				factor = 1.5
+				event_target:global_fed_illegitimate = { reverse_has_opinion = { who = ROOT value = 200 } }
+			}
+			
+			modifier = {
+				factor = 0
+				event_target:global_fed_illegitimate = { ROOT = { is_rival = PREV } }
+			}
+			
+			modifier = {
+				factor = 100
+				event_target:global_fed_illegitimate = { ROOT = { alliance_with = PREV } }
+			}
+		}
+		custom_tooltip = support_illegitimate_tooltip
+		hidden_effect = { set_country_flag = support_illegitimate }
+	}
+}
+
+#Shoud we yield ? For the illegitimate dude
+country_event = {
+	id = goldisland.9
+	title = goldisland.9.t
+	desc = goldisland.9.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = {
+			clr_global_flag = lake_bargaining
+			every_country = {
+				limit = { has_country_flag = support_legitimate }
+				export_to_variable = {
+					which = legitimate_manpower
+					value = manpower
+				}
+				export_to_variable = {
+					which = legitimate_size
+					value = army_size
+				}
+				REB = {	
+					change_variable = { which = legitimate_manpower which = PREV }
+					change_variable = { which = legitimate_size which = PREV }
+				}
+			}
+			every_country = {
+				limit = { has_country_flag = support_illegitimate }
+				export_to_variable = {
+					which = illegitimate_manpower
+					value = manpower
+				}
+				export_to_variable = {
+					which = illegitimate_size
+					value = army_size
+				}
+				REB = {	
+					change_variable = { which = illegitimate_manpower which = PREV }
+					change_variable = { which = illegitimate_size which = PREV }
+				}
+			}
+			REB = {
+				
+				set_variable = { which = legitimate_power which = legitimate_manpower }
+				change_variable = { which = legitimate_power which = legitimate_size }
+				
+				set_variable = { which = illegitimate_power which = illegitimate_manpower }
+				change_variable = { which = illegitimate_power which = illegitimate_size }
+				
+				random_list = {
+					20 = { multiply_variable = { illegitimate_power = 1.1 } }
+					20 = { multiply_variable = { illegitimate_power = 1.15 } }
+					20 = { multiply_variable = { illegitimate_power = 0.95 } }
+					20 = { multiply_variable = { illegitimate_power = 0.9 } }
+					20 = { multiply_variable = { illegitimate_power = 1.2 } }
+				}
+				
+				random_list = {
+					20 = { multiply_variable = { legitimate_power = 1.15 } }
+					20 = { multiply_variable = { legitimate_power = 1.05 } }
+					20 = { multiply_variable = { legitimate_power = 0.95 } }
+					20 = { multiply_variable = { legitimate_power = 0.9 } }
+					20 = { multiply_variable = { legitimate_power = 1.2 } }
+				}
+				
+				multiply_variable = { legitimate_power = 0.001 }
+				multiply_variable = { legitimate_power = 1000 }
+				multiply_variable = { illegitimate_power = 0.001 }
+				multiply_variable = { illegitimate_power = 1000 }
+				
+				set_variable = { which = power_difference which = illegitimate_power }
+				subtract_variable = { which = power_difference which = legitimate_power }
+			}
+		}
+	}
+	
+	#We shall not yield!
+	option = {
+		name = goldisland.9.a
+		ai_chance = {
+			factor = 100
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 0 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 10 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 20 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 30 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 40 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 50 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 80 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 100 } }
+			}
+		}
+		custom_tooltip = we_shall_not_yield_tooltip
+		event_target:global_fed_legitimate = {
+			country_event = { id = goldisland.10 }
+		}
+	}
+	
+	#We shall yield...
+	option = {
+		name = goldisland.9.b
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = 0 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -10 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -20 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -30 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -40 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -50 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -80 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -100 } } }
+			}
+		}
+		custom_tooltip = we_shall_yield_tooltip
+		event_target:global_fed_legitimate = {
+			country_event = { id = goldisland.11 }
+		}
+	}
+}
+
+#Shoud we yield ? For the legitimate dude
+country_event = {
+	id = goldisland.10
+	title = goldisland.10.t
+	desc = goldisland.10.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	#We shall not yield either!
+	option = {
+		name = goldisland.10.a
+		ai_chance = {
+			factor = 100
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = 0 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -10 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -20 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -30 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -40 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -50 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -80 } } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { NOT = { check_variable = { power_difference = -100 } } }
+			}
+		}
+		custom_tooltip = we_shall_not_yield_either_tooltip
+		hidden_effect = {
+			set_global_flag = federation_golden_war
+			event_target:global_fed_illegitimate = {
+				declare_war_with_cb = {
+					who = ROOT
+					casus_belli = cb_federation_war_gold_island
+				}
+			}
+			every_country = {
+				limit = { has_country_flag = support_illegitimate }
+				join_all_offensive_wars_of = event_target:global_fed_illegitimate
+			}
+			every_country = {
+				limit = { has_country_flag = support_legitimate }
+				join_all_defensive_wars_of = ROOT
+			}
+		}
+	}
+	
+	#Then we shall yield...
+	option = {
+		name = goldisland.10.b
+		ai_chance = { 
+			factor = 50 #should be 50
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 0 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 10 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 20 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 30 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 40 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 50 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 80 } }
+			}
+			
+			modifier = {
+				factor = 1.15
+				REB = { check_variable = { power_difference = 100 } }
+			}
+		}
+		lake_federation_lose_2_points = yes
+		add_prestige = -20
+		every_country = {
+			limit = { has_country_flag = support_legitimate }
+			add_prestige = -5
+			lake_federation_lose_2_points = yes
+		}
+		event_target:global_fed_illegitimate = {
+			add_prestige = 20
+			lake_federation_gain_2_points = yes
+		}
+		every_country = {
+			limit = { has_country_flag = support_illegitimate }
+			add_prestige = 10
+			lake_federation_gain_2_points = yes
+		}
+		5239 = { remove_province_triggered_modifier = federation_unlawful_occupation }
+		hidden_effect = {
+			clr_global_flag = federation_crisis
+			clr_global_flag = federation_crisis_goldisland
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = leader_illegitimate
+				clr_country_flag = leader_legitimate
+				clr_country_flag = support_illegitimate
+				clr_country_flag = support_legitimate
+				clr_country_flag = ultakal_owner
+				clr_country_flag = unlawful_ultakal
+				clr_country_flag = asked_illegitimate
+				clr_country_flag = asked_legitimate
+			}
+		}
+	}
+}
+
+#They yielded!
+country_event = {
+	id = goldisland.11
+	title = goldisland.11.t
+	desc = goldisland.11.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	#They yielded!
+	option = {
+		name = goldisland.11.a
+		ai_chance = { factor = 100 }
+		lake_federation_gain_5_points = yes
+		add_prestige = 20
+		5239 = {
+			remove_core = owner
+			cede_province = ROOT
+			add_core = ROOT
+			remove_province_triggered_modifier = federation_unlawful_occupation
+		}
+		every_country = {
+			limit = { has_country_flag = support_legitimate }
+			add_prestige = 10
+			lake_federation_gain_2_points = yes
+		}
+		event_target:global_fed_illegitimate = {
+			add_prestige = -20
+			lake_federation_lose_2_points = yes
+		}
+		every_country = {
+			limit = { has_country_flag = support_illegitimate }
+			add_prestige = -5
+			lake_federation_lose_2_points = yes
+		}
+		hidden_effect = {
+			clr_global_flag = federation_crisis
+			clr_global_flag = federation_crisis_goldisland
+			clr_global_flag = federation_golden_war
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = leader_illegitimate
+				clr_country_flag = leader_legitimate
+				clr_country_flag = support_illegitimate
+				clr_country_flag = support_legitimate
+				clr_country_flag = ultakal_owner
+				clr_country_flag = unlawful_ultakal
+				clr_country_flag = asked_illegitimate
+				clr_country_flag = asked_legitimate
+			}
+		}
+	}
+}
+
+#This is our victory!
+country_event = {
+	id = goldisland.12
+	title = goldisland.12.t
+	desc = goldisland.12.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		NOT = { has_country_flag = peace_option_spam_debug }
+	}
+	
+	immediate = { hidden_effect = { set_country_flag = peace_option_spam_debug } }
+	
+	after = {
+		hidden_effect = {
+			clr_country_flag = peace_option_spam_debug
+			clr_global_flag = federation_crisis
+			clr_global_flag = federation_crisis_goldisland
+			clr_global_flag = federation_golden_war
+			set_global_flag = federation_golden_war_end
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = leader_illegitimate
+				clr_country_flag = leader_legitimate
+				clr_country_flag = support_illegitimate
+				clr_country_flag = support_legitimate
+				clr_country_flag = ultakal_owner
+				clr_country_flag = unlawful_ultakal
+				clr_country_flag = asked_illegitimate
+				clr_country_flag = asked_legitimate
+			}
+		}
+	}
+	
+	#Illegitimate victory
+	option = {
+		name = goldisland.12.a
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = leader_illegitimate }
+		lake_federation_gain_5_points = yes
+		add_prestige = 20
+		5239 = { remove_province_triggered_modifier = federation_unlawful_occupation }
+		every_country = {
+			limit = { has_country_flag = support_illegitimate }
+			add_prestige = 10
+			lake_federation_gain_2_points = yes
+		}
+		event_target:global_fed_legitimate = {
+			add_prestige = -20
+			lake_federation_lose_2_points = yes
+		}
+		every_country = {
+			limit = { has_country_flag = support_legitimate }
+			add_prestige = -5
+			lake_federation_lose_2_points = yes
+		}
+	}
+	
+	#legitimate victory
+	option = {
+		name = goldisland.12.b
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = leader_legitimate }
+		lake_federation_gain_5_points = yes
+		add_prestige = 20
+		every_country = {
+			limit = { has_country_flag = support_legitimate }
+			add_prestige = 10
+			lake_federation_gain_2_points = yes
+		}
+		event_target:global_fed_illegitimate = {
+			add_prestige = -20
+			lake_federation_lose_2_points = yes
+		}
+		every_country = {
+			limit = { has_country_flag = support_illegitimate }
+			add_prestige = -5
+			lake_federation_lose_2_points = yes
+		}
+		if = {
+			limit = { 
+				OR = { tag = J06 tag = J07 }
+				event_target:global_fed_illegitimate = {
+					NOT = { tag = J06 }
+					NOT = { tag = J07 }
+				}
+				J06 = { exists = yes }
+				J07 = { exists = yes }
+			}
+			hidden_effect = { clr_country_flag = ultakal_owner }
+			if = {
+				limit = { tag = J06 }
+				5239 = {
+					remove_core = J06
+					cede_province = J07
+					add_core = J07
+				}
+				hidden_effect = { J07 = { set_country_flag = ultakal_owner clr_country_flag = unlawful_ultakal country_event = { id = goldisland.18 } } }
+			}
+			else = {
+				5239 = {
+					remove_core = J07
+					cede_province = J06
+					add_core = J06
+				}
+				hidden_effect = { J06 = { set_country_flag = ultakal_owner clr_country_flag = unlawful_ultakal country_event = { id = goldisland.18 } } }
+			}
+			custom_tooltip = restablish_decree_tooltip
+		}
+		else = {
+			5239 = { 
+				remove_core = owner
+				cede_province = ROOT
+				add_core = ROOT
+				remove_province_triggered_modifier = federation_unlawful_occupation
+			}
+		}
+	}
+}
+
+#Inconclusive Battle
+country_event = {
+	id = goldisland.13
+	title = goldisland.13.t
+	desc = goldisland.13.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		OR = {
+			has_country_flag = leader_illegitimate
+			has_country_flag = leader_legitimate
+		}
+		NOT = { has_country_flag = peace_option_spam_debug }
+		has_global_flag = federation_crisis_goldisland
+		has_global_flag = federation_crisis
+		has_global_flag = federation_golden_war
+		NOT = { has_global_flag = federation_golden_war_end }
+	}
+	
+	immediate = { hidden_effect = { set_country_flag = peace_option_spam_debug } }
+	
+	after = {
+		hidden_effect = {
+			clr_country_flag = peace_option_spam_debug
+			clr_global_flag = federation_crisis
+			clr_global_flag = federation_crisis_goldisland
+			clr_global_flag = federation_golden_war
+			set_global_flag = unlawful_ultakal
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = leader_illegitimate
+				clr_country_flag = leader_legitimate
+				clr_country_flag = support_illegitimate
+				clr_country_flag = support_legitimate
+				clr_country_flag = ultakal_owner
+				clr_country_flag = unlawful_ultakal
+				clr_country_flag = asked_illegitimate
+				clr_country_flag = asked_legitimate
+			}
+		}
+	}
+	
+	#Illegitimate victory
+	option = {
+		name = goldisland.13.a
+		ai_chance = { factor = 100 }
+		custom_tooltip = inconclusive_battle_tooltip
+	}
+}
+
+#FROM broke the pact, probably because they are federation leader and feel entitled to it
+country_event = {
+	id = goldisland.14
+	title = goldisland.14.t
+	desc = goldisland.14.d
+	picture = FORT_eventPicture
+	goto = province
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = { 5239 = { save_event_target_as = province } }
+		hidden_effect = { set_global_flag = federation_crisis_goldisland }
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Ask country to give back the island to it's lawful owner
+	option = {
+		name = goldisland.14.a
+		ai_chance = { factor = 50 }
+		FROM = {
+			country_event = { id = goldisland.15 days = 2 }
+		}
+	}
+}
+
+#FROM ask us to upheald the Ultakal Decree
+country_event = {
+	id = goldisland.15
+	title = goldisland.15.t
+	desc = goldisland.15.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	immediate = {
+		hidden_effect = {
+			5239 = { save_event_target_as = province }
+			random_known_country = {
+				limit = { has_country_flag = ultakal_owner }
+				save_event_target_as = country
+			}
+		}
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Give it back
+	option = {
+		name = goldisland.15.a
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 0.01
+				has_country_flag = unlawful_ultakal
+			}
+		}
+		5239 = {
+			remove_core = ROOT
+			cede_province = event_target:country
+			add_core = event_target:country
+		}
+		J06 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+		J07 = { add_country_modifier = { name = ultakal_decree duration = -1 } }
+		hidden_effect = { clr_country_flag = ultakal_owner }
+		add_treasury = -500
+		if = {
+			limit = { tag = J06 }
+			J07 = { add_treasury = 500 country_event = { id = goldisland.18 } }
+			5239 = {
+				remove_core = J06
+				cede_province = J07
+				add_core = J07
+			}
+			hidden_effect = { J07 = { set_country_flag = ultakal_owner } }
+		}
+		else = {
+			J06 = { add_treasury = 500 country_event = { id = goldisland.18 } }
+			5239 = {
+				remove_core = J07
+				cede_province = J06
+				add_core = J06
+			}
+			hidden_effect = { J06 = { set_country_flag = ultakal_owner } }
+		}
+		custom_tooltip = restablish_decree_tooltip
+		hidden_effect = { clr_global_flag = federation_crisis_goldisland }
+		hidden_effect = { set_global_flag = federation_golden_island_timer }
+	}
+	
+	#Keep it
+	option = {
+		name = goldisland.15.b
+		ai_chance = { 
+			factor = 15
+			modifier = {
+				factor = 2
+				has_country_flag = unlawful_ultakal
+			}
+		}
+		hidden_effect = { set_global_flag = federation_crisis }
+		country_event = { id = goldisland.3 }
+	}
+}
+
+#The federation leader took the island illegitimately
+country_event = {
+	id = goldisland.16
+	title = goldisland.16.t
+	desc = goldisland.16.d
+	picture = FORT_eventPicture
+	goto = province
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			5239 = {
+				save_event_target_as = province
+			}
+			random_known_country = {
+				limit = { is_lake_federation_leader = yes }
+				save_event_target_as = country
+			}
+		}
+		hidden_effect = { set_global_flag = federation_crisis_goldisland }
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Ask Fed Leader to give us back the island
+	option = {
+		name = goldisland.16.a
+		ai_chance = { factor = 50 }
+		event_target:country = {
+			country_event = { id = goldisland.17 days = 30 }
+		}
+	}
+}
+
+#We're the fed leader, they ask us to give them the province back
+country_event = {
+	id = goldisland.17
+	title = goldisland.17.t
+	desc = goldisland.17.d
+	picture = FORT_eventPicture
+	goto = province
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			5239 = {
+				save_event_target_as = province
+			}
+		}
+	}
+	
+	trigger = {
+		always = yes
+	}
+	
+	#Give it back
+	option = {
+		name = goldisland.17.a
+		ai_chance = { 
+			factor = 50
+			
+			modifier = {
+				factor = 1.5
+				has_opinion = {
+					who = FROM
+					value = 50
+				}
+			}
+			
+			modifier = {
+				factor = 1.5
+				has_opinion = {
+					who = FROM
+					value = 100
+				}
+			}
+			
+			modifier = {
+				factor = 1.5
+				has_opinion = {
+					who = FROM
+					value = 150
+				}
+			}
+		}
+		5239 = {
+			remove_core = ROOT
+			cede_province = FROM
+			add_core = FROM
+		}
+		FROM = { country_event = { id = goldisland.18 } }
+		lake_federation_lose_2_points = yes
+		custom_tooltip = restablish_decree_tooltip
+		hidden_effect = { clr_global_flag = federation_crisis_goldisland }
+		hidden_effect = { set_global_flag = federation_golden_island_timer }
+	}
+	
+	#Keep it
+	option = {
+		name = goldisland.17.b
+		ai_chance = {  
+			factor = 15
+			modifier = {
+				factor = 2
+				NOT = {
+					has_opinion = {
+						who = FROM
+						value = 0
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 3
+				NOT = {
+					has_opinion = {
+						who = FROM
+						value = -50
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 5
+				NOT = {
+					has_opinion = {
+						who = FROM
+						value = -100
+					}
+				}
+			}
+			
+			modifier = {
+				factor = 30
+				is_rival = FROM
+			}
+		}
+		hidden_effect = { set_global_flag = federation_crisis }
+		country_event = { id = goldisland.3 }
+	}
+}
+
+#Ultakal is back in our hand!
+country_event = {
+	id = goldisland.18
+	title = goldisland.18.t
+	desc = goldisland.18.d
+	picture = SIERRA_DE_LA_PLATA_eventPicture
+	goto = 5239
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	option = {
+		name = goldisland.18.a
+		ai_chance = { factor = 50 }
+	}
+}
+
+#######################
+####Background Events
+#######################
+
+#City conquer ultakal
+country_event = {
+	id = goldisland.100
+	title = goldisland.100.t
+	desc = goldisland.100.d
+	picture = FORT_eventPicture
+	goto = province
+	hidden = yes
+	
+	immediate = {
+		5239 = { save_event_target_as = province }
+		set_global_flag = federation_crisis_goldisland
+	}
+	
+	mean_time_to_happen = {
+		months = 3
+	}
+	
+	trigger = {
+		is_lake_federation_leader = yes
+		5239 = { 
+			has_active_triggered_province_modifier = federation_unlawful_occupation
+			owner = { NOT = { is_lake_federation_leader = yes } }
+		}
+		NOT = { has_global_flag = unlawful_ultakal }
+		NOT = { has_global_flag = federation_crisis }
+		NOT = { has_global_flag = federation_crisis_goldisland }
+		
+	}
+	
+	option = {
+		name = goldisland.100.a
+		ai_chance = { factor = 50 }
+		country_event = { id = goldisland.1 }
+	}
+}
+
+#Federation leader conquer ultakal
+country_event = {
+	id = goldisland.101
+	title = goldisland.101.t
+	desc = goldisland.101.d
+	picture = FORT_eventPicture
+	goto = province
+	hidden = yes
+	
+	immediate = {
+		5239 = { save_event_target_as = province }
+		set_global_flag = federation_crisis_goldisland
+	}
+	
+	mean_time_to_happen = {
+		months = 3
+	}
+	
+	trigger = {
+		has_country_flag = ultakal_owner
+		5239 = {
+			has_active_triggered_province_modifier = federation_unlawful_occupation
+			owner = { is_lake_federation_leader = yes }
+		}
+		NOT = { is_lake_federation_leader = yes }
+		NOT = { has_global_flag = unlawful_ultakal }
+		NOT = { has_global_flag = federation_crisis }
+		NOT = { has_global_flag = federation_crisis_goldisland }
+		
+	}
+	
+	option = {
+		name = goldisland.100.a
+		ai_chance = { factor = 50 }
+		country_event = { id = goldisland.16 }
+	}
+}

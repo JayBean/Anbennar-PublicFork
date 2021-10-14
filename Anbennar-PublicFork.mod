@@ -2,7 +2,7 @@ name="Anbennar-PublicFork"
 path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
-supported_version="1.30.*"
+supported_version="1.31.*"
 
 #replace_path="localisation/prov_names_l_english"
 #replace_path="localisation/prov_names_adj_l_english"
@@ -23,6 +23,7 @@ replace_path="history/diplomacy"
 replace_path="history/countries"
 replace_path="history/wars"
 replace_path="history/provinces"
+replace_path="history/advisors"
 
 replace_path="gfx/loadingscreens"
 

@@ -1,3 +1,4 @@
+
 namespace = disaster_vampire_masquerade
 
 ######################
@@ -90,19 +91,19 @@ country_event = {
 	trigger = {
 		has_disaster = estate_vampires_broken_masquerade_disaster
 		if = {
-			limit = { development = 1000 }
+			limit = { total_development = 1000 }
 			NOT = {
 				num_of_rebel_armies = 30
 			}
 		}
 		else_if = {
-			limit = { development = 750 }
+			limit = { total_development = 750 }
 			NOT = {
 				num_of_rebel_armies = 20
 			}
 		}
 		else_if = {
-			limit = { development = 500 }
+			limit = { total_development = 500 }
 			NOT = {
 				num_of_rebel_armies = 15
 			}
@@ -136,7 +137,7 @@ country_event = {
 		}
 		goto = province
 		if = {
-			limit = { development = 500 }
+			limit = { total_development = 500 }
 			event_target:province = {
 				spawn_rebels = {
 					type = vampires_thralls
@@ -250,6 +251,7 @@ country_event = {
 	option = {
 		name = disaster_vampire_masquerade.6.a
 		ai_chance = { factor = 90 }
+		set_country_flag = recent_masquerade_disaster
 		if = {
 			limit = { has_ruler_flag = lost_to_vampire }
 			country_event = { id = disaster_vampire_masquerade.7 }
@@ -281,14 +283,14 @@ country_event = {
 		define_ruler = {
 			age = 90
 		}
-		add_stability = -1
+		reduce_stability_or_adm_power = yes
 		clear_vampire_organization = yes
 		clear_vampire_law = yes
 		set_estate_privilege = estate_vampires_organization_vampires_lord
 		set_estate_privilege = estate_vampires_law_open_rule
 		hidden_effect = {
-			add_ruler_personality = immortal_personality
-			set_ruler_flag = is_a_vampire
+			set_country_flag = new_vampire
+			ruler_become_vampire = yes
 		}
 		add_country_modifier = {
 			name = broken_masquerade
@@ -315,15 +317,22 @@ country_event = {
 	option = {
 		name = disaster_vampire_masquerade.8.a
 		ai_chance = { factor = 90 }
-		add_stability = 3
 		add_prestige = 25
+		
 		if = {
 			limit = { has_country_flag = wipe_vampire_out }
 			custom_tooltip = end_of_vampire_estate_tooltip
 			hidden_effect = {
 				clr_country_flag = wipe_vampire_out
 				clr_country_flag = has_vampires
-				random_neighbor_country = { country_event = { id = vampires_estate_events.11 days = 365 random = 730 } }
+				random_neighbor_country = {
+					limit = {
+						NOT = {
+							has_country_flag = has_vampires
+						}
+					}
+				 	 country_event = { id = vampires_estate_events.11 days = 365 random = 730 } 
+				}
 			}
 		}
 		else = {
@@ -359,18 +368,18 @@ country_event = {
 		add_adm_power = -100
 		add_dip_power = -100
 		custom_tooltip = organize_a_meeting_tooltip
-		country_event = { id = disaster_vampire_masquerade.10 days = 60 }
+		country_event = { id = disaster_vampire_masquerade.11 days = 30 }	#used to be 10 made it 11
 	}
 	
 	#Fuck dem
 	option = {
 		name = disaster_vampire_masquerade.9.b
 		ai_chance = { factor = 50 }
-		country_event = { id = disaster_vampire_masquerade.12 days = 90 random = 90 }
+		country_event = { id = disaster_vampire_masquerade.12 days = 90 random = 30 }
 	}
 }
 
-#The Vampires Ultimatum
+#The Vampires Ultimatum	- #Jay: this is redundant because if you organize a meeting they attack you? lol
 country_event = {
 	id = disaster_vampire_masquerade.10
 	title = disaster_vampire_masquerade.10.t
@@ -404,7 +413,14 @@ country_event = {
 country_event = {
 	id = disaster_vampire_masquerade.11
 	title = disaster_vampire_masquerade.11.t
-	desc = disaster_vampire_masquerade.11.d
+	desc = {
+		trigger = { NOT = { has_ruler_flag = is_a_vampire } }
+		desc = disaster_vampire_masquerade.11.d
+	}
+	 desc = {
+		trigger = { has_ruler_flag = is_a_vampire }
+		desc = disaster_vampire_masquerade.11.da
+	}
 	picture = REVOLT_HUNGARIAN_eventPicture
 	
 	is_triggered_only = yes
@@ -413,9 +429,12 @@ country_event = {
 		has_disaster = estate_vampires_restore_masquerade_disaster
 	}
 	
-	#Accept their demand
+	#Accept their demand (human only)
 	option = {
 		name = disaster_vampire_masquerade.11.a
+		trigger = {
+			NOT = { has_ruler_flag = is_a_vampire }
+		}
 		ai_chance = { factor = 50 }
 		change_dip = -2
 		change_adm = -2
@@ -424,6 +443,7 @@ country_event = {
 			name = vampire_thrall
 			duration = -1
 		}
+		add_stability_or_adm_power = yes
 		clear_vampire_organization = yes
 		clear_vampire_law = yes
 		set_estate_privilege = estate_vampires_organization_bloody_aristocracy
@@ -446,6 +466,33 @@ country_event = {
 		}
 		country_event = { id = disaster_vampire_masquerade.12 days = 90 random = 90 }
 	}
+
+	#Abdicate (vampire only)
+	option = {
+		name = disaster_vampire_masquerade.11.c
+		ai_chance = { factor = 50 }
+		trigger = {
+			has_ruler_flag = is_a_vampire
+		}
+		hidden_effect = {
+			clear_ruler_vampire_flags = yes
+		}
+		exile_ruler_as = my_exiled_ruler
+		add_stability_or_adm_power = yes
+		clear_vampire_organization = yes
+		clear_vampire_law = yes
+		set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+		set_estate_privilege = estate_vampires_law_traditional_masquerade
+		end_disaster = estate_vampires_restore_masquerade_disaster
+		define_ruler = {
+			culture = ROOT
+			religion = ROOT
+		}
+		add_ruler_modifier = {
+			name = vampire_thrall
+			duration = -1
+		}
+	}
 }
 
 #To Choke an Unborn Rebellion
@@ -467,7 +514,7 @@ country_event = {
 		ai_chance = { factor = 50 }
 		set_vampires_hideout_restore_masquerade = yes
 		custom_tooltip = vampire_hideout_tooltip
-		country_event = { id = disaster_vampire_masquerade.14 days = 730 random = 730 }
+		country_event = { id = disaster_vampire_masquerade.14 days = 1825 random = 730 }	#used to be 730, so you're supposed to sort this in 2-4 years? making it 5-7
 		hidden_effect = { set_country_flag = kill_vampires_hideout }
 	}
 }
@@ -598,6 +645,9 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
+			capital_scope = {
+				save_event_target_as = province	#for if you only own one province in your capital area
+			}
 			random_owned_province = {
 				limit = { is_in_capital_area = yes is_capital = no }
 				save_event_target_as = province
@@ -638,10 +688,17 @@ country_event = {
 		always = yes
 	}
 	
+	immediate = {
+		hidden_effect = {
+			clear_ruler_vampire_flags = yes
+		}
+	}
+	
 	#Restore the masquerade, make him a puppet
 	option = {
-		name = disaster_vampire_masquerade.15.a
+		name = disaster_vampire_masquerade.15.a		#does this remove your old ruler? It should
 		ai_chance = { factor = 50 }
+		
 		add_ruler_modifier = {
 			name = vampire_thrall
 			duration = -1
@@ -649,12 +706,15 @@ country_event = {
 		change_dip = -2
 		change_mil = -2
 		change_adm = -2
-		add_stability = -1
+		reduce_stability_or_adm_power = yes
 		add_prestige = -50
 		clear_vampire_organization = yes
 		clear_vampire_law = yes
 		set_estate_privilege = estate_vampires_law_traditional_masquerade
-		set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+		if = {
+			limit = { NOT = { has_estate_privilege = estate_vampires_organization_the_blood_court } }
+			set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+		}
 	}
 }
 
@@ -679,15 +739,19 @@ country_event = {
 		add_prestige = 50
 		add_estate_loyalty_modifier = {
 			estate = estate_vampires
-			desc = EST_VAMPIRE_OPEN_RULE_REMAIN
+			desc = "Open Rule Remains: "
 			loyalty = 20
 			duration = 9125
 		}
 		add_estate_influence_modifier = {
 			estate = estate_vampires
-			desc = EST_VAMPIRE_OPEN_RULE_REMAIN
+			desc = "Open Rule Remains: "
 			influence = 15
 			duration = 9125
+		}
+		if = {
+			limit = { has_estate_privilege = estate_vampires_organization_the_blood_court }
+			set_estate_privilege = estate_vampires_organization_vampires_lord
 		}
 	}
 }
@@ -710,6 +774,7 @@ country_event = {
 	option = {
 		name = disaster_vampire_masquerade.17.a
 		ai_chance = { factor = 50 }
+		set_country_flag = recent_masquerade_disaster
 		if = {
 			limit = { has_country_flag = vampire_win }
 			country_event = { id = disaster_vampire_masquerade.15 }
@@ -749,12 +814,12 @@ country_event = {
 		}
 	}
 	
-	#Open Rule Remain
+	#
 	option = {
 		name = disaster_vampire_masquerade.18.a
 		ai_chance = { factor = 50 }
 		custom_tooltip = rumours_of_a_coup_tooltip
-		country_event = { id = disaster_vampire_masquerade.24 days = 730 random = 730 }
+		country_event = { id = disaster_vampire_masquerade.24 days = 1825 random = 730 }	#changed this to be longer from 730
 	}
 }
 
@@ -1042,9 +1107,13 @@ country_event = {
 	option = {
 		name = disaster_vampire_masquerade.25.a
 		ai_chance = { factor = 20 }
-		change_dip = -2
-		change_adm = -2
-		change_mil = -2
+		define_ruler = {
+			culture = ROOT
+			religion = ROOT
+		}
+		change_dip = -3
+		change_adm = -3
+		change_mil = -3
 		add_ruler_modifier = {
 			name = vampire_thrall
 			duration = -1
@@ -1081,7 +1150,7 @@ country_event = {
 		ai_chance = { factor = 20 }
 		add_estate_loyalty_modifier = {
 			estate = estate_vampires
-			desc = EST_VAMPIRE_CUT_DOWN
+			desc = "Ruler Cut Down: "
 			duration = 9125
 			loyalty = 20
 		}

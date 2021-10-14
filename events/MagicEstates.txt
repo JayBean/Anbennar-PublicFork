@@ -1,3 +1,4 @@
+
 namespace = magic_estate
 
 #Magic Menu
@@ -9,14 +10,19 @@ country_event = {
 	
 	is_triggered_only = yes
 	
-	
 	option = {	
 		name = magic_estate.1.a	#go back
 		ai_chance = {
 			factor = 5
 		}
 		highlight = yes
-		remove_estate_privilege = estate_mages_cast_spells
+		if = { # Causes crashes on Linux
+			limit = { ai = no }
+			remove_estate_privilege = estate_mages_cast_spells 
+		}
+		else = {
+			set_country_flag = revoke_mage_estate_spells
+		}
 	}
 	
 	# option = {	#Illegally transmute gold removed for now
@@ -98,12 +104,14 @@ country_event = {
 		trigger = {
 			has_consort = yes
 			has_government_attribute = heir
+			is_lesser_in_union = no
+			NOT = { ruler_is_immortal = yes } # No lich babies	
 		}
 		ai_chance = {
 			factor = 50
 			modifier = {
 				factor = 2
-				ruler_has_personality = mage_personality 
+				ruler_has_mage_personality = yes 
 			}
 			modifier = {
 				factor = 0.5
@@ -282,6 +290,11 @@ country_event = {
 				check_variable = { which = amount_of_owned_provinces value = 100 }
 			}
 		}
+		trigger = {
+			any_owned_province = {
+				province_with_farm_goods = yes
+			}
+		}
 
 		if = {
 			limit = {
@@ -366,9 +379,11 @@ country_event = {
 			limit = { province_with_farm_goods = yes }
 			if = {
 				limit = {
-					estate_influence = {
-						estate = estate_mages
-						influence = 66
+					owner = {
+						estate_influence = {
+							estate = estate_mages
+							influence = 66
+						}
 					}
 				}
 				add_province_modifier = {
@@ -378,9 +393,11 @@ country_event = {
 			}
 			else_if = {
 				limit = {
-					estate_influence = {
-						estate = estate_mages
-						influence = 33
+					owner = {
+						estate_influence = {
+							estate = estate_mages
+							influence = 33
+						}
 					}
 				}
 				add_province_modifier = {
@@ -397,7 +414,23 @@ country_event = {
 		}
 	}
 		
-	option = {	#Option B: Go back
+	option = {	#Option B: No farm good provinces
+		name = magic_estate.4.b
+		ai_chance = {
+			factor = 5
+		}
+		trigger = {
+			NOT = {
+				any_owned_province = {
+					province_with_farm_goods = yes
+				}
+			}
+		}
+		
+		country_event = { id = magic_estate.1 days = 0 }
+	}
+		
+	option = {	#Option C: Go back
 		name = magic_estate.goback
 		ai_chance = {
 			factor = 5
@@ -1021,6 +1054,7 @@ country_event = {
 		trigger = {
 			has_consort = yes
 			has_government_attribute = heir
+			is_lesser_in_union = no
 		}
 		ai_chance = {
 			factor = 50
@@ -1038,9 +1072,10 @@ country_event = {
 		}
 
 		custom_tooltip = magic_estate_rite_of_conception_tooltip
-		hidden_effect = {
-			country_event = { id = magic_estate.9 days = 0 }
-		}
+		set_ruler_flag = prepare_rite_of_conception_estate
+		# hidden_effect = {
+			# country_event = { id = magic_estate.9 days = 0 }
+		# }
 		
 	}
 	
@@ -1061,8 +1096,13 @@ country_event = {
 	title = magic_estate.9.t
 	desc = magic_estate.9.d
 	picture = NEW_HEIR_eventPicture
+	
 	hidden = yes
-	is_triggered_only = yes
+	# is_triggered_only = yes
+	
+	trigger = { has_ruler_flag = prepare_rite_of_conception_estate }
+	
+	immediate = { clr_ruler_flag = prepare_rite_of_conception_estate }
 	
 	option = {
 		# Success, get good magical heir
@@ -1072,8 +1112,8 @@ country_event = {
 			modifier = {
 				factor = 2
 				OR = {
-					ruler_has_personality = mage_personality
-					consort_has_personality = mage_personality
+					ruler_has_mage_personality = yes
+					consort_has_mage_personality = yes
 				}
 			}
 			modifier = {
@@ -1115,8 +1155,8 @@ country_event = {
 			modifier = {
 				factor = 0.5
 				OR = {
-					ruler_has_personality = mage_personality
-					consort_has_personality = mage_personality
+					ruler_has_mage_personality = yes
+					consort_has_mage_personality = yes
 				}
 			}
 			modifier = {
@@ -1217,8 +1257,8 @@ country_event = {
 			modifier = {
 				factor = 0.5
 				OR = {
-					ruler_has_personality = mage_personality
-					consort_has_personality = mage_personality
+					ruler_has_mage_personality = yes
+					consort_has_mage_personality = yes
 				}
 			}
 			modifier = {
@@ -1274,7 +1314,15 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			random_list = {
-				50 = { set_ruler_flag = boy_child }
+				50 = {
+					trigger = { 
+						NOT = { 
+							ruler_is_harpy = yes
+							consort_is_harpy = yes
+						} 
+					}
+					set_ruler_flag = boy_child
+				}
 				50 = { set_ruler_flag = girl_child }
 			}
 		}
@@ -1358,7 +1406,15 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			random_list = {
-				50 = { set_ruler_flag = boy_child }
+				50 = {
+					trigger = { 
+						NOT = { 
+							ruler_is_harpy = yes
+							consort_is_harpy = yes
+						} 
+					}
+					set_ruler_flag = boy_child
+				}
 				50 = { set_ruler_flag = girl_child }
 			}
 		}
@@ -1432,7 +1488,15 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			random_list = {
-				50 = { set_ruler_flag = boy_child }
+				50 = {
+					trigger = { 
+						NOT = { 
+							ruler_is_harpy = yes
+							consort_is_harpy = yes
+						} 
+					}
+					set_ruler_flag = boy_child
+				}
 				50 = { set_ruler_flag = girl_child }
 			}
 		}
@@ -1538,7 +1602,15 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			random_list = {
-				50 = { set_ruler_flag = boy_child }
+				50 = {
+					trigger = { 
+						NOT = { 
+							ruler_is_harpy = yes
+							consort_is_harpy = yes
+						} 
+					}
+					set_ruler_flag = boy_child
+				}
 				50 = { set_ruler_flag = girl_child }
 			}
 		}

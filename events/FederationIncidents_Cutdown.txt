@@ -1,0 +1,554 @@
+
+
+namespace = cutdown
+
+#Disaster - One country become too powerful
+country_event = {
+	id = cutdown.1
+	title = cutdown.1.t
+	desc = cutdown.1.d
+	picture = FORT_eventPicture
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	mean_time_to_happen = {
+		years = 7
+	}
+	
+	trigger = {
+		is_lake_federation_leader = yes
+		has_country_modifier = lake_federation_member
+		NOT = { has_global_flag = federation_crisis }
+		NOT = { has_global_flag = federation_crisis_cutdown }
+		NOT = { has_global_flag = federation_crisis_goldisland }
+		NOT = { has_global_flag = lake_federation_disbanded }
+		had_global_flag = {
+			flag = last_federation_crisis
+			days = 7300
+		}
+		any_known_country = {
+			has_country_modifier = lake_federation_member
+			NOT = { has_country_modifier = federation_cutdown }			
+			num_of_owned_provinces_with = {
+				value = 13
+				OR = {
+					region = southern_isles_region
+					region = northern_isles_region
+					
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		hidden_effect = { set_global_flag = federation_crisis_cutdown }
+		hidden_effect = {
+			random_known_country = {
+				limit = {
+					has_country_modifier = lake_federation_member
+					NOT = { has_country_modifier = federation_cutdown }
+					num_of_owned_provinces_with = {
+						value = 13
+						OR = {
+							region = southern_isles_region
+							region = northern_isles_region
+							
+						}
+					}
+				}
+				hidden_effect = { save_global_event_target_as = cutdown_country }
+			}
+		}
+	}
+	
+	#We need to control them, ask them to reduce military expanditure
+	option = {
+		name = cutdown.1.a
+		ai_chance = { factor = 50 }
+		event_target:cutdown_country = {
+			country_event = { id = cutdown.2 days = 10 }
+		}
+	}
+}
+
+#They ask us to cut down ou military spending
+country_event = {
+	id = cutdown.2
+	title = cutdown.2.t
+	desc = cutdown.2.d
+	picture = FORT_eventPicture
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Accept
+	option = {
+		name = cutdown.2.a
+		ai_chance = { factor = 5 }
+		add_prestige = -5
+		add_country_modifier = {
+			name = federation_cutdown
+			duration = 9125
+		}
+		FROM = { country_event = { id = cutdown.3 days = 10 } }
+		lake_federation_gain_2_points = yes
+		hidden_effect = { clr_country_flag = federation_red_leader }
+	}
+	
+	#Refuse
+	option = {
+		name = cutdown.2.b
+		ai_chance = { factor = 95 }
+		FROM = { country_event = { id = cutdown.4 days = 10 } }
+		lake_federation_lose_2_points = yes
+		add_prestige = 5
+		if = {
+			limit = { alliance_with = FROM }
+			add_historical_rival = FROM
+		}
+		hidden_effect = { set_country_flag = federation_red_leader }
+	}
+}
+
+#They accept to turn down their military
+country_event = {
+	id = cutdown.3
+	title = cutdown.3.t
+	desc = cutdown.3.d
+	picture = FORT_eventPicture
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Crisis averted
+	option = {
+		name = cutdown.3.a
+		ai_chance = { factor = 100 }
+		add_prestige = 5
+		lake_federation_gain_2_points = yes
+		hidden_effect = { clr_global_flag = federation_crisis_cutdown }
+		hidden_effect = { clr_country_flag = federation_blue_leader }
+		hidden_effect = { clear_global_event_target = cutdown_country }
+	}
+}
+
+#They refused
+country_event = {
+	id = cutdown.4
+	title = cutdown.4.t
+	desc = cutdown.4.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#The Federation need to stand strong
+	option = {
+		name = cutdown.4.a
+		ai_chance = { factor = 100 }
+		add_prestige = -5
+		hidden_effect = { set_global_flag = federation_crisis }
+		hidden_effect = {
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				country_event = { id = cutdown.5 days = 150 random = 15 } #Join Red or Blue league
+				country_event = { id = cutdown.6 days = 350 random = 25 } #Prepare for War
+				country_event = { id = cutdown.7 days = 450 } #War start for non-leader
+			}
+			country_event = { id = cutdown.8 days = 450 } #War start for leader
+			country_event = { id = cutdown.6 days = 150 random = 25 } #Prepare for war for leader
+			set_country_flag = federation_blue
+			set_country_flag = federation_blue_leader
+		}
+	}
+}
+
+#Big event, about joining the Red League of the Blue League
+country_event = {
+	id = cutdown.5
+	title = cutdown.5.t
+	desc = cutdown.5.d
+	picture = FORT_eventPicture
+	goto = province
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+		NOT = { has_country_flag = federation_blue_leader }
+		NOT = { has_country_flag = federation_red_leader }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:cutdown_country = {
+				capital_scope = { save_event_target_as = province }
+			}
+		}
+	}
+	
+	#Federation member should be kept in line, we shall join the Blue League
+	option = {
+		name = cutdown.5.a
+		ai_chance = { 
+			factor = 80
+			
+			modifier = {
+				factor = 2
+				has_opinion = {
+					who = FROM
+					value = 50
+				}
+			}
+			modifier = {
+				factor = 2
+				has_opinion = {
+					who = FROM
+					value = 100
+				}
+			}
+			modifier = {
+				factor = 2
+				has_opinion = {
+					who = FROM
+					value = 150
+				}
+			}
+			modifier = {
+				factor = 1000
+				alliance_with = FROM
+			}
+		}
+		custom_tooltip = federation_join_blue_league_tooltip
+		hidden_effect = { set_country_flag = federation_blue }
+	}
+	
+	#Federation member should be allowed to practice their policy according to war right, we shall join the red league
+	option = {
+		name = cutdown.5.b
+		trigger = { NOT = { tag = event_target:cutdown_country } }
+		ai_chance = { 
+			factor = 40
+			
+			modifier = {
+				factor = 1.5
+				has_opinion = {
+					who = event_target:cutdown_country
+					value = 50
+				}
+			}
+			modifier = {
+				factor = 1.8
+				has_opinion = {
+					who = event_target:cutdown_country
+					value = 100
+				}
+			}
+			modifier = {
+				factor = 2
+				has_opinion = {
+					who = event_target:cutdown_country
+					value = 150
+				}
+			}
+			
+			modifier = {
+				factor = 1000
+				alliance_with = event_target:cutdown_country
+			}
+		}
+		custom_tooltip = federation_join_red_league_tooltip
+		hidden_effect = { set_country_flag = federation_red }
+	}
+}
+
+#Prepare for war
+country_event = {
+	id = cutdown.6
+	title = cutdown.6.t
+	desc = cutdown.6.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#Prepare for war
+	option = {
+		name = cutdown.6.a
+		ai_chance = { factor = 100 }
+		add_country_modifier = {
+			name = federation_gearing_up
+			duration = 3650
+		}
+	}
+	
+	#Try to profit from it
+	option = {
+		name = cutdown.6.b
+		ai_chance = { factor = 100 }
+		add_mercantilism = 3
+		random_owned_province = {
+			limit = {
+				OR = {
+					trade_goods = copper
+					trade_goods = iron
+				}
+			}
+			add_base_production = 1
+		}
+	}
+}
+
+#The federation plunge into war
+country_event = {
+	id = cutdown.7
+	title = cutdown.7.t
+	desc = cutdown.7.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#The war start
+	option = {
+		name = cutdown.7.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { has_country_modifier = federation_gearing_up }
+			add_yearly_manpower = 10
+		}
+		else = {
+			add_yearly_manpower = 5
+		}
+	}
+}
+
+#Enforce our rules
+country_event = {
+	id = cutdown.8
+	title = cutdown.8.t
+	desc = cutdown.8.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	immediate = {
+		set_global_flag = federation_crisis_cutdown_war
+	}
+	
+	trigger = {
+		has_country_modifier = lake_federation_member
+	}
+	
+	#The war start
+	option = {
+		name = cutdown.8.a
+		ai_chance = { factor = 100 }
+		custom_tooltip = federation_plunge_into_war_tooltip
+		if = {
+			limit = { has_country_modifier = federation_gearing_up }
+			add_yearly_manpower = 15
+		}
+		else = {
+			add_yearly_manpower = 10
+		}
+		hidden_effect = {
+			declare_war_with_cb = {
+				who = event_target:cutdown_country
+				casus_belli = cb_federation_war
+			}
+			every_known_country = {
+				limit = { has_country_flag = federation_blue }
+				join_all_offensive_wars_of = ROOT
+			}
+			every_known_country = {
+				limit = { has_country_flag = federation_red }
+				join_all_defensive_wars_of = event_target:cutdown_country
+			}
+		}
+	}
+}
+
+#End of the War
+country_event = {
+	id = cutdown.9
+	title = cutdown.9.t
+	desc = cutdown.9.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = { 
+			clr_global_flag = federation_crisis 
+			clr_global_flag = federation_crisis_cutdown 
+			set_global_flag = last_federation_crisis
+			set_global_flag = end_federation_crisis_cutdown_war
+			clr_global_flag = federation_crisis_cutdown_war
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = federation_blue
+				clr_country_flag = federation_blue_leader
+				clr_country_flag = federation_red
+				clr_country_flag = federation_red_leader
+			}
+			clr_global_flag = end_federation_crisis_cutdown_war
+		}
+	}
+	
+	#The Federation Triumph
+	option = {
+		name = cutdown.9.a
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = federation_blue_leader }
+		lake_federation_gain_5_points = yes
+		every_known_country = {
+			limit = { has_country_flag = federation_blue }
+			lake_federation_gain_2_points = yes
+		}
+		every_known_country = {
+			limit = { has_country_flag = federation_red }
+			lake_federation_lose_2_points = yes
+		}
+		event_target:cutdown_country = {
+			lake_federation_lose_10_points = yes
+			add_country_modifier = {
+				name = federation_cutdown
+				duration = 18250
+			}
+			custom_tooltip = cutdown_give_back_all_province_tooltip
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						OR = {
+							region = southern_isles_region
+							region = northern_isles_region
+						}
+					}
+					set_province_flag = debug_province
+					remove_core = event_target:cutdown_country
+					add_core = previous_owner
+					cede_province = previous_owner
+				}
+				every_province = {
+					limit = { 
+						has_province_flag = debug_province
+						owned_by = event_target:cutdown_country
+					}
+					add_core = event_target:cutdown_country
+					clr_province_flag = debug_province
+				}
+			}
+		}
+	}
+	
+	#The Red Triumph
+	option = {
+		name = cutdown.9.b
+		ai_chance = { factor = 100 }
+		trigger = { has_country_flag = federation_red_leader }
+		lake_federation_gain_5_points = yes
+		every_known_country = {
+			limit = { has_country_flag = federation_red }
+			lake_federation_gain_2_points = yes
+		}
+		every_known_country = {
+			limit = { has_country_flag = federation_blue }
+			lake_federation_lose_2_points = yes
+		}
+		random_known_country = {
+			limit = { has_country_flag = federation_blue_leader }
+			lake_federation_lose_10_points = yes
+		}
+	}
+}
+
+#Inconclusive Battle
+country_event = {
+	id = cutdown.10
+	title = cutdown.10.t
+	desc = cutdown.10.d
+	picture = FORT_eventPicture
+	goto = 5239
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	trigger = {
+		has_global_flag = federation_crisis_cutdown_war
+		had_global_flag = {
+			flag = federation_crisis_cutdown_war
+			days = 365
+		}
+		NOT = { has_global_flag = end_federation_crisis_cutdown_war }
+		has_country_modifier = lake_federation_member
+		OR = {
+			has_country_flag = red_leader
+			has_country_flag = blue_leader
+		}
+		is_at_war = no
+	}
+	
+	immediate = {
+		hidden_effect = { 
+			clr_global_flag = federation_crisis 
+			clr_global_flag = federation_crisis_cutdown 
+			set_global_flag = last_federation_crisis 
+			clr_global_flag = federation_crisis_cutdown_war
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			every_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				clr_country_flag = federation_blue
+				clr_country_flag = federation_blue_leader
+				clr_country_flag = federation_red
+				clr_country_flag = federation_red_leader
+				
+			}
+		}
+	}
+	
+	#Status Quo
+	option = {
+		name = cutdown.10.a
+		ai_chance = { factor = 100 }
+	}
+}

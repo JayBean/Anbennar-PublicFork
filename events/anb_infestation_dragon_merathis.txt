@@ -1,0 +1,1996 @@
+# namespace = infestation_dragon_merathis
+
+# # for testing, use event infestation_dragon_merathis.0 to force spawn in one of your provinces
+
+# # notes on dragons:
+# # dragons can have three opinions of their host country:
+# #  - hostile - will actively raid
+# #  - neutral - minds its own business, rare raids
+# #  - friendly - beneficial to host, raids only neighbours with low opinion
+# # a dragon maintains a hoard, which can be won by those that defeat it
+# # kobold minions are attracted as a racial minority
+# # dragon+kobolds can rebel, with demands for loot
+# # dragons are named monsters, and can only exist once per dragon per game
+
+# # possible flags and province modifiers
+# # infestation_present - flag
+# # infestation_dragon_hostile, infestation_dragon_neutral, infestation_dragon_friendly - prov modifiers
+# # infestation_dragon_merathis - prov modifier for effects that are specific to this named dragon
+# # infestation_dragon_merathis_hoard - keeps track of hoard size; province scoped
+# # infestation_dragon_leveraged_hoard - country modifier, if you decided to leverage the hoard in .201
+
+# # spawn dragon merathis infestation in this province and start event loop
+# province_event = {
+    # id = infestation_dragon_merathis.0
+    # title = infestation_dragon_merathis.0.t
+    # desc = infestation_dragon_merathis.0.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = yes
+    # is_triggered_only = yes
+    
+    # immediate = {
+        # hidden_effect = {
+            # set_province_flag = infestation_present # important; or event loop will exit
+        # }
+    # }
+    
+    # option = {
+        # ai_chance = { factor = 100 }
+        # add_province_modifier = {
+            # name = infestation_dragon_neutral
+            # duration = -1  
+            # desc = infestation_dragon_neutral_tooltip
+        # }
+        # add_province_modifier = {
+            # name = infestation_dragon_merathis
+            # duration = -1  
+            # desc = infestation_dragon_merathis_tooltip
+        # }
+        # set_variable = {
+            # which = infestation_dragon_merathis_hoard 
+            # value = 50 # start with something in their hoard
+        # }
+        # province_event = { id = infestation_dragon_merathis.100 days = 1 } # spawn response event
+    # }
+    # after = {
+        # # first event in half a year, ish; start event loop
+        # #province_event = { id = infestation_dragon_merathis.1 days = 100 random = 100 }
+        # set_province_flag = infestation_pulse_flag #we don't want to start pulsing yet
+        # add_province_triggered_modifier = infestation_merathis_monthly_pulse # we don't want this to start pulsing yet
+    # }
+# }
+
+# # random event dispatcher, on a loop until infestation_present is removed
+# province_event = {
+    # id = infestation_dragon_merathis.1
+    # title = infestation_dragon_merathis.1.t
+    # desc = infestation_dragon_merathis.1.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = yes
+    # is_triggered_only = yes
+    
+
+    # trigger = {
+        # has_province_flag = infestation_present
+        # OR = { 
+            # has_province_modifier = infestation_dragon_friendly
+            # has_province_modifier = infestation_dragon_neutral
+            # has_province_modifier = infestation_dragon_hostile
+        # }
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+	
+	# option = {
+		# hidden_effect = {
+			# random_list = {
+				# 0.2 = { # Do decimals even work here - WishP
+					# # vanish; only happens if neutral opinion - should be rare
+					# trigger = { has_province_modifier = infestation_dragon_neutral }
+					# province_event = { id = infestation_dragon_merathis.101 }
+				# }
+				# 5 = {
+					# # migrate internally - if better terrain exists
+					# # should be relatively common where possible
+					# trigger = {
+						# NOT = { 
+							# OR = {
+								# has_terrain = mountain
+								# # has_terrain = highlands # will go from highlands to one of the other types
+								# has_terrain = cavern
+								# has_terrain = dwarven_hold
+								# has_terrain = dwarven_hold_surface
+							# }
+						# }
+						# any_owned_province = {
+							# AND = {
+								# OR = {
+									# has_terrain = mountain
+									# has_terrain = highlands
+									# has_terrain = cavern
+									# has_terrain = dwarven_hold
+									# has_terrain = dwarven_hold_surface
+								# }
+								# has_influencing_fort = no # forts prevent infestations from spawning if active. May want to take a look at this stuff as some are nice -WishP
+							# }
+						# }
+					# }
+					# province_event = { id = infestation_dragon_merathis.110 }
+				# }
+				# 4 = {
+					# # migrate out of country
+					# trigger = {
+						# NOT = { has_province_modifier = infestation_dragon_friendly }
+					# }
+					# province_event = { id = infestation_dragon_merathis.111 }
+				# }
+				# 2 = {
+					# # banish (migrate to random neighbour)
+					# # relatively common if adventurers are active
+					# trigger = {
+						# NOT = { has_province_modifier = infestation_dragon_friendly }
+					# }
+					# modifier = {
+						# factor = 3 # more likely if generous quest rewards/adverturer nation
+						# OR = {
+							# owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							# owner = { has_adventurer_reform = yes }
+						# }
+					# }
+					# province_event = { id = infestation_dragon_merathis.115 }
+				# }
+				# 10 = {
+					# # devastation/looting - friendly version. See .141 and .142 for the neutral/hostile versions
+					# # should be common; requires a rival to be set
+					# trigger = {
+						# has_province_modifier = infestation_dragon_friendly
+						# owner = { any_rival_country = { exists = yes } }
+					# }
+					# owner = {
+						# # select any random province
+						# random_rival_country = { 
+							# random_owned_province = { 
+								# save_event_target_as = infestation_dragon_raid_target
+							# }
+							# # but prefer one with loot
+							# random_owned_province = { 
+								# limit = { is_looted = no }
+								# save_event_target_as = infestation_dragon_raid_target
+							# }
+						# }
+					# }
+					# event_target:infestation_dragon_raid_target = {
+						# province_event = { id = infestation_dragon_merathis.140 }
+					# }
+				# }
+				# 10 = {
+					# # devastation/looting - neutrak version. See .140 and .142 for the friendly/hostile versions
+					# # should be common;
+					# trigger = {
+						# has_province_modifier = infestation_dragon_neutral
+					# }
+					# # if there's no neighbour, raid our lair province
+					# save_event_target_as = infestation_dragon_raid_target
+					# # select any random province
+					# random_neighbor_province = {
+						# save_event_target_as = infestation_dragon_raid_target
+					# }
+					# # but prefer one with loot
+					# random_neighbor_province = {
+						# limit = { is_looted = no }
+						# save_event_target_as = infestation_dragon_raid_target
+					# }
+					# # but prefer one with loot and no active fort nearby
+					# random_neighbor_province = {
+						# limit = { 
+							# AND = { 
+								# is_looted = no
+								# has_influencing_fort = no
+							# }
+						# }
+						# save_event_target_as = infestation_dragon_raid_target
+					# }
+					# event_target:infestation_dragon_raid_target = {
+						# province_event = { id = infestation_dragon_merathis.141 }
+					# }
+				# }
+				# 10 = {
+					# # devastation/looting - hostile version. See .140 and .141 for the friendly/neutral versions
+					# # should be common
+					# trigger = {
+						# has_province_modifier = infestation_dragon_hostile
+					# }
+					# owner = {
+						# random_core_province = {
+							# save_event_target_as = infestation_dragon_raid_target
+						# }
+						# # but prefer one with loot
+						# random_core_province = {
+							# limit = { is_looted = no }
+							# save_event_target_as = infestation_dragon_raid_target
+						# }
+						# # but prefer one with loot and no active fort nearby
+						# random_core_province = {
+							# limit = { 
+								# AND = { 
+									# is_looted = no
+									# has_influencing_fort = no
+								# }
+							# }
+							# save_event_target_as = infestation_dragon_raid_target
+						# }
+					# }
+					# event_target:infestation_dragon_raid_target = {
+						# province_event = { id = infestation_dragon_merathis.142 }
+					# }
+				# }
+				# 1 = {
+				# # infestation killed by adventurers; only if neutral/hostile
+				# # should be rare!
+					# modifier = {
+						# factor = 3 # more likely if generous quest rewards/adverturer nation
+						# OR = {
+							# owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							# owner = { has_adventurer_reform = yes }
+						# }
+					# }
+					# modifier = {
+						# factor = 1.5 # active fort nearby
+						# has_influencing_fort = yes
+					# }
+					# modifier = {
+						# factor = 0.5 # less likely if neutral
+						# has_province_modifier = infestation_dragon_neutral
+					# }
+					# province_event = { id = infestation_dragon_merathis.150 }
+				# }
+				# 2 = { # Kobold minority settled
+					# modifier = {
+						# factor = 3 # if kobold friendly
+						# OR = {
+							# owner = { monstrous_culture = yes }
+							# owner = { has_kobold_accepted_culture = yes }
+							# owner = { high_tolerance_kobold_race_trigger = yes }
+						# }
+					# }
+					# province_event = { id = infestation_dragon_merathis.160 }
+				# }
+				# 3 = { province_event = { id = infestation_dragon_merathis.205 } } # Demands tribute
+			# }
+		# }
+	# }
+    
+    # #after = {
+    # #    # loop this random event dispatcher
+    # #    # about a year between events
+    # #    province_event = { id = infestation_dragon_merathis.1 days = 300 random = 100 }
+    # #}
+# }
+
+# # notification of Dragon spawning, major event!
+# province_event = {
+    # id = infestation_dragon_merathis.100
+    # title = infestation_dragon_merathis.100.t
+    # desc = infestation_dragon_merathis.100.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # major = yes
+    # major_trigger = {
+        # capital_scope = {
+            # continent = europe # cannor
+        # }
+    # }
+    # is_triggered_only = yes
+    
+    # option = {
+        # # "Perhaps we can befriend it?"
+        # name = infestation_dragon_merathis.100.a
+        # ai_chance = { factor = 50 }
+    # }
+    # option = {
+        # # "Grant adventurers Generous Quest Rewards to deal with it."
+        # name = infestation_dragon_merathis.100.b
+        # ai_chance = { 
+            # factor = 20 
+            # modifier = {
+                # factor = 0
+                # owner = { is_in_deficit = yes }
+            # }
+        # }
+        # trigger = {
+            # owner = { has_estate = estate_adventurers }
+            # owner = { NOT = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+        # }
+        # owner = { set_estate_privilege = estate_adventurers_generous_quest_rewards }
+    # }
+    # option = {
+        # # "This is why the adventurers have such Generous Quest Rewards."
+        # name = infestation_dragon_merathis.100.c
+        # ai_chance = { factor = 50 }
+        # trigger = {
+            # owner = { has_estate = estate_adventurers }
+            # owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+        # }
+    # }
+    # option = {
+        # # "We are a country of adventurers! We shall deal with this dragon!"
+        # name = infestation_dragon_merathis.100.e
+        # ai_chance = { factor = 50 }
+        # trigger = {
+            # owner = { has_adventurer_reform = yes }
+        # }
+    # }
+# }
+
+# # dragon vanishes on its own
+# province_event = {
+    # id = infestation_dragon_merathis.101
+    # title = infestation_dragon_merathis.101.t
+    # desc = infestation_dragon_merathis.101.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_neutral
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Quick, her hoard is there for the taking!
+        # name = infestation_dragon_merathis.101.a
+        # ai_chance = { factor = 100 }
+        # remove_province_modifier = infestation_dragon_merathis
+        # remove_province_modifier = infestation_dragon_neutral
+        # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+    # }
+    # after = {
+        # hidden_effect = {
+            # province_event = { id = infestation_dragon_merathis.201 days = 30 } # deal with hoard
+        # }
+    # }
+# }
+
+# # infestation migrates to another province internally event; if better terrain for lair
+# province_event = {
+    # id = infestation_dragon_merathis.110
+    # title = infestation_dragon_merathis.110.t
+    # desc = infestation_dragon_merathis.110.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = yes
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # owner = { 
+            # num_of_cities = 2 # you have something to migrate to
+            # any_owned_province = {
+                # OR = {
+                    # has_terrain = mountain
+                    # has_terrain = highlands
+                    # has_terrain = cavern
+                    # has_terrain = dwarven_hold
+                    # has_terrain = dwarven_hold_surface
+                # }
+                # NOT = { has_province_flag = infestation_present }
+                # has_influencing_fort = no # forts prevent infestations from spawning if active
+            # }
+        # }
+    # }
+    
+    # immediate = {
+        # hidden_effect = {
+            # random_owned_province = {
+                # limit = {
+                    # NOT = { has_province_flag = infestation_present }
+                    # OR = {
+                        # has_terrain = mountain
+                        # has_terrain = highlands
+                        # has_terrain = cavern
+                        # has_terrain = dwarven_hold
+                        # has_terrain = dwarven_hold_surface
+                    # }
+                    # has_influencing_fort = no # forts prevent infestations from spawning if active
+                # }
+                # save_event_target_as = infestation_migration_target
+            # }
+            # event_target:infestation_migration_target = {
+                # set_province_flag = infestation_present
+                # add_province_modifier = {
+                    # name = infestation_dragon_merathis
+                    # duration = -1  
+                    # desc = infestation_dragon_merathis_tooltip
+                # }
+                # hidden_effect = {
+                    # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                    # set_province_flag = infestation_pulse_flag
+                # }
+            # }
+            # remove_province_modifier = infestation_dragon_merathis
+            # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+			# cleanup_infestation = yes
+            # # copy the current hoard value from this province to target
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33 # modulo 33; might leave behind some moving expenses
+                    # }
+                # }
+                # event_target:infestation_migration_target = {
+                    # change_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33
+                    # }
+                # }
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -33
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # name = infestation_dragon_merathis.110.a
+        # ai_chance = { factor = 100 }
+        # goto = infestation_migration_target
+        # trigger = {
+            # has_province_modifier = infestation_dragon_friendly
+        # }
+        # event_target:infestation_migration_target = {
+            # add_province_modifier = {
+                # name = infestation_dragon_friendly
+                # duration = -1  
+                # desc = infestation_dragon_friendly_tooltip
+            # }
+            # hidden_effect = {
+                # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                # set_province_flag = infestation_pulse_flag
+            # }
+        # }
+        # remove_province_modifier = infestation_dragon_friendly
+    # }    
+    # option = {
+        # name = infestation_dragon_merathis.110.b
+        # ai_chance = { factor = 100 }
+        # goto = infestation_migration_target
+        # trigger = {
+            # has_province_modifier = infestation_dragon_neutral
+        # }
+        # event_target:infestation_migration_target = {
+            # add_province_modifier = {
+                # name = infestation_dragon_neutral
+                # duration = -1  
+                # desc = infestation_dragon_neutral_tooltip
+            # }
+            # hidden_effect = {
+                # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                # set_province_flag = infestation_pulse_flag
+            # }
+        # }
+        # remove_province_modifier = infestation_dragon_neutral
+    # }    
+    # option = {
+        # name = infestation_dragon_merathis.110.c
+        # ai_chance = { factor = 100 }
+        # goto = infestation_migration_target
+        # trigger = {
+            # has_province_modifier = infestation_dragon_hostile
+        # }
+        # event_target:infestation_migration_target = {
+            # add_province_modifier = {
+                # name = infestation_dragon_hostile
+                # duration = -1  
+                # desc = infestation_dragon_hostile_tooltip
+            # }
+            # hidden_effect = {
+                # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                # set_province_flag = infestation_pulse_flag
+            # }
+        # }
+        # remove_province_modifier = infestation_dragon_hostile
+    # }    
+    
+    # #after = {
+    # #    # first event in a year, ish
+    # #    event_target:infestation_migration_target = {
+    # #        province_event = { id = infestation_dragon_merathis.1 days = 300 random = 100 }
+    # #    }
+    # #}
+# }
+
+# # dragon seeks out a superior home outside the country
+# province_event = {
+    # id = infestation_dragon_merathis.111
+    # title = infestation_dragon_merathis.111.t
+    # desc = infestation_dragon_merathis.111.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # NOT = { has_province_modifier = infestation_dragon_friendly }
+    # }
+    
+    # immediate = {
+        # hidden_effect = {
+            # # set migration target, starting at least desirable and working upwards
+            # random_province = {
+                # limit = {
+                    # continent = europe # cannorian dragon
+                    # NOT = { owner = { tag = ROOT } }
+                    # NOT = { has_province_flag = infestation_present }
+                    # OR = {
+                        # has_terrain = mountain
+                        # has_terrain = highlands
+                        # has_terrain = cavern
+                        # has_terrain = dwarven_hold
+                        # has_terrain = dwarven_hold_surface
+                    # }
+                    # has_influencing_fort = no # forts prevent infestations from spawning if active
+                # }
+                # save_event_target_as = infestation_migration_target
+            # }
+            # random_province = {
+                # limit = {
+                    # continent = europe # cannorian dragon
+                    # NOT = { owner = { tag = ROOT } }
+                    # NOT = { has_province_flag = infestation_present }
+                    # owner = {
+                        # OR = {
+                            # high_tolerance_kobold_race_trigger = yes
+                            # has_kobold_accepted_culture = yes
+                            # tag = A33 # verne, due to wyverns
+                            # tag = B31 # castellyr, would apparently like them too
+                            # tag = B32 # castanor, due to dragon on flag
+                            # tag = Z34 # black castanor, likewise
+                        # }
+                    # has_influencing_fort = no # forts prevent infestations from spawning if active
+                    # }
+                # }
+                # save_event_target_as = infestation_migration_target
+            # }
+            # event_target:infestation_migration_target = {
+                # set_province_flag = infestation_present
+            # }
+            # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+            # # copy the current hoard value from this province to target
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33 # modulo 33; might leave behind some moving expenses
+                    # }
+                # }
+                # event_target:infestation_migration_target = {
+                    # change_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33
+                    # }
+                # }
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -33
+                # }
+            # }
+        # }
+    # }
+    
+    # option = {
+        # name = infestation_dragon_merathis.111.a
+        # ai_chance = { factor = 100 }
+        # goto = infestation_migration_target
+        # event_target:infestation_migration_target = {
+            # add_province_modifier = {
+                # name = infestation_dragon_neutral
+                # duration = -1  
+                # desc = infestation_dragon_neutral_tooltip
+            # }
+            # add_province_modifier = {
+                # name = infestation_dragon_merathis
+                # duration = -1  
+                # desc = infestation_dragon_merathis_tooltip
+            # }
+            # hidden_effect = {
+                # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                # set_province_flag = infestation_pulse_flag
+            # }
+        # }
+        # remove_province_modifier = infestation_dragon_neutral
+        # remove_province_modifier = infestation_dragon_hostile
+        # remove_province_modifier = infestation_dragon_merathis
+    # }
+ 
+    # after = {
+        # event_target:infestation_migration_target = {
+            # province_event = { id = infestation_dragon_merathis.112 }
+        # }
+    # }
+# }
+
+# # dragon migrated across our border into this province
+# # basically the same as infestation_dragon_merathis.100
+# # except the dragon chose to come here, because it is a superior lair or the country is friendly
+# province_event = {
+    # id = infestation_dragon_merathis.112
+    # title = infestation_dragon_merathis.112.t
+    # desc = infestation_dragon_merathis.112.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # immediate = {
+    # }
+    
+    # option = {
+        # # how wonderful, send her a welcoming gift
+        # name = infestation_dragon_merathis.112.a
+        # ai_chance = { 
+            # factor = 50 
+            # modifier = {
+                # factor = 2
+                # owner = { 
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+        # }
+        # owner = { add_treasury = -54 }
+        # change_variable = {
+            # which = infestation_dragon_merathis_hoard
+            # value = 54
+        # }
+        # random = { 
+            # chance = 25 # dragon stops migrating if friendly
+            # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+            # add_province_modifier = {
+                # name = infestation_dragon_friendly
+                # duration = -1  
+                # desc = infestation_dragon_friendly_tooltip
+            # }
+        # }
+    # }
+    # option = {
+        # # we cannot afford a dragon
+        # name = infestation_dragon_merathis.112.b
+        # ai_chance = { 
+            # factor = 50 
+            # modifier = {
+                # factor = 2
+                # owner = { 
+                    # OR = {
+                        # is_in_deficit = yes
+                        # num_of_loans = 1
+                    # }
+                # }
+            # }
+        # }
+        # random = { 
+            # chance = 10 
+            # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+            # add_province_modifier = {
+                # name = infestation_dragon_hostile
+                # duration = -1  
+                # desc = infestation_dragon_hostile_tooltip
+            # }
+        # }
+    # }
+
+    # #after = {
+    # #    # first event in half a year, ish
+    # #    province_event = { id = infestation_dragon_merathis.1 days = 100 random = 100 }
+    # #}
+# }
+
+# # banished (migrate to a neighbour at random) - similar to .111 except dragon 
+# # has no choice in landing province, and receiving country less likely to be happy
+# # about us sending them our unwanted dragon
+# province_event = {
+    # id = infestation_dragon_merathis.115
+    # title = infestation_dragon_merathis.115.t
+    # desc = infestation_dragon_merathis.115.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+        
+    # trigger = {
+        # NOT = { has_province_modifier = infestation_dragon_friendly }
+        # owner = {
+            # any_neighbor_country = {
+                # any_owned_province = {
+                    # NOT = { has_province_flag = infestation_present }
+                    # has_influencing_fort = no # forts prevent infestations from spawning if active
+                # }
+            # }
+        # }
+    # }
+    
+    # immediate = {
+        # hidden_effect = {
+            # owner = {
+                # random_neighbor_country = {
+                    # limit = {
+                        # any_owned_province = {
+                            # NOT = { has_province_flag = infestation_present }
+                            # has_influencing_fort = no # active forts prevent infestations
+                        # }
+                    # }
+                    # save_event_target_as = infestation_migration_country_target
+                # }
+            # }
+            # event_target:infestation_migration_country_target = {
+                # random_owned_province = {
+                    # limit = { 
+                        # NOT = { has_province_flag = infestation_present } 
+                        # has_influencing_fort = no # active forts prevent infestations
+                    # }
+                    # save_event_target_as = infestation_migration_target
+                # }
+            # }
+            # event_target:infestation_migration_target = {
+                # set_province_flag = infestation_present
+            # }
+            # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+            # # copy the current hoard value from this province to target
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33 # modulo 33; might leave behind some moving expenses
+                    # }
+                # }
+                # event_target:infestation_migration_target = {
+                    # change_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 33
+                    # }
+                # }
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -33
+                # }
+            # }
+        # }
+    # }
+    
+    # option = {
+        # # their problem now
+        # name = infestation_dragon_merathis.115.a
+        # ai_chance = { factor = 100 }
+        # goto = infestation_migration_target
+        # event_target:infestation_migration_target = {
+            # add_province_modifier = {
+                # name = infestation_dragon_neutral
+                # duration = -1  
+                # desc = infestation_dragon_neutral_tooltip
+            # }
+            # add_province_modifier = {
+                # name = infestation_dragon_merathis
+                # duration = -1  
+                # desc = infestation_dragon_merathis_tooltip
+            # }
+            # hidden_effect = {
+                # add_province_triggered_modifier = infestation_merathis_monthly_pulse
+                # set_province_flag = infestation_pulse_flag
+            # }
+        # }
+        # remove_province_modifier = infestation_dragon_neutral
+        # remove_province_modifier = infestation_dragon_hostile
+        # remove_province_modifier = infestation_dragon_merathis
+        # if = {
+            # limit = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+            # owner = {
+                # add_estate_influence_modifier = {
+                    # estate = estate_adventurers
+                    # desc = handled_infestation
+                    # duration = 3650
+                    # influence = 5
+                # }
+            # }
+        # }
+        # # new owner of dragon is unlikely to be happy, except if...
+        # if = {
+            # limit = {
+                # event_target:infestation_migration_target = {
+                    # owner = {
+                        # NOT = {
+                            # OR = {
+                                # high_tolerance_kobold_race_trigger = yes
+                                # has_kobold_accepted_culture = yes
+                                # tag = A33 # verne, due to wyverns
+                                # tag = B31 # castellyr, would apparently like them too
+                                # tag = B32 # castanor, due to dragon on flag
+                                # tag = Z34 # black castanor, likewise
+                            # }
+                        # }
+                    # }
+                # }
+            # }
+            # event_target:infestation_migration_target = {
+                # owner = {
+                    # add_opinion = {
+                        # who = ROOT
+                        # modifier = infestation_crossed_border
+                    # }
+                # }
+            # }
+        # }
+    # }
+    
+    # after = {
+        # event_target:infestation_migration_target = {
+            # province_event = { id = infestation_dragon_merathis.112 }
+        # }
+    # }
+# }
+
+# # devastation/looting - friendly version. See .141 and .142 for the neutral/hostile versions
+# # this event is scoped in the devastated province, not the hoard
+# # target province is set in dispatch - should be a province belonging to a rival
+# # use FROM to get lair province and apply effects there
+# # dragon here is in a province belonging to a rival of the hoard owner, so responses
+# # tend to be hostile, naturally
+# province_event = {
+    # id = infestation_dragon_merathis.140
+    # title = infestation_dragon_merathis.140.t
+    # desc = infestation_dragon_merathis.140.d
+    # picture = COMET_SIGHTED_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # immediate = {
+        # hidden_effect = {
+            # remove_loot = {
+                # who = REB
+                # amount = 25 # in hostile territory - make dragon extra hostile
+            # }
+            # FROM = {
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = 25
+                # }
+            # }
+        # }
+    # }
+
+    # option = {
+        # # "Attack the dragon with everything we have!"
+        # name = infestation_dragon_merathis.140.b
+        # ai_chance = { 
+            # factor = 50 
+            # # more likely to fight if dragon has crossed border
+            # # this is basically the only way to kill a neighbour's dragon
+            # # to fight it while raiding
+            # modifier = {
+                # factor = 3
+                # OR = {
+                    # FROM = {
+                        # NOT = { owned_by = ROOT }
+                    # }
+                # }
+            # }
+            # # if we're one of the dragon centric types in cannor, 
+            # # we're less likely to fight back
+            # modifier = {
+                # factor = 0.5
+                # owner = {
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+            # # if our adventurers have Generous Quest Rewards 
+            # # we're more likely to fight back
+            # modifier = {
+                # factor = 2
+                # owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+            # }
+        # }
+        # add_devastation = 5 # devastation due to fighting, in excess of looting
+        # FROM = {
+            # random = { # sometimes, by fighting, she becomes hostile
+                # chance = 5 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_hostile
+                    # duration = -1  
+                    # desc = infestation_dragon_hostile_tooltip
+                # }
+            # }
+        # }
+        # random = { # sometimes, by fighting, she is killed
+            # chance = 1
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.151 } }
+        # }
+    # }
+    # option = {
+        # # "Time for the adventurers to shine"
+        # name = infestation_dragon_merathis.140.c
+        # trigger = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+        # ai_chance = { factor = 50 }
+        # random = { # sometimes, by fighting, she is killed
+            # chance = 5
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.151 } }
+        # }
+    # }
+    # option = {
+        # # "we must control her" <- get claim
+        # name = infestation_dragon_merathis.140.e
+        # trigger = { 
+        # }
+        # ai_chance = { factor = 50 }
+        # FROM = {
+			# if = {
+				# limit = { NOT = { has_claims_restricted = yes } }
+				# add_claim = ROOT
+			# }
+        # }
+    # }
+    # # let's harm relations, to encourage some action to be taken
+    # after = {
+        # owner = {
+            # add_opinion = {
+                # who = FROM
+                # modifier = infestation_crossed_border
+            # }
+        # }
+    # }
+# }
+
+# # devastation/looting - neutral version. See .140 and .142 for the friendly/hostile versions
+# # this event is scoped in the devastated province, not the hoard
+# # target province is set in dispatch.
+# # use FROM to get lair province and apply effects there
+# province_event = {
+    # id = infestation_dragon_merathis.141
+    # title = infestation_dragon_merathis.141.t
+    # desc = infestation_dragon_merathis.141.d
+    # picture = COMET_SIGHTED_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # immediate = {
+        # hidden_effect = {
+            # remove_loot = {
+                # who = REB
+                # amount = 10 # in neutral territory, not as bad
+            # }
+            # FROM = {
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = 10
+                # }
+            # }
+        # }
+    # }
+
+    # option = {
+        # # turn a blind eye
+        # name = infestation_dragon_merathis.141.a
+        # ai_chance = { 
+            # factor = 50 
+            # # less likely to turn a blind eye if dragon has crossed border
+            # modifier = {
+                # factor = 0.1
+                # OR = {
+                    # FROM = {
+                        # NOT = { owned_by = ROOT }
+                    # }
+                # }
+            # }
+            # # if we're one of the dragon centric types in cannor, 
+            # # we're more likely to tolerate this
+            # modifier = {
+                # factor = 2
+                # owner = {
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+        # }
+        # FROM = {
+            # random = { # sometimes, by turning a blind eye, she becomes friendly
+                # chance = 5 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_friendly
+                    # duration = -1  
+                    # desc = infestation_dragon_friendly_tooltip
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # "Attack the dragon with everything we have!"
+        # name = infestation_dragon_merathis.141.b
+        # ai_chance = { 
+            # factor = 50 
+            # # more likely to fight if dragon has crossed border
+            # # this is basically the only way to kill a neighbour's dragon
+            # # to fight it while raiding
+            # modifier = {
+                # factor = 3
+                # OR = {
+                    # FROM = {
+                        # NOT = { owned_by = ROOT }
+                    # }
+                # }
+            # }
+            # # if we're one of the dragon centric types in cannor, 
+            # # we're less likely to fight back
+            # modifier = {
+                # factor = 0.5
+                # owner = {
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+            # # if our adventurers have Generous Quest Rewards 
+            # # we're more likely to fight back
+            # modifier = {
+                # factor = 2
+                # owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+            # }
+        # }
+        # add_devastation = 5 # devastation due to fighting, in excess of looting
+        # FROM = {
+            # random = { # sometimes, by fighting, she becomes less friendly at home
+                # chance = 5 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_hostile
+                    # duration = -1  
+                    # desc = infestation_dragon_hostile_tooltip
+                # }
+            # }
+        # }
+        # random = { # sometimes, by fighting, she is killed
+            # chance = 1
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.151 } }
+            # custom_tooltip = infestation_dragon_merathis_killed_tooltip
+        # }
+    # }
+    # option = {
+        # # "Time for the adventurers to shine"
+        # name = infestation_dragon_merathis.141.c
+        # trigger = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+        # ai_chance = { factor = 50 }
+        # random = { # sometimes, by fighting, she is killed
+            # chance = 5
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.151 } }
+        # }
+    # }
+    # option = {
+        # # "we must control her" <- get claim if not already owned by ROOT
+        # name = infestation_dragon_merathis.141.e
+        # trigger = { 
+            # FROM = {
+                # NOT = { owned_by = ROOT }
+            # } 
+        # }
+        # ai_chance = { factor = 50 }
+        # FROM = {
+			# if = {
+				# limit = { NOT = { has_claims_restricted = yes } }
+				# add_claim = ROOT
+			# }
+        # }
+    # }
+    # # let's harm relations, to encourage some action to be taken
+    # after = {
+        # if = {
+            # limit = {
+                # owner = {
+                    # NOT = { tag = ROOT }
+                # }
+            # }
+            # owner = {
+                # add_opinion = {
+                    # who = FROM
+                    # modifier = infestation_crossed_border
+                # }
+            # }
+        # }
+    # }
+# }
+
+# # devastation/looting - hostile version. See .140 and .141 for the friendly/neutral versions
+# # this event is scoped in the devastated province, not the hoard
+# # target province is set in dispatch.
+# # use FROM to get lair province and apply effects there
+# # dragon is targetting lair owner, due to hostile disposition
+# province_event = {
+    # id = infestation_dragon_merathis.142
+    # title = infestation_dragon_merathis.142.t
+    # desc = infestation_dragon_merathis.142.d
+    # picture = COMET_SIGHTED_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # immediate = {
+        # hidden_effect = {
+            # remove_loot = {
+                # who = REB
+                # amount = 25 # hostile dragon at home is hostile as fuck
+            # }
+            # FROM = {
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = 25
+                # }
+            # }
+        # }
+    # }
+
+    # option = {
+        # # turn a blind eye
+        # name = infestation_dragon_merathis.142.a
+        # ai_chance = { 
+            # factor = 20 
+            # # if we're one of the dragon centric types in cannor, 
+            # # we're more likely to tolerate this
+            # modifier = {
+                # factor = 2
+                # owner = {
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+        # }
+        # FROM = {
+            # random = { # sometimes, by turning a blind eye, she becomes friendly
+                # chance = 25 # should feel possible to dig out from under hostile
+                # hidden_effect = { remove_province_modifier = infestation_dragon_hostile }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # "Attack the dragon with everything we have!"
+        # name = infestation_dragon_merathis.142.b
+        # ai_chance = { 
+            # factor = 50 
+            # # if we're one of the dragon centric types in cannor, 
+            # # we're less likely to fight back
+            # modifier = {
+                # factor = 0.5
+                # owner = {
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+            # # if our adventurers have Generous Quest Rewards 
+            # # we're more likely to fight back
+            # modifier = {
+                # factor = 2
+                # owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+            # }
+        # }
+        # trigger = {  }
+        # add_devastation = 5 # devastation due to fighting, in excess of looting
+        # random = { # sometimes, by fighting, she is killed
+            # chance = 5
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.151 } }
+        # }
+    # }
+# }
+
+# # dragon killed by adventurers; only if neutral/hostile
+# province_event = {
+    # id = infestation_dragon_merathis.150
+    # title = infestation_dragon_merathis.150.t
+    # desc = infestation_dragon_merathis.150.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # NOT = { has_province_modifier = infestation_dragon_friendly }
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Success! Now to deal with her hoard!
+        # name = infestation_dragon_merathis.150.a
+        # ai_chance = { factor = 100 }
+        # remove_province_modifier = infestation_dragon_merathis
+        # remove_province_modifier = infestation_dragon_neutral
+        # remove_province_modifier = infestation_dragon_hostile
+        # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+        # if = {
+            # limit = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+            # owner = {
+                # add_estate_influence_modifier = {
+                    # estate = estate_adventurers
+                    # desc = handled_infestation
+                    # duration = 3650
+                    # influence = 5
+                # }
+            # }
+        # }
+    # }
+    # after = {
+        # hidden_effect = {
+            # province_event = { id = infestation_dragon_merathis.201 days = 30 } # deal with hoard
+        # }
+    # }
+# }
+
+# # dragon killed while raiding (can be another country than home of lair)
+# # note that this event is scoped to the province of the raid
+# # and that the raid event is also scoped to the province of the raid
+# # so use FROM = { FROM = { } } to get lair province scope
+# province_event = {
+    # id = infestation_dragon_merathis.151
+    # title = infestation_dragon_merathis.151.t
+    # desc = infestation_dragon_merathis.151.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+
+    # }
+    
+    # option = {
+        # # We are dragon slayers!
+        # name = infestation_dragon_merathis.151.a
+        # ai_chance = { factor = 100 }
+        # # remove merathis
+        # FROM = {
+            # FROM = {
+                # remove_province_modifier = infestation_dragon_merathis
+                # remove_province_modifier = infestation_dragon_neutral
+                # remove_province_modifier = infestation_dragon_hostile
+                # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+            # }
+        # }
+        # # reward adventurers of killing country, if appropriate
+        # if = {
+            # limit = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+            # owner = {
+                # add_estate_influence_modifier = {
+                    # estate = estate_adventurers
+                    # desc = handled_infestation
+                    # duration = 3650
+                    # influence = 5
+                # }
+            # }
+        # }
+        # add_prestige = 25
+    # }
+    # after = {
+        # FROM = {
+            # FROM = {
+                # province_event = { id = infestation_dragon_merathis.201 days = 30 } # deal with hoard
+            # }
+        # }
+        # hidden_effect = {
+            
+        # }
+    # }
+# }
+
+# # dragon killed by poisoned goat
+# province_event = {
+    # id = infestation_dragon_merathis.152
+    # title = infestation_dragon_merathis.152.t
+    # desc = infestation_dragon_merathis.152.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Hah! Now to deal with her hoard!
+        # name = infestation_dragon_merathis.152.a
+        # ai_chance = { factor = 100 }
+        # remove_province_modifier = infestation_dragon_merathis
+        # remove_province_modifier = infestation_dragon_friendly
+        # remove_province_modifier = infestation_dragon_neutral
+        # remove_province_modifier = infestation_dragon_hostile
+        # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+        # if = {
+            # limit = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+            # owner = {
+                # add_estate_influence_modifier = {
+                    # estate = estate_adventurers
+                    # desc = handled_infestation
+                    # duration = 3650
+                    # influence = 5
+                # }
+            # }
+        # }
+    # }
+    # after = {
+        # hidden_effect = {
+            # province_event = { id = infestation_dragon_merathis.201 days = 30 } # deal with hoard
+        # }
+    # }
+# }
+
+# # kobold minority settles cause they love dragon
+# province_event = {
+    # id = infestation_dragon_merathis.160
+    # title = infestation_dragon_merathis.160.t
+    # desc = infestation_dragon_merathis.160.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # option = {
+        # # If it makes Merathis happy...
+        # name = infestation_dragon_merathis.160.a
+        # ai_chance = { 
+            # factor = 50 
+            # modifier = {
+                # factor = 0.1
+                # owner = { culture_group = gnomish } # cause
+            # }
+            # modifier = {
+                # factor = 2
+                # OR = {
+                    # owner = { has_kobold_accepted_culture = yes }
+                    # owner = { high_tolerance_kobold_race_trigger = yes }
+                # }
+            # }
+        # }
+        # add_kobold_minority_size_effect = yes
+        # small_increase_of_kobold_tolerance_effect = yes
+        # random_list = {
+            # 1 = { add_base_tax = 1 }
+            # 1 = { add_base_production = 1 }
+            # 1 = { add_base_manpower = 1 }
+        # }
+        # if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_friendly
+            # }
+            # random_list = {
+                # 1 = { add_base_tax = 1 }
+                # 1 = { add_base_production = 1 }
+                # 1 = { add_base_manpower = 1 }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_neutral
+            # }
+            # random = { 
+                # chance = 10 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_friendly
+                    # duration = -1  
+                    # desc = infestation_dragon_friendly_tooltip
+                # }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_hostile
+            # }
+            # random = { 
+                # chance = 10 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_hostile }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # Just say no to kobold settlers.
+        # name = infestation_dragon_merathis.160.b
+        # ai_chance = { 
+            # factor = 50
+            # modifier = {
+                # factor = 0
+                # OR = {
+                    # owner = { has_kobold_accepted_culture = yes }
+                    # owner = { high_tolerance_kobold_race_trigger = yes }
+                # }
+            # }
+            
+        # }
+        # small_decrease_of_kobold_tolerance_effect = yes
+        # if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_friendly
+            # }
+            # random = { 
+                # chance = 10 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_friendly }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_neutral
+            # }
+            # random = { 
+                # chance = 10 
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_hostile
+                    # duration = -1  
+                    # desc = infestation_dragon_hostile_tooltip
+                # }
+            # }
+        # }
+    # }
+# }
+
+# # deal with dragon hoard; dragon is dead/vanished
+# province_event = {
+    # id = infestation_dragon_merathis.201
+    # title = infestation_dragon_merathis.201.t
+    # desc = infestation_dragon_merathis.201.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+    # }
+    
+    # immediate = {
+        # # we need to set a target for one option. This is a cascade, selecting
+        # # targets, first by opinion, then replacing them with better options
+        # # if there are allies/subjects/overlords available
+        # hidden_effect = {
+            # random_neighbor_country = {
+                # save_event_target_as = infestation_dragon_hoard_friend_target
+            # }
+            # random_country = {
+                # limit = {
+                    # NOT = { tag = ROOT }
+                    # has_opinion = {
+                        # who = ROOT
+                        # value = 35
+                    # }
+                # }
+                # save_event_target_as = infestation_dragon_hoard_friend_target
+            # }
+            # random_country = {
+                # limit = {
+                    # NOT = { tag = ROOT }
+                    # has_opinion = {
+                        # who = ROOT
+                        # value = 25
+                    # }
+                    # OR = {
+                        # alliance_with = ROOT
+                        # overlord_of = ROOT
+                        # is_subject_of = ROOT
+                    # }
+                # }
+                # save_event_target_as = infestation_dragon_hoard_friend_target
+            # }
+        # }
+    # }
+    
+    # option = {
+        # # claim the hoard
+        # name = infestation_dragon_merathis.201.a
+        # ai_chance = { factor = 50 }
+        # custom_tooltip = infestation_dragon_merathis.201.a.tooltip
+        # hidden_effect = {
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 40
+                    # }
+                # }
+                # owner = { add_treasury = 40 }
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -40
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # share the wealth - send some to allies/subjects for opinion bonuses
+        # name = infestation_dragon_merathis.201.b
+        # ai_chance = { factor = 50 }
+        # custom_tooltip = infestation_dragon_merathis.201.b.tooltip
+        # event_target:infestation_dragon_hoard_friend_target = {
+            # add_historical_friend = ROOT
+        # }
+        # hidden_effect = {
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 40
+                    # }
+                # }
+                # owner = { add_treasury = 20 }
+                # event_target:infestation_dragon_hoard_friend_target = {
+                    # add_treasury = 20
+                # }
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -40
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # reward the adventurers - permanent bonus to adventurers estate
+        # name = infestation_dragon_merathis.201.c
+        # trigger = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }  }
+        # ai_chance = { factor = 50 }
+        # custom_tooltip = infestation_dragon_merathis.201.c.tooltip
+        # hidden_effect = {
+            # while = {
+                # limit = {
+                    # check_variable = {
+                        # which = infestation_dragon_merathis_hoard
+                        # value = 40
+                    # }
+                # }
+                # owner = { add_treasury = 20 } # only gain 1/2 of value
+                # change_variable = {
+                    # which = infestation_dragon_merathis_hoard
+                    # value = -40
+                # }
+            # }
+        # }
+        # owner = {
+            # add_estate_influence_modifier = {
+                # estate = estate_adventurers
+                # desc = infestation_dragon_adventurers_reward
+                # duration = -1
+                # influence = 10
+            # }
+            # add_estate_loyalty = {
+                # estate = estate_adventurers
+                # loyalty = 10
+            # }
+        # }
+    # }
+    # option = {
+        # # leverage the asset - gain permanent modifiers for loans/interest/inflation
+        # name = infestation_dragon_merathis.201.e
+        # ai_chance = { factor = 50 }
+        # owner = {
+            # add_country_modifier = {
+                # name = infestation_dragon_leveraged_hoard
+                # duration = -1  
+                # desc = infestation_dragon_leveraged_hoard_tooltip
+            # }
+        # }
+    # }
+    # after = {
+        # set_variable = {
+            # which = infestation_dragon_merathis_hoard
+            # value = 0
+        # }
+    # }
+# }
+
+# # dragon demands tribute
+# province_event = {
+    # id = infestation_dragon_merathis.205
+    # title = infestation_dragon_merathis.205.t
+    # desc = infestation_dragon_merathis.205.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # "For our dear dragon friend, trinkets for her hoard!" - reward is prestige/mana
+        # name = infestation_dragon_merathis.205.a
+        # trigger = { has_province_modifier = infestation_dragon_friendly }
+        # ai_chance = { 
+            # factor = 50 
+            # modifier = {
+                # factor = 0.1
+                # owner = { is_in_deficit = yes }
+            # }
+        # }
+        # owner = { add_treasury = -475 }
+        # change_variable = {
+            # which = infestation_dragon_merathis_hoard
+            # value = 475
+        # }
+        # hidden_effect = {
+            # province_event = { id = infestation_dragon_merathis.206 days = 100 random = 100 }
+        # }
+    # }
+    # option = {
+        # # "Or, perhaps some men for her honour guard." - reward is military stuff/general
+        # name = infestation_dragon_merathis.205.b
+        # trigger = { has_province_modifier = infestation_dragon_friendly }
+        # ai_chance = { 
+            # factor = 50 
+            # modifier = {
+                # factor = 0.5
+                # owner = { NOT = { manpower = 15 } }
+            # }
+            # modifier = {
+                # factor = 0.2
+                # owner = { NOT = { manpower = 5 } }
+            # }
+        # }
+        # owner = { add_manpower = -5 }
+        # hidden_effect = {
+            # province_event = { id = infestation_dragon_merathis.207 days = 100 random = 100 }
+        # }
+    # }
+    # option = {
+        # # "If this is the price of peace, then pay it."
+        # name = infestation_dragon_merathis.205.c
+        # trigger = { NOT = { has_province_modifier = infestation_dragon_friendly } }
+        # ai_chance = {
+            # factor = 50 
+            # modifier = {
+                # factor = 0.5
+                # owner = { NOT = { manpower = 10 } }
+            # }
+            # modifier = {
+                # factor = 0.2
+                # owner = { NOT = { manpower = 3 } }
+            # }
+            # modifier = {
+                # factor = 0.2
+                # owner = { is_in_deficit = yes }
+            # }
+        # }
+        # owner = { add_treasury = -325 }
+        # change_variable = {
+            # which = infestation_dragon_merathis_hoard
+            # value = 325
+        # }
+        # owner = { add_manpower = -3 }
+        # if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_hostile
+            # }
+            # random = { 
+                # chance = 50 # relatively high chance of turning dragon non-hostile
+                # hidden_effect = { remove_province_modifier = infestation_dragon_hostile }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_neutral
+            # }
+            # random = { 
+                # chance = 25 # but harder to turn it friendly
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_friendly
+                    # duration = -1  
+                    # desc = infestation_dragon_friendly_tooltip
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # "We cannot afford it."
+        # name = infestation_dragon_merathis.205.e
+        # trigger = { }
+        # ai_chance = { 
+            # factor = 10 
+            # modifier = {
+                # factor = 5
+                # owner = { is_in_deficit = yes }
+            # }
+        # }
+        # if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_friendly
+            # }
+            # random = { 
+                # chance = 25
+                # hidden_effect = { remove_province_modifier = infestation_dragon_friendly }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_neutral
+            # }
+            # random = { 
+                # chance = 25
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_hostile
+                    # duration = -1  
+                    # desc = infestation_dragon_hostile_tooltip
+                # }
+            # }
+        # }
+    # }
+    # option = {
+        # # "Suffer the demands of a dragon? Send her a poisoned goat!"
+        # name = infestation_dragon_merathis.205.f
+        # trigger = { }
+        # ai_chance = { 
+            # factor = 10 
+            # modifier = {
+                # factor = 3
+                # has_province_modifier = infestation_dragon_hostile
+            # }
+            # modifier = {
+                # factor = 3
+                # owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+            # }
+            # modifier = {
+                # factor = 0.5
+                # owner = { 
+                    # OR = {
+                        # high_tolerance_kobold_race_trigger = yes
+                        # has_kobold_accepted_culture = yes
+                        # tag = A33 # verne, due to wyverns
+                        # tag = B31 # castellyr, would apparently like them too
+                        # tag = B32 # castanor, due to dragon on flag
+                        # tag = Z34 # black castanor, likewise
+                    # }
+                # }
+            # }
+        # }
+        # if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_friendly
+            # }
+            # random = { 
+                # chance = 50
+                # hidden_effect = { remove_province_modifier = infestation_dragon_friendly }
+                # add_province_modifier = {
+                    # name = infestation_dragon_neutral
+                    # duration = -1  
+                    # desc = infestation_dragon_neutral_tooltip
+                # }
+            # }
+        # }
+        # else_if = {
+            # limit = {
+                # has_province_modifier = infestation_dragon_neutral
+            # }
+            # random = { 
+                # chance = 75
+                # hidden_effect = { remove_province_modifier = infestation_dragon_neutral }
+                # add_province_modifier = {
+                    # name = infestation_dragon_hostile
+                    # duration = -1  
+                    # desc = infestation_dragon_hostile_tooltip
+                # }
+            # }
+        # }
+        # random = { # sometimes she is killed
+            # # reasonably high, because event itself is rare, and AI_chance is uncommon
+            # # but if player is selecting this choice, we want to reward their agency
+            # chance = 10 
+            # hidden_effect = { province_event = { id = infestation_dragon_merathis.152 } }
+        # }
+        # province_event = { id = infestation_dragon_merathis.208 days = 100 random = 100 }
+    # }
+# }
+
+# # dragon boon - you've pleased your friendly dragon, have prestige/mana
+# province_event = {
+    # id = infestation_dragon_merathis.206
+    # title = infestation_dragon_merathis.206.t
+    # desc = infestation_dragon_merathis.206.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_friendly
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Turns out having a friendly dragon has its rewards!
+        # name = infestation_dragon_merathis.206.a
+        # ai_chance = { factor = 100 }
+        # owner = {
+            # change_government_reform_progress = 25
+            # add_adm_power = 25
+            # add_dip_power = 25
+            # add_mil_power = 25
+            # add_prestige = 10
+        # }
+    # }
+# }
+
+
+# # dragon boon - you've pleased your friendly dragon, have some military stuff
+# province_event = {
+    # id = infestation_dragon_merathis.207
+    # title = infestation_dragon_merathis.207.t
+    # desc = infestation_dragon_merathis.207.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_friendly
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Turns out having a friendly dragon has its rewards!
+        # name = infestation_dragon_merathis.207.a
+        # ai_chance = { factor = 100 }
+        # owner = {
+            # add_army_tradition = 10
+            # add_army_professionalism = 0.025
+            # create_general = { tradition = 50 }
+        # }
+    # }
+# }
+
+# # dragon bust - you've displeased your dragon, now it eats one of your generals, om nom nom
+# province_event = {
+    # id = infestation_dragon_merathis.208
+    # title = infestation_dragon_merathis.208.t
+    # desc = infestation_dragon_merathis.208.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = no
+    # is_triggered_only = yes
+    
+    # trigger = {
+        # has_province_flag = infestation_present
+        # has_province_modifier = infestation_dragon_merathis
+    # }
+    
+    # option = {
+        # # Should have poisoned the general too!
+        # name = infestation_dragon_merathis.207.a
+        # owner = {
+            # kill_leader = {
+                # type = general
+            # }
+            # add_prestige = -10
+        # }
+    # }
+# }
+
+# # cleanup event; wipes all trace of this infestation from the province
+# # this is useful for debugging
+# # note this clears hoard value and the global flag allowing merathis to spawn again
+# province_event = {
+    # id = infestation_dragon_merathis.2000
+    # title = infestation_dragon_merathis.2000.t
+    # desc = infestation_dragon_merathis.2000.d
+    # picture = CAVE_eventPicture
+    # goto = ROOT
+    
+    # hidden = yes
+    # is_triggered_only = yes
+    
+    # option = {
+        # # cleanup; hidden
+        # name = infestation_dragon_merathis.2000.a
+        # ai_chance = { factor = 100 }
+        # remove_province_modifier = infestation_dragon_friendly
+        # remove_province_modifier = infestation_dragon_neutral
+        # remove_province_modifier = infestation_dragon_hostile
+        # remove_province_modifier = infestation_dragon_merathis
+        # remove_country_modifier = infestation_dragon_leveraged_hoard
+        # set_variable = {
+            # which = infestation_dragon_merathis_hoard
+            # value = 0
+        # }
+        # hidden_effect = { remove_province_triggered_modifier = infestation_merathis_monthly_pulse }
+        # cleanup_infestation = yes
+        # clr_global_flag = infestation_dragon_merathis_spawned
+    # }
+# }

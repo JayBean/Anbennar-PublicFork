@@ -1,3 +1,4 @@
+
 #################
 ###Vampiric Laws
 #################
@@ -53,7 +54,7 @@ estate_vampires_law_state_collusion_masquerade = {
 	penalties = {
 		nobles_loyalty_modifier = -0.1
 		nobles_influence_modifier = -0.1
-		reform_progress_growth = -0.1
+		monthly_reform_progress_modifier = -0.1
 	}
 	
 	benefits = {
@@ -198,11 +199,24 @@ estate_vampires_organization_vampires_lord = {
 	icon = privilege_vampire_organization
 	influence = 0.2
 	is_valid = {
-		OR = {
-			has_estate_privilege = estate_vampires_organization_vampires_lord
-			AND = {
-				NOT = { has_estate_privilege = estate_vampires_organization_vampiric_emigres }
-				has_ruler_flag = is_a_vampire
+		if = { 
+			limit = { has_estate_privilege = estate_vampires_organization_the_blood_court }
+			OR = {
+				has_estate_privilege = estate_vampires_organization_vampires_lord
+				AND = {
+					NOT = { has_estate_privilege = estate_vampires_organization_vampiric_emigres }
+					has_ruler_flag = is_a_vampire
+				}
+			}
+			NOT = { has_estate_privilege = estate_vampires_organization_the_blood_court }
+		}
+		else = {
+			OR = {
+				has_estate_privilege = estate_vampires_organization_vampires_lord
+				AND = {
+					NOT = { has_estate_privilege = estate_vampires_organization_vampiric_emigres }
+					has_ruler_flag = is_a_vampire
+				}
 			}
 		}
 	}
@@ -236,6 +250,34 @@ estate_vampires_organization_vampires_lord = {
 	}
 }
 
+estate_vampires_organization_the_covenant = {
+	icon = privilege_vampire_organization
+	max_absolutism = 10
+	influence = -0.1
+	loyalty = 0.1
+	is_valid = {
+		has_estate_privilege = estate_vampires_organization_the_covenant
+	}
+	can_select = {
+		always = no
+	}
+	can_revoke = {
+		always = no
+	}
+	on_granted = {
+	}
+	
+	penalties = {
+	}
+	
+	benefits = {
+		country_diplomatic_power = 1
+	}
+	
+	ai_will_do = {
+		factor = 0
+	}
+}
 
 #######################
 ####Standard Privileges
@@ -247,13 +289,17 @@ estate_vampires_transfer_land_ownership = {
 	land_share = 10
 	max_absolutism = -5
 	is_valid = {
-		always = yes
+		NOT = { has_country_flag = remove_vampire_ownership }
 	}
 	can_select = {
 	}
 	can_revoke = {
 	}
 	on_granted = {
+	}
+	
+	on_invalid = {
+		hidden_effect = { clr_country_flag = remove_vampire_ownership }
 	}
 	
 	penalties = {
@@ -264,7 +310,7 @@ estate_vampires_transfer_land_ownership = {
 	
 	cooldown_years = 10
 	on_cooldown_expires = {
-		remove_estate_privilege = estate_vampires_transfer_land_ownership
+		set_country_flag = remove_vampire_ownership
 	}
 	ai_will_do = {
 		factor = 1
@@ -281,13 +327,17 @@ estate_vampires_fill_their_stock = {
 	loyalty = 0.10
 	max_absolutism = -5
 	is_valid = {
-		always = yes
+		NOT = { has_country_flag = remove_vampire_fill_stock }
 	}
 	can_select = {
 	}
 	can_revoke = {
 	}
 	on_granted = {
+	}
+	
+	on_invalid = {
+		hidden_effect = { clr_country_flag = remove_vampire_fill_stock }
 	}
 	
 	penalties = {
@@ -299,7 +349,7 @@ estate_vampires_fill_their_stock = {
 	
 	cooldown_years = 15
 	on_cooldown_expires = {
-		remove_estate_privilege = estate_vampires_fill_their_stock
+		set_country_flag = remove_vampire_fill_stock
 	}
 	ai_will_do = {
 		factor = 10
@@ -319,13 +369,17 @@ estate_vampires_organize_a_masquerade = {
 	loyalty = 0.10
 	max_absolutism = -5
 	is_valid = {
-		always = yes
+		NOT = { has_country_flag = remove_vampire_masquerade }
 	}
 	can_select = {
 	}
 	can_revoke = {
 	}
 	on_granted = {
+	}
+	
+	on_invalid = {
+		clr_country_flag = remove_vampire_masquerade
 	}
 	
 	penalties = {
@@ -337,7 +391,7 @@ estate_vampires_organize_a_masquerade = {
 	
 	cooldown_years = 5
 	on_cooldown_expires = {
-		remove_estate_privilege = estate_vampires_organize_a_masquerade
+		set_country_flag = remove_vampire_masquerade
 	}
 	ai_will_do = {
 		factor = 10
@@ -369,17 +423,21 @@ estate_vampires_organize_a_masquerade = {
 
 estate_vampires_expelling_vampire_landowners = {
 	icon = privilege_admin_power
-	loyalty = -0.10
+	loyalty = -0.20
 	influence = -0.10
 	land_share = -10
 	is_valid = {
-		always = yes
+		NOT = { has_country_flag = remove_vampire_expell_landowners }
 	}
 	can_select = {
 	}
 	can_revoke = {
 	}
 	on_granted = {
+	}
+	
+	on_invalid = {
+		clr_country_flag = remove_vampire_expell_landowners
 	}
 	
 	penalties = {
@@ -392,17 +450,14 @@ estate_vampires_expelling_vampire_landowners = {
 	
 	cooldown_years = 10
 	on_cooldown_expires = {
-		remove_estate_privilege = estate_vampires_expelling_vampire_landowners
+		set_country_flag = remove_vampire_expell_landowners
 	}
 	ai_will_do = {
 		factor = 1
 		
 		modifier = {
 			factor = 10
-			OR = {
-				want_to_reduce_vampire_influence = yes
-				want_to_reduce_vampire_influence = yes
-			}
+			want_to_reduce_vampire_influence = yes
 		}
 		
 		modifier = {
@@ -489,7 +544,7 @@ estate_vampires_vampires_in_the_administration = {
 	
 	conditional_modifier = {
 		trigger = {
-				NOT = { is_year = 1600 }
+			NOT = { is_year = 1600 }
 		}
 		modifier = {
 			governing_capacity = 100

@@ -1,3 +1,4 @@
+
 namespace = long_lived_emperor
 
 # The Elder Pact
@@ -12,6 +13,41 @@ country_event = {
 	trigger = {
 		is_emperor = yes
 		ruler_has_personality = immortal_personality
+		NOT = { has_ruler_flag = long_lived_emperor }
+		NOT = { #event will not trigger for half elves, unless they are exposed as vampires or liches.
+			AND = {
+				 ruler_is_half_elven = yes
+				 NOT = {
+					 OR = {
+						has_country_flag = exposed_lich_ruler
+						has_country_flag = exposed_vampire_ruler
+					 }
+				 }
+			}
+		}
+		NOT = { hre_reform_passed = emperor_erbkaisertum }
+		NOT = { has_country_flag = usurp_emperorship_hereditary_flag }
+		NOT = { #wont trigger for unrevealed vampires/liches of normal lifespan races.
+			AND = {
+				OR = {
+					ruler_is_human = yes
+					ruler_is_orc = yes
+					ruler_is_half_orcish = yes
+					ruler_is_halfling = yes
+					ruler_is_gnollish = yes
+					ruler_is_kobold = yes
+					ruler_is_goblin = yes
+					ruler_is_harpy = yes
+					ruler_is_harimari = yes
+					ruler_is_ogre = yes
+					ruler_is_hobgoblin = yes
+					ruler_is_ruinborn = yes
+					ruler_is_centaur = yes
+					ruler_is_troll = yes
+				}
+				ruler_has_facade = yes
+			}
+		}
 		hre_size = 1
 	}
 	
@@ -39,6 +75,8 @@ country_event = {
 	trigger = {
 		is_emperor = yes
 		ruler_has_personality = immortal_personality
+		NOT = { hre_reform_passed = emperor_erbkaisertum }
+		NOT = { has_country_flag = usurp_emperorship_hereditary_flag }
 		hre_size = 1
 		had_ruler_flag = {
 			flag = long_lived_emperor
@@ -57,6 +95,8 @@ country_event = {
 	option = {	
 		name = long_lived_emperor.2.a
 		ai_chance = { factor = 9 }
+		trigger = { NOT = { hre_elector_majority = { tag = ROOT } } }
+		
 		add_prestige = 15
 		add_legitimacy = 20
 		abdicate_emperor_no_reelection = yes
@@ -65,7 +105,9 @@ country_event = {
 	option = {	
 		name = long_lived_emperor.2.b
 		ai_chance = { factor = 1 }
-		add_stability = -1
+		trigger = { NOT = { hre_elector_majority = { tag = ROOT } } }
+		
+		reduce_stability_or_adm_power = yes
 		add_imperial_influence = -10
 		add_ruler_modifier = {
 			name = elder_pact_broken
@@ -80,7 +122,7 @@ country_event = {
 					modifier = broke_elder_pact
 				}
 			}
-			event_target:elector = { country_event = { id = long_lived_emperor.3 days = 30 random = 30 } }
+			event_target:elector_target = { country_event = { id = long_lived_emperor.3 days = 30 random = 30 } }
 		}
 		custom_tooltip = war_of_the_throne_tooltip
 		hidden_effect = { 
@@ -92,7 +134,8 @@ country_event = {
 	option = {
 		name = long_lived_emperor.2.c
 		ai_chance = { factor = 9000 }
-		trigger = { hre_elector_majority = { tag=ROOT } }
+		trigger = { hre_elector_majority = { tag = ROOT } }
+		
 		highlight = yes
 		add_imperial_influence = 10
 		hidden_effect = { set_ruler_flag = long_lived_emperor }
@@ -124,11 +167,24 @@ country_event = {
 				casus_belli = cb_enforce_elder_pact
 			}
 			every_ally = {
-				limit = { ai = yes }
-				join_all_offensive_wars_of = FROM
+				limit = {
+					ai = yes
+					is_emperor = no
+					NOT = { alliance_with = emperor }
+					NOT = { war_with = emperor }
+					NOT = { truce_with = emperor }
+					is_elector = no
+				}
+				join_all_offensive_wars_of = ROOT
 			}
 			every_elector = {
-				limit = { NOT = { tag = ROOT } }
+				limit = {
+					NOT = { tag = ROOT }
+					is_emperor = no
+					NOT = { alliance_with = emperor }
+					NOT = { war_with = emperor }
+					NOT = { truce_with = emperor }
+				}
 				country_event = { id = long_lived_emperor.4 days = 2 }
 			}
 		}
@@ -154,26 +210,42 @@ country_event = {
 	
 	trigger = {
 		is_elector = yes
+		is_emperor = no
+		NOT = { alliance_with = emperor }
+		NOT = { war_with = emperor }
+		NOT = { truce_with = emperor }
+		NOT = { has_country_flag = elder_pact_war_elector }
 	}
 
 	#Join the war
 	option = {	
 		name = long_lived_emperor.4.a
 		ai_chance = { factor = 100 }
+		
 		add_prestige = 25
 		join_all_offensive_wars_of = FROM
-		hidden_effect = {
-			every_ally = {
-				limit = { ai = yes }
-				join_all_offensive_wars_of = FROM
-			}
-		}
+		# Other electors calling allies seem to be the issue causing crashes
+		# Not consistently crashing, sometimes it works fine. No apparent reason why it crashes.
+		# hidden_effect = {
+			# every_ally = {
+				# limit = {
+					# ai = yes
+					# is_emperor = no
+					# NOT = { truce_with = emperor }
+					# NOT = { alliance_with = emperor }
+					# NOT = { war_with = emperor }
+					# is_elector = no
+				# }
+				# join_all_offensive_wars_of = FROM
+			# }
+		# }
 	}
 	
 	#We shall not
 	option = {	
 		name = long_lived_emperor.4.b
 		ai_chance = { factor = 0 }
+		
 		add_prestige = -25
 		add_legitimacy = -25
 	}

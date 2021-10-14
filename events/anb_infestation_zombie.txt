@@ -1,0 +1,539 @@
+namespace = infestation_zombie
+
+# for testing, use event infestation_zombie.0 to force spawn in one of your provinces
+
+# notes on zombies:
+# zombie infestations are relatively simple - once they infect a province, they might cause some issues 
+# to spawn in province and sometimes neighbours
+# each time a zombie spawns, it's added to a global counter (attached to province 524)
+# if they hit a certain threshold, zombie apocalypse happens
+# They have armies made of paper but that look scary on the map. 
+# If the adventurers are around, or have generous quest rewards, the zombie nests can be purged
+# from your own country, thus avoiding most of the troops during the apocalypse
+
+# possible flags and province modifiers
+# infestation_present - province flag, universal
+# infestation_zombie_nest - flag for source province (spawn provinces, more important)
+# infestation_zombie - a province modifier indicating that zombies are here
+# infestation_zombie_counter - a ticker, attached to province 524 (Magesterium) which counts 
+#  total number of zombies on the map. As this ticker increases, the Apocalpse happens.
+# infestation_zombie_apocalypse_happened - global flag - begin apocalypse
+# after the Apocalpse, zombie spawns are easier to get rid for the rest of the game
+
+# spawn zombie infestation in this province and start event loop
+province_event = {
+    id = infestation_zombie.0
+    title = infestation_zombie.0.t
+    desc = infestation_zombie.0.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = yes
+    is_triggered_only = yes
+    
+    immediate = {
+        hidden_effect = {
+            set_province_flag = infestation_present # important; or event loop will exit
+        }
+    }
+    
+    option = {
+        ai_chance = { factor = 100 }
+        add_province_modifier = {
+            name = infestation_zombie
+            duration = -1  
+            desc = infestation_zombie_tooltip
+        }
+        set_province_flag = infestation_zombie_nest # this gets set in spawning provinces only
+        province_event = { id = infestation_zombie.100 days = 1 } # spawn response event
+
+        524 = { change_variable = { which = infestation_zombie_counter value = 1 } }
+    }
+    after = {
+        # first event in half a year, ish; start event loop
+       # province_event = { id = infestation_zombie.1 days = 100 random = 100 }
+       set_province_flag = infestation_pulse_flag #we don't want to start pulsing yet
+       add_province_triggered_modifier = infestation_zombie_monthly_pulse # we don't want this to start pulsing yet
+    }
+}
+
+# random event dispatcher, on a loop until infestation_present is removed
+province_event = {
+    id = infestation_zombie.1
+    title = infestation_zombie.1.t
+    desc = infestation_zombie.1.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = yes
+    is_triggered_only = yes
+    
+	
+    trigger = {
+        has_province_flag = infestation_present
+        has_province_modifier = infestation_zombie
+    }
+
+	option = {
+		hidden_effect = {
+			random_list = {
+				1 = { province_event = { id = infestation_zombie.101 } }
+				3 = { province_event = { id = infestation_zombie.120 } }
+				3 = { province_event = { id = infestation_zombie.121 } }
+				10 = {
+					trigger = {
+						524 = { check_variable = { which = infestation_zombie_counter value = 100 } }
+					}
+					set_global_flag = infestation_zombie_apocalypse_happened
+					province_event = { id = infestation_zombie.200 }
+				}
+				1 = {
+					modifier = {
+						factor = 3 # more likely if generous quest rewards/adverturer nation
+						OR = {
+							owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							owner = { has_adventurer_reform = yes }
+						}
+					}
+					province_event = { id = infestation_zombie.150 }
+				}
+				1 = { province_event = { id = infestation_zombie.140 } } # devastation
+			}
+		}
+	}
+    
+    #after = {
+    #    # loop this random event dispatcher
+    #    # about a year between events
+    #    province_event = { id = infestation_zombie.1 days = 300 random = 100 }
+    #}
+}
+
+
+# notification of infestation spawning
+province_event = {
+    id = infestation_zombie.100
+    title = infestation_zombie.100.t
+    desc = infestation_zombie.100.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # You said that Z-word, that's ridiculous.
+        name = infestation_zombie.100.a
+        ai_chance = { factor = 50 }
+        trigger = { NOT = { owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards } } }	
+    }
+    option = {
+        # grant adventurer's generous rewards to look after it
+        name = infestation_zombie.100.b
+        ai_chance = { 
+            factor = 20 
+            modifier = {
+                factor = 0
+                owner = { is_in_deficit = yes }
+            }
+        }
+        trigger = {
+            owner = { has_estate = estate_adventurers }
+            owner = { NOT = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+        }
+        owner = { set_estate_privilege = estate_adventurers_generous_quest_rewards }
+    }
+    option = {
+        # the adventurer's are on it
+        name = infestation_zombie.100.c
+        ai_chance = { factor = 50 }
+        trigger = {
+            owner = { has_estate = estate_adventurers }
+            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+        }
+    }
+    option = {
+        # we are adventurers, deal with it ourselves!
+        name = infestation_zombie.100.e
+        ai_chance = { factor = 50 }
+        trigger = {
+            owner = { has_adventurer_reform = yes }
+        }
+    }
+}
+
+# infestation vanishes on its own
+province_event = {
+    id = infestation_zombie.101
+    title = infestation_zombie.101.t
+    desc = infestation_zombie.101.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        has_province_flag = infestation_present
+        has_province_modifier = infestation_zombie
+    }
+    
+    option = {
+        # oh, thank goodness
+        name = infestation_zombie.101.a
+        ai_chance = { factor = 100 }
+        remove_province_modifier = infestation_zombie
+        clr_province_flag = infestation_zombie_nest
+        hidden_effect = { remove_province_triggered_modifier = infestation_zombie_monthly_pulse }
+        cleanup_infestation = yes
+        hidden_effect = {
+            524 = { change_variable = { which = infestation_zombie_counter value = -1 } }
+        }
+    }
+}
+
+# infestation spreads to adjacent province internally event
+province_event = {
+    id = infestation_zombie.120
+    title = infestation_zombie.120.t
+    desc = infestation_zombie.120.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { num_of_cities = 2 } # you have something to migrate to
+        any_neighbor_province = { 
+            owned_by = ROOT
+            NOT = { has_province_flag = infestation_present }
+        }
+        has_province_flag = infestation_zombie_nest
+    }
+    immediate = {
+        hidden_effect = {
+            owner = {
+                random_owned_province = {
+                    limit = { NOT = { has_province_flag = infestation_present } }
+                    save_event_target_as = infestation_spread_target
+                }
+            }
+            random_neighbor_province = {
+                limit = {
+                    owned_by = ROOT
+                    NOT = { has_province_flag = infestation_present }
+                }
+                save_event_target_as = infestation_spread_target
+            }
+            event_target:infestation_spread_target = {
+                set_province_flag = infestation_present
+            }
+        }
+    }
+    option = {
+        name = infestation_zombie.120.a
+        ai_chance = { factor = 100 }
+        goto = infestation_spread_target
+        event_target:infestation_spread_target = {
+            add_province_modifier = {
+                name = infestation_zombie
+                duration = -1  
+                desc = infestation_zombie_tooltip
+            }
+            hidden_effect = {
+                random = {
+                    chance = 10 # sometimes we can spread from here too
+                    set_province_flag = infestation_zombie_nest
+                }
+            }
+            hidden_effect = {
+                524 = { change_variable = { which = infestation_zombie_counter value = 1 } }
+            }
+            hidden_effect = {
+                add_province_triggered_modifier = infestation_zombie_monthly_pulse
+                set_province_flag = infestation_pulse_flag
+            }
+        }
+    }
+    #after = {
+    #    # first event in half a year, ish
+    #    event_target:infestation_spread_target = {
+    #        province_event = { id = infestation_zombie.1 days = 100 random = 100 }
+    #    }
+    #}
+}
+
+# infestation spreads across border to adjacent province event
+province_event = {
+    id = infestation_zombie.121
+    title = infestation_zombie.121.t
+    desc = infestation_zombie.121.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        any_neighbor_province = { 
+            NOT = { owned_by = ROOT }
+            NOT = { has_province_flag = infestation_present }
+        }
+    }
+    immediate = {
+        hidden_effect = {
+            random_neighbor_province = {
+                limit = {
+                    NOT = { owned_by = ROOT }
+                    NOT = { has_province_flag = infestation_present }
+                }
+                save_event_target_as = infestation_migration_target
+            }
+            event_target:infestation_migration_target = {
+                set_province_flag = infestation_present
+            }
+        }
+    }
+    option = {
+        name = infestation_zombie.121.a
+        ai_chance = { factor = 100 }
+        goto = infestation_migration_target
+        event_target:infestation_migration_target = {
+            add_province_modifier = {
+                name = infestation_zombie
+                duration = -1  
+                desc = infestation_zombie_tooltip
+            }
+            hidden_effect = {
+                random = {
+                    chance = 10 # sometimes we can spread from here too
+                    set_province_flag = infestation_zombie_nest
+                }
+            }
+            hidden_effect = {
+                524 = { change_variable = { which = infestation_zombie_counter value = 1 } }
+            }
+            hidden_effect = {
+                add_province_triggered_modifier = infestation_zombie_monthly_pulse
+                set_province_flag = infestation_pulse_flag
+            }
+        }
+    }
+    after = {
+        event_target:infestation_migration_target = {
+            province_event = { id = infestation_zombie.122 }
+        }
+    }
+}
+
+# infestation spread across border into this province event
+# basically the same as infestation_zombie.100, but with opinion modifier
+# and more flavourful descriptions
+province_event = {
+    id = infestation_zombie.122
+    title = infestation_zombie.122.t
+    desc = infestation_zombie.122.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    immediate = {
+    }
+    option = {
+        # They have Zombies? Seriously? Do we need a fence?
+        name = infestation_zombie.122.a
+        ai_chance = { factor = 50 }
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = infestation_crossed_border
+            }
+        }
+    }
+    option = {
+        # grant adventurer's generous rewards to look after it
+        name = infestation_zombie.122.b
+        ai_chance = { 
+            factor = 20 
+            modifier = {
+                factor = 0
+                owner = { is_in_deficit = yes }
+            }
+        }
+        trigger = {
+            owner = { has_estate = estate_adventurers }
+            owner = { NOT = { has_estate_privilege = estate_adventurers_generous_quest_rewards } }
+        }
+        owner = { set_estate_privilege = estate_adventurers_generous_quest_rewards }
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = infestation_crossed_border
+            }
+        }
+    }
+    option = {
+        # the adventurer's are on it
+        name = infestation_zombie.122.c
+        ai_chance = { factor = 50 }
+        trigger = {
+            owner = { has_estate = estate_adventurers }
+            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+        }
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = infestation_crossed_border
+            }
+        }
+    }
+    option = {
+        # we are adventurers, deal with it ourselves!
+        name = infestation_zombie.122.e
+        ai_chance = { factor = 50 }
+        trigger = {
+            owner = { has_adventurer_reform = yes }
+        }
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = infestation_crossed_border
+            }
+        }
+    }
+    
+    #after = {
+    #    # first event in half a year, ish
+    #    province_event = { id = infestation_zombie.1 days = 100 random = 100 }
+    #}
+}
+
+# devastation
+province_event = {
+    id = infestation_zombie.140
+    title = infestation_zombie.140.t
+    desc = infestation_zombie.140.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # who cares!?
+        name = infestation_zombie.140.a
+        ai_chance = { factor = 20 }
+        add_devastation = 1
+    }
+}
+
+# kill zombies
+province_event = {
+    id = infestation_zombie.150
+    title = infestation_zombie.150.t
+    desc = infestation_zombie.150.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # can it be that easy?
+        name = infestation_zombie.150.a
+        ai_chance = { factor = 50 }
+        remove_province_modifier = infestation_zombie
+        clr_province_flag = infestation_zombie_nest
+        hidden_effect = { remove_province_triggered_modifier = infestation_zombie_monthly_pulse }
+        cleanup_infestation = yes
+        hidden_effect = {
+            524 = { change_variable = { which = infestation_zombie_counter value = -1 } }
+        }
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = handled_infestation
+                duration = 3650
+                influence = 5
+            }
+            add_treasury = -10
+        }
+    }
+    option = {
+        # can it be that easy?
+        name = infestation_zombie.150.b
+        ai_chance = { factor = 50 }
+        remove_province_modifier = infestation_zombie
+        clr_province_flag = infestation_zombie_nest
+        hidden_effect = { remove_province_triggered_modifier = infestation_zombie_monthly_pulse }
+        cleanup_infestation = yes
+        hidden_effect = {
+            524 = { change_variable = { which = infestation_zombie_counter value = -1 } }
+        }
+    }
+}
+
+# The Dead Walk - trigger apocalypse
+province_event = {
+    id = infestation_zombie.200
+    title = infestation_zombie.200.t
+    desc = infestation_zombie.200.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    major = yes
+    
+    option = {
+        # Should really have paid our Adventurers more...
+        name = infestation_zombie.150.a
+        ai_chance = { factor = 50 }
+        remove_province_modifier = infestation_zombie
+        clr_province_flag = infestation_zombie_nest
+        hidden_effect = { remove_province_triggered_modifier = infestation_zombie_monthly_pulse }
+        cleanup_infestation = yes
+        custom_tooltip = infestation_zombie_apocalypse_tooltip
+        hidden_effect = {
+            524 = { set_variable = { which = infestation_zombie_counter value = 0 } }
+            every_province = { # globally!
+                limit = {
+                    has_province_modifier = infestation_zombie
+                }
+                remove_province_modifier = infestation_zombie
+                clr_province_flag = infestation_zombie_nest
+                
+                spawn_rebels = {
+                    type = infestation_zombie_rebels
+                    size = 1
+                }
+            }
+        }
+    }
+}
+
+# cleanup event; wipes all trace of this infestation from the province
+# this is useful for debugging
+province_event = {
+    id = infestation_zombie.2000
+    title = infestation_zombie.2000.t
+    desc = infestation_zombie.2000.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = yes
+    is_triggered_only = yes
+    
+    option = {
+        # cleanup; hidden
+        name = infestation_zombie.2000.a
+        ai_chance = { factor = 100 }
+        remove_province_modifier = infestation_zombie
+        clr_province_flag = infestation_zombie_nest
+        hidden_effect = { remove_province_triggered_modifier = infestation_zombie_monthly_pulse }
+        cleanup_infestation = yes
+    }
+}

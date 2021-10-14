@@ -1,3 +1,4 @@
+
 namespace = serpent_rot
 
 #Starting Event
@@ -57,7 +58,7 @@ province_event = {
 	hidden = yes
 	
 	mean_time_to_happen = {
-		months = 10
+		months = 6
 		
 		modifier = {
 			factor = 0.9
@@ -99,19 +100,25 @@ province_event = {
 		modifier = {
 			factor = 1.1
 			
-			has_country_flag = burn_the_corpse
+			owner = { has_country_flag = burn_the_corpse }
 		}
 		
 		modifier = {
 			factor = 1.1
 			
-			has_country_flag = burn_the_village
+			owner = { has_country_flag = burn_the_village }
 		}
 		
 		modifier = {
 			factor = 2
 			
-			has_province_modifier = using_fire
+			owner = { has_country_flag = using_fire }
+		}
+		
+		modifier = {
+			factor = 5
+			
+			trade_goods = fungi
 		}
 		
 		modifier = {
@@ -124,16 +131,16 @@ province_event = {
 	trigger = {
 		has_global_flag = serpent_rot_happening
 		continent = serpentspine
-		NOT = { owned_by = XXX }
+		is_city = yes
+		NOT = { has_province_modifier = serpent_rot_1 }
+		NOT = { has_province_modifier = serpent_rot_2 }
+		NOT = { has_province_modifier = serpent_cure }
 		any_neighbor_province = {
 			OR = {
 				has_province_modifier = serpent_rot_1
 				has_province_modifier = serpent_rot_2
 			}
 		}
-		NOT = { has_province_modifier = serpent_rot_1 }
-		NOT = { has_province_modifier = serpent_rot_2 }
-		NOT = { has_province_modifier = serpent_cure }
 	}
 	
 	immediate = {
@@ -177,7 +184,6 @@ province_event = {
 	
 	trigger = {
 		has_global_flag = serpent_rot_happening
-		continent = serpentspine
 		has_province_modifier = serpent_rot_1
 		NOT = { has_province_modifier = serpent_rot_2 }
 		NOT = { has_province_modifier = serpent_cure }
@@ -230,6 +236,7 @@ country_event = {
 				value = 0
 			}
 		}
+		hidden_effect = { save_yearly_income = yes }
 	}
 	
 	trigger = {
@@ -245,17 +252,62 @@ country_event = {
 		}
 		NOT = { has_disaster = serpent_rot }
 		NOT = { has_country_modifier = serpent_rot_outbreak }
+		NOT = { has_country_modifier = ignoring_serpent_rot }
 	}
 	
 	
 	option = {
         name = serpent_rot.4.a
-        ai_chance = { factor = 100 }
+        ai_chance = { factor = 1 }
 		add_country_modifier = {
 			name = serpent_rot_outbreak
 			duration = 5475
 		}
 		country_event = { id = serpent_rot.6 days = 15 }
+	}
+	
+	option = {
+		name = serpent_rot.4.b
+		highlight = yes
+		trigger = { 
+			NOT = {
+				OR = { 
+					capital_scope = { continent = serpentspine }
+					AND = {
+						OR = {
+							any_owned_province = { has_terrain = dwarven_hold }
+							any_owned_province = { has_terrain = dwarven_hold_surface }
+						}
+						OR = {
+							has_country_modifier = dwarven_administration
+							has_country_modifier = goblin_administration
+							has_country_modifier = orcish_administration
+						}
+					}
+				}
+			} 
+		}
+        ai_chance = { factor = 100 }
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
+		every_owned_province = {
+			limit = { continent = serpentspine }
+			add_unrest = 20
+		}
+		hidden_effect = {
+			add_country_modifier = {
+				name = ignoring_serpent_rot
+				duration  = 3650 #5 years
+				hidden = yes
+			}
+			REB = {
+				subtract_variable = {
+					which = countryInfectedVariable
+					value = 1
+				}
+			}
+		}
 	}
 }
 
@@ -278,11 +330,12 @@ province_event = {
 		modifier = {
 			factor = 1.3
 			
-			has_country_flag = quarantine_zone
+			owner = { has_country_flag = quarantine_zone }
 		}
 	}
 	
 	trigger = {
+		has_global_flag = serpent_rot_happening
 		OR = {
 			has_province_modifier = serpent_rot_1
 			has_province_modifier = serpent_rot_2
@@ -332,7 +385,27 @@ country_event = {
 	option = {
         name = serpent_rot.6.b
         ai_chance = { factor = 100 }
-		hidden_effect = { country_event = { id = serpent_rot.7 days = 50 } } #Start sience path
+		hidden_effect = { country_event = { id = serpent_rot.7 days = 50 } } #Start science path
+	}
+	
+	## Don't have to make a cure for one province
+	option = {
+		highlight = yes
+		trigger = { 
+			NOT = {
+				OR = { 
+					capital_scope = { continent = serpentspine }
+					any_owned_province = { has_terrain = dwarven_hold }
+					any_owned_province = { has_terrain = dwarven_hold_surface }
+				}
+			} 
+		}
+        name = serpent_rot.6.c
+        ai_chance = { factor = 0 }
+		every_owned_province = {
+			limit = { continent = serpentspine }
+			add_unrest = 20
+		}
 	}
 }
 
@@ -469,12 +542,19 @@ country_event = {
 		}
 		NOT = { has_global_flag = serpent_rot_happened }
 	}
+	
+	immediate = {
+		hidden_effect = { save_yearly_income = yes }
+	}
+	
 	#We should run experiment on alive dude
 	option = {
         name = serpent_rot.10.a
         ai_chance = { factor = 100 }
 		reduce_stability_or_adm_power = yes
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.11 days = 365 random = 100 } ##A blood disease
 		}
@@ -495,7 +575,9 @@ country_event = {
 	option = {
         name = serpent_rot.10.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.11 days = 465 random = 50 } #A blood disease
 			set_country_flag = quarantine_zone
@@ -533,6 +615,7 @@ country_event = {
 				value = 5
 			}
 		}
+		hidden_effect = { save_yearly_income = yes }
 	}
 	
 	#We should run experiment on alive dude
@@ -540,7 +623,9 @@ country_event = {
         name = serpent_rot.11.a
         ai_chance = { factor = 100 }
 		reduce_stability_or_adm_power = yes
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.12 days = 365 random = 100 } ##Spread through air, sensible to fire
 			hidden_effect = {
@@ -561,7 +646,9 @@ country_event = {
 	option = {
         name = serpent_rot.11.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.12 days = 465 random = 50 } #Spread through air, sensible to fire
 			hidden_effect = {
@@ -610,13 +697,16 @@ country_event = {
 				value = 5
 			}
 		}
+		hidden_effect = { save_yearly_income = yes }
 	}
 	
 	#Look in ancient book
 	option = {
         name = serpent_rot.12.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.13 days = 150 random = 100 } ##Discover that you need the Pristine Fungi to cure it
 			country_event = { id = serpent_rot.14 days = 465 random = 100 } ##Cure soon done, last ingredient
@@ -626,7 +716,9 @@ country_event = {
 	option = {
         name = serpent_rot.12.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.14 days = 365 random = 50 } #Cure soon done, last ingredient
 		}
@@ -637,7 +729,7 @@ country_event = {
         ai_chance = { factor = 100 }
 		highlight = yes
 		hidden_effect = {
-			country_event = { id = serpent_rot.17 days = 465 random = 50 } #fight if with fire
+			country_event = { id = serpent_rot.17 days = 465 random = 50 } #fight it with fire
 		}
 	}
 }
@@ -691,12 +783,18 @@ country_event = {
 		}
 		NOT = { has_global_flag = serpent_rot_happened }
 	}
+
+	immediate = {
+		hidden_effect = { save_yearly_income = yes }
+	}
 	
 	#Dragon's Tongue
 	option = {
         name = serpent_rot.14.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.15 days = 650 }
 		}
@@ -705,7 +803,9 @@ country_event = {
 	option = {
         name = serpent_rot.14.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			REB = {
 				change_variable = {
@@ -723,7 +823,9 @@ country_event = {
 	option = {
         name = serpent_rot.14.c
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.15 days = 365 }
 		}
@@ -865,10 +967,22 @@ country_event = {
 		add_prestige = 50
 		add_stability = 3
 		custom_tooltip = serpent_cure_tooltip
-		capital_scope = {
-			add_permanent_province_modifier = {
-				name = serpent_cure
-				duration = 3650
+		if = {
+			limit = { capital_scope = { continent = serpentspine OR = { has_province_modifier = serpent_rot_1 has_province_modifier = serpent_rot_2} } }
+			capital_scope = {
+				add_permanent_province_modifier = {
+					name = serpent_cure
+					duration = 3650
+				}
+			}
+		} 
+		else = {
+			random_owned_province = {
+				limit = { continent = serpentspine OR = { has_province_modifier = serpent_rot_1 has_province_modifier = serpent_rot_2} } 
+				add_permanent_province_modifier = {
+					name = serpent_cure
+					duration = 3650
+				}
 			}
 		}
 		hidden_effect = {
@@ -897,9 +1011,9 @@ country_event = {
 		add_prestige = 50
 		add_stability = 3
 		custom_tooltip = serpent_cure_ventilation_tooltip
-		add_ruler_modifier = {
+		add_country_modifier = {
 			name = cure_bringer
-			duration = -1
+			duration = 36500
 		}
 		every_province = {
 			limit = {
@@ -944,13 +1058,16 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = { set_country_flag = fight_it_with_fire }
+		hidden_effect = { save_yearly_income = yes }
 	}
 	
 	## Inspect every house
 	option = {
         name = serpent_rot.17.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = { 
 			country_event = { id = serpent_rot.18 days = 300 }
 			country_event = { id = serpent_rot.19 days = 465 random = 100 }
@@ -960,7 +1077,9 @@ country_event = {
 	option = {
         name = serpent_rot.17.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		reduce_stability_or_adm_power = yes
 		hidden_effect = { 
 			country_event = { id = serpent_rot.19 days = 465 random = 100 }
@@ -1019,11 +1138,20 @@ country_event = {
 		}
 		NOT = { has_global_flag = serpent_rot_happened }
 	}
+	
+	immediate = {
+		hidden_effect = {
+			save_yearly_income = yes
+		}
+	}
+	
 	#Try to spread incandescent powder through the ventilation system
 	option = {
         name = serpent_rot.19.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = { 
 			country_event = { id = serpent_rot.20 days = 265 random = 50 } #Big Explosion
 			country_event = { id = serpent_rot.21 days = 465 random = 100 } #Healthy carrier
@@ -1033,7 +1161,9 @@ country_event = {
 	option = {
         name = serpent_rot.19.b
 		ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		add_stability = -2
 		hidden_effect = { 
 			country_event = { id = serpent_rot.21 days = 465 random = 100 } #Healthy carrier
@@ -1153,6 +1283,7 @@ country_event = {
 				which = serpentCureNational
 				value = 5
 			}
+			save_yearly_income = yes
 		}
 	}
 	
@@ -1160,7 +1291,9 @@ country_event = {
 	option = {
         name = serpent_rot.21.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -1
+		#add_years_of_income = -1
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.23 days = 365 }
 			hidden_effect = {
@@ -1182,7 +1315,9 @@ country_event = {
 		trigger = { any_owned_province = { has_province_flag = caurak_collapse } }
         name = serpent_rot.21.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.22 days = 100 }
 			country_event = { id = serpent_rot.23 days = 465 }
@@ -1247,6 +1382,7 @@ country_event = {
 				which = serpentCureNational
 				value = 5
 			}
+			save_yearly_income = yes
 		}
 	}
 	
@@ -1254,7 +1390,9 @@ country_event = {
 	option = {
         name = serpent_rot.23.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.14 days = 365 }
 		}
@@ -1275,7 +1413,9 @@ country_event = {
 	option = {
         name = serpent_rot.23.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.75
+		#add_years_of_income = -0.75
+		custom_tooltip = pay_year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.14 days = 465 }
 		}
@@ -1296,7 +1436,9 @@ country_event = {
 	option = {
         name = serpent_rot.23.c
         ai_chance = { factor = 100 }
-		add_years_of_income = -3
+		#add_years_of_income = -3
+		custom_tooltip = pay_3year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=3YearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.14 days = 750 }
 		}
@@ -1321,11 +1463,19 @@ country_event = {
 		NOT = { has_global_flag = serpent_rot_happened }
 	}
 	
+	immediate = {
+		hidden_effect = {
+			save_yearly_income = yes
+		}
+	}
+	
 	##Enchantment
 	option = {
         name = serpent_rot.24.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.25 days = 565 random = 100 }
 		}
@@ -1334,7 +1484,9 @@ country_event = {
 	option = {
         name = serpent_rot.24.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.25 days = 465 random = 100 }
 		}
@@ -1343,7 +1495,9 @@ country_event = {
 	option = {
         name = serpent_rot.24.c
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.25 days = 750 random = 100 }
 		}
@@ -1379,6 +1533,7 @@ country_event = {
 				which = serpentCureNational
 				value = 3
 			}
+			save_yearly_income = yes
 		}
 	}
 	
@@ -1386,7 +1541,9 @@ country_event = {
 	option = {
         name = serpent_rot.25.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.27 days = 650 random = 100 }
 		}
@@ -1395,7 +1552,9 @@ country_event = {
 	option = {
         name = serpent_rot.25.b
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.27 days = 550 random = 100 }
 		}
@@ -1404,7 +1563,9 @@ country_event = {
 	option = {
         name = serpent_rot.25.c
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		hidden_effect = {
 			country_event = { id = serpent_rot.26 days = 250 random = 100 }
 			country_event = { id = serpent_rot.27 days = 750 random = 100 }
@@ -1467,13 +1628,16 @@ country_event = {
 				value = 6
 			}
 		}
+		hidden_effect = { save_yearly_income = yes }
 	}
 	
 	#Run experiment
 	option = {
         name = serpent_rot.27.a
         ai_chance = { factor = 100 }
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		add_prestige = -25
 		add_stability = -2
 		hidden_effect = {
@@ -1485,7 +1649,9 @@ country_event = {
         name = serpent_rot.27.b
         ai_chance = { factor = 100 }
 		highlight = yes
-		add_years_of_income = -0.5
+		#add_years_of_income = -0.5
+		custom_tooltip = pay_0.5year_of_income
+		currency_effect = { currency=treasury takeFrom=ROOT which=HalfYearOfIncome }
 		add_prestige = -25
 		reduce_stability_or_adm_power = yes
 		hidden_effect = {
@@ -1563,8 +1729,10 @@ province_event = {
 	option = {
         name = serpent_rot.29.a
         ai_chance = { factor = 100 }
+		owner = {
 		add_prestige = 5
 		add_treasury = -100
+		}
 		add_province_modifier = {
 			name = local_emergency_hospital
 			duration = 1825
@@ -1586,7 +1754,7 @@ province_event = {
 	option = {
         name = serpent_rot.29.b
         ai_chance = { factor = 100 }
-		add_prestige = -5
+		owner = { add_prestige = -5 }
 	}
 }
 ##A breakthrought in our research
@@ -1837,12 +2005,11 @@ province_event = {
 	}
 	
 	trigger = {
-		has_global_flag = serpent_rot_happening
+		has_global_flag = serpent_rot_happened
 		OR = {
 			has_province_modifier = serpent_rot_1
 			has_province_modifier = serpent_rot_2
 		}
-		NOT = { owned_by = XXX }
 		has_province_modifier = serpent_cure
 	}
 	
@@ -1877,13 +2044,12 @@ province_event = {
 	}
 	
 	trigger = {
-		has_global_flag = serpent_rot_happening
+		has_global_flag = serpent_rot_happened
 		OR = {
 			has_province_modifier = serpent_rot_1
 			has_province_modifier = serpent_rot_2
 		}
 		NOT = { has_province_modifier = serpent_cure }
-		NOT = { owned_by = XXX }
 		any_neighbor_province = {
 			has_province_modifier = serpent_cure
 		}

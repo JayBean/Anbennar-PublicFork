@@ -1,0 +1,938 @@
+
+namespace = human_tolerance_events
+
+# Event organizer for the human tolerance events - should be a huge improvement to performance - having 1 overall check for having the minority instead of one for EACH new event that gets added
+country_event = {
+	id = human_tolerance_events.0
+	title = race_setup_events.1.d
+	desc = race_setup_events.1.d
+	picture = BORDER_TENSION_eventPicture
+	
+
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { culture_is_human = yes }
+		any_owned_province = {
+			has_human_minority_trigger = yes
+		}
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 5
+			has_country_modifier = racial_pop_focus_human
+		}
+	}
+
+	option = {
+		random_list = {
+			# Human advisor
+			1 = {
+				country_event = {
+					id = human_tolerance_events.1
+				}
+			}
+			# Minor landholders demand autonomy
+			1 = {
+				trigger = {
+					any_owned_province = {
+						has_human_minority_trigger = yes
+						NOT = { has_province_modifier = autonomous_human_landholders }
+					}
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { prestige = 0 }
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { legitimacy_equivalent = 75 }
+				}
+				country_event = {
+					id = human_tolerance_events.2
+				}
+			}
+			# Ambitious humans in government
+			1 = {
+				modifier = {
+					factor = 1.5
+					high_tolerance_human_race_trigger = yes
+				}
+				country_event = {
+					id = human_tolerance_events.3
+				}
+			}
+			# Human dominance undermining us
+			1 = {
+				country_event = {
+					id = human_tolerance_events.4
+				}
+			}
+			# Rapid growth due to human minority
+			1 = {
+				modifier = {
+					factor = 1.1
+					stability = 1
+				}
+				modifier = {
+					factor = 1.2
+					stability = 2
+				}
+				modifier = {
+					factor = 1.3
+					stability = 3
+				}
+				modifier = {
+					factor = 1.3
+					NOT = { high_tolerance_human_race_trigger = yes }
+				}
+				country_event = {
+					id = human_tolerance_events.5
+				}
+			}
+			# Angry human mob farms
+			1 = {
+				modifier = {
+					factor = 1.5
+					low_tolerance_human_race_trigger = yes
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { stability = 0 }
+				}
+				country_event = {
+					id = human_tolerance_events.6
+				}
+			}
+			# Human highwaymen
+			1 = {
+				trigger = {
+					any_owned_province = {
+						has_human_minority_trigger = yes
+						NOT = { has_province_modifier = human_highwaymen }
+						NOT = { has_province_modifier = human_populace_punished_for_highwaymen }
+					}
+				}
+				modifier = {
+					factor = 1.5
+					low_tolerance_human_race_trigger = yes
+				}
+				modifier = {
+					factor = 2
+					NOT = { stability = 0 }
+				}
+				modifier = {
+					factor = 2
+					average_unrest = 1
+				}
+				country_event = {
+					id = human_tolerance_events.7
+				}
+			}
+		}
+	}
+}
+
+# Human advisor
+country_event = {
+	id = human_tolerance_events.1
+	title = human_tolerance_events.1.t
+	desc = human_tolerance_events.1.d
+	picture = ADVISOR_eventPicture
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					any_owned_province = {
+						culture_is_human = yes
+					}
+				}
+				random_owned_province = {
+					limit = { culture_is_human = yes }
+					save_event_target_as = human_advisor_culture_province
+				}
+			}
+			# This is literal cancer, but (probably) better than doing conditionals for the million of human cultures
+			else = {
+				# Iterates through all neighboring countries for a human culture 
+				while = {
+					limit = {
+						NOT = { has_country_flag = human_culture_found }
+						any_neighbor_country = {
+							NOT = { has_country_flag = human_culture_searched }
+						}
+					}
+					random_neighbor_country = {
+						limit = { NOT = { has_country_flag = human_culture_searched } }
+						if = {
+							limit = {
+								any_owned_province = {
+									culture_is_human = yes
+								}
+							}
+							random_owned_province = {
+								limit = { culture_is_human = yes }
+								save_event_target_as = human_advisor_culture_province
+							}
+							ROOT = {
+								set_country_flag = human_culture_found
+							}
+						}
+						set_country_flag = human_culture_searched
+					}
+				}
+				# If no neighboring country with human culture in any province, then looks to continent
+				if = {
+					limit = {
+						NOT = { has_country_flag = human_culture_found }
+						any_known_country = {
+							same_continent = ROOT
+							any_owned_province = {
+								culture_is_human = yes
+							}
+						}
+					}
+					random_known_country = {
+						limit = {
+							same_continent = ROOT
+							any_owned_province = {
+								culture_is_human = yes
+							}
+						}
+						random_owned_province = {
+							limit = { culture_is_human = yes }
+							save_event_target_as = human_advisor_culture_province
+						}
+					}
+				}
+				# If nothing on continent with human culture, then give up
+			}
+		}	
+	}
+
+	# Recruit
+	option = {
+		name = human_tolerance_events.1.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		if = {
+			limit = { monthly_income = 50 }
+			random_list = {
+				1 = {
+					define_advisor = {
+						type = theologian
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = philosopher
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = grand_captain
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = army_organiser
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = navigator
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = trader
+						culture = event_target:human_advisor_culture_province
+						skill = 3
+						
+						discount = yes
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { monthly_income = 25 }
+			random_list = {
+				1 = {
+					define_advisor = {
+						type = theologian
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = philosopher
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = grand_captain
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = army_organiser
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = navigator
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = trader
+						culture = event_target:human_advisor_culture_province
+						skill = 2
+						
+						discount = yes
+					}
+				}
+			}
+		}
+		else = {
+			random_list = {
+				1 = {
+					define_advisor = {
+						type = theologian
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = philosopher
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = grand_captain
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = army_organiser
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = navigator
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+				1 = {
+					define_advisor = {
+						type = trader
+						culture = event_target:human_advisor_culture_province
+						skill = 1
+						
+						discount = yes
+					}
+				}
+			}
+		}
+		medium_increase_of_human_tolerance_effect = yes
+	}
+	# A true exemplar of the community!
+	option = {
+		name = human_tolerance_events.1.b
+		ai_chance = {
+			factor = 50
+		}
+		small_increase_of_human_tolerance_effect = yes
+	}
+	# So what?
+	option = {
+		name = human_tolerance_events.1.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		small_decrease_of_human_tolerance_effect = yes
+	}
+
+	after = {
+		clr_country_flag = human_culture_found
+		every_neighbor_country = {
+			clr_country_flag = human_culture_searched
+		}
+	}
+}
+
+# Minor landholders demand autonomy
+country_event = {
+	id = human_tolerance_events.2
+	title = human_tolerance_events.2.t
+	desc = human_tolerance_events.2.d
+	picture = GREAT_BUILDING_eventPicture
+	GOTO = human_autonomous_landholders_province
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					has_human_minority_trigger = yes
+					NOT = { has_province_modifier = autonomous_human_landholders }
+				}
+				save_event_target_as = human_autonomous_landholders_province
+			}
+		}
+	}
+
+	# Aight then
+	option = {
+		name = human_tolerance_events.2.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+			modifier = {
+				factor = 0.1
+				wants_to_maintain_tolerance_human = yes
+			}
+		}
+		medium_increase_of_human_tolerance_effect = yes
+		event_target:human_autonomous_landholders_province = {
+			add_province_modifier = {
+				name = autonomous_human_landholders
+				duration = 3650
+			}
+		}
+	}
+	# We cannot do this
+	option = {
+		name = human_tolerance_events.2.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.8
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		small_decrease_of_human_tolerance_effect = yes
+		event_target:human_autonomous_landholders_province = {
+			add_unrest = 2
+		}
+	}
+	# How about we confiscate your land instead?
+	option = {
+		name = human_tolerance_events.2.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		add_years_of_income = 0.4
+		medium_decrease_of_human_tolerance_effect = yes
+		event_target:human_autonomous_landholders_province = {
+			add_unrest = 5
+		}
+	}
+}
+
+# Ambitious humans in government
+country_event = {
+	id = human_tolerance_events.3
+	title = human_tolerance_events.3.t
+	desc = human_tolerance_events.3.d
+	picture = PAINTER_ARTIST_eventPicture
+
+	is_triggered_only = yes
+
+	# Their ambition will drive us further
+	option = {
+		name = human_tolerance_events.3.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.5
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		add_prestige = -15
+		random_list = {
+			1 = {
+				add_adm_power = 50
+			}
+			1 = {
+				add_dip_power = 50
+			}
+			1 = {
+				add_mil_power = 50
+			}
+		}
+		small_increase_of_human_tolerance_effect = yes
+	}
+	# I guess its to be expected
+	option = {
+		name = human_tolerance_events.3.b
+		ai_chance = {
+			factor = 50
+		}
+		random_list = {
+			1 = {
+				add_adm_power = 25
+			}
+			1 = {
+				add_dip_power = 25
+			}
+			1 = {
+				add_mil_power = 25
+			}
+		}
+	}
+	# Curtail ambitious officials
+	option = {
+		name = human_tolerance_events.3.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		add_prestige = 5
+		increase_legitimacy_small_effect = yes
+		small_decrease_of_human_tolerance_effect = yes
+	}
+	# Reward them for their contributions
+	option = {
+		name = human_tolerance_events.3.e
+		trigger = {
+			OR = {
+				ruler_has_personality = well_advised_personality
+				ruler_has_personality = well_connected_personality
+			}
+		}
+		highlight = yes
+						ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				NOT = { years_of_income = 0.5 }
+			}
+			modifier = {
+				factor = 0.1
+				NOT = { wants_to_decrease_tolerance_human = yes }
+			}
+		}
+		add_adm_power = 33
+		add_dip_power = 33
+		add_mil_power = 33
+		add_years_of_income = -0.5
+		medium_increase_of_human_tolerance_effect = yes
+	}
+}
+
+# Human dominance undermining us
+country_event = {
+	id = human_tolerance_events.4
+	title = human_tolerance_events.4.t
+	desc = human_tolerance_events.4.d
+	picture = OVEREXTENSION_eventPicture
+
+	is_triggered_only = yes
+
+	# That just means less work for us
+	option = {
+		name = human_tolerance_events.4.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		small_increase_of_human_tolerance_effect = yes
+		add_corruption = 1
+	}
+	# What can you do?
+	option = {
+		name = human_tolerance_events.4.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = -10
+	}
+	# They need to be put in their place
+	option = {
+		name = human_tolerance_events.4.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		add_prestige = 5
+		add_adm_power = -15
+		small_decrease_of_human_tolerance_effect = yes
+	}
+}
+
+# Rapid growth due to human minority
+country_event = {
+	id = human_tolerance_events.5
+	title = human_tolerance_events.5.t
+	desc = human_tolerance_events.5.d
+	picture = CITY_VIEW_eventPicture
+	GOTO = human_rapid_development_province
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { culture_is_human = yes }
+		any_owned_province = {
+			has_human_minority_trigger = yes
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 1
+		
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					has_human_minority_trigger = yes
+				}
+				save_event_target_as = human_rapid_development_province
+			}
+			random_owned_province = {
+				limit = {
+					has_large_human_minority_trigger = yes
+				}
+				save_event_target_as = human_rapid_development_province
+			}
+		}
+	}
+
+	# Support further development schemes
+	option = {
+		name = human_tolerance_events.5.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				NOT = { years_of_income = 0.3 }
+			}
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		add_years_of_income = -0.3
+		medium_increase_of_human_tolerance_effect = yes
+		random_list = {
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_tax = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_production = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_manpower = 1
+				}
+			}
+		}
+		random_list = {
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_tax = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_production = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_manpower = 1
+				}
+			}
+		}
+	}
+	# Great!
+	option = {
+		name = human_tolerance_events.5.b
+		ai_chance = {
+			factor = 50
+		}
+		small_increase_of_human_tolerance_effect = yes
+		random_list = {
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_tax = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_production = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_manpower = 1
+				}
+			}
+		}
+	}
+	# Don't acknowledge their efforts
+	option = {
+		name = human_tolerance_events.5.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		small_decrease_of_human_tolerance_effect = yes
+		random_list = {
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_tax = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_production = 1
+				}
+			}
+			1 = {
+				event_target:human_rapid_development_province = {
+					add_base_manpower = 1
+				}
+			}
+		}
+	}
+}
+
+# Angry human mob forms
+country_event = {
+	id = human_tolerance_events.6
+	title = human_tolerance_events.6.t
+	desc = human_tolerance_events.6.d
+	picture = ANGRY_MOB_eventPicture
+
+	is_triggered_only = yes
+
+	# De-escalate the situation
+	option = {
+		name = human_tolerance_events.6.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		add_prestige = -10
+		small_increase_of_human_tolerance_effect = yes
+	}
+	# Just humans being humans
+	option = {
+		name = human_tolerance_events.6.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = -5
+	}
+	# Send out the troops!
+	option = {
+		name = human_tolerance_events.6.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		if = {
+			limit = {
+				max_manpower = 20
+			}
+			add_manpower = -1
+		}
+		if = {
+			limit = {
+				NOT = { max_manpower = 20 }
+			}
+			add_yearly_manpower = -0.5
+		}
+		small_decrease_of_human_tolerance_effect = yes
+	}
+}
+
+# Human highwaymen
+#TODO - MAKE THIS TROY's MONSTER SYSTEM
+country_event = {
+	id = human_tolerance_events.7
+	title = human_tolerance_events.7.t
+	desc = human_tolerance_events.7.d
+	picture = BORDER_TENSION_eventPicture
+	GOTO = human_highwaymen_province
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					has_human_minority_trigger = yes
+					NOT = { has_province_modifier = human_highwaymen }
+					NOT = { has_province_modifier = human_populace_punished_for_highwaymen }
+				}
+				save_event_target_as = human_highwaymen_province
+			}
+			random_owned_province = {
+				limit = {
+					has_human_minority_trigger = yes
+					unrest = 1
+					NOT = { has_province_modifier = human_highwaymen }
+					NOT = { has_province_modifier = human_populace_punished_for_highwaymen }
+				}
+				save_event_target_as = human_highwaymen_province
+			}
+		}
+	}
+
+	# It will be more trouble finding them than its worth
+	option = {
+		name = human_tolerance_events.7.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_human = yes
+			}
+		}
+		small_increase_of_human_tolerance_effect = yes
+		event_target:human_highwaymen_province = {
+			add_province_modifier = {
+				name = human_highwaymen
+				duration = 3650
+			}
+		}
+	}
+	# Establish more frequent patrols
+	option = {
+		name = human_tolerance_events.7.b
+		ai_chance = {
+			factor = 50
+		}
+		add_mil_power = -20
+		event_target:human_highwaymen_province = {
+			add_province_modifier = {
+				name = human_highwaymen
+				duration = 1825
+			}
+		}
+	}
+	# Punish them all for harbouring the criminals
+	option = {
+		name = human_tolerance_events.7.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_human = yes
+			}
+		}
+		medium_decrease_of_human_tolerance_effect = yes
+		event_target:human_highwaymen_province = {
+			add_province_modifier = {
+				name = human_populace_punished_for_highwaymen
+				duration = 3650
+			}
+		}
+	}
+}
