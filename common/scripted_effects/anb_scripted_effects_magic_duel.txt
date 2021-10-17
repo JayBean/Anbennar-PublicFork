@@ -339,7 +339,7 @@ magic_duel_initialize_stats = {
 magic_duel_initialize_stats_npc = {
 	[[Jorgurem]
 		if = {
-			limit = { is_variable_equal = { mag_hp = 0 } }
+			limit = { is_variable_equal = { which = mag_hp value = 0 } }
 			set_variable = { mag_hp = 5000 }
 		}
 		set_variable = { mag_shield = 1250 }
@@ -359,12 +359,23 @@ process_magical_turn = {
 	hidden_effect = {
 		#This is done to check if both mage have done their turn
 		change_variable = { magicProcess = 1 }
+		hidden_effect = {
+			if = {
+				limit = { ai = no }
+				if = {
+					limit = { event_target:attacker = { tag = ROOT } }
+					event_target:defender = { country_event = { id = magic_duel.1 } }
+				}
+				else = {
+					event_target:attacker = { country_event = { id = magic_duel.1 } }
+				}
+			}
+		}
 		if = {
 			limit = {
 				event_target:attacker = { check_variable = { magicProcess = 1 } }
 				event_target:defender = { check_variable = { magicProcess = 1 } }
 			}
-			
 			event_target:attacker = { country_event = { id = magic_duel.3 } } #This is the calculation event
 		}
 	}
@@ -384,69 +395,147 @@ cast_spell = {
 			limit = { NOT = { check_variable = { current_mana = 1 } } }
 			set_variable = { current_mana = 0 }
 		}
+		# [[debuff_spell_evasion]
+			# multiply_variable = { which = spellFoo which = mag_power } #This is where the baseDamage x spellPower happen
+			# divide_variable = { spellFoo = 100 }
+			# set_variable = { tempFoo = 1 }
+			# subtract_variable = { which = tempFoo which = spellFoo }
+			# set_variable = { which = spellFoo which = tempFoo }
+			# set_variable = { which = tempDebuff which = spellFoo }
+			# set_variable = { which = tempValue which = mag_evasion }
+			# set_variable = { which = mag_evasion which = tempDebuff }
+			# if = {
+				# limit = { event_target:attacker = { tag = ROOT } }
+				# event_target:attacker = {
+					# event_target:defender = {
+						# set_variable = { which = tempFoo which = PREV }
+						# subtract_variable = { which = printSpellEvasion which = tempFoo }
+						# multiply_variable = { which = mag_evasion which = PREV }
+					# }
+				# }
+			# }
+			# else = {
+				# event_target:defender = {
+					# event_target:attacker = {
+						# set_variable = { which = tempFoo which = PREV }
+						# subtract_variable = { which = printSpellEvasion which = tempFoo }
+						# multiply_variable = { which = mag_evasion which = PREV }
+					# }
+				# }
+			# }
+			# set_variable = { which = mag_evasion which = tempValue }
+			# set_variable = { spellFoo = $value$ } #Some spell can have multiple effect. So we reset the value at the end of an effect. This is done because we don't want spell power buff/debuff effect to be affect by your spell power. (because this get out of control really fast)
+		# ]
 		[[debuff_spell_evasion]
-			multiply_variable = { which = spellFoo which = mag_power } #This is where the baseDamage x spellPower happen
-			divide_variable = { spellFoo = 100 }
-			set_variable = { tempFoo = 1 }
-			subtract_variable = { which = tempFoo which = spellFoo }
-			set_variable = { which = spellFoo which = tempFoo }
-			set_variable = { which = tempDebuff which = spellFoo }
-			set_variable = { which = tempValue which = mag_evasion }
-			set_variable = { which = mag_evasion which = tempDebuff }
+			multiply_variable = { which = spellFoo which = mag_power }
+			trim_spell_foo = yes
 			if = {
 				limit = { event_target:attacker = { tag = ROOT } }
-				event_target:attacker = { event_target:defender = { multiply_variable = { which = mag_evasion which = PREV } } }
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:defender = {
+						subtract_variable = { mag_evasion = 1 }
+						subtract_variable = { printSpellEvasion = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
 			}
 			else = {
-				event_target:defender = { event_target:attacker = { multiply_variable = { which = mag_evasion which = PREV } } }
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:attacker = {
+						subtract_variable = { mag_evasion = 1 }
+						subtract_variable = { printSpellEvasion = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
 			}
-			set_variable = { which = mag_evasion which = tempValue }
 			set_variable = { spellFoo = $value$ } #Some spell can have multiple effect. So we reset the value at the end of an effect. This is done because we don't want spell power buff/debuff effect to be affect by your spell power. (because this get out of control really fast)
 		]
+		# [[debuff_spell_accuracy]
+			# multiply_variable = { which = spellFoo which = mag_power }
+			# divide_variable = { spellFoo = 100 }
+			# set_variable = { tempFoo = 1 }
+			# subtract_variable = { which = tempFoo which = spellFoo }
+			# set_variable = { which = spellFoo which = tempFoo }
+			# set_variable = { which = tempDebuff which = spellFoo }
+			# set_variable = { which = tempValue which = mag_accuracy }
+			# set_variable = { which = mag_accuracy which = tempDebuff }
+			# if = {
+				# limit = { event_target:attacker = { tag = ROOT } }
+				# event_target:attacker = {
+					# event_target:defender = {
+						# set_variable = { which = tempFoo which = PREV }
+						# subtract_variable = { which = printSpellAccuracy which = tempFoo }
+						# multiply_variable = { which = mag_accuracy which = PREV }
+					# }
+				# }
+			# }
+			# else = {
+				# event_target:defender = {
+					# event_target:attacker = {
+						# set_variable = { which = tempFoo which = PREV }
+						# subtract_variable = { which = printSpellAccuracy which = tempFoo }
+						# multiply_variable = { which = mag_accuracy which = PREV }
+					# }
+				# }
+			# }
+			# set_variable = { which = mag_accuracy which = tempValue }
+			# set_variable = { spellFoo = $value$ }
+		# ]
 		[[debuff_spell_accuracy]
 			multiply_variable = { which = spellFoo which = mag_power }
-			divide_variable = { spellFoo = 100 }
-			set_variable = { tempFoo = 1 }
-			subtract_variable = { which = tempFoo which = spellFoo }
-			set_variable = { which = spellFoo which = tempFoo }
-			set_variable = { which = tempDebuff which = spellFoo }
-			set_variable = { which = tempValue which = mag_accuracy }
-			set_variable = { which = mag_accuracy which = tempDebuff }
+			trim_spell_foo = yes
 			if = {
 				limit = { event_target:attacker = { tag = ROOT } }
-				event_target:attacker = { event_target:defender = { multiply_variable = { which = mag_accuracy which = PREV } } }
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:defender = {
+						subtract_variable = { mag_accuracy = 1 }
+						subtract_variable = { printSpellAccuracy = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
 			}
 			else = {
-				event_target:defender = { event_target:attacker = { multiply_variable = { which = mag_accuracy which = PREV } } }
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:attacker = {
+						subtract_variable = { mag_accuracy = 1 }
+						subtract_variable = { printSpellAccuracy = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
 			}
-			set_variable = { which = mag_accuracy which = tempValue }
 			set_variable = { spellFoo = $value$ }
 		]
+		# [[debuff_spell_power]
+			# set_variable = { tempFoo = 1 }
+			# multiply_variable = { spellFoo = 100 }
+			# subtract_variable = { which = tempFoo which = spellFoo }
+			# set_variable = { which = spellFoo which = tempFoo }
+			# set_variable = { which = tempDebuff which = spellFoo }
+			# set_variable = { which = tempValue which = mag_power }
+			# set_variable = { which = mag_power which = tempDebuff }
+			# if = {
+				# limit = { event_target:attacker = { tag = ROOT } }
+				# event_target:attacker = { event_target:defender = { multiply_variable = { which = mag_power which = PREV } } }
+			# }
+			# else = {
+				# event_target:defender = { event_target:attacker = { multiply_variable = { which = mag_power which = PREV } } }
+			# }
+			# set_variable = { which = mag_power which = tempValue }
+			# set_variable = { spellFoo = $value$ }
+		# ]
 		[[debuff_spell_power]
-			set_variable = { tempFoo = 1 }
-			subtract_variable = { which = tempFoo which = spellFoo }
-			set_variable = { which = spellFoo which = tempFoo }
-			set_variable = { which = tempDebuff which = spellFoo }
-			set_variable = { which = tempValue which = mag_power }
-			set_variable = { which = mag_power which = tempDebuff }
-			if = {
-				limit = { event_target:attacker = { tag = ROOT } }
-				event_target:attacker = { event_target:defender = { multiply_variable = { which = mag_power which = PREV } } }
-			}
-			else = {
-				event_target:defender = { event_target:attacker = { multiply_variable = { which = mag_power which = PREV } } }
-			}
-			set_variable = { which = mag_power which = tempValue }
-			set_variable = { spellFoo = $value$ }
-		]
-		[[dot]
-			multiply_variable = { which = spellFoo which = mag_power }
+			multiply_variable = { spellFoo = 100 }
+			trim_spell_foo = yes
 			if = {
 				limit = { event_target:attacker = { tag = ROOT } }
 				while = {
 					limit = { check_variable = { spellFoo = 0 } }
 					event_target:defender = {
-						change_variable = { mag_dot = 1 }
+						subtract_variable = { mag_power = 1 }
 					}
 					subtract_variable = { spellFoo = 1 }
 				}
@@ -455,6 +544,29 @@ cast_spell = {
 				while = {
 					limit = { check_variable = { spellFoo = 0 } }
 					event_target:attacker = {
+						subtract_variable = { mag_power = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
+			}
+			set_variable = { spellFoo = $value$ }
+		]
+		[[dot]
+			multiply_variable = { which = spellFoo which = mag_power }
+			if = {
+				limit = { event_target:attacker = { tag = ROOT } }
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:defender = {
+						change_variable = { mag_dot = 1 }
+					}
+					subtract_variable = { spellFoo = 1 }
+				}
+			}
+			else = {
+				while = {
+					limit = { check_variable = { spellFoo = 1 } }
+					event_target:attacker = {
 						change_variable = { mag_dot = 1 }
 					}
 					subtract_variable = { spellFoo = 1 }
@@ -462,36 +574,62 @@ cast_spell = {
 			}
 			set_variable = { spellFoo = $value$ }
 		]
+		# [[buff_spell_evasion]
+			# multiply_variable = { which = spellFoo which = mag_power }
+			# divide_variable = { spellFoo = 100 }
+			# change_variable = { spellFoo = 1 }
+			# change_variable = { which = printSpellEvasion which = spellFoo }
+			# multiply_variable = { which = mag_evasion which = spellFoo }
+			# set_variable = { spellFoo = $value$ }
+		# ]
+		# [[buff_spell_accuracy]
+			# multiply_variable = { which = spellFoo which = mag_power }
+			# divide_variable = { spellFoo = 100 }
+			# change_variable = { spellFoo = 1 }
+			# change_variable = { which = printSpellAccuracy which = spellFoo }
+			# multiply_variable = { which = mag_accuracy which = spellFoo }
+			# set_variable = { spellFoo = $value$ }
+		# ]
 		[[buff_spell_evasion]
 			multiply_variable = { which = spellFoo which = mag_power }
-			divide_variable = { spellFoo = 100 }
-			change_variable = { spellFoo = 1 }
-			multiply_variable = { which = mag_evasion which = spellFoo }
+			trim_spell_foo = yes
+			change_variable = { which = mag_evasion which = spellFoo }
+			change_variable = { which = printSpellEvasion which = spellFoo }
 			set_variable = { spellFoo = $value$ }
 		]
 		[[buff_spell_accuracy]
 			multiply_variable = { which = spellFoo which = mag_power }
-			divide_variable = { spellFoo = 100 }
-			change_variable = { spellFoo = 1 }
-			multiply_variable = { which = mag_accuracy which = spellFoo }
+			trim_spell_foo = yes
+			change_variable = { which = mag_accuracy which = spellFoo }
+			change_variable = { which = printSpellAccuracy which = spellFoo }
 			set_variable = { spellFoo = $value$ }
 		]
+		# [[buff_spell_power]
+			# change_variable = { spellFoo = 1 }
+			# multiply_variable = { which = mag_power which = spellFoo }
+		# ]
 		[[buff_spell_power]
-			change_variable = { spellFoo = 1 }
-			multiply_variable = { which = mag_power which = spellFoo }
+			multiply_variable = { spellFoo = 100 }
+			trim_spell_foo = yes
+			change_variable = { which = mag_power which = spellFoo }
 		]
 		[[shield]
 			multiply_variable = { which = spellFoo which = mag_power }
+			trim_spell_foo = yes
 			change_variable = { which = mag_shield which = spellFoo }
+			set_variable = { which = printShield which = spellFoo }
+			set_ruler_flag = print_shield
 			set_variable = { spellFoo = $value$ }
 		]
 		[[hot]
 			multiply_variable = { which = spellFoo which = mag_power }
+			trim_spell_foo = yes
 			change_variable = { which = mag_hot which = spellFoo }
 			set_variable = { spellFoo = $value$ }
 		]
 		[[heal]
 			multiply_variable = { which = spellFoo which = mag_power }
+			trim_spell_foo = yes
 			change_variable = { which = current_hp which = spellFoo }
 			if = {
 				limit = { check_variable = { which = current_hp which = mag_hp } }
@@ -501,6 +639,7 @@ cast_spell = {
 		]
 		[[damage]
 			multiply_variable = { which = spellFoo which = mag_power }
+			trim_spell_foo = yes
 			set_variable = { which = mag_damage which = spellFoo }
 			set_variable = { spellFoo = $value$ }
 		]
@@ -508,24 +647,209 @@ cast_spell = {
 			set_variable = { which = tempMana which = mag_mana }
 			multiply_variable = { tempMana = $value$ }
 			subtract_variable = { which = tempMana which = mag_mana }
+			set_variable = { which = printMana which = tempMana }
+			set_ruler_flag = print_mana_regen
 			change_variable = { which = current_mana which = tempMana }
 		]
 		multiply_variable = { mag_power = 100 } #We bring down mag_power to use it in calculation, then bring it back up to display for the player
 	}
 }
 
+trim_spell_foo = { #Remove the decimal
+	divide_variable = { spellFoo = 1000 }
+	multiply_variable = { spellFoo = 1000 }
+}
+
+clr_magic_duel_printing_flag = {
+	hidden_effect = {
+		event_target:attacker = {
+			clr_ruler_flag = dodged_spell
+			clr_ruler_flag = hit_by_spell
+			clr_ruler_flag = print_spell_evasion
+			clr_ruler_flag = print_spell_accuracy
+			clr_ruler_flag = print_mana_regen
+			clr_ruler_flag = print_shield
+		}
+		event_target:defender = {
+			clr_ruler_flag = dodged_spell
+			clr_ruler_flag = hit_by_spell
+			clr_ruler_flag = print_spell_evasion
+			clr_ruler_flag = print_spell_accuracy
+			clr_ruler_flag = print_mana_regen
+			clr_ruler_flag = print_shield
+		}
+	}
+}
+
+reset_printing_value = {
+	hidden_effect = {
+		# if = {
+			# limit = { check_variable = { printSpellEvasion = 0 } }
+			# set_variable = { printSpellEvasion = 0 }
+		# }
+		# if = {
+			# limit = { check_variable = { printSpellAccuracy = 0 } }
+			# set_variable = { printSpellAccuracy = 0 }
+		# }
+		# if = {
+			# limit = { check_variable = { printMana = 0 } }
+			# set_variable = { printMana = 0 }
+		# }
+		# if = {
+			# limit = { check_variable = { printShield = 0 } }
+			# set_variable = { printShield = 0 }
+		# }
+		set_variable = { printSpellEvasion = 0 }
+		set_variable = { printSpellAccuracy = 0 }
+		set_variable = { printMana = 0 }
+		set_variable = { printShield = 0 }
+		clr_magic_duel_printing_flag = yes
+	}
+}
+
+reset_printing_value_mana = {
+	hidden_effect = {
+		# if = {
+			# limit = { check_variable = { printSpellEvasion = 0 } }
+			# set_variable = { printSpellEvasion = 0 }
+		# }
+		# if = {
+			# limit = { check_variable = { printSpellAccuracy = 0 } }
+			# set_variable = { printSpellAccuracy = 0 }
+		# }
+		# if = {
+			# limit = { check_variable = { printShield = 0 } }
+			# set_variable = { printShield = 0 }
+		# }
+		set_variable = { printSpellEvasion = 0 }
+		set_variable = { printSpellAccuracy = 0 }
+		set_variable = { printShield = 0 }
+		clr_magic_duel_printing_flag_mana = yes
+	}
+}
+
+clr_magic_duel_printing_flag_mana = {
+	hidden_effect = {
+		event_target:attacker = {
+			clr_ruler_flag = dodged_spell
+			clr_ruler_flag = hit_by_spell
+			clr_ruler_flag = print_spell_evasion
+			clr_ruler_flag = print_spell_accuracy
+			clr_ruler_flag = print_shield
+		}
+		event_target:defender = {
+			clr_ruler_flag = dodged_spell
+			clr_ruler_flag = hit_by_spell
+			clr_ruler_flag = print_spell_evasion
+			clr_ruler_flag = print_spell_accuracy
+			clr_ruler_flag = print_shield
+		}
+	}
+}
+
+parse_printing_value = {
+	hidden_effect = {
+		event_target:attacker = {
+			if = {
+				limit = { has_ruler_flag = print_spell_evasion }
+				# subtract_variable = { printSpellEvasion = 1 }
+				# multiply_variable = { printSpellEvasion = 100 }
+			}
+			if = {
+				limit = { has_ruler_flag = print_spell_accuracy }
+				# subtract_variable = { printSpellAccuracy = 1 }
+				# multiply_variable = { printSpellAccuracy = 100 }
+			}
+		}
+		event_target:defender = {
+			if = {
+				limit = { has_ruler_flag = print_spell_evasion }
+				# subtract_variable = { printSpellEvasion = 1 }
+				# multiply_variable = { printSpellEvasion = 100 }
+			}
+			if = {
+				limit = { has_ruler_flag = print_spell_accuracy }
+				# subtract_variable = { printSpellAccuracy = 1 }
+				# multiply_variable = { printSpellAccuracy = 100 }
+			}
+		}
+	}
+}
+
+clr_casting_flag = {
+	hidden_effect = {
+		clr_ruler_flag = casting_abjuration
+		clr_ruler_flag = casting_conjuration
+		clr_ruler_flag = casting_divination
+		clr_ruler_flag = casting_enchantment
+		clr_ruler_flag = casting_evocation
+		clr_ruler_flag = casting_illusion
+		clr_ruler_flag = casting_necromancy
+		clr_ruler_flag = casting_transmutation
+	}
+}
+
+set_printing_flag = {
+	if = {
+		limit = { NOT = { is_variable_equal = { which = printSpellAccuracy value = 0 } } }
+		set_ruler_flag = print_spell_accuracy
+	}
+	if = {
+		limit = { NOT = { is_variable_equal = { which = printSpellEvasion value = 0 } } }
+		set_ruler_flag = print_spell_evasion
+	}
+	if = {
+		limit = { NOT = { is_variable_equal = { which = printMana value = 0 } } }
+		set_ruler_flag = print_mana_regen
+	}
+	if = {
+		limit = { NOT = { is_variable_equal = { which = printShield value = 0 } } }
+		set_ruler_flag = print_shield
+	}
+}
+
+fix_overflow_value = {
+	if = {
+		limit = { check_variable = { mag_evasion = 90 } }
+		set_variable = { mag_evasion = 90 }
+	}
+	if = {
+		limit = { NOT = { check_variable = { mag_evasion = 10 } } }
+		set_variable = { mag_evasion = 10 }
+	}
+	if = {
+		limit = { check_variable = { mag_accuracy = 200 } }
+		set_variable = { mag_accuracy = 200 }
+	}
+	if = {
+		limit = { NOT = { check_variable = { mag_accuracy = 20 } } }
+		set_variable = { mag_accuracy = 20 }
+	}
+	if = {
+		limit = { check_variable = { which = current_mana which = mag_mana } }
+		set_variable = { which = current_mana which = mag_mana }
+	}
+}
 
 take_spell_damage = {
 	set_ruler_flag = hit_by_spell
+	set_variable = { printDamage = 0 }
+	if = {
+		limit = { check_variable = { which = mag_damage which = mag_shield } }
+		set_variable = { printShield = 0 }
+	}
 	while = {
 		limit = { check_variable = { mag_damage = 1 } }
 		if = {
 			limit = { check_variable = { mag_shield = 1 } }
 			subtract_variable = { mag_shield = 1 }
+			subtract_variable = { printShield = 1 }
+			set_ruler_flag = print_shield
 		}
 		else = {
 			set_variable = { mag_shield = 0 }
 			subtract_variable = { current_hp = 1 }
+			change_variable = { printDamage = 1 }
 		}
 		subtract_variable = { mag_damage = 1 }
 	}
