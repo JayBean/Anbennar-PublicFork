@@ -627,31 +627,42 @@ B38_khetist_expansion = {
 		}
 		
 		trigger = {
-			OR = {
-				has_global_flag = crimson_deluge
-				has_global_flag = crimson_deluge_is_actively_happening
-				has_global_flag = crimson_deluge_is_over
+			custom_trigger_tooltip = {
+				tooltip = elikhand_crimson
+				OR = {
+					has_global_flag = crimson_deluge
+					has_global_flag = crimson_deluge_is_actively_happening
+					has_global_flag = crimson_deluge_is_over
+				}
 			}
 			OR = {
-				any_country = {
-					religion = dalcabba
-					num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
-						value = 1
-						is_reformation_center = yes
-						religion = corinite
+				custom_trigger_tooltip = {
+					tooltip = elikhand_dal_center
+					any_country = {
+						religion = dalcabba
+						num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+							value = 1
+							is_reformation_center = yes
+							religion = corinite
+						}
 					}
 				}
-				NOT = {
-					any_province = {
-						OR = {
-							region = inner_castanor_region
-							region = south_castanor_region
-							region = west_castanor_region
-							area = cursewood_area
-							area = whistlevale_area
+				custom_trigger_tooltip = {
+					tooltip = elikhand_no_reform
+					all_province = {
+						NOT = {
+							AND = {
+								OR = {
+									region = inner_castanor_region
+									region = south_castanor_region
+									region = west_castanor_region
+									area = cursewood_area
+									area = whistlevale_area
+								}
+								is_reformation_center = yes
+								religion = corinite
+							}
 						}
-						is_reformation_center = yes
-						religion = corinite
 					}
 				}
 			}
@@ -767,10 +778,9 @@ B38_khetist_expansion = {
 		position = 10
 		
 		provinces_to_highlight = {
-			is_capital = yes
 			owner = {
 				NOT = { religion = dalcabba }
-				same_continent = ROOT
+				capital_scope = { continent = europe }
 			}
 			has_discovered = ROOT
 		}
@@ -779,7 +789,7 @@ B38_khetist_expansion = {
 			calc_true_if = {
 				all_known_country = {
 					religion = dalcabba
-					continent = europe
+					capital_scope = { continent = europe }
 					OR = {
 						is_force_converted = yes
 						AND = {
@@ -1164,7 +1174,7 @@ B38_early_khet = {
 				custom_tooltip = elikhand_foreignt
 				add_country_modifier = {
 					name = elikhand_foreigner
-					duration = 14600
+					duration = 10950
 				}
 			}
 	    }
@@ -1566,7 +1576,7 @@ B38_escann = {
 					owner = { has_opinion = { who = U01 value = 100 } }
 				}
 			}
-			has_institution = renaissance
+			has_institution = printing_press
 			is_at_war = no
 			dip_power = 75
 		}
@@ -1845,7 +1855,7 @@ B38_early_nation = {
 	
 	B38_land_monsters = {
 		icon = mission_heated_battle
-		required_missions = { B38_land_peoples }
+		required_missions = { B38_land_peoples B38_consolidate }
 		position = 3
 		
 		provinces_to_highlight = {
@@ -1929,7 +1939,7 @@ B38_early_nation = {
 	
 	B38_land_khet = {
 		icon = mission_pray_light
-		required_missions = { B38_land_monsters B38_northern_flank }
+		required_missions = { B38_land_monsters }
 		position = 4
 		
 		provinces_to_highlight = {
@@ -1944,14 +1954,46 @@ B38_early_nation = {
 		trigger = {
 			if = {
 				limit = { is_religion_enabled = corinite }
-				all_owned_province = { 
-					OR = {
-						religion = khetist 
-						religion = corinite
+				OR = {
+					all_owned_province = { 
+						OR = {
+							religion = khetist 
+							religion = corinite
+						}
+					}
+					calc_true_if = {
+						all_owned_province = {
+							religion = khetist
+							is_state = yes
+							OR = {
+								superregion = escann_superregion
+								area = cursewood_area
+								area = whistlevale_area
+							}
+						}
+						amount = 20
 					}
 				}
 			}
-			else = { all_owned_province = { religion = khetist } }
+			else = { 
+				all_owned_province = {
+					OR = {
+						all_owned_province = { religion = khetist }
+						calc_true_if = {
+							all_owned_province = {
+								religion = khetist
+								is_state = yes
+								OR = {
+									superregion = escann_superregion
+									area = cursewood_area
+									area = whistlevale_area
+								}
+							}
+							amount = 20
+						}
+					}
+				}
+			}
 			calc_true_if = {
 				all_owned_province = {
 					has_tax_building_trigger = yes
@@ -1963,7 +2005,7 @@ B38_early_nation = {
 						area = whistlevale_area
 					}
 				}
-				amount = 6
+				amount = 8
 			}
 		}
 		
@@ -2102,11 +2144,16 @@ B38_early_nation = {
 		
 		effect = {
 			set_government_rank = 2
+			change_government_reform_progress = 100
 			if = {
 				limit = { has_country_modifier = legacy_of_adventurers_modifier }
 				remove_country_modifier = legacy_of_adventurers_modifier
 			}
-			country_event = { id = flavor_elikhand.10 }
+			if = {
+				limit = { has_country_modifier = organized_adventurer_administration }
+				remove_country_modifier = organized_adventurer_administration
+			}
+			country_event = { id = flavor_elikhand.11 }
 	    }
 	}
 }
@@ -2278,7 +2325,6 @@ B38_crown = {
 			add_treasury = -1500
 			add_manpower = -15
 			country_event = { id = flavor_elikhand.6 }
-			769 = { set_province_flag = elikhand_pyramid }
 	    }
 	}
 	
@@ -2288,7 +2334,10 @@ B38_crown = {
 		position = 11
 		
 		provinces_to_highlight = {
-			province_id = 769
+			OR = {
+				province_id = 769
+				has_province_flag = b38_entef_here
+			}
 			NOT = { owned_by = ROOT }
 			has_discovered = ROOT
 		}
@@ -2304,7 +2353,7 @@ B38_crown = {
 				tooltip = b38_have_entef
 				any_owned_province = {
 					has_province_flag = b38_entef_here
-					is_state_core = ROOT
+					is_core = ROOT
 				}
 			}
 			adm_power = 50
@@ -2321,6 +2370,7 @@ B38_crown = {
 			if = {
 				limit = { has_dlc = "Leviathan" }
 				custom_tooltip = elikhand_pyramidt
+				769 = { set_province_flag = elikhand_pyramid }
 				hidden_effect = {
 					random_owned_province = {
 						limit = { has_province_flag = elikhand_pyramid }
@@ -2347,10 +2397,7 @@ B38_crown = {
 		position = 12
 		
 		provinces_to_highlight = {
-			OR = {
-				province_id = 769
-				has_province_flag = b38_entef_here
-			}
+			province_id = 769
 			NOT = { owned_by = ROOT }
 			has_discovered = ROOT
 		}
@@ -2602,45 +2649,57 @@ B38_crown = {
 					tooltip = elikhand_wonders
 					calc_true_if = {
 						229 = {
-							owned_by = ROOT
-							has_great_project = {
-								type = bal_mire
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = bal_mire
+									tier = 3
+								}
 							}
 						}
 						441 = {
-							owned_by = ROOT
-							has_great_project = {
-								type = bal_dostan
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = bal_dostan
+									tier = 3
+								}
 							}
 						}
 						769 = {
-							owned_by = ROOT
-							has_great_project = {
-								type = elikhander_pyramid
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = elikhander_pyramid
+									tier = 3
+								}
 							}
 						}
 						759 = {
-							owned_by = ROOT
-							has_great_project = {
-								type = elikhander_orbs
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = elikhander_orbs
+									tier = 3
+								}
 							}
 						}
 						756 = {
-							owned_by = ROOT
-							has_great_project = {
-								type = elikhander_sphinx
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = elikhander
+									tier = 3
+								}
 							}
 						}
 						840 = { 
-							owned_by = ROOT
-							has_great_project = {
-								type = the_north_citadel
-								tier = 3
+							AND = {
+								owned_by = ROOT
+								has_great_project = {
+									type = the_north_citadel
+									tier = 3
+								}
 							}
 						}
 						amount = 5
@@ -2673,55 +2732,169 @@ B38_early_solidify = {
 	}
 	has_country_shield = yes
 	
-	B38_salahadesi_cavalry = {
-		icon = mission_marwari_horses
+	
+	B38_power_base = {
+		icon = mission_unite_home_region
 		required_missions = {  }
 		position = 1
 		
-		trigger = {
-			num_of_cavalry = 6
-		}
-		
-		effect = {
-			add_country_modifier = {
-				name = elikhand_swift_battle
-				duration = 9125
-			}
-	    }
-	}
-	
-	B38_proper_support = {
-		icon = mission_non-western_soldiers
-		required_missions = { B38_salahadesi_cavalry }
-		position = 2
-		
 		provinces_to_highlight = {
-			owned_by = ROOT
-			NOT = { has_manpower_building_trigger = yes }
+			region = west_castanor_region
+			NOT = { is_state_core = ROOT }
 			has_discovered = ROOT
 		}
 		
 		trigger = {
-			num_of_infantry = 12
-			num_of_artillery = 2
-			OR = {
-				barracks = 3
-				training_fields = 3
+			calc_true_if = {
+				all_owned_province = {
+					region = west_castanor_region
+					is_state = yes
+				}
+				amount = 10
 			}
 		}
 		
 		effect = {
-			add_estate_loyalty = { estate = estate_nobles loyalty = 15 }
+			custom_tooltip = elikhand_lose_devestation_west
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						region = west_castanor_region
+					}
+					add_devastation = -30
+				}
+			}
 			add_country_modifier = {
-				name = elikhand_early_army
+				name = elikhand_borders
+				duration = 7300
+			}
+			rohibon_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			taran_plains_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			adenica_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+	    }
+	}
+	
+	B38_consolidate = {
+		icon = mission_conquer_50_development
+		required_missions = { B38_power_base }
+		position = 2
+		
+		provinces_to_highlight = {
+			OR = {
+				area = rohibon_area
+				area = taran_plains_area
+				area = adenica_area
+			}
+			OR = {
+				NOT = { owned_by = ROOT }
+				NOT = { is_core = ROOT }
+			}
+			has_discovered = ROOT
+		}
+		
+		trigger = {
+			rohibon_area = {
+				type = all
+				owned_by = ROOT
+				is_core = ROOT
+			}
+			taran_plains_area = {
+				type = all
+				owned_by = ROOT
+				is_core = ROOT
+			}
+			adenica_area = {
+				type = all
+				owned_by = ROOT
+				is_core = ROOT
+			}
+		}
+		
+		effect = {
+			add_country_modifier = {
+				name = elikhand_centralizing
 				duration = 9125
+			}
+			falsemire_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			silvervord_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			upcreek_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			verteben_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			valefort_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			merescker_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			whistlevale_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			cursewood_area = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
 			}
 	    }
 	}
 	
 	B38_northern_flank = {
 		icon = mission_advance_to_the_dnieper
-		required_missions = { B38_proper_support B38_consolidate }
+		required_missions = { B38_consolidate }
 		position = 3
 		
 		provinces_to_highlight = {
@@ -2783,7 +2956,7 @@ B38_early_solidify = {
 	
 	B38_new_kheterat = {
 		icon = mission_city_prosperity
-		required_missions = { B38_northern_flank B38_southern_flank }
+		required_missions = { B38_land_monsters }
 		position = 4
 		
 		provinces_to_highlight = {
@@ -2807,25 +2980,21 @@ B38_early_solidify = {
 				owned_by = ROOT
 				is_core = ROOT
 				development = 10
-				religion = khetist
 			}
 			759 = { #Badeben
 				owned_by = ROOT
 				is_core = ROOT
 				development = 10
-				religion = khetist
 			}
 			769 = { #Rohibon
 				owned_by = ROOT
 				is_core = ROOT
 				development = 10
-				religion = khetist
 			}
 			781 = { #Shieldrest
 				owned_by = ROOT
 				is_core = ROOT
 				development = 10
-				religion = khetist
 			}
 		}
 		
@@ -2836,7 +3005,7 @@ B38_early_solidify = {
 	
 	B38_northern_forests = {
 		icon = mission_alone_in_the_wood
-		required_missions = { B38_new_kheterat }
+		required_missions = { B38_new_kheterat B38_manage_tempers }
 		position = 5
 		
 		provinces_to_highlight = {
@@ -2961,7 +3130,7 @@ B38_wonders = {
 					}
 					has_building = farm_estate
 				}
-				amount = 4
+				amount = 6
 			}
 			estate_loyalty = { estate = estate_nobles loyalty = 60 }
 		}
@@ -3175,7 +3344,6 @@ B38_wonders = {
 			add_treasury = -1500
 			add_manpower = -15
 			country_event = { id = flavor_elikhand.6 }
-			759 = { set_province_flag = elikhand_orb }
 	    }
 	}
 	
@@ -3211,6 +3379,7 @@ B38_wonders = {
 			if = {
 				limit = { has_dlc = "Leviathan" }
 				custom_tooltip = elikhand_orbt
+				759 = { set_province_flag = elikhand_orb }
 				hidden_effect = {
 					random_owned_province = {
 						limit = { has_province_flag = elikhand_orb }
@@ -3463,168 +3632,55 @@ B38_early_expansion = {
 	}
 	has_country_shield = yes
 	
-	B38_power_base = {
-		icon = mission_unite_home_region
+	B38_salahadesi_cavalry = {
+		icon = mission_marwari_horses
 		required_missions = {  }
 		position = 1
 		
-		provinces_to_highlight = {
-			region = west_castanor_region
-			NOT = { is_state_core = ROOT }
-			has_discovered = ROOT
-		}
-		
 		trigger = {
-			calc_true_if = {
-				all_owned_province = {
-					region = west_castanor_region
-					is_state = yes
-				}
-				amount = 10
-			}
+			num_of_cavalry = 6
 		}
 		
 		effect = {
-			custom_tooltip = elikhand_lose_devestation_west
-			hidden_effect = {
-				every_owned_province = {
-					limit = {
-						region = west_castanor_region
-					}
-					add_devastation = -30
-				}
-			}
 			add_country_modifier = {
-				name = elikhand_borders
-				duration = 7300
-			}
-			rohibon_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			taran_plains_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			adenica_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
+				name = elikhand_swift_battle
+				duration = 9125
 			}
 	    }
 	}
 	
-	B38_consolidate = {
-		icon = mission_conquer_50_development
-		required_missions = { B38_power_base }
+	B38_proper_support = {
+		icon = mission_non-western_soldiers
+		required_missions = { B38_salahadesi_cavalry }
 		position = 2
 		
 		provinces_to_highlight = {
-			OR = {
-				area = rohibon_area
-				area = taran_plains_area
-				area = adenica_area
-			}
-			OR = {
-				NOT = { owned_by = ROOT }
-				NOT = { is_core = ROOT }
-			}
+			owned_by = ROOT
+			NOT = { has_manpower_building_trigger = yes }
 			has_discovered = ROOT
 		}
 		
 		trigger = {
-			rohibon_area = {
-				type = all
-				owned_by = ROOT
-				is_core = ROOT
-			}
-			taran_plains_area = {
-				type = all
-				owned_by = ROOT
-				is_core = ROOT
-			}
-			adenica_area = {
-				type = all
-				owned_by = ROOT
-				is_core = ROOT
+			num_of_infantry = 12
+			num_of_artillery = 2
+			OR = {
+				barracks = 3
+				training_fields = 3
 			}
 		}
 		
 		effect = {
+			add_estate_loyalty = { estate = estate_nobles loyalty = 15 }
 			add_country_modifier = {
-				name = elikhand_centralizing
+				name = elikhand_early_army
 				duration = 9125
-			}
-			falsemire_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			silvervord_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			upcreek_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			verteben_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			valefort_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			merescker_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			whistlevale_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
-			}
-			cursewood_area = {
-				limit = {
-					NOT = { is_core = ROOT }
-					NOT = { is_permanent_claim = ROOT }
-				}
-				add_permanent_claim = ROOT
 			}
 	    }
 	}
 	
 	B38_southern_flank = {
 		icon = mission_consolidate_the_state
-		required_missions = { B38_consolidate }
+		required_missions = { B38_consolidate B38_proper_support }
 		position = 3
 		
 		provinces_to_highlight = {
@@ -3688,28 +3744,26 @@ B38_early_expansion = {
 	
 	B38_manage_tempers = {
 		icon = mission_candide_letter
-		required_missions = { B38_southern_flank }
+		required_missions = { B38_northern_flank B38_southern_flank }
 		position = 4
 		
 		provinces_to_highlight = {
 			owner = {
+				total_development = 50
+				is_subject = no
+				has_opinion_modifier = {
+					modifier = aggressive_expansion
+					who = ROOT
+				}
 				NOT = {
-					OR = {
-						NOT = {
-							has_opinion_modifier = {
-								modifier = aggressive_expansion
-								who = PREV
-							}
-						}
-						has_opinion_modifier = {
-							modifier = aggressive_expansion
-							who = PREV
-							value = -20
-						}
-						has_opinion = {
-							who = PREV
-							value = 80
-						}
+					has_opinion_modifier = {
+						modifier = aggressive_expansion
+						who = ROOT
+						value = -20
+					}
+					has_opinion = {
+						who = ROOT
+						value = 80
 					}
 				}
 			}
@@ -3736,6 +3790,8 @@ B38_early_expansion = {
 							who = PREV
 							value = 80
 						}
+						NOT = { total_development = 50 }
+						is_subject = yes
 					}
 				}
 			}
@@ -3754,7 +3810,7 @@ B38_early_expansion = {
 	
 	B38_southern_forests = {
 		icon = mission_alone_in_the_forest
-		required_missions = { B38_new_kheterat B38_manage_tempers }
+		required_missions = { B38_manage_tempers }
 		position = 5
 		
 		provinces_to_highlight = {
@@ -4071,7 +4127,6 @@ B38_sphinx_horses = {
 			add_treasury = -1500
 			add_manpower = -15
 			country_event = { id = flavor_elikhand.6 }
-			756 = { set_province_flag = elikhand_sphinx }
 	    }
 	}
 	
@@ -4107,6 +4162,7 @@ B38_sphinx_horses = {
 			if = {
 				limit = { has_dlc = "Leviathan" }
 				custom_tooltip = elikhand_sphinxt
+				756 = { set_province_flag = elikhand_sphinx }
 				hidden_effect = {
 					random_owned_province = {
 						limit = { has_province_flag = elikhand_sphinx }
