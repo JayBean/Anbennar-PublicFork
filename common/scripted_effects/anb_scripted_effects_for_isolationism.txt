@@ -1,24 +1,1379 @@
-increase_NSC_isolation_level = {
+#-------------# New Sun Cult #-------------#
+
+increase_nsc_isolation_level = {
 	if = {
 		limit = {
 			religion = bulwari_sun_cult
-			NOT = { isolationism = 4 }		#not highest isolation level for religion
+			has_dlc = "Mandate of Heaven"
 		}
-		custom_tooltip = nsc_increase_isolation_tt	#Tooltip for specific localization for each religion
-		hidden_effect = { add_isolationism = 1 }
+		if = { limit = { isolationism = 4 }
+			custom_tooltip = nsc_increase_isolation_max_tt 			#already at max
+		}
+		else = {
+			custom_tooltip = nsc_increase_isolation_tt 				#Tooltip for specific localization for each religion
+			hidden_effect = {
+				add_isolationism = 1
+				if = { limit = { isolationism = 4 is_chosen_country = yes }
+					set_variable = { which = battlesWonBySunElfRuler value = 0 }
+				}
+				update_nsc_level_secondary_effects = yes
+			}
+		}
 	}
 }
 
-decrease_NSC_isolation_level = {
+decrease_nsc_isolation_level = {
 	if = {
 		limit = {
 			religion = bulwari_sun_cult
-			isolationism = 1				#at least one level above lowest isolation for religion
+			has_dlc = "Mandate of Heaven"
 		}
-		custom_tooltip = nsc_decrease_isolation_tt
-		hidden_effect = { add_isolationism = -1 }
+		if = { limit = { isolationism = 1 }
+			custom_tooltip = nsc_decrease_isolation_tt				#Tooltip for specific localization for each religion
+			hidden_effect = {
+				add_isolationism = -1
+				update_nsc_level_secondary_effects = yes
+			}
+		}
+		else = {
+			custom_tooltip = nsc_increase_isolation_min_tt			#Already at min
+		}
 	}
 }
+
+update_nsc_level_secondary_effects = { 								#This effect can be triggered by a NSC level change. a new ruler. a vassalisation. an overlord's new ruler or a conversion
+	if = {
+		limit = {
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+		}
+		
+		if = { limit = { is_chosen_country = yes }
+			remove_country_modifier = NSC_level_4 					#Liberty desire modifiers
+			remove_country_modifier = NSC_level_3
+			remove_country_modifier = NSC_level_0
+		}
+		
+		if = { limit = { isolationism = 4 } 						# = level 5 in the loc/interface
+			remove_country_modifier = NSC_level_3
+			if = { 
+				limit = {
+					is_subject = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_4 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_4
+			}
+		}
+		else_if = { limit = { isolationism = 3 } 					# = level 4 in the loc/interface
+			remove_country_modifier = NSC_level_4
+			if = {
+				limit = {
+					is_subject = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_3 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_3
+			}
+		}
+		else_if = { limit = { isolationism = 2 } 					# = level 3 in the loc/interface
+			remove_country_modifier = NSC_level_3
+			country_event = { id = new_sun_cult.1 } 				#humans gets the clergy privilege back
+			country_event = { id = new_sun_cult.2 } 				#lose elven mil
+		}
+		else_if = { limit = { isolationism = 1 } 					# = level 2 in the loc/interface
+			remove_country_modifier = NSC_level_0
+		}
+		else_if = { limit = { isolationism = 0 } 					# = level 1 in the loc/interface
+			if = {
+				limit = {
+					is_vassal = yes
+					overlord = { is_chosen_country = yes }
+					is_chosen_country = no
+				}
+				add_country_modifier = { name = NSC_level_0 duration = -1 hidden = yes }
+			}
+			else = {
+				remove_country_modifier = NSC_level_0
+			}
+		}
+	}
+	else = {
+		remove_country_modifier = NSC_level_4
+		remove_country_modifier = NSC_level_3
+		remove_country_modifier = NSC_level_0
+	}
+}
+
+refresh_nsc_incidents_ui = {
+	if = { 
+		limit = {
+			religion = bulwari_sun_cult
+			has_dlc = "Mandate of Heaven"
+		}
+		set_country_flag = updating_isolationism_window
+		change_religion = cannorian_pantheon
+		change_religion = bulwari_sun_cult
+		clr_country_flag = updating_isolationism_window
+	}
+}
+
+#For the disasters
+
+nsc_disaster_province_conversion_effect = {
+	if = {
+		limit = {
+			OR = {
+				religion = old_bulwari_sun_cult
+				religion = the_jadd
+			}
+		}
+		set_province_flag = dukeldar_conversion
+	}
+	else_if = { limit = { religion = bulwari_sun_cult }
+		if = { limit = { has_province_flag = dukeldar_conversion }
+			owner = {
+				export_to_variable = { which = numOfCitiesVar value = num_of_cities }
+				if = { limit = { check_variable = { which = numOfCitiesVar value = 30 } }
+					set_variable = { which = numOfCitiesVar value = 30 }
+				}
+				set_variable = { which = tempNscDisasterScoreVar value = 30 }
+				divide_variable = { which = tempNscDisasterScoreVar which = numOfCitiesVar }
+				change_variable = { which = nscDisasterConversionScoreVar which = tempNscDisasterScoreVar }
+			}
+		}
+	}
+	else = {
+		clr_province_flag = dukeldar_conversion
+	}
+}
+
+nsc_update_monthly_disaster_score = {
+	set_variable = { which = monthlyNscDisasterScoreVar value = 0 }
+	if = { limit = { employed_advisor = { category = ADM } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = DIP } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { employed_advisor = { category = MIL } }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+	}
+	if = { limit = { stability = 1 }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+	if = { limit = { stability = 3 }
+		change_variable = { which = monthlyNscDisasterScoreVar value = 1 }
+	}
+	if = { limit = { has_disaster = nsc_dinam_elutur }
+		if = { limit = { estate_loyalty = { estate = estate_church loyalty = 50 } }
+			change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+		}
+		else_if = { limit = { estate_loyalty = { estate = estate_church loyalty = 30 } }
+			change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+		}
+		else = {
+			change_variable = { which = monthlyNscDisasterScoreVar value = -0.1 }
+		}
+		if = { limit = { estate_loyalty = { estate = estate_nobles loyalty = 50 } }
+			change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+		}
+		else_if = { limit = { estate_loyalty = { estate = estate_nobles loyalty = 30 } }
+			change_variable = { which = monthlyNscDisasterScoreVar value = 0.25 }
+		}
+		else_if = {
+			change_variable = { which = monthlyNscDisasterScoreVar value = -0.1 }
+		}
+	}
+	
+	export_to_variable = { which = numOfRebelArmiesVar value = num_of_rebel_armies }
+	export_to_variable = { which = numOfRebelProvincesVar value = num_of_rebel_controlled_provinces }
+	
+	if = {
+		limit = {
+			OR = { 
+				check_variable = { which = numOfRebelArmiesVar value = 1 }
+				check_variable = { which =  numOfRebelProvincesVar value = 1 }
+			}
+		}
+		set_variable = { which = disasterRebelArmiesScoreVar which = numOfRebelArmiesVar }
+		multiply_variable = { which = disasterRebelArmiesScoreVar value = -0.25 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelArmiesScoreVar }
+		set_variable = { which = disasterRebelProvincesScoreVar which = numOfRebelProvincesVar }
+		multiply_variable = { which = disasterRebelProvincesScoreVar value = -0.1 }
+		change_variable = { which = monthlyNscDisasterScoreVar which = disasterRebelProvincesScoreVar }
+	}
+	else = {
+		change_variable = { which = monthlyNscDisasterScoreVar value = 0.5 }
+	}
+}
+
+nsc_calculate_total_disaster_score = {
+	nsc_update_monthly_disaster_score = yes
+	change_variable = { which = totalMonthlyNscDisasterScoreVar which = monthlyNscDisasterScoreVar }
+	set_variable = { which = nscDisasterScoreVar which = totalMonthlyNscDisasterScoreVar }
+	if = { limit = { has_disaster = nsc_dukeldar }
+		change_variable = { which = nscDisasterScoreVar which = nscDisasterConversionScoreVar }
+	}
+	change_variable = { which = nscDisasterScoreVar which = nscDisasterBattleWonScoreVar }
+	subtract_variable = { which = nscDisasterScoreVar which = nscDisasterBattleLostScoreVar }
+}
+
+#Shadow on the sun incident
+nsc_define_influenceable_vassals = {
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_1_@ROOT
+		save_event_target_as = influenceable_vassal_1
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_2_@ROOT
+		save_event_target_as = influenceable_vassal_2
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_3_@ROOT
+		save_event_target_as = influenceable_vassal_3
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_4_@ROOT
+		save_event_target_as = influenceable_vassal_4
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_5_@ROOT
+		save_event_target_as = influenceable_vassal_5
+	}
+	random_subject_country = {
+		limit = {
+			religion = bulwari_sun_cult
+			NOT = { has_country_flag = influenceable_vassal_@ROOT }
+			NOT = { has_country_flag = influenced_vassal_@ROOT }
+			NOT = { isolationism = 4 }
+		}
+		set_country_flag = influenceable_vassal_@ROOT
+		set_country_flag = influenceable_vassal_6_@ROOT
+		save_event_target_as = influenceable_vassal_6
+	}
+}
+
+nsc_add_influencing_vassal_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_1 } }
+		add_country_modifier = { name = nsc_influencing_vassal_1 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_2 } }
+		add_country_modifier = { name = nsc_influencing_vassal_2 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_3 } }
+		add_country_modifier = { name = nsc_influencing_vassal_3 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_4 } }
+		add_country_modifier = { name = nsc_influencing_vassal_4 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_5 } }
+		add_country_modifier = { name = nsc_influencing_vassal_5 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_influencing_vassal_6 } }
+		add_country_modifier = { name = nsc_influencing_vassal_6 duration = -1 }
+	}
+}
+
+nsc_remove_influencing_vassal_modifier = {
+	if = { limit = { has_country_modifier = nsc_influencing_vassal_1 }
+		remove_country_modifier = nsc_influencing_vassal_1
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_2 }
+		remove_country_modifier = nsc_influencing_vassal_2
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_3 }
+		remove_country_modifier = nsc_influencing_vassal_3
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_4 }
+		remove_country_modifier = nsc_influencing_vassal_4
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_5 }
+		remove_country_modifier = nsc_influencing_vassal_5
+	}
+	else_if = { limit = { has_country_modifier = nsc_influencing_vassal_6 }
+		remove_country_modifier = nsc_influencing_vassal_6
+	}
+}
+
+nsc_calculate_unrest_percentage = {
+	set_variable = { which = TotalProvincesVar value = 0 }
+	every_owned_province = {
+		limit = {
+			OR = {
+				has_province_flag = nsc_mayor_target
+				has_province_flag = nsc_merchant_target
+				has_province_flag = nsc_peasant_target
+			}
+		}
+		export_to_variable = { which = TotalUnrestVar value = unrest }
+		ROOT = { change_variable = { which = TotalProvincesVar value = 1 } }
+	}
+	if = { limit = { check_variable = { which = TotalProvinces value = 1 } }
+		divide_variable = { which = TotalUnrestVar which = TotalProvincesVar }
+	}
+}
+
+nsc_calculate_pledge_score = {
+	if = { limit = { has_country_flag = nsc_bulwar_under_threat_active }
+		set_variable = { which = ScoreRightReligionVar value = 0 }
+		set_variable = { which = ScoreOwnedProvinceVar value = 0 }
+		if = { limit = { tag = F21 }
+			set_variable = { which = ProvincesToGetVar value = 12 } #nb of provinces in target province group x2
+			nsc_incident_target_birsartanses = {
+				limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = F21 } }
+				F21 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+			}
+			nsc_incident_target_birsartanses = {
+				limit = { country_or_non_sovereign_subject_holds = F21 }
+				F21 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+			}
+		}
+		if = { limit = { tag = F25 }
+			set_variable = { which = ProvincesToGetVar value = 16 } #nb of provinces in target province group x2
+			nsc_incident_target_sareyand = {
+				limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = F25 } }
+				F25 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+			}
+			nsc_incident_target_sareyand = {
+				limit = { country_or_non_sovereign_subject_holds = F25 }
+				F25 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+			}
+		}
+		if = { limit = { tag = F34 }
+			set_variable = { which = ProvincesToGetVar value = 14 } #nb of provinces in target province group x2
+			nsc_incident_target_azka_evran = {
+				limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = F34 } }
+				F34 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+			}
+			nsc_incident_target_azka_evran = {
+				limit = { country_or_non_sovereign_subject_holds = F34 }
+				F34 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+			}
+		}
+		if = { limit = { tag = F37 }
+			set_variable = { which = ProvincesToGetVar value = 14 } #nb of provinces in target province group x2
+			nsc_incident_target_irrliam = {
+				limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = F37 } }
+				F37 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+			}
+			nsc_incident_target_irrliam = {
+				limit = { country_or_non_sovereign_subject_holds = F37 }
+				F37 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+			}
+		}
+		if = { limit = { tag = F42 }
+			set_variable = { which = ProvincesToGetVar value = 16 } #nb of provinces in target province group x2
+			nsc_incident_target_varamhar = {
+				limit = { OR = { owner = { religion = bulwari_sun_cult } country_or_non_sovereign_subject_holds = F42 } }
+				F42 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
+			}
+			nsc_incident_target_varamhar = {
+				limit = { country_or_non_sovereign_subject_holds = F42 }
+				F42 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
+			}
+		}
+		set_variable = { which = ScorePerProvinceVar value = 50 }
+		divide_variable = { which = ScoreRightReligionVar which = ProvincesToGetVar }
+		divide_variable = { which = ScoreOwnedProvinceVar which = ProvincesToGetVar }
+		divide_variable = { which = ScorePerProvinceVar which = ProvincesToGetVar }
+		multiply_variable = { which = ScoreRightReligionVar value = 50 }
+		multiply_variable = { which = ScoreOwnedProvinceVar value = 50 }
+		set_variable = { which = ScoreWarVar which = ScoreRightReligionVar }
+		change_variable = { which = ScoreWarVar which = ScoreOwnedProvinceVar }
+
+		set_variable = { which = ScoreVar value = 0 }
+		if = { limit = { stability = 0 } change_variable = { which = ScoreVar value = 1 } }
+		if = { limit = { stability = 1 } change_variable = { which = ScoreVar value = 2 } }
+		if = { limit = { NOT = { war_exhaustion = 1 } } change_variable = { which = ScoreVar value = 2 } }
+		if = { limit = { is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 3 } }
+		if = { limit = { employed_advisor = { category = ADM } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+		if = { limit = { employed_advisor = { category = DIP } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+		if = { limit = { employed_advisor = { category = MIL } is_in_deficit = no land_maintenance = 1 naval_maintenance = 1 } change_variable = { which = ScoreVar value = 1 } }
+		if = { limit = { has_estate = estate_church }
+			if = { limit = { estate_loyalty = { estate = estate_church loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+		}
+		if = { limit = { has_estate = estate_nobles }
+			if = { limit = { estate_loyalty = { estate = estate_nobles loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+		}
+		if = { limit = { has_estate = estate_burghers }
+			if = { limit = { estate_loyalty = { estate = estate_burghers loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+		}
+		if = { limit = { has_estate = estate_mages }
+			if = { limit = { estate_loyalty = { estate = estate_mages loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+		}
+		if = { limit = { has_estate = estate_adventurers }
+			if = { limit = { estate_loyalty = { estate = estate_adventurers loyalty = $loyalty$ } } change_variable = { which = ScoreVar value = 1 } }
+		}
+		if = { limit = { all_subject_country = { NOT = { liberty_desire = 50 } } } change_variable = { which = ScoreVar value = 4 } }
+		divide_variable = { which = ScoreVar value = 20 } #stability score in % - max score is 20
+		multiply_variable = { which = ScoreVar value = 50 }
+		
+		change_variable = { which = ScoreVar which = ScoreWarVar }
+	}
+}
+
+#For the Taelarios incident
+nsc_get_choices_ratio_effect = {
+	if = { limit = { check_variable = { which = nscTotalChoicesVar value = 1 } }
+		divide_variable = { which = nscChoiceAVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceBVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceCVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceEVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscChoiceFVar which = nscTotalChoicesVar }
+		divide_variable = { which = nscIrrliamChoicesVar which = nscTotalChoicesVar }
+		multiply_variable = { which = nscChoiceAVar value = 100 }
+		multiply_variable = { which = nscChoiceBVar value = 100 }
+		multiply_variable = { which = nscChoiceCVar value = 100 }
+		multiply_variable = { which = nscChoiceEVar value = 100 }
+		multiply_variable = { which = nscChoiceFVar value = 100 }
+		multiply_variable = { which = nscIrrliamChoicesVar value = 100 }
+	}
+}
+
+nsc_unity_results = {
+	change_variable = { which = nscUnityVar which = nscIrrliamChoicesVar }
+	if = { 
+		limit = {
+			check_variable = { which = nscChoiceAVar which = nscChoiceBVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceCVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceAVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceAVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceBVar which = nscChoiceCVar }
+			check_variable = { which = nscChoiceBVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceBVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceBVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceCVar which = nscChoiceEVar }
+			check_variable = { which = nscChoiceCVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceCVar }
+	}
+	else_if = { 
+		limit = {
+			check_variable = { which = nscChoiceEVar which = nscChoiceFVar }
+		}
+		change_variable = { which = nscUnityVar which = nscChoiceEVar }
+	}
+	else = { 
+		change_variable = { which = nscUnityVar which = nscChoiceFVar }
+	}
+}
+
+nsc_init_choice_variables_effect = {
+	set_variable = { which = nscChoiceAVar value = 0 }
+	set_variable = { which = nscChoiceBVar value = 0 }
+	set_variable = { which = nscChoiceCVar value = 0 }
+	set_variable = { which = nscChoiceEVar value = 0 }
+	set_variable = { which = nscChoiceFVar value = 0 }
+	set_variable = { which = nscIrrliamChoicesVar value = 0 }
+	set_variable = { which = nscTotalChoicesVar value = 0 }
+	set_variable = { which = nscTempUnityVar value = 0 }
+	clr_country_flag = nsc_ratio_effect_applied
+}
+
+#For the Samartal incident
+nsc_increase_tension_small_effect = {
+	custom_tooltip = nsc_increase_tension_small_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 1 } } }
+}
+
+nsc_increase_tension_medium_effect = {
+	custom_tooltip = nsc_increase_tension_medium_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 2 } } }
+}
+
+nsc_increase_tension_large_effect = {
+	custom_tooltip = nsc_increase_tension_large_tt
+	hidden_effect = { REB = { change_variable = { which = nscTensionsVar value = 3 } } }
+}
+
+nsc_add_investigation_ongoing_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_1 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_1 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_2 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_2 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_3 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_3 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_4 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_4 duration = -1 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_investigation_ongoing_5 } }
+		add_country_modifier = { name = nsc_investigation_ongoing_5 duration = -1 }
+	}
+}
+
+nsc_remove_investigation_ongoing_modifier = {
+	if = { limit = { has_country_modifier = nsc_investigation_ongoing_1 }
+		remove_country_modifier = nsc_investigation_ongoing_1
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_2 }
+		remove_country_modifier = nsc_investigation_ongoing_2
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_3 }
+		remove_country_modifier = nsc_investigation_ongoing_3
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_4 }
+		remove_country_modifier = nsc_investigation_ongoing_4
+	}
+	else_if = { limit = { has_country_modifier = nsc_investigation_ongoing_5 }
+		remove_country_modifier = nsc_investigation_ongoing_5
+	}
+}
+
+nsc_add_asshole_investigator_modifier = {
+	if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_1 } }
+		add_country_modifier = { name = nsc_asshole_investigators_1 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_2 } }
+		add_country_modifier = { name = nsc_asshole_investigators_2 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_3 } }
+		add_country_modifier = { name = nsc_asshole_investigators_3 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_4 } }
+		add_country_modifier = { name = nsc_asshole_investigators_4 duration = 1825 }
+	}
+	else_if = { limit = { NOT = { has_country_modifier = nsc_asshole_investigators_5 } }
+		add_country_modifier = { name = nsc_asshole_investigators_5 duration = 1825 }
+	}
+}
+
+nsc_remove_all_investigation_ongoing_modifier = {
+	remove_country_modifier = nsc_investigation_ongoing_1
+	remove_country_modifier = nsc_investigation_ongoing_2
+	remove_country_modifier = nsc_investigation_ongoing_3
+	remove_country_modifier = nsc_investigation_ongoing_4
+	remove_country_modifier = nsc_investigation_ongoing_5
+}
+
+calculate_local_investigation_impact = {
+	REB = {
+		set_variable = { which = nscInvestigaionBoostUpperThreshold value = 0.4 }
+		set_variable = { which = nscInvestigaionBoostMiddleThreshold value = 0.3 }
+		set_variable = { which = nscInvestigaionBoostLowerThreshold value = 0.2 }
+		multiply_variable = { which = nscInvestigaionBoostUpperThreshold which = nscGlobalInvestigationProgress }
+		multiply_variable = { which = nscInvestigaionBoostMiddleThreshold which = nscGlobalInvestigationProgress }
+		multiply_variable = { which = nscInvestigaionBoostLowerThreshold which = nscGlobalInvestigationProgress }
+		
+		set_variable = { which = nbInvestigableCountriesVar value = 0 }
+		set_variable = { which = nscInvestigationProgressVar which = nscLocalInvestigationProgressVar }
+		every_country = {
+			limit = {
+				has_country_flag = nsc_investigation_enabled
+				OR = {
+					is_subject = no
+					is_subject_of_type = tributary_state
+				}
+			}
+			REB = { change_variable = { which = nbInvestigableCountriesVar value = 1 } }
+		}
+		if = { limit = { NOT = { check_variable = { which = nbInvestigableCountriesVar value = 1 } } }
+			set_variable = { which = nbInvestigableCountriesVar value = 1 }
+		}
+		divide_variable = { which = nscInvestigationProgressVar which = nbInvestigableCountriesVar }
+	}
+}
+
+nsc_calculate_army_strength_ratio = {
+	set_variable = { which = willToFight value = 1 }
+	set_variable = { which = maxMilTech value = 3 }
+	every_country = {
+		ROOT = { export_to_variable = { which = milTech value = mil_tech who = PREV } }
+		if = { limit = { ROOT = { check_variable = { which = milTech which = maxMilTech } } }
+			set_variable = { which = maxMilTech which = milTech }
+		}
+	}
+	
+	export_to_variable = { which = ownArmySize value = army_size who = ROOT }
+	export_to_variable = { which = ownMilTech value = mil_tech who = ROOT }
+	export_to_variable = { which = ownManpower value = manpower who = ROOT }
+	subtract_variable = { which = ownMilTech which = maxMilTech }
+	multiply_variable = { which = ownMilTech value = 0.2 }
+	change_variable = { which = ownMilTech value = 1 }
+	multiply_variable = { which = ownArmySize which = ownMilTech } #-20% to army strength for each level mil tech under the max
+	
+	every_subject_country = {
+		limit = { NOT = { is_subject_of_type = tributary_state } }
+		ROOT = {
+			export_to_variable = { which = tempArmySize value = army_size who = PREV }
+			export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+			export_to_variable = { which = tempManpower value = manpower who = PREV }
+			subtract_variable = { which = tempMilTech which = maxMilTech }
+			multiply_variable = { which = tempMilTech value = 0.2 }
+			change_variable = { which = tempMilTech value = 1 }
+			multiply_variable = { which = tempArmySize which = tempMilTech }
+			multiply_variable = { which = tempArmySize value = 0.7 }
+			multiply_variable = { which = tempManpower value = 0.7 }
+			change_variable = { which = ownArmySize which = tempArmySize }
+			change_variable = { which = ownManpower which = tempManpower }
+		}
+	}
+	
+	if = { limit = { is_at_war = yes }
+		every_enemy_country = {
+			ROOT = {
+				export_to_variable = { which = tempArmySize value = army_size who = PREV }
+				export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+				export_to_variable = { which = tempManpower value = manpower who = PREV }
+				subtract_variable = { which = tempMilTech which = maxMilTech }
+				multiply_variable = { which = tempMilTech value = 0.2 }
+				change_variable = { which = tempMilTech value = 1 }
+				multiply_variable = { which = tempArmySize which = tempMilTech }
+				multiply_variable = { which = tempArmySize value = $other_wars_ratio$ }
+				multiply_variable = { which = tempManpower value = $other_wars_ratio$ }
+				change_variable = { which = enemyArmySize which = tempArmySize }
+				change_variable = { which = enemyManpower which = tempManpower }
+			}
+		}
+	}
+	
+	
+	export_to_variable = { which = enemyArmySize value = army_size who = $who$ }
+	export_to_variable = { which = enemyMilTech value = mil_tech who = $who$ }
+	export_to_variable = { which = enemyManpower value = manpower who = $who$ }
+	subtract_variable = { which = enemyMilTech which = maxMilTech }
+	multiply_variable = { which = enemyMilTech value = 0.2 }
+	change_variable = { which = enemyMilTech value = 1 }
+	multiply_variable = { which = enemyArmySize which = enemyMilTech } #-20% to army strength for each level mil tech under the max
+	
+	$who$ = {
+		every_subject_country = {
+			limit = { NOT = { is_subject_of_type = tributary_state } }
+			ROOT = {
+				export_to_variable = { which = tempArmySize value = army_size who = PREV }
+				export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+				export_to_variable = { which = tempManpower value = manpower who = PREV }
+				subtract_variable = { which = tempMilTech which = maxMilTech }
+				multiply_variable = { which = tempMilTech value = 0.2 }
+				change_variable = { which = tempMilTech value = 1 }
+				multiply_variable = { which = tempArmySize which = tempMilTech }
+				multiply_variable = { which = tempArmySize value = 0.7 }
+				multiply_variable = { which = tempManpower value = 0.7 }
+				change_variable = { which = enemyArmySize which = tempArmySize }
+				change_variable = { which = enemyManpower which = tempManpower }
+			}
+		}
+		if = { limit = { is_at_war = yes }
+			every_enemy_country = {
+				ROOT = {
+					export_to_variable = { which = tempArmySize value = army_size who = PREV }
+					export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
+					export_to_variable = { which = tempManpower value = manpower who = PREV }
+					subtract_variable = { which = tempMilTech which = maxMilTech }
+					multiply_variable = { which = tempMilTech value = 0.2 }
+					change_variable = { which = tempMilTech value = 1 }
+					multiply_variable = { which = tempArmySize which = tempMilTech }
+					multiply_variable = { which = tempArmySize value = $other_wars_ratio$ }
+					multiply_variable = { which = tempManpower value = $other_wars_ratio$ }
+					change_variable = { which = ownArmySize which = tempArmySize }
+					change_variable = { which = ownManpower which = tempManpower }
+				}
+			}
+		}
+	}
+	
+	if = { limit = { NOT = { check_variable = { which = enemyManpower value = 0 } } }
+		set_variable = { which = enemyManpower value = 0.01 }
+	}
+	
+	set_variable = { which = testOwnArmySize which = ownArmySize }
+	set_variable = { which = testOwnManpower which = ownManpower }
+	set_variable = { which = testEnemyArmySize which = enemyArmySize }
+	set_variable = { which = testEnemyManpower which = enemyManpower }
+	
+	multiply_variable = { which = ownArmySize value = 0.80 }
+	multiply_variable = { which = ownManpower value = 0.20 }
+	multiply_variable = { which = enemyArmySize value = 0.80 }
+	multiply_variable = { which = enemyManpower value = 0.20 }
+	change_variable = { which = ownArmySize which = ownManpower }
+	change_variable = { which = enemyArmySize which = enemyManpower }
+	set_variable = { which = armyStrengthRatio which = ownArmySize }
+	divide_variable = { which = armyStrengthRatio which = enemyArmySize }
+}
+
+
+#Blast from the Past incident
+
+nsc_set_relic_provinces_effect = {
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+		}
+		set_province_flag = nsc_amussu_relic_province
+		save_event_target_as = nsc_amussu_relic_target_1
+		nsc_pick_random_relic_effect = yes
+	}
+	
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+		}
+		save_event_target_as = nsc_amussu_relic_target_2
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 50 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_2
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 100 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_2
+	}
+	event_target:nsc_amussu_relic_target_2 = {
+		set_province_flag = nsc_amussu_relic_province
+		nsc_pick_random_relic_effect = yes
+	}
+	
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+		}
+		save_event_target_as = nsc_amussu_relic_target_3
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 50 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_3
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 100 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_3
+	}
+	event_target:nsc_amussu_relic_target_3 = {
+		set_province_flag = nsc_amussu_relic_province
+		nsc_pick_random_relic_effect = yes
+	}
+	
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+		}
+		save_event_target_as = nsc_amussu_relic_target_4
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_3 distance = 50 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_4
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_3 distance = 100 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_4
+	}
+	event_target:nsc_amussu_relic_target_4 = {
+		set_province_flag = nsc_amussu_relic_province
+		nsc_pick_random_relic_effect = yes
+	}
+	
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+		}
+		save_event_target_as = nsc_amussu_relic_target_5
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_3 distance = 50 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_4 distance = 50 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_5
+	}
+	random_owned_province = {
+		limit = {
+			OR = {
+				region = bulwar_proper_region
+				region = bahar_region
+				region = far_bulwar_region
+				area = imuluses_area
+				area = kuz_mountains_area
+				area = alyzksaan_area
+				area = ur_monkande_area 
+			}
+			NOT = { area = inner_drolas_area }
+			NOT = { area = outer_drolas_area }
+			island = no
+			NOT = { has_province_flag = nsc_amussu_relic_province }
+			province_distance = { who = event_target:nsc_amussu_relic_target_1 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_2 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_3 distance = 100 }
+			province_distance = { who = event_target:nsc_amussu_relic_target_4 distance = 100 }
+		}
+		save_event_target_as = nsc_amussu_relic_target_5
+	}
+	event_target:nsc_amussu_relic_target_5 = {
+		set_province_flag = nsc_amussu_relic_province
+		nsc_pick_random_relic_effect = yes
+	}
+}
+
+nsc_set_next_relic_target_effect = {
+	random_province = {
+		limit = { has_province_flag = nsc_amussu_relic_province }
+		save_global_event_target_as = nsc_amussu_relic_target
+	}
+	REB = { set_variable = { which = closestRelicDistanceVar value = 500 } }
+	bulwar_superregion = {
+		limit = { has_province_flag = nsc_amussu_relic_province }
+		if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 50 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 50 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 50 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+		else_if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 100 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 100 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 100 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+		else_if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 200 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 200 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 200 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+		else_if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 300 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 300 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 300 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+		else_if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 400 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 400 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 400 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+		else_if = {
+			limit = {
+				REB = { check_variable = { which = closestRelicDistanceVar value = 500 } }
+				NOT = { province_distance = { who = event_target:nsc_amussu_relic_target distance = 500 } }
+			}
+			REB = { set_variable = { which = closestRelicDistanceVar value = 500 } }
+			save_global_event_target_as = nsc_amussu_relic_target
+		}
+	}
+	event_target:nsc_amussu_relic_target = { set_province_flag = nsc_amussu_next_relic }
+}
+
+nsc_set_relic_distances_effect = {
+	set_variable = { which = distanceToRelicVar value = 1 }
+	bulwar_superregion = { set_variable = { which = distanceToRelicVar value = 0 } }
+	
+	event_target:nsc_amussu_relic_target = {
+		set_province_flag = nsc_relic_distance_set
+		every_neighbor_province = { limit = { superregion = bulwar_superregion }
+			if = { limit = { OR = { NOT = { has_province_flag = nsc_relic_distance_set } check_variable = { which = distanceToRelicVar value = 1 } } }
+				set_variable = { which = distanceToRelicVar value = 1 }
+				set_province_flag = nsc_relic_distance_set
+				set_province_flag = nsc_relic_distance_set_1
+			}
+		}
+	}
+	
+	while = { limit = { NOT = { check_variable = { which = distanceToRelicVar value = 30 } } }
+		bulwar_superregion = { limit = { is_variable_equal = { which = distanceToRelicVar which = event_target:nsc_incident_target } }
+			every_neighbor_province = {
+				limit = { superregion = bulwar_superregion NOT = { has_province_flag = nsc_relic_distance_set } }
+				set_variable = { which = distanceToRelicVar which = event_target:nsc_incident_target }
+				change_variable = { which = distanceToRelicVar value = 1 }
+				set_province_flag = nsc_relic_distance_set
+			}
+		}
+		change_variable = { which = distanceToRelicVar value = 1 }
+	}
+	
+	bulwar_superregion = { clr_province_flag = nsc_relic_distance_set }
+}
+
+nsc_amussu_moves_effect = {
+	random_province = { limit = { has_province_modifier = nsc_amussu_province }
+		remove_province_modifier = nsc_amussu_province
+		remove_province_triggered_modifier = nsc_amussu_triggered_modifier
+		random_neighbor_province = {
+			limit = { is_sea = no }
+			save_event_target_as = amussu_next_province_target
+			set_province_flag = nsc_relic_distance_checked
+		}
+		every_neighbor_province = {
+			limit = {
+				is_sea = no
+				superregion = bulwar_superregion
+				NOT = { has_province_flag = nsc_relic_distance_checked }
+				NOT = { check_variable = { which = distanceToRelicVar which = event_target:amussu_next_province_target } }
+			}
+			save_event_target_as = amussu_next_province_target
+			set_province_flag = nsc_relic_distance_checked
+		}
+		clr_province_flag = nsc_relic_distance_checked
+		every_neighbor_province = {
+			clr_province_flag = nsc_relic_distance_checked
+		}
+	}
+	
+	event_target:amussu_next_province_target = {
+		add_permanent_province_modifier = { name = nsc_amussu_province duration = -1 }
+		add_province_triggered_modifier = nsc_amussu_triggered_modifier
+		save_global_event_target_as = amussu_province_target
+		if = { limit = { has_province_flag = nsc_amussu_next_relic }
+			event_target:nsc_incident_target = { country_event = { id = new_sun_cult.267 } }
+		}
+	}
+}
+
+spawn_amussu_effect = {
+	event_target:nsc_incident_target = {
+		trigger_switch = {
+			on_trigger = has_country_flag
+			nsc_amussu_has_5_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 5 } } }
+			nsc_amussu_has_4_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 4 } } }
+			nsc_amussu_has_3_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 3 } } }
+			nsc_amussu_has_2_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 2 } } }
+			nsc_amussu_has_1_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 1 } } }
+			nsc_amussu_has_0_relics = { REB = { set_variable = { which = nscAmussuStrenghVar value = 0 } } }
+		}
+	}
+	
+	set_saved_name = { key = leader_name type = simple name = "Amussu 'The Silent'" }
+	
+	spawn_amussu_rebel_stack = { type = amussu_main_rebels }
+	spawn_amussu_rebel_stack = { type = amussu_main_rebels }
+	spawn_amussu_rebel_stack = { type = amussu_main_rebels }
+}
+
+spawn_amussu_rebel_stack = { #spawn roughly 25 regiments at tech 15 no matter the province dev
+	trigger_switch = {
+		on_trigger = development
+		100 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.15 } }
+		99 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.16 } }
+		98 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.16 } }
+		97 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.17 } }
+		96 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.18 } }
+		95 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.19 } }
+		94 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.2 } }
+		93 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.21 } }
+		92 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.21 } }
+		91 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.22 } }
+		90 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.23 } }
+		89 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.24 } }
+		88 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.25 } }
+		87 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.26 } }
+		86 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.27 } }
+		85 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.28 } }
+		84 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.29 } }
+		83 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.3 } }
+		82 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.31 } }
+		81 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.32 } }
+		80 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.33 } }
+		79 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.34 } }
+		78 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.35 } }
+		77 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.36 } }
+		76 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.37 } }
+		75 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.38 } }
+		74 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.39 } }
+		73 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.4 } }
+		72 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.41 } }
+		71 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.42 } }
+		70 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.44 } }
+		69 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.45 } }
+		68 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.46 } }
+		67 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.47 } }
+		66 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.49 } }
+		65 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.5 } }
+		64 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.51 } }
+		63 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.53 } }
+		62 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.54 } }
+		61 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.55 } }
+		60 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.57 } }
+		59 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.58 } }
+		58 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.6 } }
+		57 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.61 } }
+		56 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.63 } }
+		55 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.64 } }
+		54 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.66 } }
+		53 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.67 } }
+		52 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.69 } }
+		51 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.71 } }
+		50 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.72 } }
+		49 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.74 } }
+		48 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.76 } }
+		47 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.78 } }
+		46 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.8 } }
+		45 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.81 } }
+		44 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.83 } }
+		43 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.85 } }
+		42 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.87 } }
+		41 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.89 } }
+		40 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.92 } }
+		39 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.94 } }
+		38 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.96 } }
+		37 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 1.98 } }
+		36 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2 } }
+		35 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.03 } }
+		34 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.05 } }
+		33 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.08 } }
+		32 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.1 } }
+		31 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.13 } }
+		30 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.16 } }
+		29 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.18 } }
+		28 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.21 } }
+		27 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.24 } }
+		26 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.27 } }
+		25 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.3 } }
+		24 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.33 } }
+		23 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.36 } }
+		22 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.39 } }
+		21 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.43 } }
+		20 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.46 } }
+		19 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.5 } }
+		18 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.54 } }
+		17 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.57 } }
+		16 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.61 } }
+		15 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.65 } }
+		14 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.69 } }
+		13 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.74 } }
+		12 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.78 } }
+		11 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.83 } }
+		10 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.87 } }
+		9 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.92 } }
+		8 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 2.97 } }
+		7 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 3.02 } }
+		6 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 3.08 } }
+		5 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 3.13 } }
+		4 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 3.19 } }
+		3 = { spawn_rebels = { type = $type$ leader = leader_name leader_dynasty = "" size = 3.25 } }
+
+	}
+}
+
+nsc_amussu_power_increase_effect = {
+	trigger_switch = {
+		on_trigger = has_country_flag
+		nsc_amussu_has_4_relics = { set_country_flag = nsc_amussu_has_5_relics }
+		nsc_amussu_has_3_relics = { set_country_flag = nsc_amussu_has_4_relics }
+		nsc_amussu_has_2_relics = { set_country_flag = nsc_amussu_has_3_relics }
+		nsc_amussu_has_1_relics = { set_country_flag = nsc_amussu_has_2_relics }
+		nsc_amussu_has_0_relics = { set_country_flag = nsc_amussu_has_1_relics }
+	}
+	change_variable = { which = amussuPowerVar value = 20 }
+}
+
+nsc_pick_random_relic_effect = {
+	event_target:nsc_incident_target = {
+		random_list = {
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_1_picked } } set_country_flag = nsc_relic_1_picked PREV = { set_province_flag = nsc_relic_1 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_2_picked } } set_country_flag = nsc_relic_2_picked PREV = { set_province_flag = nsc_relic_2 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_3_picked } } set_country_flag = nsc_relic_3_picked PREV = { set_province_flag = nsc_relic_3 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_4_picked } } set_country_flag = nsc_relic_4_picked PREV = { set_province_flag = nsc_relic_4 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_5_picked } } set_country_flag = nsc_relic_5_picked PREV = { set_province_flag = nsc_relic_5 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_6_picked } } set_country_flag = nsc_relic_6_picked PREV = { set_province_flag = nsc_relic_6 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_7_picked } } set_country_flag = nsc_relic_7_picked PREV = { set_province_flag = nsc_relic_7 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_8_picked } OR = { has_heir = yes has_consort = yes } } set_country_flag = nsc_relic_8_picked PREV = { set_province_flag = nsc_relic_8 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_9_picked } } set_country_flag = nsc_relic_9_picked PREV = { set_province_flag = nsc_relic_9 } }
+			10 = { trigger = { NOT = { has_country_flag = nsc_relic_10_picked } } set_country_flag = nsc_relic_10_picked PREV = { set_province_flag = nsc_relic_10 } }
+		}
+	}
+}
+
+nsc_amussu_get_relic_effect = {
+	trigger_switch = {
+		on_trigger = has_province_flag
+		nsc_relic_1 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_1_got } }
+		nsc_relic_2 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_2_got } }
+		nsc_relic_3 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_3_got } }
+		nsc_relic_4 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_4_got } }
+		nsc_relic_5 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_5_got } }
+		nsc_relic_6 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_6_got } }
+		nsc_relic_7 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_7_got } }
+		nsc_relic_8 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_8_got } }
+		nsc_relic_9 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_9_got } }
+		nsc_relic_10 = { event_target:nsc_incident_target = { set_country_flag = nsc_relic_10_got } }
+	}
+}
+
+define_kazam_siege = {
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam1
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam2
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam3
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam4
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam5
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam6
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam7
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam8
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam9
+	}
+	random_province = {
+		limit = { sieged_by = ROOT fort_level = 1 NOT = { has_province_flag = nsc_kazam_province } }
+		set_province_flag = nsc_kazam_province
+		save_event_target_as = kazam10
+	}
+}
+
+#-----------# New Sun Cult End #-----------#
 
 
 increase_runelink_level = {

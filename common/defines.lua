@@ -555,7 +555,7 @@ NCountry = {
 	ESTATE_CROWNLAND_FROM_DEV = 0.2,			-- How much crownland you gain from developing a province.
 
 	ESTATE_PRIVILEGE_ADMIN_COST = 0,			-- Cost of granting a privilege
-	ESTATE_PRIVILEGES_MAX_CONCURRENT = 5,		-- Max. number of privileges active at the same time Anbennar changed this to 5
+	ESTATE_PRIVILEGES_MAX_CONCURRENT = 8,		-- Max. number of privileges active at the same time Anbennar changed this to 8
 
 	ESTATE_AGENDA_DENIAL_LOYALTY_PENALTY = -5,	-- Loylaty penalty of denying an estate agenda
 	ESTATE_AGENDA_DEFAULT_MAX_ACTIVE_DAYS = 7300, -- Default max amount of days an agenda can stay active
@@ -826,9 +826,9 @@ NCountry = {
 	ANCESTOR_COST = 400,							-- Cost to integrate an ancestor into the faith.
 	INITIAL_REGULAR_COLONY = 10,
 	REGULAR_COLONY_GROWTH = 25,
-	COLONIAL_CLAIM_BONUS = 10,
-	COLONIAL_CLAIM_VIOLATION = -20,
-	COLONY_VIOLAION_PAPAL_INFLUENCE_COST  = -10,
+	COLONIAL_CLAIM_BONUS = 0,
+	COLONIAL_CLAIM_VIOLATION = 0,
+	COLONY_VIOLAION_PAPAL_INFLUENCE_COST  = 0,
 	COLONIAL_NATION_GROWTH_IMPACT = 1,			-- colonies of colonial nations grow slower if desired.
 	OVEREXTENSION_FACTOR = 1.0,
 	OVEREXTENSION_OVERSEAS_FACTOR = 0.5,			-- Modifier to overextension from overseas provinces
@@ -2248,7 +2248,7 @@ NReligion = {
 	APPOINT_CARDINAL_COOLDOWN = 4,
 
 	CONSECRATE_PATRIACH_AUTHORITY_BOOST = 0.05, --5% or so
-	CONSECRATE_PATRIARCH_THRESHOLD = 30, --in development
+	CONSECRATE_PATRIARCH_THRESHOLD = 3, --in development
 	ORTHODOX_ICON_DURATION_MONTHS = 240,
 	ORTHODOX_ICON_AUTHORITY_COST = 0.1,
 
