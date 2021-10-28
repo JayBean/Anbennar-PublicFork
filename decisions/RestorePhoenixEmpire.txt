@@ -19,49 +19,82 @@ country_decisions = {
 		}
 		provinces_to_highlight = {
 			superregion = bulwar_superregion
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
 			NOT = {
-				calc_true_if = {
+				calc_true_if = { 
 					amount = 100
-					all_province = {
-						superregion = bulwar_superregion
+					bulwar_superregion = {
+						type = all
 						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 			}
-			NOT = { country_or_non_sovereign_subject_holds = ROOT }
 		}
-			
+		
 		allow = {
-			# bulwar_superregion = {
-				# type = all
-				# owned_by = ROOT
-			# }
 			is_at_war = no
 			is_free_or_tributary_trigger = yes
 			is_nomad = no
-			num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
-				value = 100
-				superregion = bulwar_superregion
-			}
-			custom_trigger_tooltip = {
-				tooltip = phoenix_empire_subjects_trigger_tt
-				all_subject_country = {
-					OR = {
-						NOT = { capital_scope = { superregion = bulwar_superregion } }
+			is_incident_active = no
+			if = {
+				limit = {
+					any_subject_country = {
+						capital_scope = { superregion = bulwar_superregion }
 						NOT = { liberty_desire = 50 }
 					}
 				}
+				dip_power = 300
 			}
-			is_incident_active = no
+			OR = {
+				num_of_owned_provinces_with = {
+					value = 100
+					superregion = bulwar_superregion
+				}
+				AND = {
+					num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+						value = 100
+						superregion = bulwar_superregion
+					}
+					NOT = {
+						any_subject_country = {
+							capital_scope = { superregion = bulwar_superregion }
+							liberty_desire = 50
+						}
+					}
+				}
+			}
 		}
+		
 		effect = {
 			change_tag = F38
-			hidden_effect = { restore_country_name = yes }
-			swap_non_generic_missions = yes
+			custom_tooltip = missions_will_expand_tt
+			hidden_effect = {
+				swap_non_generic_missions = yes
+				restore_country_name = yes
+				set_variable = { which = totalVassalDev value = 0 }
+				every_subject_country = {
+					limit = {
+						capital_scope = { superregion = bulwar_superregion }
+						NOT = { liberty_desire = 50 }
+					}
+					ROOT = {
+						export_to_variable = { which = tempVassalDev value = total_development who = PREV }
+						change_variable = { which = totalVassalDev which = tempVassalDev }
+					}
+				}
+				while = { limit = { check_variable = { which = totalVassalDev value = 1 } }
+					add_dip_power = -2
+					change_variable = { which = totalVassalDev value = -1 }
+				}
+			}
 			every_subject_country = {
-				limit = { capital_scope = { superregion = bulwar_superregion } }
+				limit = {
+					capital_scope = { superregion = bulwar_superregion }
+					NOT = { liberty_desire = 50 }
+				}
 				ROOT = { inherit = PREV }
 			}
+			custom_tooltip = integrating_vassals_cost_2_dip_tt
 			hidden_effect = {
 				every_owned_province = {
 					limit = {
@@ -105,6 +138,12 @@ country_decisions = {
 				change_primary_culture = sun_elf
 				hidden_effect = {
 					country_event = { id = racial_modifiers.5 }	#Racial Admin and Military - on primary culture change
+				}
+			}
+			hidden_effect = {
+				set_variable = { which = phoenix_empire_timed_missions_completed value = 0 }
+				capital_scope = {
+					add_province_triggered_modifier = phoenix_empire_timer
 				}
 			}
 			
