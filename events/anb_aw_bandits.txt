@@ -82,6 +82,14 @@ country_event = {
                 1 = {
                     province_event = { id = aw_bandits.13 }
                 }
+                75 = {
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        owner = { has_country_modifier = monstrous_nation }
+                    }
+                    province_event = { id = aw_bandits.15 }
+                }
                 1 = {
                     #Base modifiers
 
@@ -119,6 +127,14 @@ country_event = {
                 }
                 2 = {
                     province_event = { id = aw_bandits.22 }
+                }
+                50 = {
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        owner = { has_country_modifier = monstrous_nation }
+                    }
+                    province_event = { id = aw_bandits.24 }
                 }
                 2 = {
                     #Base modifiers
@@ -234,6 +250,15 @@ province_event = {
             has_province_modifier = aw_bandits_1
             has_province_modifier = aw_bandits_2
         }
+
+        any_neighbor_province = {
+            is_city = yes
+            owner = { NOT = { has_country_modifier = monstrous_nation } }
+
+            NOT = { has_province_modifier = aw_bandits_1 }
+            NOT = { has_province_modifier = aw_bandits_2 }
+            NOT = { has_province_modifier = aw_bandits_3 }
+        }
     }
     
     immediate = {
@@ -244,6 +269,7 @@ province_event = {
                 limit = {
                     #Base Conditions
                     is_city = yes
+                    owner = { NOT = { has_country_modifier = monstrous_nation } }
 
                     NOT = { has_province_modifier = aw_bandits_1 }
                     NOT = { has_province_modifier = aw_bandits_2 }
@@ -251,6 +277,7 @@ province_event = {
 
 
                     #Specific Conditions
+                    NOT = { has_terrain = city_terrain }
                    
                 }
                 save_event_target_as = aw_migration_target
@@ -432,6 +459,8 @@ province_event = {
             NOT = { has_province_modifier = aw_bandits_1 }
             NOT = { has_province_modifier = aw_bandits_2 }
             NOT = { has_province_modifier = aw_bandits_3 }
+
+            owner = { NOT = { has_country_modifier = monstrous_nation } }
         }
     }
     
@@ -443,6 +472,7 @@ province_event = {
                 limit = {
                     #Base Conditions
                     is_city = yes
+                    owner = { NOT = { has_country_modifier = monstrous_nation } }
 
                     NOT = { has_province_modifier = aw_bandits_1 }
                     NOT = { has_province_modifier = aw_bandits_2 }
@@ -537,6 +567,95 @@ province_event = {
         }
 
         custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+    }
+}
+
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+province_event = {
+    id = aw_bandits.15
+    title = aw_bandits.15.t
+    desc = aw_bandits.15.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+        OR = {
+            has_province_modifier = aw_bandits_1
+            has_province_modifier = aw_bandits_2
+            has_province_modifier = aw_bandits_3
+        }
+
+        owner = {
+            any_neighbor_country = {
+                NOT = { has_country_modifier = monstrous_nation }
+            }
+        }
+    }
+    
+    immediate = {
+        hidden_effect = {
+
+            #Special one for this event, targeting a neighbouring country that isnt monstrous and any of their owned events
+
+            #CHANGABLE - edit Specific Conditions to make sure it moves to that kind of province! (e.g. if its a thieves guild it will move to a city province)
+
+            owner = {
+                random_neighbor_country = {
+                    limit = {
+                        NOT = { has_country_modifier = monstrous_nation }
+                    }
+                    random_owned_province = {
+                        limit = {
+                            #Base Conditions
+                            NOT = { province_id = ROOT }
+                            is_city = yes
+    
+                            NOT = { has_province_modifier = aw_bandits_1 }
+                            NOT = { has_province_modifier = aw_bandits_2 }
+                            NOT = { has_province_modifier = aw_bandits_3 }
+    
+    
+                            #Specific Conditions
+                           
+                        }
+                        save_event_target_as = aw_migration_target
+                    }
+                }
+            }
+        }
+    }
+
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_bandits.10.b
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens via the event
+            remove_province_modifier = aw_bandits_1
+            remove_province_modifier = aw_bandits_2
+            remove_province_modifier = aw_bandits_3
+        }
+
+        event_target:aw_migration_target = {
+            province_event = {
+                id = aw_bandits.11
+                days = 14
+                #random = 31
+            }
+        }
     }
 }
 
@@ -692,6 +811,39 @@ province_event = {
                 influence = 5
             }
         }
+    }
+}
+
+#24 - monster removal
+province_event = {
+    id = aw_bandits.24
+    title = aw_bandits.24.t
+    desc = aw_bandits.24.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+
+        OR = {
+            has_province_modifier = aw_bandits_1
+            has_province_modifier = aw_bandits_2
+            has_province_modifier = aw_bandits_3
+        }
+    }
+    
+    option = {
+ 
+        name = aw_bandits.20.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_bandits_1
+        remove_province_modifier = aw_bandits_2
+        remove_province_modifier = aw_bandits_3
+
     }
 }
 
