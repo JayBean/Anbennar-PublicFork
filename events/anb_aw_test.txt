@@ -70,16 +70,24 @@ country_event = {
 	option = {
         event_target:aw_target = {
             random_list = {
-				1 = {
+				5 = {
 					province_event = { id = aw_test.10 }    #Base migration
 				}
-                1 = {
+                5 = {
                     province_event = { id = aw_test.13 }    #Base propagation
                 }
-                1 = {
+                75 = {
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        NOT = { owner = { has_country_modifier = monstrous_nation } }
+                    }
+                    province_event = { id = aw_test.15 }    #Migrate out of monstrous. high just so it jumps out of there sooner rather than later
+                }
+                7 = {
                     province_event = { id = aw_test.20 }    #Natural removal
                 }
-                1 = {
+                7 = {
                     #Base modifiers
 
                     #more likely if generous quest rewards/adverturer nation
@@ -114,10 +122,10 @@ country_event = {
                     }
                     province_event = { id = aw_test.21 }    #Adventurer Removal
                 }
-                2 = {
+                10 = {
                     province_event = { id = aw_test.22 }    #Natural tier down
                 }
-                2 = {
+                10 = {
                     #Base modifiers
 
                     #more likely if generous quest rewards/adverturer nation
@@ -152,7 +160,20 @@ country_event = {
                     }
                     province_event = { id = aw_test.23 }    #Adventurer tier down
                 }
-                2 = {
+                50 = {
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        owner = { has_country_modifier = monstrous_nation }
+                    }
+                    #Base modifiers
+                    province_event = { id = aw_test.24 }    #Monstrous nation removal
+                }
+                50 = {
+                    #Base modifiers
+                    province_event = { id = aw_test.25 }    #Monstrous nation tier down
+                }
+                10 = {
                     province_event = { id = aw_test.30 }    #Natural tier up
                 }
             }
@@ -183,6 +204,8 @@ province_event = {
             has_province_modifier = aw_test_2
             has_province_modifier = aw_test_3
         }
+
+        #MAKE SURE TO ADD A any_neighbor_province or relevant check - aka make sure that the immediate = { } effects can even occur before doing the event!
     }
     
     immediate = {
@@ -383,7 +406,7 @@ province_event = {
             }
         }
 
-        #CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target (NOTE: THIS USUALLY SHOULD BE THE SAME AS id.10 above)
+        #CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target ---(NOTE: THIS USUALLY SHOULD BE THE SAME AS id.10 above)----
         if = {
             limit = {
                 FROM = { has_province_modifier = aw_test_1 }
@@ -440,6 +463,8 @@ province_event = {
             has_province_modifier = aw_test_2
             has_province_modifier = aw_test_3
         }
+
+        #MAKE SURE TO ADD A any_neighbor_province or relevant check - aka make sure that the immediate = { } effects can even occur before doing the event!
     }
     
     immediate = {
@@ -579,6 +604,94 @@ province_event = {
 
     }
 
+}
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+province_event = {
+    id = aw_test.15
+    title = aw_test.15.t
+    desc = aw_test.15.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+        OR = {
+            has_province_modifier = aw_test_1
+            has_province_modifier = aw_test_2
+            has_province_modifier = aw_test_3
+        }
+
+        owner = {
+            any_neighbor_country = {
+                NOT = { has_country_modifier = monstrous_nation }
+            }
+        }
+    }
+    
+    immediate = {
+        hidden_effect = {
+
+            #Special one for this event, targeting a neighbouring country that isnt monstrous and any of their owned events
+
+            #CHANGABLE - edit Specific Conditions to make sure it moves to that kind of province! (e.g. if its a thieves guild it will move to a city province)
+
+            owner = {
+                random_neighbor_country = {
+                    limit = {
+                        NOT = { has_country_modifier = monstrous_nation }
+                    }
+                    random_owned_province = {
+                        limit = {
+                            #Base Conditions
+                            NOT = { province_id = ROOT }
+                            is_city = yes
+    
+                            NOT = { has_province_modifier = aw_test_1 }
+                            NOT = { has_province_modifier = aw_test_2 }
+                            NOT = { has_province_modifier = aw_test_3 }
+    
+    
+                            #Specific Conditions
+                           
+                        }
+                        save_event_target_as = aw_migration_target
+                    }
+                }
+            }
+        }
+    }
+
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_test.10.b
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens via the event
+            remove_province_modifier = aw_test_1
+            remove_province_modifier = aw_test_2
+            remove_province_modifier = aw_test_3
+        }
+
+        event_target:aw_migration_target = {
+            province_event = {
+                id = aw_test.11
+                days = 14
+                #random = 31
+            }
+        }
+    }
 }
 
 ############## 20s - Removal/Tier Down ###################
@@ -761,6 +874,91 @@ province_event = {
                 duration = 3650
                 influence = 5
             }
+        }
+    }
+}
+
+#24 - monster removal
+province_event = {
+    id = aw_test.24
+    title = aw_test.24.t
+    desc = aw_test.24.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+
+        OR = {
+            has_province_modifier = aw_test_1
+            has_province_modifier = aw_test_2
+            has_province_modifier = aw_test_3
+        }
+    }
+    
+    option = {
+ 
+        name = aw_test.20.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_test_1
+        remove_province_modifier = aw_test_2
+        remove_province_modifier = aw_test_3
+
+    }
+}
+
+#25 - monster natural tier down. keep if you want, or just rely on removal
+province_event = {
+    id = aw_test.25
+    title = aw_test.25.t
+    desc = aw_test.25.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+
+        OR = { 
+            has_province_modifier = aw_test_1 
+            has_province_modifier = aw_test_2
+            has_province_modifier = aw_test_3
+        }
+    }
+    option = {
+        name = aw_test.25.a
+        ai_chance = { factor = 100 }
+        if = {
+            limit = { 
+                has_province_modifier = aw_test_3 
+            }
+            remove_province_modifier = aw_test_3
+            add_permanent_province_modifier  = {
+                name = aw_test_2
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_test_2
+            }
+            remove_province_modifier = aw_test_2
+            add_permanent_province_modifier  = {
+                name = aw_test_1
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_test_1
+            }
+            remove_province_modifier = aw_test_1
         }
     }
 }
