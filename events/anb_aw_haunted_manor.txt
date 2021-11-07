@@ -205,7 +205,150 @@ country_event = {
 
 ############## 10s - Migration and Propagation ###################
 
-#10 - Base migration - nah
+#10 - Base migration - MODIFIED: this only happens for House of Evil Dormant, it does a spooky teleport to a new province in your country
+province_event = {
+    id = aw_haunted_house.10
+    title = aw_haunted_house.10.t
+    desc = aw_haunted_house.10.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_haunted_house_2
+        }
+
+        #MAKE SURE TO ADD A any_neighbor_province or relevant check - aka make sure that the immediate = { } effects can even occur before doing the event!
+        any_neighbor_province = {
+            is_city = yes
+            owner = { NOT = { has_country_modifier = monstrous_nation } }
+
+            NOT = { has_province_modifier = aw_haunted_house_1 }
+            NOT = { has_province_modifier = aw_haunted_house_2 }
+            NOT = { has_province_modifier = aw_haunted_house_3 }
+        }
+    }
+    
+    immediate = {
+        hidden_effect = {
+
+            ######################################################################
+            #Here's a list of all migration types for you to copy and paste
+            #Note: you may need to add something in the trigger = { } above, for example for random_neighbour_province, as you might want to check if this valid province even has a neighbour you can migrate to!
+            ######################################################################
+
+            #CHANGEABLE - MIGRATION TYPE - Any province within my country
+            owner = {
+                random_owned_province = {
+                    limit = {
+                        #Base Conditions
+                        NOT = { province_id = ROOT }
+                        is_city = yes
+
+                        NOT = { has_province_modifier = aw_haunted_house_1 }
+                        NOT = { has_province_modifier = aw_haunted_house_2 }
+                        NOT = { has_province_modifier = aw_haunted_house_3 }
+
+
+                        #Specific Conditions
+                       
+                    }
+                    save_event_target_as = aw_migration_target
+                }
+            }
+        }
+    }
+
+    #If migration is within country
+    option = {  
+        name = aw_haunted_house.10.a
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                 owned_by = ROOT
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens below
+            remove_province_modifier = aw_haunted_house_1
+            remove_province_modifier = aw_haunted_house_2
+            remove_province_modifier = aw_haunted_house_3
+        }
+
+        event_target:aw_migration_target = {
+            if = {
+                limit = {
+                    owned_by = ROOT #you need this as this is only for provinces you own. option 10.b is for others
+                }
+
+                #real removal. the other real one is in the called event in the else
+                remove_province_modifier = aw_haunted_house_1
+                remove_province_modifier = aw_haunted_house_2
+                remove_province_modifier = aw_haunted_house_3
+
+
+                #CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target
+                if = {
+                    limit = {
+                        FROM = { has_province_modifier = aw_haunted_house_1 }
+                    }
+                    add_permanent_province_modifier = { 
+                        name = aw_haunted_house_1
+                        duration = -1
+                    }
+                }
+                else_if = {
+                    limit = {
+                        FROM = { has_province_modifier = aw_haunted_house_2 }
+                    }
+                    add_permanent_province_modifier = { 
+                        name = aw_haunted_house_2
+                        duration = -1
+                    }
+                }
+                else_if = {
+                    limit = {
+                        FROM = { has_province_modifier = aw_haunted_house_3 }
+                    }
+                    add_permanent_province_modifier = { 
+                        name = aw_haunted_house_3
+                        duration = -1
+                    }
+                }
+            }
+        }
+    }
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_haunted_house.10.b
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens via the event
+            remove_province_modifier = aw_haunted_house_1
+            remove_province_modifier = aw_haunted_house_2
+            remove_province_modifier = aw_haunted_house_3
+        }
+
+        event_target:aw_migration_target = {
+            province_event = {
+                id = aw_haunted_house.11
+            }
+        }
+    }
+}
 
 
 #11 - migration target notification if it goes to other country - nah
@@ -396,15 +539,17 @@ province_event = {
 
 #121 - Priest exorcise success
 
-#123 - sike its actually a scooby doo villain
+#123 - Priest exorcise fail, doesnt actually tier up but it stabilities
+
+#124 - sike its actually a scooby doo villain
+
+#125 - house burns down, removal
 
 
 
 ############## 130s - Special Tier Up ###################
 
 #130 - New Family Moves in. Upgrades it to House of Evil, Active
-
-#131 - Priest exorcise fail
 
 
 
