@@ -1,0 +1,869 @@
+namespace = aw_wyvern
+
+#The Adventurers Wanted uses a strict ID system to make the system easier to author content for
+#The IDs below 100 are core utility systems that are usually straight copies or modifications of how the AW system works, such as monsters being able to migrate and be defeated by adventurers.
+#The IDs above 100 are more unique situations for the specific encounter, but they should correlate with the numbers from above: if ID 10s deal with migration, then ID 110s should be the unique events to do with migration - for example bribing a Thieves Guild to GTFO your country
+#Crazy and more uniques ones that dont conform to the utilities should be ID 200
+
+#USE THE anb_aw_wyvern TO SEE A SIMPLE COPY-PASTABLE FORMAT IN ADDITION TO STUFF LIKE MIGRATION STYLES ETC
+#Search for CHANGEABLE for the criteria you should change in that file and this one
+
+#################################################################
+# Welcome to the master file for the Adventurers Wanted System. In the comments below you'll see copy-pastable events for you to choose, different migration styles as well as prebuilt events to handle stuff like spawning rebellions
+#################################################################
+
+#0 - spawn in province
+province_event = {
+    id = aw_wyvern.0
+    title = aw_wyvern.0.t
+    desc = aw_wyvern.0.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    is_triggered_only = yes
+    #hidden = yes
+    
+    #yup thats happening
+    option = {
+        name = aw_basic.0.a
+        ai_chance = { 
+            factor = 1 
+        }
+        add_permanent_province_modifier  = {
+            name = aw_wyvern_1
+            duration = -1  
+        }
+
+        custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+    }
+}
+
+
+#1 - event manager, called by on_actions. This happens ONCE per pulse. If you have 7 of these, it still only fires the manager once
+country_event = {
+    id = aw_wyvern.1
+    title = aw_wyvern.1.t
+    desc = aw_wyvern.1.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    hidden = yes
+    is_triggered_only = yes
+    
+
+    trigger = {
+    }
+
+    immediate = {
+        random_owned_province = {
+            limit = {
+                OR = { 
+                    has_province_modifier = aw_wyvern_1
+                    has_province_modifier = aw_wyvern_2
+                }
+            }
+            save_event_target_as = aw_target
+        }
+    }
+    
+	
+	option = {
+        event_target:aw_target = {
+            random_list = {
+                #10 - Base migration
+				10 = {
+                    #Specific modifiers
+                    modifier = {    #to make em migrate often
+                        factor = 5
+                        has_province_modifier = aw_wyvern_1
+                    }
+					province_event = { id = aw_wyvern.10 }
+				}
+
+
+                #20 - natural removal
+                3 = {   #was 7, made 3
+                    province_event = { id = aw_wyvern.20 }    #Natural removal
+                }
+
+                #21 - adventurer removal
+                3 = {   #was 7, made 3
+                    #Base modifiers
+
+                    #more likely if generous quest rewards/adverturer nation
+                    modifier = {
+                        factor = 2
+                        OR = {
+                            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+                            owner = { has_adventurer_reform = yes }
+                        }
+                    }
+
+                    #more likely if loyal
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_loyalty = {
+                                estate = estate_adventurers
+                                loyalty = 60
+                            }
+                        }
+                    }
+
+                    #more likely if high influence
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 60
+                            }
+                        }
+                    }
+                    province_event = { id = aw_wyvern.21 }
+                }
+
+
+                #23 - adventurer tier down
+                3 = {   #was 7, made 3
+                    #Base modifiers
+
+                    #more likely if generous quest rewards/adverturer nation
+                    modifier = {
+                        factor = 2
+                        OR = {
+                            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+                            owner = { has_adventurer_reform = yes }
+                        }
+                    }
+
+                    #more likely if loyal
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_loyalty = {
+                                estate = estate_adventurers
+                                loyalty = 60
+                            }
+                        }
+                    }
+
+                    #more likely if high influence
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 60
+                            }
+                        }
+                    }
+                    province_event = { id = aw_wyvern.23 }
+                }
+
+                #24 - monstrous nation removal
+                3 = {  #was 50, made just as hard
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        owner = { has_country_modifier = monstrous_nation }
+                    }
+                    #Base modifiers
+                    province_event = { id = aw_wyvern.24 }
+                }
+
+                #30 - natural tier up - settles wyvern nest
+                30 = {
+                    #Specific modifiers
+                    modifier = {    #preferred nests
+                        factor = 3
+                        OR = {
+                            has_terrain = mountain
+                            has_terrain = woods
+                            has_terrain = forest
+                            has_terrain = hills
+                        }
+                    }
+                    province_event = { id = aw_wyvern.30 }   
+                }
+
+                #110 - Nesting Wyvern caused to flee and turns into Wandering tier 1 within province. After that they can wander everywhere
+                10 = {
+                    province_event = { id = aw_wyvern.110 }   
+                }
+
+                #120 - Adventurers slay wyvern, sell all their parts IN YOUR LAND.
+                10 = {
+                    province_event = { id = aw_wyvern.120 }   
+                }
+
+                #200 - Nested Wyvern attacks farms
+                10 = {
+                    province_event = { id = aw_wyvern.200 }   
+                }
+
+                #201 - Nested Wyvern attacks caravans
+                10 = {
+                    province_event = { id = aw_wyvern.201 }   
+                }
+
+                #202 - Nested Aerial Flights scare people
+                10 = {
+                    province_event = { id = aw_wyvern.202 }   
+                }
+            }
+        }
+	}
+    
+}
+
+
+#2 - notification of advanturers wanted spawning
+
+############## 10s - Migration and Propagation ###################
+
+#10 - Base migration - MODIFIED: only for wandering
+province_event = {
+    id = aw_wyvern.10
+    title = aw_wyvern.10.t
+    desc = aw_wyvern.10.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_wyvern_1
+        }
+
+        # #MAKE SURE TO ADD A any_neighbor_province or relevant check - aka make sure that the immediate = { } effects can even occur before doing the event!
+        # any_neighbor_province = {
+        #     is_city = yes
+        #     owner = { NOT = { has_country_modifier = monstrous_nation } }
+
+        #     NOT = { has_province_modifier = aw_wyvern_1 }
+        #     NOT = { has_province_modifier = aw_wyvern_2 }
+        # }
+    }
+    
+    immediate = {
+        hidden_effect = {
+
+            ######################################################################
+            #Here's a list of all migration types for you to copy and paste
+            #Note: you may need to add something in the trigger = { } above, for example for random_neighbour_province, as you might want to check if this valid province even has a neighbour you can migrate to!
+            ######################################################################
+
+            #CHANGEABLE - MIGRATION TYPE - Any province within my region - dont do area as those are too small. its essentially adjacent anyway
+            random_province = {
+                limit = {
+                    region = ROOT
+                    NOT = { province_id = ROOT }
+
+                    is_city = yes
+
+                    NOT = { has_province_modifier = aw_wyvern_1 }
+                    NOT = { has_province_modifier = aw_wyvern_2 }
+
+
+                    NOT = { has_underground_terrain = yes }
+
+                }
+                save_event_target_as = aw_migration_target
+            }
+
+        }
+    }
+
+    #If migration is within country
+    option = {  
+        name = aw_wyvern.10.a
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                 owned_by = ROOT
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens below
+            remove_province_modifier = aw_wyvern_1
+            remove_province_modifier = aw_wyvern_2
+        }
+
+        event_target:aw_migration_target = {
+            if = {
+                limit = {
+                    owned_by = ROOT #you need this as this is only for provinces you own. option 10.b is for others
+                }
+
+                #real removal. the other real one is in the called event in the else
+                remove_province_modifier = aw_wyvern_1
+                remove_province_modifier = aw_wyvern_2
+
+
+                #CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target
+                if = {
+                    limit = {
+                        FROM = { has_province_modifier = aw_wyvern_1 }
+                    }
+                    add_permanent_province_modifier = { 
+                        name = aw_wyvern_1
+                        duration = -1
+                    }
+                }
+                else_if = {
+                    limit = {
+                        FROM = { has_province_modifier = aw_wyvern_2 }
+                    }
+                    add_permanent_province_modifier = { 
+                        name = aw_wyvern_2
+                        duration = -1
+                    }
+                }
+            }
+        }
+    }
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_wyvern.10.b
+        ai_chance = { factor = 100 }
+        goto = aw_migration_target
+        trigger = {
+            event_target:aw_migration_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        #It's migration, so remove modifier from previous province
+        tooltip = { #this is fake. the real one happens via the event
+            remove_province_modifier = aw_wyvern_1
+            remove_province_modifier = aw_wyvern_2
+        }
+
+        event_target:aw_migration_target = {
+            province_event = {
+                id = aw_wyvern.11
+            }
+        }
+    }
+}
+
+#11 - migration target notification if it goes to other country
+province_event = {
+    id = aw_wyvern.11
+    title = aw_wyvern.11.t
+    desc = aw_wyvern.11.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # deal with it ourselves
+        name = aw_basic.0.a
+        ai_chance = { 
+            factor = 20 
+        }
+
+        custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+        #CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target ---(NOTE: THIS USUALLY SHOULD BE THE SAME AS id.10 above)----
+        if = {
+            limit = {
+                FROM = { has_province_modifier = aw_wyvern_1 }
+            }
+            add_permanent_province_modifier = { 
+                name = aw_wyvern_1
+                duration = -1
+            }
+        }
+        else_if = {
+            limit = {
+                FROM = { has_province_modifier = aw_wyvern_2 }
+            }
+            add_permanent_province_modifier = { 
+                name = aw_wyvern_2
+                duration = -1
+            }
+        }
+
+    }
+
+    after = {
+        FROM = {    #cleanup event to remove the modifiers from the original province
+            remove_province_modifier = aw_wyvern_1
+            remove_province_modifier = aw_wyvern_2
+        }
+    }
+}
+
+#13 - Base propagation
+
+
+#14 - propagation target notification
+
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+
+
+############## 20s - Removal/Tier Down ###################
+
+#20 - natural removal
+province_event = {
+    id = aw_wyvern.20
+    title = aw_wyvern.20.t
+    desc = aw_wyvern.20.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_wyvern_1
+            has_province_modifier = aw_wyvern_2
+        }
+    }
+    
+    option = {
+ 
+        name = aw_wyvern.20.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+    }
+}
+
+#21 - adventurer removal
+province_event = {
+    id = aw_wyvern.21
+    title = aw_wyvern.21.t
+    desc = aw_wyvern.21.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_estate = estate_adventurers }
+        OR = {
+            has_province_modifier = aw_wyvern_1
+            has_province_modifier = aw_wyvern_2
+        }
+    }
+    
+    option = {
+        # oh, thank goodness
+        name = aw_wyvern.21.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+    }
+}
+
+#22 - natural tier down
+
+
+#23 - adventurer tier down
+
+
+#24 - monstrous nation removal
+province_event = {
+    id = aw_wyvern.24
+    title = aw_wyvern.24.t
+    desc = aw_wyvern.24.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+
+        OR = {
+            has_province_modifier = aw_wyvern_1
+            has_province_modifier = aw_wyvern_2
+        }
+    }
+    
+    option = {
+ 
+        name = aw_wyvern.24.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+    }
+}
+
+#25 - monstrous natural tier down. keep if you want, or just rely on removal
+
+
+############## 30s - Tier Up ###################
+
+#30 - natural tier up
+province_event = {
+    id = aw_wyvern.30
+    title = aw_wyvern.30.t
+    desc = aw_wyvern.30.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = { 
+            has_province_modifier = aw_wyvern_1 
+        }
+    }
+    option = {
+        name = aw_wyvern.30.a
+        ai_chance = { factor = 100 }
+        if = {
+            limit = { 
+                has_province_modifier = aw_wyvern_1
+            }
+            remove_province_modifier = aw_wyvern_1
+            add_permanent_province_modifier  = {
+                name = aw_wyvern_2
+                duration = -1  
+            }
+        }
+
+        custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+    }
+}
+
+############## 40s - Other Utility ###################
+
+#40 - convert to pop if tolerating
+
+
+#41 - convert to pop, monstrous subjugation
+
+
+
+############## 110s - Special Migration & Propagation ###################
+
+#110 - Nesting Wyvern caused to flee and turns into Wandering tier 1 within province. After that they can wander everywhere
+province_event = {
+    id = aw_wyvern.110
+    title = aw_wyvern.110.t
+    desc = aw_wyvern.110.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = { 
+            has_province_modifier = aw_wyvern_2
+        }
+    }
+    option = {
+        name = aw_wyvern.110.a
+        ai_chance = { factor = 100 }
+
+        if = {
+            limit = { 
+                has_province_modifier = aw_wyvern_2
+            }
+            remove_province_modifier = aw_wyvern_2
+            add_permanent_province_modifier  = {
+                name = aw_wyvern_1
+                duration = -1  
+            }
+        }
+
+        custom_tooltip = aw_wyvern_migration_tooltip 
+    }
+}
+
+
+
+############## 120s - Special Removal/Tier Down ###################
+
+#120 - Adventurers slay wyvern, sell all their parts IN YOUR LAND. Option 1: force them to give you a cut of money for malus loyalty, Option 2: fine. Adventurers get +influence, Option 3: get poison (+ spy offense for you)
+province_event = {
+    id = aw_wyvern.120
+    title = aw_wyvern.120.t
+    desc = aw_wyvern.120.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_estate = estate_adventurers }
+        OR = {
+            has_province_modifier = aw_wyvern_2
+        }
+
+        NOT = {
+            has_estate_loyalty_modifier = {
+                estate = estate_adventurers
+                modifier = EST_VAL_FORCED_TO_SHARE_SPOILS
+            }
+        }
+    }
+    
+    #fine
+    option = {
+        # oh, thank goodness
+        name = aw_wyvern.120.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+    }
+
+    #get a cut
+    option = {
+        name = aw_wyvern.120.b
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+        owner = { add_years_of_income = 0.25 }
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+        owner = {
+            add_estate_loyalty_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_FORCED_TO_SHARE_SPOILS
+                duration = 3650
+                loyalty = -10
+            }
+        }
+    }
+
+    #get wyvern poison
+    option = {
+        name = aw_wyvern.120.c
+        ai_chance = { factor = 1000 }
+		trigger = {
+			owner = { ruler_has_personality = intricate_web_weaver_personality }
+		}
+        remove_province_modifier = aw_wyvern_1
+        remove_province_modifier = aw_wyvern_2
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        owner = {
+            add_country_modifier = {
+                name = aw_wyvern_poison_in_spycraft
+                duration = 3650
+            }
+        }
+    }
+}
+
+
+############## 130s - Special Tier Up ###################
+
+
+
+############## 140s - Other Special Utility ###################
+
+
+
+############## 200s - Special Flavour ###################
+
+#200 - Nested Wyvern attacks farms
+province_event = {
+    id = aw_wyvern.200
+    title = aw_wyvern.200.t
+    desc = aw_wyvern.200.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        NOT = { devastation = 75 }
+        region_for_scope_province = {
+            has_province_modifier = aw_wyvern_2 #your region has a nested wyvern
+        }
+    }
+    immediate = {
+        hidden_effect = {
+            random_province = {
+                limit = {
+                    region = ROOT
+                    has_province_modifier = aw_wyvern_2
+                }
+                save_event_target_as = nested_wyvern_origin_province
+            }
+        }
+    }
+    option = {
+        name = aw_wyvern.200.a
+        ai_chance = { factor = 100 }
+
+        add_devastation = 50
+    }
+}
+
+#201 - Nested Wyvern attacks caravans
+province_event = {
+    id = aw_wyvern.201
+    title = aw_wyvern.201.t
+    desc = aw_wyvern.201.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        NOT = { devastation = 50 }
+        region_for_scope_province = {
+            has_province_modifier = aw_wyvern_2 #your region has a nested wyvern
+        }
+        NOT = { has_province_modifier = aw_wyvern_attacks_on_caravans }
+    }
+    immediate = {
+        hidden_effect = {
+            random_province = {
+                limit = {
+                    region = ROOT
+                    has_province_modifier = aw_wyvern_2
+                }
+                save_event_target_as = nested_wyvern_origin_province
+            }
+        }
+    }
+    option = {
+        name = aw_wyvern.201.a
+        ai_chance = { factor = 100 }
+
+        add_devastation = 25
+
+        add_province_modifier = {
+            name = aw_wyvern_attacks_on_caravans
+            duration = 730
+        }
+    }
+}
+
+#202 - Nested Aerial Flights scare people
+province_event = {
+    id = aw_wyvern.202
+    title = aw_wyvern.202.t
+    desc = aw_wyvern.202.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        region_for_scope_province = {
+            has_province_modifier = aw_wyvern_2 #your region has a nested wyvern
+        }
+
+        NOT = { has_province_modifier = aw_wyvern_flights_scare_people }
+    }
+    immediate = {
+        hidden_effect = {
+            random_province = {
+                limit = {
+                    region = ROOT
+                    has_province_modifier = aw_wyvern_2
+                }
+                save_event_target_as = nested_wyvern_origin_province
+            }
+        }
+    }
+    option = {
+        name = aw_wyvern.202.a
+        ai_chance = { factor = 100 }
+
+        add_devastation = 25
+
+        add_province_modifier = {
+            name = aw_wyvern_flights_scare_people
+            duration = 730
+        }
+
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+    }
+}
+
+
+
+############## 300s - Special Flavour, Chains ###################
+
+#300 - Great Wyvern Hunt start? Your ruler can lead the hunt
+
+#301 - Great Wyvern Hunt outcome 1, success
+
+#302 - Great Wyvern Hunt outcome 2, success
+
+#303 - Great Wyvern Hunt outcome 3, die or pay cost
+
+#304 - Great Wyvern Hunt outcome 4, poisoned
