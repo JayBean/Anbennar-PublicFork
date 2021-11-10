@@ -12,13 +12,13 @@ country_event = {
 	trigger = {
 		is_chosen_country = no
 		has_estate = estate_church
-		NOT = { has_estate_privilege = estate_church_indepedent_clergy }
+		NOT = { has_estate_privilege = estate_church_independent_clergy }
 		NOT = { has_disaster = nsc_dinam_elutur }
 	}
 	
 	option = {
 		name = new_sun_cult.1.a
-		ROOT = { set_estate_privilege = estate_church_indepedent_clergy }
+		ROOT = { set_estate_privilege = estate_church_independent_clergy }
 	}
 }
 
@@ -282,7 +282,38 @@ province_event = {
 	}
 }
 
-#id 10 to 14 available
+#Getting back the mage estate on conversion or new ruler
+country_event = {
+	id = new_sun_cult.10
+	title = new_sun_cult.10.t
+	desc = { trigger = { religion = bulwari_sun_cult is_chosen_country = yes } desc = new_sun_cult.10.da }
+	desc = { trigger = { NOT = { religion = bulwari_sun_cult } } desc = new_sun_cult.10.db }
+	picture = BIG_BOOK_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = nsc_human_country_magic_prohibition
+		OR = {
+			NOT = { religion = bulwari_sun_cult }
+			is_chosen_country = yes
+		}
+		NOT = { has_country_flag = nsc_teachings_szal_fazil_started }
+	}
+	
+	#
+	option = {
+		name = new_sun_cult.10.a
+		custom_tooltip = nsc_enable_mage_estate_tt
+		hidden_effect = {
+			set_country_flag = mage_organization_centralized_flag
+			clr_country_flag = nsc_human_country_magic_prohibition
+			country_event = { id = anbennar_setup.6 days = 3 }
+		}
+	}
+}
+
+#id 11 to 14 available
 
 #--------------------------------------------#
 #---------------# Disasters #----------------#
@@ -968,6 +999,8 @@ country_event = {
 	option = {
 		name = new_sun_cult.26.a
 		trigger = { NOT = { has_country_flag = dukedal_lost } ai = no }
+		add_stability_or_adm_power = yes
+		add_stability_or_adm_power = yes
 		increase_nsc_isolation_level = yes
 		if = { limit = { NOT = { isolationism = 2 } }
 			increase_nsc_isolation_level = yes
@@ -1113,7 +1146,7 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			country_event = { id = new_sun_cult.28 days = 365 random = 180 }
+			country_event = { id = new_sun_cult.28 days = 365 random = 30 }
 			set_country_flag = has_nsc_disaster
 			set_variable = { which = nscDisasterScoreVar value = 0 }
 			set_variable = { which = totalMonthlyNscDisasterScoreVar value = 0 }
@@ -1147,7 +1180,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.29 days = 365 random = 180 } }
+		hidden_effect = { country_event = { id = new_sun_cult.29 days = 365 random = 30 } }
 	}
 	
 	#Fuck them
@@ -1190,7 +1223,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.30 days = 365 random = 180 } }
+		hidden_effect = { country_event = { id = new_sun_cult.30 days = 365 random = 30 } }
 	}
 	
 	#Refuse
@@ -1219,14 +1252,68 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.31 days = 365 random = 180 } }
+		hidden_effect = {
+			random_owned_province = {
+				limit = { NOT = { has_province_flag = dinam_elutur_sun_elf_loyalists_rebels } }
+				save_event_target_as = dinam_elutur_clergy_rebels_1
+				random_neighbor_province = {
+					save_event_target_as = dinam_elutur_clergy_rebels_2
+				}
+				random_neighbor_province = {
+					limit = { NOT = { has_province_flag = dinam_elutur_sun_elf_loyalists_rebels } }
+					save_event_target_as = dinam_elutur_clergy_rebels_2
+				}
+				random_neighbor_province = {
+					limit = { NOT = { province_id = event_target:dinam_elutur_clergy_rebels_2 } }
+					save_event_target_as = dinam_elutur_clergy_rebels_3
+				}
+				random_neighbor_province = {
+					limit = {
+						NOT = { has_province_flag = dinam_elutur_sun_elf_loyalists_rebels }
+						NOT = { province_id = event_target:dinam_elutur_clergy_rebels_2 }
+					}
+					save_event_target_as = dinam_elutur_clergy_rebels_3
+				}
+			}
+			country_event = { id = new_sun_cult.31 days = 365 random = 30 }
+		}
 	}
 	
 	#Remove their privileges
 	option = {
 		name = new_sun_cult.30.a
-		custom_tooltip = nsc_dinam_elutur_angry_clergy_tt
-		remove_estate_privilege = estate_church_indepedent_clergy
+		custom_tooltip = nsc_dinam_elutur_less_powerful_clergy_tt
+		set_country_flag = dinam_elutur_less_powerful_clergy
+		remove_estate_privilege = estate_church_independent_clergy
+		add_estate_loyalty = { estate = estate_church loyalty = -20 }
+		reduce_stability_or_adm_power = yes
+		event_target:dinam_elutur_clergy_rebels_1 = {
+			set_province_flag = dinam_elutur_sun_elf_loyalists_rebels
+			spawn_rebels = {
+				type = sun_elf_loyalists_rebels
+				size = 2
+			}
+		}
+		event_target:dinam_elutur_clergy_rebels_2 = {
+			set_province_flag = dinam_elutur_sun_elf_loyalists_rebels
+			spawn_rebels = {
+				type = sun_elf_loyalists_rebels
+				size = 1
+			}
+		}
+		event_target:dinam_elutur_clergy_rebels_3 = {
+			set_province_flag = dinam_elutur_sun_elf_loyalists_rebels
+			spawn_rebels = {
+				type = sun_elf_loyalists_rebels
+				size = 1
+			}
+		}
+	}
+	
+	#Let them be
+	option = {
+		name = new_sun_cult.30.b
+		custom_tooltip = nsc_dinam_elutur_powerful_clergy_tt
 	}
 }
 
@@ -1240,7 +1327,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.32 days = 365 random = 180 } }
+		hidden_effect = { country_event = { id = new_sun_cult.32 days = 365 random = 30 } }
 	}
 	
 	#Try to appease them
@@ -1249,16 +1336,13 @@ country_event = {
 		custom_tooltip = nsc_dinam_elutur_nobles_less_demands_tt
 		add_estate_loyalty = { estate = estate_nobles loyalty = 20 }
 		change_estate_land_share = { estate = estate_nobles share = 5 }
-		set_country_flag = dinam_elutur_angry_nobles
 		set_country_flag = dinam_elutur_less_angry_nobles
-		
 	}
 	
 	#Fuck them
 	option = {
 		name = new_sun_cult.31.b
 		custom_tooltip = nsc_dinam_elutur_nobles_more_demands_tt
-		set_country_flag = dinam_elutur_angry_nobles
 	}
 }
 
@@ -1272,17 +1356,27 @@ country_event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		hidden_effect = { country_event = { id = new_sun_cult.33 days = 365 random = 180 } }
-	}
-	
-	#Refuse
-	option = {
-		name = new_sun_cult.32.a
+		hidden_effect = { country_event = { id = new_sun_cult.33 days = 365 random = 30 } }
 	}
 	
 	#Accept
 	option = {
+		name = new_sun_cult.32.a
+		add_stability_or_adm_power = yes
+		add_estate_influence_modifier = {
+			estate = estate_burghers
+			desc = nsc_burgher_deal
+			influence = -10
+			duration = 7300
+		}
+		add_years_of_income = 0.15
+		add_country_modifier = { name = nsc_burgher_deal_modifier duration = 3650 }
+	}
+	
+	#Refuse
+	option = {
 		name = new_sun_cult.32.b
+		add_estate_loyalty = { estate = estate_burghers loyalty = -10 }
 	}
 }
 
@@ -1297,7 +1391,7 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			country_event = { id = new_sun_cult.34 days = 365 random = 180 }
+			country_event = { id = new_sun_cult.34 days = 365 random = 30 }
 			set_variable = { which = numRebelProvinceVar value = -12 }
 			every_owned_province = { ROOT = { change_variable = { which = numRebelProvinceVar value = 1 } } }
 			divide_variable = { which = numRebelProvinceVar value = 4 }
@@ -1348,27 +1442,6 @@ country_event = {
 							check_variable = { which = numRebelProvinceVar which = oneThirdRebelProvinceVar }
 						}
 					}
-					random_neighbor_province = {
-						limit = {
-							is_capital = no
-							NOT = { has_province_flag = dinam_elutur_rebellion }
-						}
-						spawn_rebels = { type = sun_elf_loyalists_rebels size = 1 }
-						set_province_flag = dinam_elutur_rebellion
-					}
-					ROOT = { change_variable = { which = numRebelProvinceVar value = -1 } }
-				}
-			}
-			
-			random_owned_province = {
-				limit = {
-					is_capital = no
-					NOT = { has_province_flag = dinam_elutur_rebellion }
-				}
-				spawn_rebels = { type = sun_elf_loyalists_rebels size = 2 }
-				set_province_flag = dinam_elutur_rebellion
-				while = {
-					limit = { ROOT = { check_variable = { which = numRebelProvinceVar value = 1 } } }
 					random_neighbor_province = {
 						limit = {
 							is_capital = no
@@ -1560,12 +1633,8 @@ province_event = {
 	
 	immediate = {
 		hidden_effect = {
-			set_province_flag = dukeldar_conversion
-			change_religion = old_bulwari_sun_cult
-			random = {
-				chance = 50
-				spawn_rebels = { type = old_bulwari_sun_cult_rebels size = 1 }
-			}
+			set_province_flag = dinam_elutur_sun_elf_loyalists_rebels
+			spawn_rebels = { type = sun_elf_loyalists_rebels size = 1 }
 			nsc_update_monthly_disaster_score = yes
 		}
 	}
@@ -1588,15 +1657,16 @@ province_event = {
 	#accept
 	option = {
 		name = new_sun_cult.36.a
-		trigger = { crown_land_share = 2 }
-		owner = { change_estate_land_share = { estate = estate_nobles share = 2 } }
+		trigger = { owner = { crown_land_share = 1 } }
+		owner = { give_estate_land_share_small = { estate = estate_nobles } }
 	}
 	
 	#Refuse
 	option = {
 		name = new_sun_cult.36.b
 		owner = { add_estate_loyalty = { estate = estate_nobles loyalty = -10 } }
-		spawn_rebels = { type = noble_rebels size = 2 }
+		spawn_rebels = { type = noble_rebels size = 1 }
+		set_province_flag = dinam_elutur_nobles_demands
 	}
 }
 
@@ -1761,7 +1831,8 @@ country_event = {
 				limit = {
 					OR = {
 						NOT = { religion = bulwari_sun_cult }
-						is_chosen_country = yes
+						ruler_culture = sun_elf
+						ruler_culture = dawn_elf
 					}
 				}
 				set_country_flag = dinam_elutur_lost
@@ -1773,6 +1844,8 @@ country_event = {
 	option = {
 		name = new_sun_cult.39.a
 		trigger = { NOT = { has_country_flag = dinam_elutur_lost } ai = no }
+		add_stability_or_adm_power = yes
+		add_stability_or_adm_power = yes
 		decrease_nsc_isolation_level = yes
 		if = { limit = { isolationism = 3 }
 			decrease_nsc_isolation_level = yes
@@ -1789,12 +1862,36 @@ country_event = {
 		custom_tooltip = nsc_dinam_elutur_will_be_back_tt
 		clr_country_flag = dinam_elutur_lost
 		clr_country_flag = locked_racial_administration
-		
+		if = { limit = { capital_scope = { OR = { continent = north_america continent = south_america } } }
+			change_primary_culture = dawn_elf
+		}
+		else = {
+			change_primary_culture = sun_elf
+			if = { limit = { NOT = { government = monarchy } }
+				change_government = monarchy
+			}
+			add_government_reform = phoenix_akalate
+		}
+		if = { limit = { has_heir = yes NOT = { heir_culture = sun_elf } NOT = { heir_culture = dawn_elf } }
+			kill_heir = yes
+		}
+		if = { limit = { has_consort = yes NOT = { consort_culture = sun_elf } NOT = { consort_culture = dawn_elf } }
+			remove_consort = yes
+		}
+		if = { limit = { NOT = { ruler_culture = sun_elf } NOT = { ruler_culture = dawn_elf } }
+			kill_ruler = yes
+		}
+		if = { limit = { NOT = { has_country_modifier = elven_administration } }
+			clear_racial_administration = yes
+			add_country_modifier = { name = restructuring_administration duration = 3650 }
+			add_country_modifier = { name = elven_administration duration = -1 }
+		}
+		set_country_flag = locked_racial_administration
+	
 		if = { limit = { tag = F52 }
 			if = {
 				limit = {
-					primary_culture = sun_elf
-					NOT = { religion = the_jadd }
+					religion = bulwari_sun_cult
 					NOT = { exists = F38 }
 				}
 				change_tag = F38
@@ -1852,10 +1949,30 @@ country_event = {
 		clr_country_flag = dinam_elutur_desertions
 		clr_country_flag = dinam_elutur_angry_nobles
 		clr_country_flag = dinam_elutur_less_angry_nobles
+		clr_country_flag = dinam_elutur_less_powerful_clergy 
 		every_owned_province = {
 			clr_province_flag = dinam_elutur_rebellion
 			clr_province_flag = dinam_elutur_pretender_province
+			clr_province_flag = dinam_elutur_nobles_demands 
+			clr_province_flag = dinam_elutur_sun_elf_loyalists_rebels
 		}
+	}
+}
+
+#
+country_event = {
+	id = new_sun_cult.40
+	title = new_sun_cult.40.t
+	desc = new_sun_cult.40.d
+	picture = FAMINE_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	option = {
+		name = new_sun_cult.40.a
+		country_event = { id = new_sun_cult.39 days = 1 }
 	}
 }
 
@@ -3329,6 +3446,7 @@ country_event = {
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
+		set_country_flag = birsartanses_pledge_good
 	}
 	
 	#Success
@@ -3353,6 +3471,7 @@ country_event = {
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
+		set_country_flag = birsartanses_pledge_good
 	}
 	
 	#Partial success
@@ -3374,6 +3493,7 @@ country_event = {
 			custom_tooltip = nsc_choices_impact_level_tt
 			decrease_nsc_isolation_level = yes
 		}
+		set_country_flag = birsartanses_pledge_good
 	}
 	
 	#Failure
@@ -7539,6 +7659,7 @@ country_event = {
 		custom_tooltip = nsc_ruler_will_leave_tt
 		hidden_effect = { exile_heir_as = exiled_heir_@ROOT }
 		set_country_flag = nsc_no_level_loss
+		set_country_flag = nsc_ruler_will_come_back
 		exile_ruler_as = exiled_ruler_@ROOT
 		if = { limit = { NOT = { government = republic } }
 			define_ruler = {
@@ -7591,6 +7712,7 @@ country_event = {
 	
 	after = {
 		clr_country_flag = nsc_no_level_loss
+		clr_country_flag = nsc_ruler_will_come_back
 	}
 }
 
@@ -8399,6 +8521,7 @@ country_event = {
 						is_subject = no
 						is_subject_of_type = tributary_state
 					}
+					is_lesser_in_union = no
 				}
 			}
 			if = { limit = { ai = no }
@@ -8438,6 +8561,7 @@ country_event = {
 				is_subject = no
 				is_subject_of_type = tributary_state
 			}
+			is_lesser_in_union = no
 		}
 		has_country_flag = nsc_investigation_enabled
 		has_country_flag = nsc_is_investigated_by_@FROM
@@ -8494,6 +8618,7 @@ country_event = {
 				is_subject = no
 				is_subject_of_type = tributary_state
 			}
+			is_lesser_in_union = no
 		}
 		has_country_flag = nsc_investigation_enabled
 		has_country_flag = nsc_is_investigated_by_@FROM
@@ -11078,7 +11203,7 @@ country_event = {
 	
 	option = { #Now we have mages!
 		name = new_sun_cult.247.a
-		
+		end_incident = incident_teachings_szal_fazil
 		if = { limit = { has_country_flag = nsc_szal_fazil_evocation }
 			increase_nsc_isolation_level = yes
 		}
@@ -11093,12 +11218,12 @@ country_event = {
 		else = { limit = { has_country_flag = nsc_szal_fazil_conjuration }
 			decrease_nsc_isolation_level = yes
 		}
+		custom_tooltip = nsc_enable_mage_estate_tt
 	}
 	
 	after = {
 		clr_country_flag = nsc_human_country_magic_prohibition
 		clr_country_flag = active_nsc_incident_flag
-		end_incident = incident_teachings_szal_fazil
 		hidden_effect = { country_event = { id = new_sun_cult.248 days = 10 } }
 	}
 }
@@ -11134,13 +11259,13 @@ country_event = {
 			set_estate_privilege = estate_mages_bulwari_divination
 		}
 		else = { limit = { has_country_flag = nsc_szal_fazil_conjuration }
-		
 			set_estate_privilege = estate_mages_organization_religious
 			set_estate_privilege = estate_mages_bulwari_conjuration
 		}
 	}
 	
 	after = {
+		set_country_flag = had_nsc_incident_flag
 		clr_country_flag = nsc_teachings_szal_fazil_started
 		clr_country_flag = nsc_people_want_mages
 		clr_country_flag = nsc_protected_amman_magi
@@ -11309,6 +11434,7 @@ country_event = {
 		suran_river = { type = all country_or_non_sovereign_subject_holds = ROOT }
 		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { province_group = amussus_grave_surroundings value = 6 }
 		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { superregion = bulwar_superregion value = 120 }
+		is_incident_active = no
 	}
 	
 	immediate = {
@@ -11383,7 +11509,7 @@ country_event = {
 	
 	option = {
 		name = new_sun_cult.257.a
-		#country_event = { id = new_sun_cult.258 days = 180 }
+		country_event = { id = new_sun_cult.258 days = 90 }
 	}
 }
 
@@ -11400,7 +11526,7 @@ country_event = {
 	
 	option = {
 		name = new_sun_cult.258.a
-		
+		country_event = { id = new_sun_cult.264 days = 90 }
 	}
 }
 
@@ -11448,7 +11574,6 @@ country_event = {
 		name = new_sun_cult.265.a
 		hidden_effect = {
 			event_target:amussu_province_target = {
-				add_province_triggered_modifier = nsc_amussu_triggered_modifier
 				add_permanent_province_modifier = { name = nsc_amussu_province duration = -1 desc = nsc_until_incident_end_tt }
 			}
 			6106 = { add_province_triggered_modifier = amussu_incident_monthly_pulse }	#Amussu's grave wasteland
@@ -12022,6 +12147,7 @@ country_event = {
 	option = {
 		name = new_sun_cult.282.a
 		custom_tooltip = nsc_amussu_power_increase_tt
+		REB = { set_country_flag = nsc_amussu_last_relic }
 		country_event = { id = new_sun_cult.287 days = 180 }
 	}
 }
@@ -12059,36 +12185,7 @@ country_event = {
 	}
 }
 
-#Fight Amussu ?
-country_event = {
-	id = new_sun_cult.284
-	title = new_sun_cult.284.t
-	desc = new_sun_cult.284.d
-	picture = BATTLE_eventPicture
-	
-	is_triggered_only = yes
-	
-	trigger = {
-		REB = { NOT = { has_country_flag = nsc_amussu_invulnerable } }
-	}
-	
-	#fight
-	option = {
-		name = new_sun_cult.284.a
-		event_target:amussu_province_target = {
-			set_variable = { which = nscAmussuBattleTickVar value = 0 }
-			add_province_triggered_modifier = nsc_amussu_battle_daily_pulse
-			spawn_amussu_effect = yes
-		}
-		clr_country_flag = nsc_amussu_battle_refused
-	}
-	
-	#no fight
-	option = {
-		name = new_sun_cult.284.b
-		set_country_flag = nsc_amussu_battle_refused
-	}
-}
+#id .284 available
 
 #Battle Results - hidden event
 province_event = {
@@ -12109,40 +12206,40 @@ province_event = {
 			random_country = {
 				limit = { has_country_flag = nsc_has_amussu_incident }
 				set_country_flag = nsc_beat_amussu
+				country_event = { id = new_sun_cult.287 }
+			}
+		}
+		else_if = { limit = { REB = { had_country_flag = { flag = nsc_amussu_last_relic days = 180 } } }
+			random_country = {
+				limit = { has_country_flag = nsc_has_amussu_incident }
+				country_event = { id = new_sun_cult.287 }
+			}
+		}
+		else = {
+			random_country = {
+				limit = { has_country_flag = nsc_has_amussu_incident }
+				country_event = { id = new_sun_cult.286 }
 			}
 		}
 		owner = {
 			disband_rebels = amussu_main_rebels
 			disband_rebels = amussu_reinforcement_rebels
 		}
-		random_country = {
-			limit = { has_country_flag = nsc_has_amussu_incident }
-			country_event = { id = new_sun_cult.286 }
-		}
 	}
 }
 
-#Battle Results - info event
+#Battle Lost - info event
 province_event = {
 	id = new_sun_cult.286
 	title = new_sun_cult.286.t
-	desc = { trigger = { has_country_flag = nsc_beat_amussu } desc = new_sun_cult.286.da }
-	desc = { trigger = { NOT = { has_country_flag = nsc_beat_amussu } } desc = new_sun_cult.286.db }
-	picture = { trigger = { has_country_flag = nsc_beat_amussu } picture = BYZ_REVOLUTION_eventPicture }
-	picture = { trigger = { NOT = { has_country_flag = nsc_beat_amussu } } picture = WOUNDED_SOLDIERS_eventPicture }
+	desc = new_sun_cult.286.d
+	picture = WOUNDED_SOLDIERS_eventPicture
 	
 	is_triggered_only = yes
 	
-	#Victory
-	option = {
-		name = new_sun_cult.286.a
-		trigger = { has_country_flag = nsc_beat_amussu }
-		country_event = { id = new_sun_cult.287 }
-	}
-	
 	#Defeat
 	option = {
-		name = new_sun_cult.286.b
+		name = new_sun_cult.286.a
 		trigger = { NOT = { has_country_flag = nsc_beat_amussu } }
 		add_prestige = -5
 	}
@@ -12161,15 +12258,15 @@ country_event = {
 	
 	trigger = {
 		has_country_flag = nsc_has_amussu_incident
+		REB = { NOT = { has_country_flag = nsc_amussu_battle_ongoing } }
 	}
 	
 	immediate = {
 		hidden_effect = {
 			clr_country_flag = nsc_has_amussu_incident
 			bulwar_superregion = {
-				limit = { has_province_modifier = nsc_amussu_triggered_modifier }
+				limit = { has_province_modifier = nsc_amussu_province }
 				save_event_target_as = amussu_modifier_target
-				remove_province_triggered_modifier = nsc_amussu_triggered_modifier
 			}
 			6106 = { remove_province_triggered_modifier = amussu_incident_monthly_pulse }
 		}
@@ -12281,7 +12378,10 @@ country_event = {
 		clr_country_flag = nsc_relic_H_picked
 		clr_country_flag = nsc_relic_I_picked
 		clr_country_flag = nsc_relic_J_picked
-		REB = { clr_country_flag = nsc_amussu_invulnerable }
+		REB = {
+			clr_country_flag = nsc_amussu_last_relic
+			clr_country_flag = nsc_amussu_invulnerable
+		}
 		clr_country_flag = nsc_gather_gems
 		clr_country_flag = nsc_gather_glass
 		clr_country_flag = nsc_gather_damestear
@@ -12351,7 +12451,7 @@ country_event = {
 			}
 		}
 		if = { limit = { has_country_flag = nsc_relic_D_got }
-			custom_tooltip = nsc_incense_itar_hasis_tt
+			custom_tooltip = nsc_drops_dariah_tt
 			hidden_effect = {
 				add_country_modifier = { name = nsc_drops_dariah duration = -1 }
 				clr_country_flag = nsc_relic_D_got
