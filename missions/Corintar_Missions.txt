@@ -20,7 +20,7 @@ corintar_1_missions = {
 				NOT = {
 					OR = {
 						base_production = 5
-						has_building = workshop
+						has_production_building_trigger = yes
 					}
 				}
 				devastation = 1
@@ -33,7 +33,7 @@ corintar_1_missions = {
 				country_or_non_sovereign_subject_holds = ROOT
 				OR = {
 					base_production = 5
-					has_building = workshop
+					has_production_building_trigger = yes
 				}
 				NOT = { devastation = 1 }
 			}
@@ -120,7 +120,49 @@ corintar_1_missions = {
 		}
 
 		trigger = {
+			# Case 1: the deluge has begun and the emperor is regent court -> skip mission
 			if = {
+				limit = {
+					hre_size = 1
+					is_religion_enabled = corinite
+					emperor = { religion = regent_court }
+					has_global_flag = crimson_deluge
+				}
+				prestige = 25
+			}
+			# Case 2: the emperor is regent court but corinite is enabled -> reduced emperor relations requirement
+			if = {
+				limit = {
+					hre_size = 1
+					is_religion_enabled = corinite
+					emperor = {
+						religion = regent_court
+					}
+				}
+				has_spy_network_in = {
+					who = emperor
+					value = 50
+				}
+				OR = {
+					emperor = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+					calc_true_if = {
+						all_elector = {
+							has_opinion = {
+								who = ROOT
+								value = 150
+							}
+						}
+						amount = 3
+					}
+				}
+			}
+			# Case 3: corinite isn't enabled -> full relations requirements
+			else_if = {
 				limit = { hre_size = 1 }
 				has_spy_network_in = {
 					who = emperor
@@ -144,13 +186,28 @@ corintar_1_missions = {
 					}
 				}
 			}
+			# Case 4: the empire doesn't exist -> skip mission
 			else = {
-				prestige = 50
+				prestige = 25
 			}
 		}
 		
 		effect = {
-			add_treasury = 400
+			if = {
+				limit = {
+					hre_size = 1 
+					NOT = {
+						AND = {
+							emperor = { religion = regent_court }
+							has_global_flag = crimson_deluge
+						}
+					}
+				}
+				add_treasury = 400
+			}
+			else = {
+				add_treasury = 100
+			}
 			if = {
 				limit = {
 					calc_true_if = {
@@ -285,10 +342,21 @@ corintar_1_missions = {
 			oldhaven_area = {
 				type = any
 				fort_level = 2
-				OR = {
-					has_building = temple
-					has_building = cathedral
+				has_tax_building_trigger = yes
+			}
+			if = {
+				limit = {
+					oldhaven_area = {
+						type = any
+						NOT = { has_manufactory_trigger = yes }
+						OR = {
+							trade_goods = wine
+							trade_goods = grain
+							trade_goods = livestock
+						}
+					}
 				}
+				treasury = 200
 			}
 		}
 		
@@ -302,14 +370,29 @@ corintar_1_missions = {
 			874 = { # Oldhaven
 				add_base_production = 2
 			}
-			oldhaven_area = {
+			if = {
 				limit = {
-					can_build = farm_estate
+					oldhaven_area = {
+						type = any
+						NOT = { has_manufactory_trigger = yes }
+						OR = {
+							trade_goods = wine
+							trade_goods = grain
+							trade_goods = livestock
+						}
+					}
 				}
-				add_building_construction = {
-						building = farm_estate
-						speed = 0.75
-						cost = 0.25
+				add_treasury = -200
+				oldhaven_area = {
+					limit = {
+						NOT = { has_manufactory_trigger = yes }
+						OR = {
+							trade_goods = wine
+							trade_goods = grain
+							trade_goods = livestock
+						}
+					}
+					add_building = farm_estate
 				}
 			}
 		}
@@ -416,6 +499,9 @@ corintar_1_missions = {
 			NOT = { trade_goods = glass }
 			NOT = { trade_goods = cloth }
 			NOT = { trade_goods = paper }
+			NOT = { trade_goods = dyes }
+			NOT = { trade_goods = damestear }
+			NOT = { trade_goods = gold }
 		}
 
 		trigger = {
@@ -431,6 +517,7 @@ corintar_1_missions = {
 					NOT = { trade_goods = glass }
 					NOT = { trade_goods = cloth }
 					NOT = { trade_goods = paper }
+					NOT = { trade_goods = dyes }
 				}
 				amount = 3
 			}
@@ -447,6 +534,9 @@ corintar_1_missions = {
 					NOT = { trade_goods = glass }
 					NOT = { trade_goods = cloth }
 					NOT = { trade_goods = paper }
+					NOT = { trade_goods = dyes }
+					NOT = { trade_goods = damestear }
+					NOT = { trade_goods = gold }
 				}
 				change_trade_goods = glass
 				add_building = mills
@@ -466,6 +556,9 @@ corintar_1_missions = {
 					NOT = { trade_goods = glass }
 					NOT = { trade_goods = cloth }
 					NOT = { trade_goods = paper }
+					NOT = { trade_goods = dyes }
+					NOT = { trade_goods = damestear }
+					NOT = { trade_goods = gold }
 				}
 				change_trade_goods = paper
 				add_building = mills
@@ -485,6 +578,9 @@ corintar_1_missions = {
 					NOT = { trade_goods = glass }
 					NOT = { trade_goods = cloth }
 					NOT = { trade_goods = paper }
+					NOT = { trade_goods = dyes }
+					NOT = { trade_goods = damestear }
+					NOT = { trade_goods = gold }
 				}
 				change_trade_goods = cloth
 				add_building = textile
@@ -510,10 +606,7 @@ corintar_1_missions = {
 					religion = corinite
 					fort_level = 2
 					has_building = university
-					OR = {
-						has_building = temple
-						has_building = cathedral
-					}
+					has_tax_building_trigger = yes
 				}
 				amount = 6
 			}
@@ -709,18 +802,18 @@ corintar_2_missions = {
 		}
 
 		trigger = {
-			all_known_country = {
-				OR = {
-					custom_trigger_tooltip = {
-						tooltip = corintar_no_chapter_tt
+			custom_trigger_tooltip = {
+				tooltip = corintar_recruits_tt
+				all_known_country = {
+					OR = {
 						NOT = { has_country_flag = corintar_chapter }
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+						is_enemy = ROOT
+						is_rival = ROOT
 					}
-					has_opinion = {
-						who = ROOT
-						value = 100
-					}
-					is_enemy = ROOT
-					is_rival = ROOT
 				}
 			}
 		}
@@ -1131,8 +1224,7 @@ corintar_3_missions = {
 				NOT = { religion = corinite }
 				AND = {
 					province_id = 832
-					NOT = { has_building = temple }
-					NOT = { has_building = cathedral }
+					NOT = { has_tax_building_trigger = yes }
 				}
 			}
 		}
@@ -1145,10 +1237,7 @@ corintar_3_missions = {
 				religion = corinite
 			}
 			832 = {
-				OR = {
-					has_building = temple
-					has_building = cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 		}
 		
@@ -1227,16 +1316,60 @@ corintar_3_missions = {
 		}
 
 		trigger = {
-			any_owned_province = {
-				religion = regent_court
+			if = {
+				limit = {
+					OR = {
+						any_owned_province = {
+							religion = regent_court
+						}
+						inner_castanor_region = {
+							type = any
+							religion = regent_court
+						}
+						west_castanor_region = {
+							type = any
+							religion = regent_court
+						}
+						south_castanor_region = {
+							type = any
+							religion = regent_court
+						}
+					}
+				}
+				any_owned_province = {
+					religion = regent_court
+				}
 			}
+			else = { # this trigger is always true, here for tooltip
+				inner_castanor_region = {
+					type = all
+					NOT = { religion = regent_court }
+				}
+				west_castanor_region = {
+					type = all
+					NOT = { religion = regent_court }
+				}
+				south_castanor_region = {
+					type = all
+					NOT = { religion = regent_court }
+				}
+			}
+
 		}
 		effect = {
-			corintar_violent_conversion = yes
-			corintar_violent_conversion = yes
-			corintar_violent_conversion = yes
-			corintar_violent_conversion = yes
-			corintar_violent_conversion = yes
+			if = {
+				limit = {
+					any_owned_province = { religion = regent_court }
+				}
+				corintar_violent_conversion = yes
+				corintar_violent_conversion = yes
+				corintar_violent_conversion = yes
+				corintar_violent_conversion = yes
+				corintar_violent_conversion = yes
+			}
+			else = {
+				add_stability = 1
+			}
 		}
 	}
 
@@ -1252,24 +1385,39 @@ corintar_3_missions = {
 		}
 
 		trigger = {
-			OR = {
+			if = {
+				limit = {
+					any_known_country = {
+						has_country_flag = corintar_chapter
+					}
+				}
 				any_known_country = {
 					custom_trigger_tooltip = {
 						tooltip = corintar_has_chapter_tt
 						has_country_flag = corintar_chapter
 					}
 					OR = {
+						war_with = ROOT
+						is_rival = ROOT
 						is_enemy = ROOT
-						defensive_war_with = ROOT
-					}
-				}
-				NOT = {
-					any_known_country = {
-						custom_trigger_tooltip = {
-							tooltip = corintar_has_chapter_tt
-							has_country_flag = corintar_chapter
+						has_opinion_modifier = {
+							who = ROOT
+							modifier = insulted
+						}
+						if = {
+							limit = { has_dlc = "Dharma" }	
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = scornfully_insulted
+							}
 						}
 					}
+				}
+			}
+			else = {
+				custom_trigger_tooltip = {
+					tooltip = corintar_no_chapters_tt
+					always = yes
 				}
 			}
 		}
@@ -1415,7 +1563,7 @@ corintar_3_missions = {
 				add_prestige = 10
 				add_army_tradition = 10
 				add_country_modifier = {
-					name = corintar_corintar_leadership
+					name = corintar_a_safe_haven 
 					duration = -1
 					desc = corintar_removed_at_league_war_tt
 				}
@@ -1753,9 +1901,16 @@ corintar_4_missions = {
 
 		trigger = {
 			legitimacy_equivalent = 100
-			stability = 1
 			religious_unity = 0.95
-			NOT = { average_autonomy = 0.05 }
+			if = {
+				limit = {
+					has_estate = estate_clergy
+				}
+				estate_loyalty = {
+					estate = estate_clergy
+					loyalty = 60
+				}
+			}
 		}
 		
 		effect = {
@@ -1782,8 +1937,7 @@ corintar_4_missions = {
 		
 		provinces_to_highlight = {
 			is_capital_of = ROOT
-			NOT = { has_building = temple }
-			NOT = { has_building = cathedral }
+			NOT = { has_tax_building_trigger = yes }
 		}
 
 		trigger = {
@@ -1797,10 +1951,9 @@ corintar_4_missions = {
 			else = {
 				religion = corinite
 			}
-			OR = {
-				has_building = temple
-				has_building = cathedral
-			}
+			capital_scope = {
+				has_tax_building_trigger = yes
+			}	
 		}
 		
 		effect = {
@@ -1887,24 +2040,33 @@ corintar_4_missions = {
 		}
 		
 		effect = {
-			add_dip_power = 50
 			small_increase_of_orcish_tolerance_effect = yes
-			if = {
-				limit = { exists = Z18 } # Frozenmaw
-				add_historical_friend = Z18
+			if {
+				limit = {
+					OR = {
+						is_rival = Z18 # Frozenmaw
+						is_enemy = Z18
+						is_rival = Z50 # Grombar
+						is_enemy = Z50
+					}
+				}
+				add_dip_power = 100
 			}
 			else = {
-				hidden_effect = {
+				add_dip_power = 50
+				if = {
+					limit = { exists = Z18 }
 					add_historical_friend = Z18
 				}
-			}
-			if = {
-				limit = { exists = Z50 } # Grombar
-				add_historical_friend = Z50
-			}
-			else = {
-				hidden_effect = {
+				else = {
+					hidden_effect = { add_historical_friend = Z18 }
+				}
+				if = {
+					limit = { exists = Z50 }
 					add_historical_friend = Z50
+				}
+				else = {
+					hidden_effect = { add_historical_friend = Z50 }
 				}
 			}
 		}
@@ -2033,10 +2195,7 @@ corintar_4_missions = {
 			nortessord_area = {
 				type = any
 				fort_level = 2
-				OR = {
-					has_building = temple
-					has_building = cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 			any_owned_province = {
 				culture = redtusk_orc
@@ -2351,8 +2510,7 @@ corintar_5_missions = {
 				NOT = { country_or_non_sovereign_subject_holds = ROOT }
 				AND = {
 					province_id = 855 # Nathwoud
-					NOT = { has_building = workshop }
-					NOT = { has_building = counting_house }
+					NOT = { has_production_building_trigger = yes }
 					NOT = { fort_level = 2 }
 				}
 			}
@@ -2367,7 +2525,7 @@ corintar_5_missions = {
 			}
 			855 = { # Nathwoud
 				fort_level = 2
-				has_building = workshop
+				has_production_building_trigger = yes
 			}
 		}
 		
@@ -2400,8 +2558,7 @@ corintar_5_missions = {
 			OR = {
 				NOT = { is_core = ROOT }
 				NOT = { has_owner_religion = yes }
-				NOT = { has_building = temple }
-				NOT = { has_building = cathedral }
+				NOT = { has_tax_building_trigger = yes }
 				devastation = 1
 			}
 		}
@@ -2411,13 +2568,10 @@ corintar_5_missions = {
 				is_core = ROOT
 				has_owner_religion = yes
 				NOT = { devastation = 1 }
-				OR = {
-					has_building = temple
-					has_building = cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 			any_owned_province = {
-				has_integrated_dwarven_minority_trigger = yes
+				has_integrated_dwarven_pop_trigger = yes
 			}
 		}
 		
@@ -2456,7 +2610,6 @@ corintar_5_missions = {
 				NOT = { has_owner_religion = yes }
 				devastation = 1
 			}
-		
 		}
 
 		trigger = {
@@ -2475,18 +2628,12 @@ corintar_5_missions = {
 			coalwoud_area = {
 				type = any
 				fort_level = 2
-				OR = {
-					has_building = temple
-					has_building = cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 			ardent_glade_area = {
 				type = any
 				fort_level = 2
-				OR = {
-					has_building = temple
-					has_building = cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 		}
 		
@@ -2501,10 +2648,7 @@ corintar_5_missions = {
 				limit = {
 					area = coalwoud_area
 					fort_level = 2
-					OR = {
-						has_building = temple
-						has_building = cathedral
-					}
+					has_tax_building_trigger = yes
 				}
 				add_base_tax = 1
 				add_base_manpower = 1
@@ -2513,10 +2657,7 @@ corintar_5_missions = {
 				limit = {
 					area = ardent_glade_area
 					fort_level = 2
-					OR = {
-						has_building = temple
-						has_building = cathedral
-					}
+					has_tax_building_trigger = yes
 				}
 				add_base_tax = 1
 				add_base_manpower = 1
@@ -2604,10 +2745,7 @@ corintar_5_missions = {
 			serpentsmarck_area = {
 				type = any
 				fort_level = 2
-				OR = {
-					has_building = building_temple
-					has_building = building_cathedral
-				}
+				has_tax_building_trigger = yes
 			}
 		}
 		
@@ -2641,30 +2779,93 @@ corintar_5_missions = {
 		
 		provinces_to_highlight = {
 			OR = {
-				province_id = 1 # Shatterwood
-				province_id = 2 # Serpentswick
-			}
-			OR = {
+				AND = {
+					OR = {
+						province_id = 858 # Shatterwood
+						province_id = 846 # Serpentswic
+					}
+					OR = {
+						if = {
+							limit = { has_dlc = "Dharma" }
+							NOT = { province_has_center_of_trade_of_level = 2 }
+						}
+						else = {
+							NOT = { development = 15 }
+						}
+						NOT = { religion = corinite }
+					}
+				}
 				if = {
-					limit = { has_dlc = "Dharma" }
-					NOT = { province_has_center_of_trade_of_level = 2 }
+					limit = {
+						ROOT = {
+							OR = {
+								NOT = { has_country_flag = corintar_ended_purge }
+								NOT = {
+									check_variable = {
+										corintar_orcish_purges
+										value = 5
+									}
+								}
+							}
+						}
+					}
+					owner = {
+						capital_scope = {
+							superregion = escann_superregion
+						}
+						has_country_modifier = racial_pop_orcish_purge
+					}
 				}
-				else = {
-					NOT = { development = 15 }
-				}
-				NOT = { religion = corinite }
 			}
 		}
 
 		trigger = {
-			# ended purge trigger
+			custom_trigger_tooltip = {
+				tooltip = corintar_not_purging_tt
+				NOT = { has_country_modifier = racial_pop_orcish_purge }
+				NOT = { has_country_modifier = racial_pop_orcish_expulsion }
+			}
+			OR = {
+				# no purges in escann
+				custom_trigger_tooltip = {
+					tooltip = corintar_no_purge_tt
+					NOT = {
+						any_known_country = {
+							has_country_modifier = racial_pop_orcish_purge
+							capital_scope = {
+								superregion = escann_superregion
+							}
+						}
+					}
+				}
+				# ended 5 purges
+				if = {
+					limit = {
+						has_country_flag = corintar_ended_purge
+					}
+					custom_trigger_tooltip = {
+						tooltip = corintar_ended_purge_tt
+						check_variable = {
+							which = corintar_orcish_purges
+							value = 5
+						}
+					}
+				}
+				# localize tooltip properly if corintar hasn't ended any purges
+				else = {
+					custom_trigger_tooltip = {
+						tooltip = corintar_ended_purge_0_tt
+						NOT = { always = yes }
+					}
+				}
+			}
 			if = {
 				limit = { has_dlc = "Dharma" }
 				858 = { # Shatterwood
 					province_has_center_of_trade_of_level = 2
 					religion = corinite
 				}
-				2 = { # Serpentswick
+				846 = { # Serpentswic
 					province_has_center_of_trade_of_level = 2
 					religion = corinite
 				}
@@ -2674,7 +2875,7 @@ corintar_5_missions = {
 					development = 15
 					religion = corinite
 				}
-				2 = { # Serpentswick
+				846 = { # Serpentswic
 					development = 15
 					religion = corinite
 				}
@@ -2702,14 +2903,14 @@ corintar_5_missions = {
 			define_advisor = {
 				type = trader
 				skill = 3
-				culture = green_orc
+				culture = redtusk_orc
 				religion = corinite
 				discount = yes
 			}
 			define_advisor = {
 				type = diplomat
 				skill = 3
-				culture = green_orc
+				culture = redtusk_orc
 				religion = corinite
 				discount = yes
 			}
@@ -2783,6 +2984,7 @@ corintar_5_missions = {
 				amount = 8
 			}
 			development_in_provinces = {
+				value = 200
 				culture_group = orcish
 			}
 		}
