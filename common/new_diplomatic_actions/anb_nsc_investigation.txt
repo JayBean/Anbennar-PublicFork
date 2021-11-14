@@ -12,13 +12,17 @@ nsc_investigate_action = {
     }
 	
 	is_allowed = {
+		hidden_trigger = {
+			has_country_flag = nsc_investigation_enabled
+			FROM = {
+				has_country_flag = nsc_investigation_enabled
+				NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
+			}
+		}
 		num_of_diplomats = 2
 		custom_trigger_tooltip = {
 			tooltip = nsc_not_has_already_investigated_tt
-			FROM = {
-				NOT = { has_country_flag = nsc_was_fully_investigated_by_@ROOT }
-				NOT = { has_country_flag = nsc_is_investigated_by_@ROOT }
-			}
+			FROM = { NOT = { has_country_flag = nsc_was_fully_investigated_by_@ROOT } }
 		}
 		custom_trigger_tooltip = {
 			tooltip = nsc_cant_investigate_vassals_tt
@@ -26,8 +30,8 @@ nsc_investigate_action = {
 				OR = {
 					is_subject = no
 					is_subject_of_type = tributary_state
-					overlord = { NOT = { has_country_flag = nsc_was_at_samartal } }
 				}
+				is_lesser_in_union = no
 			}
 		}
 		custom_trigger_tooltip = {
@@ -36,13 +40,23 @@ nsc_investigate_action = {
 				is_subject = no
 				is_subject_of_type = tributary_state
 			}
+			is_lesser_in_union = no
+		}
+		if = { limit = { FROM = { has_country_flag = nsc_has_expelled_@ROOT } }
+			custom_trigger_tooltip = {
+				tooltip = nsc_already_investigated_less_than_2_years_ago_tt
+				FROM = { had_country_flag = { flag = nsc_has_expelled_@ROOT days = 730 } }
+			}
 		}
 		NOT = { is_in_war = { casus_belli = cb_nsc_investigation attacker_leader = FROM } }
 	}
 
     on_accept = {
 		if = { limit = { FROM = { NOT = { has_country_flag = nsc_was_investigated_by_@ROOT } } } #So the diplo action is can't be spammed to increase your NSC level
-			FROM = { set_country_flag = nsc_was_investigated_by_@ROOT }
+			FROM = {
+				set_country_flag = nsc_was_investigated_by_@ROOT
+				change_variable = { which = investigationAgainstVar value = 1 }
+			}
 			if = { limit = { FROM = { is_chosen_country = yes } }
 				add_incident_variable_value = { incident = incident_summit_of_samartal value = -1 }
 			}
@@ -51,18 +65,19 @@ nsc_investigate_action = {
 			}
 		}
 		FROM = {
-			#save_event_target_as = nsc_@ROOT_investigation_of_@FROM
 			set_country_flag = nsc_is_investigated_by_@ROOT
 			set_country_flag = nsc_investigation_just_started_by_@ROOT
 			add_opinion = { who = ROOT modifier = nsc_has_investigated_us }
-			#country_event = { id = new_sun_cult.184 }
 		}
 		nsc_add_investigation_ongoing_modifier = yes
 		clr_country_flag = nsc_investigation_stopped_@FROM
+		FROM = { save_event_target_as = nsc_investigate_target }
 		country_event = { id = new_sun_cult.183 }
 	}
 	
 	ai_will_do = {
+		FROM = { NOT = { check_variable = { which = investigationAgainstVar value = 3 } } }
+		NOT = { has_country_flag = nsc_was_at_war_with_@FROM }
 		OR = {
 			is_neighbor_of = FROM
 			all_known_country = {
@@ -88,6 +103,7 @@ nsc_cancel_investigate_action = {
     }
 	
 	is_allowed = {
+		hidden_trigger = { FROM = { has_country_flag = nsc_is_investigated_by_@ROOT } }
 		custom_trigger_tooltip = {
 			tooltip = nsc_has_already_cancelled_investigation_tt
 			FROM = { has_country_flag = nsc_is_investigated_by_@ROOT }
