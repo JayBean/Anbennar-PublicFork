@@ -758,29 +758,109 @@ province_event = {
 ############# 100 - Special Spawn ########################
 
 #100 - Battle with undead army leaves zombies behind
-province_event = {
+country_event = {
     id = aw_zombies.100
     title = aw_zombies.100.t
     desc = aw_zombies.100.d
     picture = COMET_SIGHTED_eventPicture
-    goto = ROOT
-    
     is_triggered_only = yes
-    #hidden = yes
+
+    trigger = {
+        has_country_modifier = undead_military
+        army_size = 1 # So you can get an event target
+    }
+
+    immediate = {
+        random_province = {
+            limit = { 
+                units_in_province = ROOT
+                owner = {
+                    OR = {
+                        tag = ROOT
+                        war_with = ROOT
+                    }
+                }
+                NOT = { has_province_modifier = aw_zombies_1 }
+                NOT = { has_province_modifier = aw_zombies_2 }
+                NOT = { has_province_modifier = aw_zombies_3 }
+            }
+            save_event_target_as = aw_zombies_target
+        }
+        
+    }
     
-    #yup thats happening
     option = {
-        name = aw_basic.0.a
+        name = aw_zombies.100.a
         ai_chance = { 
             factor = 1 
         }
-        add_permanent_province_modifier  = {
-            name = aw_zombies_1
-            duration = -1  
+        goto = aw_zombies_target
+        trigger = {
+            event_target:aw_zombies_target = {
+                owned_by = ROOT
+            }
+        }
+        event_target:aw_zombies_target = {
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+    }
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_zombies.100.b
+        ai_chance = { factor = 100 }
+        goto = aw_zombies_target
+        trigger = {
+            event_target:aw_zombies_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        event_target:aw_zombies_target = {
+            province_event = {
+                id = aw_zombies.101
+            }
+        }
+    }
+}
+
+#101 - propagation target notification
+province_event = {
+    id = aw_zombies.101
+    title = aw_zombies.101.t
+    desc = aw_zombies.101.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # deal with it ourselves
+        name = aw_basic.0.a
+        ai_chance = { 
+            factor = 20 
         }
 
         custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+        add_permanent_province_modifier = { 
+            name = aw_zombies_1
+            duration = -1
+        }
+
     }
+
 }
 
 
@@ -1274,7 +1354,86 @@ province_event = {
 
 ############## 140s - Other Special Utility ###################
 
+#140 - Zombies overrun Fort
+province_event = {
+    id = aw_zombies.140
+    title = aw_zombies.140.t
+    desc = aw_zombies.140.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
 
+        has_fort_building_trigger = yes
+    }
+
+    option = {
+        name = aw_zombies.140.a
+        ai_chance = { factor = 100 }
+
+        remove_fortifications = yes
+
+        add_devastation = 25
+    }
+}
+
+#141 - Singular Horde rises
+province_event = {
+    id = aw_zombies.141
+    title = aw_zombies.141.t
+    desc = aw_zombies.141.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+    }
+
+    option = {
+        name = aw_zombies.141.a
+        ai_chance = { factor = 100 }
+
+            
+        spawn_rebels = {
+            type = aw_zombies_rebels
+            size = 1
+        }
+
+        if = {
+            limit = { 
+                has_province_modifier = aw_zombies_3 
+            }
+            remove_province_modifier = aw_zombies_3
+            add_permanent_province_modifier  = {
+                name = aw_zombies_2
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_2
+            }
+            remove_province_modifier = aw_zombies_2
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+    }
+}
 
 
 ############## 200s - Special Flavour ###################
