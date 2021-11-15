@@ -1053,7 +1053,7 @@ NCountry = {
 	TRIBE_MIGRATION_NON_TRIBAL_LAND_COOLDOWN_YEARS = 2,
 
 	TRIBE_SETTLE_ADM_COST = 25,	--was 0
-	TRIBE_SETTLE_DIP_COST = 25,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
+	TRIBE_SETTLE_DIP_COST = 50,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
 	TRIBE_SETTLE_MIL_COST = 0,
 
 	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.15,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05
