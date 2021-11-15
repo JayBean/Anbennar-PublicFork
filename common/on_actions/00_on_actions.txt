@@ -1148,7 +1148,16 @@ on_war_won = {
 		change_variable = { aInfluence = 20 }
 	}
 	
-
+	# If Adventurers full annex a monster - to stop adventurer no CB strats
+	if = {
+		limit = {
+			has_reform = adventurer_reform
+			NOT = { has_reform = found_our_nation }
+			FROM = { exists = no }
+		}
+		FROM = { save_event_target_as = peaced_out_nation }
+		country_event = { id = adventurer.5 }
+	}
 	
 	update_artifice_points = yes #needs to be last
 }
@@ -1373,7 +1382,7 @@ on_battle_won_province = {
 
 
 		100 = aw_ghouls.110
-		500 = aw_ghouls.111	#more common one for spookier places
+		300 = aw_ghouls.111	#more common one for spookier places
 	}
 }
 
@@ -1550,6 +1559,12 @@ on_battle_won_country = {
 	if = {
 		limit = { is_subject_of_type = acolyte_dominion }
 		change_variable = { aInfluence = 1 }
+	}
+
+	random_events = {
+		1000 = 0
+
+		300 = aw_zombies.100
 	}
 }
 
@@ -2262,7 +2277,6 @@ on_heir_death = {
 		limit = { has_ruler_flag = returned_from_sancaga_sikma_province }
 		clr_ruler_flag = returned_from_sancaga_sikma_province
 	}
-	}
 	if = {
 		limit = { has_any_heir_cult_active = yes }
 		remove_heir_cult = yes
@@ -2370,9 +2384,9 @@ on_new_heir = {
 		limit = {
 			has_country_flag = enabled_cult_for_heirs
 		}
-		country_event = {
-			id = fetishist_flavor.600
-		}
+		# country_event = {
+		# 	id = fetishist_flavor.600
+		# }
 	}
 	country_event = { id = racial_misc.1 days = 2 }		# Half-orc heirs for cross-racial marriages
 	country_event = { id = racial_misc.2 days = 2 }		# Half-elf heirs for cross-racial marriages
@@ -3651,14 +3665,10 @@ on_bi_yearly_pulse_2 = {
 		200 = corruption_event.14
 		200 = corruption_event.15
 
-		#1000 = aw_thieves_guild.1
-
 		4000 = 0
 	}
 
 	events = {
-		aw_thieves_guild.1
-		aw_bandits.1
 	}
 
 	#this is here as a fallback in case something slips through the cracks
@@ -4495,7 +4505,7 @@ on_thri_yearly_pulse_2 = {
 		race_setup_events.5		#Culture Conversion - turns minorities into majorities cleanup
 		race_setup_events.9		#Expel/Purge opinionsrace_setup_events.9		#Expel/Purge opinions
 
-		migration_force_settle.1
+		# migration_force_settle.1
 		new_sun_cult.241
 		new_sun_cult.255		#Amussu incident trigger event
 	}
@@ -5162,6 +5172,9 @@ on_four_year_pulse_3 = {
 	events = {
 		fragments.2000
 		anb_ruler.10		#Long-lived theocracy abdication
+		corins_circle.101	#Arosha Oakbreaker Startup
+		corins_circle.20	#Arosha Oakbreaker Corinite
+		corins_circle.21	#Arosha Oakbreaker Monstrousness Down
 		new_sun_cult.160		#tension increase event in Bulwar
 	}
 }
@@ -5514,9 +5527,6 @@ on_five_year_pulse = {
 		100 = ideagroups.1939
 		100 = ideagroups.1940
 		100 = ideagroups.1941
-
-		#Anbennar
-		#100 = aw_spawner.0	#Spawns Adventurers Wanted! encounters
 		
 		1000 = 0
 	}
@@ -6047,10 +6057,15 @@ on_conquistador_native = {
 }
 
 on_buy_religious_reform = {
+	set_variable = {
+		variable = leechfather_reform_count {
+		leechfather_reform_count = 0
+		}
 	events = {
 		religious_reforms.1
 		religious_reforms.2
 		religious_reforms.3
+		leechfather_reforms.1
 	}
 }
 
@@ -7870,5 +7885,95 @@ on_extended_regency = {
 		100 = extended_regency_events.6
 		
 		300 = 0
+	}
+}
+
+on_estate_removed = {
+	if = {
+		limit = {
+			has_country_modifier = dhimmi_building_restrictions
+			NOT = {
+				has_estate = estate_dhimmi
+			}
+		}
+		remove_country_modifier = dhimmi_building_restrictions
+	}
+}
+
+on_colonist_boosting_colony = {
+	hidden_effect = {
+		if = {
+			limit = {
+				OR = {
+					religion = noreligion
+					#test if colonists outnumber natives
+					variable_arithmetic_trigger = {
+						custom_tooltip = colonysize_is_larger_than_nativesize_tt
+						export_to_variable = {
+							which = vab_colonysize
+							value = trigger_value:colonysize
+						}
+						export_to_variable = {
+							which = vab_nativesize
+							value = trigger_value:native_size
+						}
+						check_variable = {
+							which = vab_colonysize
+							which = vab_nativesize
+						}
+					}
+					is_in_capital_area = yes
+					OR = {
+						continent = north_america
+						continent = south_america
+						continent = new_world
+					}
+					NOT = {
+						OR = {
+							has_dlc = "Dharma"
+							has_dlc = "Wealth of Nations"
+						}
+					}
+				}
+			}
+			change_religion = FROM
+		}
+		if = {
+			limit = {
+				OR = {
+					culture = noculture
+					#test if colonists outnumber natives
+					variable_arithmetic_trigger = {
+						custom_tooltip = colonysize_is_larger_than_nativesize_tt
+						export_to_variable = {
+							which = vab_colonysize
+							value = trigger_value:colonysize
+						}
+						export_to_variable = {
+							which = vab_nativesize
+							value = trigger_value:native_size
+						}
+						check_variable = {
+							which = vab_colonysize
+							which = vab_nativesize
+						}
+					}
+					is_in_capital_area = yes
+					OR = {
+						continent = north_america
+						continent = south_america
+						continent = new_world
+					}
+					NOT = {
+						OR = {
+							has_dlc = "Dharma"
+							has_dlc = "Wealth of Nations"
+						}
+					}
+				}
+			}
+			change_culture = FROM
+			change_original_culture = FROM
+		}
 	}
 }
