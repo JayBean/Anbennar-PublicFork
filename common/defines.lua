@@ -225,7 +225,7 @@ NDiplomacy = {
 	-- Peace Option Effects, base values for the winner. The loser gets the inverse.
 	PO_DEMAND_PROVINCES_AE = 0.6, 				-- _DDEF_PO_DEMAND_PROVINCES_AE = 10, (Per development)
 	PO_RETURN_CORES_AE = 0.4, 					-- (Per core, only applied if returning cores to vassals of winner)
-	PO_FORM_PU_AE = 0.8, 							-- _DDEF_PO_FORM_PU_AE = 10, (Per development)
+	PO_FORM_PU_AE = 0.20, 							-- _DDEF_PO_FORM_PU_AE = 10, (Per development)
 	PO_CONCEDE_COLONIAL_AE = 0.2,
 	PO_BECOME_VASSAL_AE = 0.5, 					-- _DDEF_PO_BECOME_VASSAL_AE = 10, (Per development)
 	PO_FORCE_JOIN_EMPIRE_AE = 0.2, 					-- _DDEF_PO_BECOME_VASSAL_AE = 10, (Per development)
