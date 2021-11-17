@@ -48,9 +48,30 @@ country_event = {
     
     hidden = yes
     is_triggered_only = yes
-    
-
+   
     trigger = {
+        any_owned_province = {
+            OR = { 
+                has_province_modifier = aw_zombies_1
+                has_province_modifier = aw_zombies_2
+                has_province_modifier = aw_zombies_3
+            }
+        }
+    }    
+
+    mean_time_to_happen = {
+        days = 1
+        modifier = {
+            factor = 2
+            num_of_owned_provinces_with = {
+                value = 3
+                OR = { 
+                    has_province_modifier = aw_zombies_1
+                    has_province_modifier = aw_zombies_2
+                    has_province_modifier = aw_zombies_3
+                }
+            }
+        }
     }
 
     immediate = {
@@ -70,10 +91,7 @@ country_event = {
 	option = {
         event_target:aw_zombes_target = {
             random_list = {
-                #10 - Base migration
-				5 = {
-					province_event = { id = aw_zombies.10 }
-				}
+  
                 #13 - Base propagation
                 5 = {
                     modifier = {
@@ -133,6 +151,16 @@ country_event = {
                             }
                         }
                     }
+                    #small influence boost at 30
+                    modifier = {
+                        factor = 1.5
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 30
+                            }
+                        }
+                    }
                     province_event = { id = aw_zombies.21 }
                 }
 
@@ -175,12 +203,27 @@ country_event = {
                             }
                         }
                     }
+                    #small influence boost at 30
+                    modifier = {
+                        factor = 1.5
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 30
+                            }
+                        }
+                    }
                     province_event = { id = aw_zombies.23 }
                 }
 
                 #25 - monstrous natural tier down.
                 50 = {
                     #Base modifiers
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        NOT = { owner = { has_country_modifier = monstrous_nation } }
+                    }
                     province_event = { id = aw_zombies.25 }   
                 }
 
@@ -276,7 +319,7 @@ country_event = {
                     modifier = {
                         factor = 2
                         development = 20
-                        NOT = { development = 20 }
+                        NOT = { development = 30 }
                     }
                     modifier = {
                         factor = 3
@@ -758,6 +801,114 @@ province_event = {
 
 #41 - convert to pop, monstrous subjugation - none
 
+############# 100 - Special Spawn ########################
+
+#100 - Battle with undead army leaves zombies behind
+country_event = {
+    id = aw_zombies.100
+    title = aw_zombies.100.t
+    desc = aw_zombies.100.d
+    picture = COMET_SIGHTED_eventPicture
+    is_triggered_only = yes
+
+    trigger = {
+        has_country_modifier = undead_military
+        army_size = 1 # So you can get an event target
+    }
+
+    immediate = {
+        random_province = {
+            limit = { 
+                units_in_province = ROOT
+                owner = {
+                    OR = {
+                        tag = ROOT
+                        war_with = ROOT
+                    }
+                }
+                NOT = { has_province_modifier = aw_zombies_1 }
+                NOT = { has_province_modifier = aw_zombies_2 }
+                NOT = { has_province_modifier = aw_zombies_3 }
+            }
+            save_event_target_as = aw_zombies_target
+        }
+        
+    }
+    
+    option = {
+        name = aw_zombies.100.a
+        ai_chance = { 
+            factor = 1 
+        }
+        goto = aw_zombies_target
+        trigger = {
+            event_target:aw_zombies_target = {
+                owned_by = ROOT
+            }
+        }
+        event_target:aw_zombies_target = {
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+    }
+
+    #If migration is sent to OTHER country
+    option = {  
+        name = aw_zombies.100.b
+        ai_chance = { factor = 100 }
+        goto = aw_zombies_target
+        trigger = {
+            event_target:aw_zombies_target = {
+                NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+            }
+        }
+
+        event_target:aw_zombies_target = {
+            province_event = {
+                id = aw_zombies.101
+            }
+        }
+    }
+}
+
+#101 - propagation target notification
+province_event = {
+    id = aw_zombies.101
+    title = aw_zombies.101.t
+    desc = aw_zombies.101.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    option = {
+        # deal with it ourselves
+        name = aw_basic.0.a
+        ai_chance = { 
+            factor = 20 
+        }
+
+        custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+        add_permanent_province_modifier = { 
+            name = aw_zombies_1
+            duration = -1
+        }
+
+    }
+
+}
+
 
 ############## 110s - Special Migration & Propagation ###################
 
@@ -1033,9 +1184,185 @@ country_event = {
     }
 }
 
+#121 - local militias fight undead. minus mil but chance to kill
+province_event = {
+    id = aw_zombies.121
+    title = aw_zombies.121.t
+    desc = aw_zombies.121.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_1
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        development = 6
+    }
+
+    option = {
+        name = aw_zombies.121.a
+        ai_chance = { factor = 100 }
+
+        add_base_manpower = -1
+
+        random = {
+            chance = 33
+            if = {
+                limit = { 
+                    has_province_modifier = aw_zombies_3 
+                }
+                remove_province_modifier = aw_zombies_3
+                add_permanent_province_modifier  = {
+                    name = aw_zombies_2
+                    duration = -1  
+                }
+            }
+            else_if = {
+                limit = { 
+                    has_province_modifier = aw_zombies_2
+                }
+                remove_province_modifier = aw_zombies_2
+                add_permanent_province_modifier  = {
+                    name = aw_zombies_1
+                    duration = -1  
+                }
+            }
+            else_if = {
+                limit = { 
+                    has_province_modifier = aw_zombies_1
+                }
+                remove_province_modifier = aw_zombies_1
+            }
+        }
+    }
+}
+
+#122 - Mages offer to try and get control
+province_event = {
+    id = aw_zombies.122
+    title = aw_zombies.122.t
+    desc = aw_zombies.122.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_1
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        owner = { has_estate = estate_mages }
+
+        owner = {
+            NOT = {
+                has_estate_influence_modifier = {
+                    estate = estate_mages
+                    modifier = EST_VAL_AW_STATE_OWES_FAVOURS
+                }
+            }
+        }
+
+    }
+
+    option = {
+        name = aw_zombies.122.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_mages
+                desc = EST_VAL_AW_STATE_OWES_FAVOURS
+                influence = 10
+                duration = 3650
+            }
+        }
+
+        if = {
+            limit = { 
+                has_province_modifier = aw_zombies_3 
+            }
+            remove_province_modifier = aw_zombies_3
+            add_permanent_province_modifier  = {
+                name = aw_zombies_2
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_2
+            }
+            remove_province_modifier = aw_zombies_2
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_1
+            }
+            remove_province_modifier = aw_zombies_1
+        }
+    }
+
+    #witch king option. you do it to serve me
+    option = {
+        name = aw_zombies.122.b
+        ai_chance = { 
+            factor = 1000
+        }
+		trigger = {
+			owner = { has_ruler_modifier = witch_king_modifier }
+		}
+        highlight = yes
+        custom_tooltip = tooltip_witch_king
+
+        owner = { add_mil_power = -10 }
+
+        if = {
+            limit = { 
+                has_province_modifier = aw_zombies_3 
+            }
+            remove_province_modifier = aw_zombies_3
+            add_permanent_province_modifier  = {
+                name = aw_zombies_2
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_2
+            }
+            remove_province_modifier = aw_zombies_2
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_1
+            }
+            remove_province_modifier = aw_zombies_1
+        }
+    }
+}
+
+
+
 ############## 130s - Special Tier Up ###################
 
-#130 - sudden bite outbreak
+#130 - sudden bite outbreak spreads FAAAST for high dev or cities only
 province_event = {
     id = aw_zombies.130
     title = aw_zombies.130.t
@@ -1050,6 +1377,8 @@ province_event = {
         OR = {
             has_province_modifier = aw_zombies_1
         }
+
+        NOT = { devastation = 50 }
     }
 
     option = {
@@ -1062,10 +1391,277 @@ province_event = {
             name = aw_zombies_3
             duration = -1  
         }
+
+        add_devastation = 50
     }
 }
 
+
+
 ############## 140s - Other Special Utility ###################
+
+#140 - Zombies overrun Fort
+province_event = {
+    id = aw_zombies.140
+    title = aw_zombies.140.t
+    desc = aw_zombies.140.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        has_fort_building_trigger = yes
+    }
+
+    option = {
+        name = aw_zombies.140.a
+        ai_chance = { factor = 100 }
+
+        remove_fortifications = yes
+
+        add_devastation = 25
+    }
+}
+
+#141 - Singular Horde rises
+province_event = {
+    id = aw_zombies.141
+    title = aw_zombies.141.t
+    desc = aw_zombies.141.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+    }
+
+    option = {
+        name = aw_zombies.141.a
+        ai_chance = { factor = 100 }
+
+            
+        spawn_rebels = {
+            type = aw_zombies_rebels
+            size = 1
+        }
+
+        if = {
+            limit = { 
+                has_province_modifier = aw_zombies_3 
+            }
+            remove_province_modifier = aw_zombies_3
+            add_permanent_province_modifier  = {
+                name = aw_zombies_2
+                duration = -1  
+            }
+        }
+        else_if = {
+            limit = { 
+                has_province_modifier = aw_zombies_2
+            }
+            remove_province_modifier = aw_zombies_2
+            add_permanent_province_modifier  = {
+                name = aw_zombies_1
+                duration = -1  
+            }
+        }
+    }
+}
 
 
 ############## 200s - Special Flavour ###################
+
+#200 - State of Decay, level 3 only, decay of infrastructure aka lose dev
+province_event = {
+    id = aw_zombies.200
+    title = aw_zombies.200.t
+    desc = aw_zombies.200.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        development = 6
+    }
+
+    option = {
+        name = aw_zombies.200.a
+        ai_chance = { factor = 100 }
+
+        random_list = {
+            33 = {
+                add_base_tax = -1
+            }
+            33 = {
+                add_base_production = -1
+            }
+            33 = {
+                add_base_manpower = -1
+            }
+        }
+    }
+}
+
+#201 - Exploding zombies aka boomers
+province_event = {
+    id = aw_zombies.201
+    title = aw_zombies.201.t
+    desc = aw_zombies.201.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        NOT = { devastation = 75 }
+
+        development = 6
+    }
+
+    option = {
+        name = aw_zombies.201.a
+        ai_chance = { factor = 100 }
+
+        random = {
+            chance = 50
+            add_base_tax = -1
+        }
+
+        add_devastation = 25
+    }
+}
+
+#202 - Strong zombies aka tanks
+province_event = {
+    id = aw_zombies.202
+    title = aw_zombies.202.t
+    desc = aw_zombies.202.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_2
+            has_province_modifier = aw_zombies_3
+        }
+
+        NOT = { devastation = 75 }
+
+        development = 6
+    }
+
+    option = {
+        name = aw_zombies.202.a
+        ai_chance = { factor = 100 }
+
+        random = {
+            chance = 50
+            add_base_manpower = -1
+        }
+
+        add_devastation = 25
+    }
+}
+
+#203 - survivor communities turning on each other
+province_event = {
+    id = aw_zombies.203
+    title = aw_zombies.203.t
+    desc = aw_zombies.203.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_zombies_3
+        }
+
+        NOT = { devastation = 75 }
+
+    }
+
+    option = {
+        name = aw_zombies.203.a
+        ai_chance = { factor = 100 }
+
+        add_devastation = 50
+
+        random_list = {
+            33 = {
+                add_base_tax = -1
+            }
+            33 = {
+                add_base_production = -1
+            }
+            33 = {
+                add_base_manpower = -1
+            }
+        }
+    }
+}
+
+#204 - Too many zombies worries country
+province_event = {
+    id = aw_zombies.204
+    title = aw_zombies.204.t
+    desc = aw_zombies.204.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+
+        owner = {
+            num_of_owned_provinces_with = {
+                value = 10
+                OR = {
+                    has_province_modifier = aw_zombies_1
+                    has_province_modifier = aw_zombies_2
+                    has_province_modifier = aw_zombies_3
+                }
+            }
+        }
+
+    }
+
+    option = {
+        name = aw_zombies.204.a
+        ai_chance = { factor = 100 }
+
+        owner = { add_stability = -1 }
+    }
+}
