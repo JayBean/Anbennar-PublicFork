@@ -36,11 +36,10 @@ lodhum_intro_part_1 = {
 		position = 1
 		
 		trigger = {
-			treasury = 1
+			NOT = { has_ruler = "Gerin" }
 		}
 		
 		effect = {
-			add_treasury = 1
 			set_country_flag = lodhum_intro_1_complete
 			swap_non_generic_missions = yes
 		}
@@ -65,11 +64,15 @@ lodhum_intro_part_2 = {
 		}
 		
 		trigger = {
-			treasury = 1
+			treasury = 15
 		}
 		
 		effect = {
-			add_treasury = 1
+			add_treasury = -15
+			add_country_modifier = {
+				name = lodhum_mourning_gerin
+				duration = 365
+			}
 			set_country_flag = lodhum_intro_2_complete
 			swap_non_generic_missions = yes
 		}
@@ -95,11 +98,11 @@ lodhum_intro_part_3 = {
 		}
 		
 		trigger = {
-			treasury = 1
+			NOT = { has_country_modifier = lodhum_mourning_gerin }
 		}
 		
 		effect = {
-			add_treasury = 1
+			add_stability_or_adm_power = yes
 			set_country_flag = lodhum_intro_3_complete
 			swap_non_generic_missions = yes
 		}
@@ -107,7 +110,7 @@ lodhum_intro_part_3 = {
 }
 
 lodhum_intro_part_4 = {
-	slot = 4
+	slot = 3
 	generic = no
 	ai = yes
 	has_country_shield = yes
@@ -126,16 +129,11 @@ lodhum_intro_part_4 = {
 		}
 		
 		trigger = {
-			treasury = 1
+			army_size_percentage = 1
 		}
 		
 		effect = {
-			add_treasury = 1
-			clr_country_flag = lodhum_intro_1_complete
-			clr_country_flag = lodhum_intro_2_complete
-			clr_country_flag = lodhum_intro_3_complete
-			set_country_flag = lodhum_intro_full_complete
-			swap_non_generic_missions = yes
+			country_event = { id = flavor_lodhum.3 days = 3 }
 		}
 	}
 }
@@ -159,12 +157,38 @@ lodhum_start_1 = {
 		icon = mission_unite_home_region
 		position = 1
 		
+		provinces_to_highlight = {
+			OR = {
+				province_id = 2968
+				province_id = 2976
+				province_id = 2974
+			}
+			OR = {
+				NOT = { owned_by = ROOT }
+				NOT = { is_city = yes }
+			}
+		}
+
 		trigger = {
-			treasury = 1
+			2968 = { 
+				owned_by = ROOT
+				is_city = yes
+			}
+			2976 = {
+				owned_by = ROOT
+				is_city = yes
+			}
+			2974 = {
+				owned_by = ROOT
+				is_city = yes
+			}
 		}
 		
 		effect = {
-			add_treasury = 1
+			add_country_modifier = {
+				name = lodhum_settler_bonus
+				duration = 10950
+			}
 		}
 	}
 
@@ -175,12 +199,43 @@ lodhum_start_1 = {
 			lodhum_secure_borders
 		}
 
+		provinces_to_highlight = {
+			OR = {
+				province_id = 2969
+				province_id = 4240
+			}
+			OR = {
+				OR = {
+					NOT = { owned_by = ROOT }
+					owned_by = H87 #thieving arrow
+				}
+				NOT = { is_city = yes }
+			}
+		}
+
 		trigger = {
-			treasury = 1
+			2969 = {
+				OR = {
+					owned_by = ROOT
+					owned_by = H87
+				}
+				is_city = yes
+			}
+			4240 = {
+				OR = {
+					owned_by = ROOT
+					owned_by = H87
+				}
+				is_city = yes
+			}
 		}
 		
 		effect = {
-			add_treasury = 1
+			H87 = { random_owned_province = { discover_country = ROOT } }
+			4100 = { 
+					discover_country = ROOT
+					add_permanent_claim = ROOT 
+			}
 		}
 	}
 
@@ -191,32 +246,21 @@ lodhum_start_1 = {
 			lodhum_down_railway
 		}
 
-		trigger = {
-			treasury = 1
-		}
-		
-		effect = {
-			add_treasury = 1
-		}
-	}
-
-	lodhum_feywoods = {
-		icon = mission_alone_in_the_wood
-		position = 5
-		required_missions = {
-			lodhum_wooden_door
+		provinces_to_highlight = {
+			province_id = 4100
 		}
 
 		trigger = {
-			treasury = 1
+			4100 = {
+				owned_by = ROOT
+				is_city = yes
+				has_fort_building_trigger = yes
+			}
 		}
 		
 		effect = {
-			add_treasury = 1
-
-			#move to event
-			set_country_flag = lodhum_feywoods_start
-			swap_non_generic_missions = yes
+			4100 = { add_province_modifier = { name = lodhum_skomdihr_province duration = 3650 } }
+			hidden_effect = { country_event = { id = flavor_lodhum.4 days = 1460 random = 730 } }
 		}
 	}
 }
@@ -576,6 +620,69 @@ lodhum_feywoods_branch_1 = {
 	potential = {
 		tag = H77
 		has_country_flag = lodhum_feywoods_start
+	}
+
+	lodhum_feywoods = {
+		icon = mission_alone_in_the_wood
+		position = 5
+		required_missions = {
+			lodhum_wooden_door
+		}
+
+		provinces_to_highlight = {
+			OR = {
+				#just highlight ayeth
+				AND = {
+					exists = I33
+					owned_by = I33
+				}
+				#stuff you should conquer
+				AND = {
+					NOT = { exists = I33 }
+					is_core = ROOT
+					NOT = { owned_by = ROOT }
+					superregion = deepwoods_superregion
+				}
+			}
+		}
+
+		trigger = {
+			if = {
+				limit = { exists = I33 }
+				has_opinion = { who = ROOT value = 100 }
+				treasury = 100
+				manpower = 2
+			}
+			else = {
+				num_of_owned_province
+				lonfarch_area = {
+					limit = { NOT = { province_id = 3063 } }
+					owned_by = ROOT
+					set_province_flag = lodhum_release_this
+				}
+				ayeth_area = {
+					limit = { NOT = { province_id = 3057 } } #no gladeway
+					add_core = ROOT
+					set_province_flag = lodhum_release_this
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = { exists = I33 }
+				add_treasury = -100
+				manpower = -2
+				I33 = {
+					add_treasury = 100
+					add_manpower = 2
+				}
+			}
+			else = {
+
+			}
+			deepwoods_superregion = { discover_country = ROOT }
+		}
 	}
 
 	lodhum_united_greentide = {
