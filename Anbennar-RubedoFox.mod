@@ -1,5 +1,5 @@
-name="Anbennar-PublicFork"
-path="mod/Anbennar-PublicFork"
+name="Anbennar-RubedoFox"
+path="mod/Anbennar-RubedoFox"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.32.*"
