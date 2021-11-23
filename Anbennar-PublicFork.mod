@@ -1,5 +1,5 @@
-name="Squidfork2"
-path="C:/Users/StarJ/OneDrive/Documents/SquidFork/anbennar-eu4-fork-riverdoge-fork-squid"
+name="ScrobFork2"
+path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
 supported_version="1.32.*"
