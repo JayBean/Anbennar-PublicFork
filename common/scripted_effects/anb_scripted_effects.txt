@@ -15991,22 +15991,57 @@ update_blackpurgis = {
 # Can handle experience = 50, 100, 200 or 500. If you want to add more then you need to create new tooltips for them.
 increase_study_experience = {
 	[[experience]
-		custom_tooltip = magic_study_experience_$experience$_tt # Loc only exists for 50, 100, 200 and 500 currently
-		# custom_tooltip = "Increase �Magical Study Experiencee�! by �G$experience$�!."
+		custom_tooltip = magic_study_experience_$experience$_tt 								# Loc only exists for 50, 100, 200 and 500 currently
+		custom_tooltip = magic_study_experience_modifier_tt
+		hidden_effect = {
+			update_magic_study_experience_modifier = {}
+			set_variable = { experienceGain = $experience$ }
+			if = {
+				limit = { check_variable = { experienceModifier = 0 } }							# If the modifier is null or positive
+				set_variable = { which = expFoo which = experienceModifier }
+				divide_variable = { expFoo = 100 }
+				change_variable = { expFoo = 1 }
+				multiply_variable = { which = experienceGain which = expFoo }
+			}
+			else = {																			# If the modifier is negative
+				set_variable = { expFoo = 100 }
+				change_variable = { which = expFoo which = experienceModifier }					# It's an addition cuz experienceModifier is negative here
+				divide_variable = { expFoo = 100 }
+				multiply_variable = { which = experienceGain which = expFoo }
+			}
+		}
+
 		hidden_effect = {
 			change_variable = {
 				which = ruler_study_experience 
-				value = $experience$
+				which = experienceGain
 			}
 		}
 	]
 	hidden_effect = {
 		country_event = { id = magic_study.100 days = 1 }
 	}
-	# if = {
-		# limit = { has_finished_magical_studies = yes }
-		# finished_study_effect = yes
-	# }
+}
+
+# Tooltip to increase: add_magic_study_modifier_1_tt		Handle 1,2,5,7,10,12,15,17,20,25,33,50,100
+# Tooltip to decrease : remove_magic_study_modifier_1_tt	Handle 1,2,5,7,10,12,15,17,20,25,33,50,100
+
+#Note that 2 actually display 2.5%, 7 7.5%, 12 12.5% and 17 17.5%. Add accordingly, add_magic_study_modifier_7_tt value = 7.5
+update_magic_study_experience_modifier = {
+	hidden_effect = {
+		if = {
+			limit = { NOT = { has_country_flag = study_modifier_set } }
+			set_country_flag = study_modifier_set
+			set_variable = { experienceModifier = 0 }
+		}
+		[[value]
+			change_variable = { experienceModifier = $value$ } 							# This handle negative. Value must be a float, so +10% = 10
+		]
+		if = {
+			limit = { NOT = { check_variable = { experienceModifier = -100 } } }		# We never go under -100%
+			set_variable = { experienceModifier = -100 }
+		}
+	}
 }
 
 # Fires the correct event for magical study completing
