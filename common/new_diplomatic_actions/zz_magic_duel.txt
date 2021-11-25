@@ -1,7 +1,8 @@
 
 # Triggers and effects will be given the Actor's scope, with the Recipient's as FROM
 
-static_actions = { # static_actions is a reserved token.
+static_actions =
+{
 	# alert_index maps to the frame of the alert icon
 	royal_marriage = 										{ alert_index = 1 alert_tooltip = ICON_RM }
 	requestpeace = 										{ alert_index = 2 alert_tooltip = ICON_PEACE  } # alert_index will be overwritten in code for this one.
@@ -51,148 +52,47 @@ static_actions = { # static_actions is a reserved token.
 }
 
 # Create new diplomatic actions like this. AI will currently never send them.
-demand_dummy = {
+magic_duel = {
 	category = influence
 
-	alert_index = 40
+	alert_index = 42
 	alert_tooltip = demand_dummy_alert_tooltip
 
-	require_acceptance = yes # Whether the recipient gets an option to decline
+	require_acceptance = no # Whether the recipient gets an option to decline
 
 	is_visible = {
-		always = no ############################ Remove this line to unleash the magic ########################################
-		religion_group = christian
-		is_subject = no
+		always = no
+		ai = no
+		ruler_has_mage_personality = yes
+		NOT = { has_ruler_flag = in_magic_duel }
 		FROM = {
-			is_subject = no
+			ruler_has_mage_personality = yes
+			NOT = { has_ruler_flag = in_magic_duel }
 		}
 	}
 	is_allowed = {
-		variable_arithmetic_trigger = {
-			custom_tooltip = HAS_OLDER_RULER_THAN_THEIR_HEIR
-			export_to_variable = { # All export to variable will happen first. Then the other effects and triggers will be executed/evaluated in order
-				variable_name = my_age
-				value = trigger_value:ruler_age
-			}
-			export_to_variable = {
-				variable_name = their_age
-				value = trigger_value:heir_age
-				who = FROM
-			}
-			ruler_age = 0 # This is a normal trigger.
+		hidden_trigger = {
+			ai = no
+			ruler_has_mage_personality = yes
+			NOT = { has_ruler_flag = in_magic_duel }
 			FROM = {
-				heir_age = 0 # This is a normal trigger too.
-			}
-			check_variable = { # This trigger is only allowed inside a variable_arithmetic_trigger.
-				which = my_age
-				which = their_age
+				ruler_has_mage_personality = yes
+				NOT = { has_ruler_flag = in_magic_duel }
 			}
 		}
-		religion = catholic
 	}
 	on_accept = {
-		add_trust = {
-			who = FROM
-			value = 20
-			mutual = yes
-		}
-		create_subject = {
-			subject_type = dummy
-			subject = FROM
-		}
-	}
-	on_decline =
-	{
-		add_trust = {
-			who = FROM
-			value = -100
-			mutual = no
-		}
+		FROM = { set_ruler_flag = in_magic_duel }
+		set_ruler_flag = in_magic_duel
+		
+		FROM = { set_country_flag = duel_@ROOT }
+		country_event = { id = magic_duel.0 }
 	}
 
 	ai_acceptance = { # This works similarly to variable_arithmetic_trigger, but does not support triggers generally. Instead, "limit" will be evaluated first and the rest ignored if it isn't passed.
-		add_entry = {
-			name = TRUST
-			limit = { religion = catholic }
-			export_to_variable = {
-				variable_name = ai_value # Each "add_entry" must create one variable called "ai_value", the value of which will be extracted after executing all effects
-				value = trust
-				who = FROM
-				with = THIS
-			}
-			subtract_variable = { which = ai_value value = 50 }
-			multiply_variable = { which = ai_value value = 2 }
-		}
-		add_entry = {
-			name = TRUST
-			limit = { NOT = { religion = catholic } }
-			export_to_variable = {
-				variable_name = ai_value
-				value = trust
-				who = FROM
-				with = THIS
-			}
-			export_to_variable = {
-				variable_name = is_defender
-				value = trigger_value:is_defender_of_faith # This sets is_defender to either 0.0 or 1.0
-			}
-			multiply_variable = {
-				which = is_defender
-				value = 10
-			}
-			change_variable = {
-				which = ai_value
-				which = is_defender # This adds 10 to ai_value if you are defender of faith
-			}
-			subtract_variable = { which = ai_value value = 50 }
-		}
-		add_entry = {
-			name = OPINION
-			export_to_variable = {
-				variable_name = ai_value
-				value = opinion
-				who = FROM
-				with = THIS
-			}
-			divide_variable = { which = ai_value value = 4 }
-		}
 	}
 
 	ai_will_do = { # this is a trigger
-		has_opinion_modifier = {
-			modifier = insulted
-			who = FROM
-		}
-	}
-}
-
-cancel_dummy =  {
-	category = influence
-	require_acceptance = no
-	is_visible = {
-		overlord_of = FROM
-		FROM = {
-			is_subject_of_type = dummy
-		}
-	}
-	is_allowed = {
-		reverse_has_opinion_modifier = {
-			modifier = insulted
-			who = FROM
-		}
-	}
-	on_accept = {
-		add_trust = {
-			who = FROM
-			value = -100
-			mutual = yes
-		}
-		FROM = {
-			grant_independence = yes
-		}
-	}
-	ai_will_do = {
 		always = no
 	}
 }
-
