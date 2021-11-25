@@ -29,24 +29,27 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			random_subject_country = {
-				limit = { 
-					is_subject_of_type = acolyte_dominion
-					NOT = {
-						calc_true_if = {
-							all_known_country = {
-								check_variable = {
-									which = aInfluence
-									which = PREV
+			if = {
+				limit = { NOT = { ruler_can_revive = yes } }
+				random_subject_country = {
+					limit = { 
+						is_subject_of_type = acolyte_dominion
+						NOT = {
+							calc_true_if = {
+								all_known_country = {
+									check_variable = {
+										which = aInfluence
+										which = PREV
+									}
 								}
+								amount = 1
 							}
-							amount = 1
 						}
 					}
+					save_event_target_as = country
+					set_country_flag = old_dominion
+					exile_ruler_as = black_heir
 				}
-				save_event_target_as = country
-				set_country_flag = old_dominion
-				exile_ruler_as = black_heir
 			}
 		}
 	}
@@ -57,6 +60,7 @@ country_event = {
 	
 	option = {
 		name = black_demesne.1.a
+		trigger = { NOT = { ruler_can_revive = yes } }
 		ai_chance = { factor = 40 }
 		set_ruler = black_heir
 		hidden_effect = { clr_ruler_flag = mage_ruler_general }
@@ -64,6 +68,18 @@ country_event = {
 			name = new_sorcerer_king
 			duration = 3650
 		}
+	}
+	
+	option = {
+		name = "magic_project_lichdom.12.c"
+		trigger = { ruler_can_revive = yes }
+		ai_chance = {  factor = 1000	 }
+		custom_tooltip = remains_ruler
+		add_ruler_modifier = {
+			name = black_weakened_lich
+			duration = 5475
+		}
+		revival_stat_loss = yes
 	}
 }
 
@@ -144,6 +160,7 @@ country_event = {
 			acolytes_land_distribution_effect = yes
 			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
 		}
+		custom_tooltip = share_the_land_acolyte_and_us_toolip
 	}
 	
 	#Share the Lands but only for your acolyte
@@ -163,6 +180,7 @@ country_event = {
 			acolytes_land_distribution_effect = yes
 			event_target:country = { every_owned_province = { cede_province = ROOT remove_loot = { who = ROOT amount = 100 } } }
 		}
+		custom_tooltip = share_the_land_acolyte_toolip
 	}
 	
 	#Annex the Land
@@ -262,9 +280,13 @@ country_event = {
 		ai_chance = { factor = 100 }
 		highlight = yes
 		trigger = {
-			black_demesne_has_available_acolyte = yes
-			black_demesne_can_have_another_acolyte = yes
+			custom_trigger_tooltip = {
+				tooltip = create_new_acolyte_tooltip
+				black_demesne_has_available_acolyte = yes
+				black_demesne_can_have_another_acolyte = yes
+			}
 		}
+		custom_tooltip = create_new_acolyte_effect_tooltip
 		hidden_effect = {
 			set_variable = { nbProvBlack = 0 }
 			REB = { set_variable = { nbProvBlack = 0 } }
@@ -637,7 +659,7 @@ country_event = {
 	picture = COURT_eventPicture
 	
 	mean_time_to_happen = {
-		months = 180
+		months = 60
 	}
 	
 	trigger = {
@@ -654,18 +676,21 @@ country_event = {
 	}
 	
 	immediate = {
-		random_owned_province = {
-			limit = { 
-				is_in_capital_area = yes
-				is_capital = no
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					is_in_capital_area = yes
+					is_capital = no
+				}
+				save_event_target_as = province
 			}
-			save_event_target_as = province
 		}
 	}
 	
 	after = {
 		hidden_effect = {
 			clr_country_flag = special_acolyte_creation
+			clr_country_flag = acolyte_decision
 			country_event = { id = black_demesne.100 }
 		}
 	}
@@ -690,6 +715,13 @@ country_event = {
 		}
 	}
 	
+	#Go back
+	option = {
+		name = black_demesne.5.c
+		ai_chance = { factor = 40 }
+		trigger = { has_country_flag = acolyte_decision ai = no }
+	}
+	
 	#Create a new acolyte for Player
 	option = {
 		name = black_demesne.5.a
@@ -697,12 +729,15 @@ country_event = {
 		trigger = { ai = no }
 		if = {
 			limit = { NOT = { any_owned_province = { has_state_edict = acolyte_territory_edict } } }
-			custom_tooltip = new_acolyte_no_edict_tooltip
 			add_absolutism = 5
+			add_dip_power = -25
+			add_adm_power = -25
+			add_mil_power = -25
 			every_subject_country = {
 				limit = { is_subject_of_type = acolyte_dominion }
 				add_liberty_desire = 5
 			}
+			custom_tooltip = new_acolyte_no_edict_tooltip
 		}
 		else = {
 			custom_tooltip = new_acolyte_tooltip
@@ -718,6 +753,9 @@ country_event = {
 		ai_chance = { factor = 0 }
 		trigger = { NOT = { has_country_flag = special_acolyte_creation } }
 		add_absolutism = 5
+		add_dip_power = -25
+		add_adm_power = -25
+		add_mil_power = -25
 		every_subject_country = {
 			limit = { is_subject_of_type = acolyte_dominion }
 			add_liberty_desire = 5
@@ -874,7 +912,11 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			random_province = {
-				limit = { has_province_flag = frozen_surge has_ruler_leader_from = ROOT units_in_province = 20 }
+				limit = { 
+					has_province_flag = frozen_surge 
+					has_ruler_leader_from = ROOT 
+					infantry_in_province = 20
+				}
 				save_event_target_as = province
 				clr_province_flag = frozen_surge
 				if = {
@@ -940,13 +982,19 @@ country_event = {
 	title = black_demesne.8.t
 	desc = black_demesne.8.d
 	picture = COURT_eventPicture
-	
+	goto = province
 	is_triggered_only = yes
 	trigger = {
 		always = yes
 	}
 	
 	immediate = {
+		hidden_effect = {
+			random_province = {
+				limit = { has_province_modifier = jorgurem_the_frozen }
+				save_event_target_as = province
+			}
+		}
 	}
 	
 	#Yey
@@ -954,6 +1002,16 @@ country_event = {
 		name = black_demesne.8.a
 		ai_chance = { factor = 40 }
 		add_stability_or_adm_power = yes
+		add_dip_power = 150
+		add_mil_power = 150
+		add_adm_power = 150
+		event_target:province = {
+			add_devastation = 80
+			add_base_manpower = -5
+			add_base_production = -5
+			add_base_tax = -5
+			remove_province_modifier = jorgurem_the_frozen
+		}
 		hidden_effect = { set_global_flag = jorgurem_is_dead }
 	}
 }
@@ -979,20 +1037,87 @@ country_event = {
 		ai_chance = { factor = 40 }
 		random_list = {
 			60 = {
+				modifier = {
+					factor = 1.2
+					mil = 6
+				}
+				modifier = {
+					factor = 1.2
+					mil = 5
+				}
+				modifier = {
+					factor = 1.2
+					dip = 6
+				}
+				modifier = {
+					factor = 1.2
+					dip = 5
+				}
+				modifier = {
+					factor = 1.2
+					adm = 6
+				}
+				modifier = {
+					factor = 1.2
+					adm = 5
+				}
 				random = {
 					chance = 50
 					change_mil = -1
+					random = { chance = 25 change_mil = -1 }
 				}
 				random = {
 					chance = 50
 					change_dip = -1
+					random = { chance = 25 change_dip = -1 }
 				}
 				random = {
 					chance = 50
 					change_adm = -1
+					random = { chance = 25 change_adm = -1 }
+				}
+				add_ruler_modifier = {
+					name = wounded_ruler
+					duration = 365
 				}
 			}
 			40 = {
+				modifier = {
+					factor = 1.2
+					NOT = { mil = 4 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { mil = 3 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { mil = 2 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { dip = 4 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { dip = 3 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { dip = 2 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { adm = 4 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { adm = 3 }
+				}
+				modifier = {
+					factor = 1.2
+					NOT = { adm = 2 }
+				}
 				kill_ruler = yes
 			}
 		}
@@ -1268,7 +1393,7 @@ country_event = {
 			}
 		}
 		largest_increase_of_elven_tolerance_effect = yes
-		add_prestige_excess_to_splendour_effect = { VAL=25 }
+		add_prestige_or_monarch_power = { VAL=25 }
 	}
 	
 	#Enroll them in the army
@@ -1494,7 +1619,7 @@ country_event = {
 			name = black_the_coal_country
 			duration = -1
 		}
-		add_prestige_excess_to_splendour_effect = { VAL=10 }
+		add_prestige_or_monarch_power = { VAL=10 }
 	}
 	
 	#The Slave River
@@ -1731,7 +1856,7 @@ country_event = {
 			add_base_manpower = 5
 		}
 		add_stability_or_adm_power = yes
-		add_prestige_excess_to_splendour_effect = { VAL=10 }
+		add_prestige_or_monarch_power = { VAL=10 }
 	}
 }
 
@@ -1828,6 +1953,7 @@ country_event = {
 		ai_chance = { factor = 5 }
 		add_adm_power = -150
 		dostanor_region = {
+			custom_tooltip = black_the_black_grains_tooltip
 			add_province_triggered_modifier = black_the_black_grains
 		}
 	}
@@ -2159,15 +2285,26 @@ country_event = {
 	option = {
 		name = black_demesne.31.a
 		ai_chance = { factor = 50 }
-		every_owned_province = {
-			limit = { trade_goods = damestear }
-			add_province_triggered_modifier = black_kobold_damestear_mine
-		}
-		every_subject_country = {
-			limit = { damestear = 1 }
+		custom_tooltip = freeing_the_bodies_tooltip
+		hidden_effect = {
 			every_owned_province = {
-				limit = { trade_goods = damestear }
+				limit = { 
+					trade_goods = damestear
+					continent = europe
+					NOT = { superregion = deepwoods_superregion }
+				}
 				add_province_triggered_modifier = black_kobold_damestear_mine
+			}
+			every_subject_country = {
+				limit = { damestear = 1 }
+				every_owned_province = {
+					limit = { 
+						trade_goods = damestear
+						continent = europe
+						NOT = { superregion = deepwoods_superregion }
+					}
+					add_province_triggered_modifier = black_kobold_damestear_mine
+				}
 			}
 		}
 	}
@@ -2247,7 +2384,7 @@ country_event = {
 	option = {
 		name = black_demesne.33.a
 		ai_chance = { factor = 50 }
-		add_government_reform = black_demesne_reform
+		hidden_effect = { country_event = { id = black_demesne.72 } }
 	}
 }
 
@@ -2407,28 +2544,43 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		tag = Z99
-		has_country_flag = black_scepter
-		NOT = { has_ruler_flag = black_scepter }
+		always = yes
 	}
 	
 	immediate = {
-		hidden_effect = { 
-			set_ruler_flag = black_scepter
-		}
 	}
 	
 	after = {
 	}
 
+	#Go Back
+	option = {
+		name = black_demesne.38.f
+		ai_chance = { factor = 50 }
+	}
+	
 	#Normal scepter
 	option = {
 		name = black_demesne.38.a
 		ai_chance = { factor = 50 }
+		trigger = {
+			NOT = { has_country_modifier = black_scepter_normal }
+			NOT = { has_country_modifier = black_scepter_big }
+			NOT = { has_country_modifier = black_scepter_sumptuous }
+			NOT = { has_country_modifier = black_scepter_of_scepter }
+		}
 		add_years_of_income = -0.1
 		add_ruler_modifier = {
 			name = black_scepter_normal
 			duration = -1
+		}
+		hidden_effect = {
+			remove_country_modifier = black_scepter_big
+			remove_country_modifier = black_scepter_sumptuous
+			remove_country_modifier = black_scepter_of_scepter
+		}
+		hidden_effect = { 
+			set_ruler_flag = black_scepter
 		}
 	}
 	
@@ -2436,10 +2588,24 @@ country_event = {
 	option = {
 		name = black_demesne.38.b
 		ai_chance = { factor = 50 }
+		trigger = {
+			NOT = { has_country_modifier = black_scepter_big }
+			NOT = { has_country_modifier = black_scepter_sumptuous }
+			NOT = { has_country_modifier = black_scepter_of_scepter }
+		}
 		add_years_of_income = -0.4
 		add_ruler_modifier = {
 			name = black_scepter_big
 			duration = -1
+		}
+		hidden_effect = {
+			remove_country_modifier = black_scepter_normal
+			remove_country_modifier = black_scepter_big
+			remove_country_modifier = black_scepter_sumptuous
+			remove_country_modifier = black_scepter_of_scepter
+		}
+		hidden_effect = { 
+			set_ruler_flag = black_scepter
 		}
 	}
 	
@@ -2447,10 +2613,48 @@ country_event = {
 	option = {
 		name = black_demesne.38.c
 		ai_chance = { factor = 50 }
+		trigger = {
+			NOT = { has_country_modifier = black_scepter_sumptuous }
+			NOT = { has_country_modifier = black_scepter_of_scepter }
+		}
 		add_years_of_income = -1
 		add_ruler_modifier = {
 			name = black_scepter_sumptuous
 			duration = -1
+		}
+		hidden_effect = {
+			remove_country_modifier = black_scepter_normal
+			remove_country_modifier = black_scepter_big
+			remove_country_modifier = black_scepter_sumptuous
+			remove_country_modifier = black_scepter_of_scepter
+		}
+		hidden_effect = { 
+			set_ruler_flag = black_scepter
+		}
+	}
+	
+	#Scepter of  Scepters
+	option = {
+		name = black_demesne.38.e
+		ai_chance = { factor = 50 }
+		trigger = { 
+			NOT = { has_country_modifier = black_scepter_of_scepter }
+			hidden_trigger = { has_country_flag = bd_1_4 }
+		}
+		highlight = yes
+		add_years_of_income = -1.5
+		add_ruler_modifier = {
+			name = black_scepter_of_scepter
+			duration = -1
+		}
+		hidden_effect = {
+			remove_country_modifier = black_scepter_normal
+			remove_country_modifier = black_scepter_big
+			remove_country_modifier = black_scepter_sumptuous
+			remove_country_modifier = black_scepter_of_scepter
+		}
+		hidden_effect = { 
+			set_ruler_flag = black_scepter
 		}
 	}
 }
@@ -2744,7 +2948,7 @@ country_event = {
 	option = {
 		name = black_demesne.44.a
 		ai_chance = { factor = 50 }
-		add_prestige_excess_to_splendour_effect = { VAL=10 }
+		add_prestige_or_monarch_power = { VAL=10 }
 	}
 }
 
@@ -2978,12 +3182,13 @@ country_event = {
 	option = {
 		name = black_demesne.52.a
 		ai_chance = { factor = 50 }
-		custom_tooltip = higher_magic_study_chances
 		add_country_modifier = {
 			name = black_collegia
 			duration = -1
 		}
-		add_prestige_excess_to_splendour_effect = { VAL=15 }
+		custom_tooltip = add_magic_study_modifier_20_tt
+		update_magic_study_experience_modifier = { value=20 }
+		add_prestige_or_monarch_power = { VAL=15 }
 	}
 }
 
@@ -3010,12 +3215,13 @@ country_event = {
 	option = {
 		name = black_demesne.53.a
 		ai_chance = { factor = 50 }
-		custom_tooltip = higher_magic_study_chances
 		add_country_modifier = {
 			name = black_deepwoods_experimentations
 			duration = -1
 		}
-		add_prestige_excess_to_splendour_effect = { VAL=15 }
+		custom_tooltip = add_magic_study_modifier_20_tt
+		update_magic_study_experience_modifier = { value=20 }
+		add_prestige_or_monarch_power = { VAL=15 }
 	}
 }
 
@@ -3042,11 +3248,13 @@ country_event = {
 	option = {
 		name = black_demesne.54.a
 		ai_chance = { factor = 50 }
-		add_prestige_excess_to_splendour_effect = { VAL=15 }
+		add_prestige_or_monarch_power = { VAL=15 }
 	}
 }
-
-#The Blackpurgis
+################################
+####  The Blackpurgis
+################################
+#Start
 country_event = {
 	id = black_demesne.55
 	title = black_demesne.55.t
@@ -3180,7 +3388,7 @@ country_event = {
 		name = black_demesne.57.a
 		ai_chance = { factor = 0 }
 		if = {
-			limit = { is_variable_equal = { drawBlack = 0 } is_variable_equal = { loseBlack = 0 } }
+			limit = { is_variable_equal = { which = drawBlack which = 0 } is_variable_equal = { which = loseBlack which = 0 } }
 			add_ruler_modifier = {
 				name = blackpurgis_magical_supremacy
 				duration = 3650
@@ -3350,12 +3558,12 @@ country_event = {
 	option = {
 		name = black_demesne.61.a
 		ai_chance = { factor = 0 }
-		add_prestige_excess_to_splendour_effect = { VAL=20 }
 		hidden_effect = { set_country_flag = bd_5_5 }
 		874 = { 
 			hidden_effect = { set_province_flag = well_of_majesty }
 			add_great_project = { type = well_of_majesty instant = yes }
 		}
+		add_prestige_or_monarch_power = { VAL=20 }
 		swap_non_generic_missions = yes
 	}
 }
@@ -3528,10 +3736,12 @@ country_event = {
 				}
 			}
 		}
-		every_owned_province = {
-			random = {
-				chance = 10
-				change_religion = black_doctrine
+		hidden_effect = {
+			every_owned_province = {
+				random = {
+					chance = 10
+					change_religion = black_doctrine
+				}
 			}
 		}
 		add_country_modifier = {
@@ -3550,10 +3760,12 @@ country_event = {
 					}
 				}
 			}
-			every_owned_province = {
-				random = {
-					chance = 10
-					change_religion = black_doctrine
+			hidden_effect = {
+				every_owned_province = {
+					random = {
+						chance = 10
+						change_religion = black_doctrine
+					}
 				}
 			}
 			add_country_modifier = {
@@ -3564,6 +3776,242 @@ country_event = {
 	}
 }
 
+#Architectural Renaissance
+country_event = {
+	id = black_demesne.66
+	title = black_demesne.66.t
+	desc = black_demesne.66.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+
+	option = {
+		name = black_demesne.66.a
+		ai_chance = { factor = 0 }
+		add_country_modifier = {
+			name = black_renaissance
+			duration = 7300
+		}
+		every_subject_country = {
+			limit = { is_subject_of_type = acolyte_dominion }
+			add_country_modifier = {
+				name = black_renaissance
+				duration = 7300
+			}
+		}
+	}
+}
+
+#Fate of the Ancients
+country_event = {
+	id = black_demesne.67
+	title = black_demesne.67.t
+	desc = black_demesne.67.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	#Exploit their ancient knowledge
+	option = {
+		name = black_demesne.67.a
+		ai_chance = { factor = 0 }
+		add_adm_power = 200
+		add_mil_power = 200
+		add_dip_power = 200
+		add_prestige_or_monarch_power = { VAL=10 }
+		largest_decrease_of_elven_tolerance_effect = yes
+		largest_decrease_of_dwarven_tolerance_effect = yes
+		hidden_effect = {
+			largest_decrease_of_elven_tolerance_effect = yes
+			largest_decrease_of_dwarven_tolerance_effect = yes
+		}
+	}
+	
+	#Preserve them
+	option = {
+		name = black_demesne.67.b
+		ai_chance = { factor = 0 }
+		add_country_modifier = {
+			name = black_preserved_ancients
+			duration = -1
+		}
+		largest_increase_of_elven_tolerance_effect = yes
+		largest_increase_of_dwarven_tolerance_effect = yes
+	}
+}
+
+#Solaris
+country_event = {
+	id = black_demesne.68
+	title = black_demesne.68.t
+	desc = black_demesne.68.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+	major = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	option = {
+		name = black_demesne.68.a
+		ai_chance = { factor = 0 }
+		add_prestige_excess_to_splendour_effect = { VAL=10 }
+		every_country = {
+			limit = { capital_scope = { superregion = bulwar_superregion } }
+			add_country_modifier = {
+				name = black_solaris
+				duration = 9125
+			}
+		}
+		every_country = {
+			limit = { 
+				capital_scope = { superregion = bulwar_superregion }
+				religion = bulwari_sun_cult
+			}
+			add_stability = -1
+		}
+	}
+}
+
+#Brotherhood
+country_event = {
+	id = black_demesne.69
+	title = black_demesne.69.t
+	desc = black_demesne.69.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+	major = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	option = {
+		name = black_demesne.68.a
+		ai_chance = { factor = 0 }
+		add_country_modifier = {
+			name = black_brotherhood
+			duration = -1
+		}
+	}
+}
+
+#Power
+country_event = {
+	id = black_demesne.70
+	title = black_demesne.70.t
+	desc = black_demesne.70.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+	major = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	option = {
+		name = black_demesne.70.a
+		ai_chance = { factor = 0 }
+		add_country_modifier = {
+			name = black_power
+			duration = -1
+		}
+		custom_tooltip = add_magic_study_modifier_50_tt
+		update_magic_study_experience_modifier = { value=50 }
+	}
+}
+
+#Order
+country_event = {
+	id = black_demesne.71
+	title = black_demesne.71.t
+	desc = black_demesne.71.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+	major = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	option = {
+		name = black_demesne.71.a
+		ai_chance = { factor = 0 }
+		add_country_modifier = {
+			name = black_order
+			duration = -1
+		}
+	}
+}
+
+#The Ascension part 2
+country_event = {
+	id = black_demesne.72
+	title = black_demesne.72.t
+	desc = black_demesne.72.d
+	picture = COURT_eventPicture
+	is_triggered_only = yes
+
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+
+	#Awesome
+	option = {
+		name = black_demesne.72.a
+		ai_chance = { factor = 50 }
+		add_government_reform = black_demesne_reform
+	}
+}
 
 ##################
 #DEBUG EVENT
@@ -3586,6 +4034,9 @@ country_event = {
 	option = {		
 		name = "black_demesne.100.a"
 		ai_chance = { factor = 40 }
+		set_variable = { numOfProvince = 0 }
+		every_owned_province = { limit = { is_city = yes } ROOT = { change_variable = { numOfProvince = 1 } } }
+		every_subject_country = { limit = { is_subject_of_type = acolyte_dominion } every_owned_province = { limit = { is_city = yes } ROOT = { change_variable = { numOfProvince = 1 } } } }
 		REB = { set_variable = { aInfluence = 0 } }
 		REB = { set_variable = { totalInfluence = 0 } }
 		every_subject_country = {
@@ -3847,5 +4298,41 @@ country_event = {
 		ai_chance = { factor = 20 }
 		set_estate_privilege = estate_acolytes_land_share_20
 		set_estate_privilege = estate_acolytes_the_black_host
+	}
+}
+
+#Periodic Influence Gain
+country_event = {
+	id = black_demesne.103
+	title = black_demesne.103.t
+	desc = black_demesne.103.d
+	picture = COURT_eventPicture
+	
+	hidden = yes
+	
+	trigger = {
+		tag = Z99
+		NOT = { has_country_modifier = black_periodic_gain_timer }
+	}
+	
+	immediate = {
+		add_country_modifier = {
+			name = black_periodic_gain_timer
+			duration = 365
+			hidden = yes
+		}
+	}
+
+	#Declare War
+	option = {		
+		name = "black_demesne.103.b"
+		ai_chance = { factor = 20 }
+		every_subject_country = {
+			limit = { is_subject_of_type = acolyte_dominion }
+			every_owned_province = {
+				limit = { has_province_flag = black_province }
+				PREV = { change_variable = { aInfluence = 1 } }
+			}
+		}
 	}
 }
