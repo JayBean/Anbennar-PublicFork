@@ -49,8 +49,29 @@ country_event = {
     hidden = yes
     is_triggered_only = yes
     
-
     trigger = {
+        any_owned_province = {
+            OR = { 
+                has_province_modifier = aw_ghouls_1
+                has_province_modifier = aw_ghouls_2
+                #has_province_modifier = aw_ghouls_3
+            }
+        }
+    }
+
+    mean_time_to_happen = {
+        days = 1
+        modifier = {
+            factor = 2
+            num_of_owned_provinces_with = {
+                value = 3
+                OR = { 
+                    has_province_modifier = aw_ghouls_1
+                    has_province_modifier = aw_ghouls_2
+                    #has_province_modifier = aw_ghouls_3
+                }
+            }
+        }
     }
 
     immediate = {
@@ -61,59 +82,22 @@ country_event = {
                     has_province_modifier = aw_ghouls_2
                 }
             }
-            save_event_target_as = aw_target
+            save_event_target_as = aw_ghouls_target
         }
     }
     
 	
 	option = {
-        event_target:aw_target = {
+        event_target:aw_ghouls_target = {
             random_list = {
-
-                #21 - adventurer removal
-                7 = {
-                    #Base modifiers
-
-                    #more likely if generous quest rewards/adverturer nation
-                    modifier = {
-                        factor = 2
-                        OR = {
-                            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
-                            owner = { has_adventurer_reform = yes }
-                        }
-                    }
-
-                    #more likely if loyal
-                    modifier = {
-                        factor = 2
-                        owner = {
-                            estate_loyalty = {
-                                estate = estate_adventurers
-                                loyalty = 60
-                            }
-                        }
-                    }
-
-                    #more likely if high influence
-                    modifier = {
-                        factor = 2
-                        owner = {
-                            estate_influence = {
-                                estate = estate_adventurers
-                                influence = 60
-                            }
-                        }
-                    }
-                    province_event = { id = aw_ghouls.21 }
-                }
-
+                
                 #22 - natural tier down
                 10 = {
                     province_event = { id = aw_ghouls.22 } 
                 }
 
                 #23 - adventurer tier down
-                7 = {
+                20 = {
                     #Base modifiers
 
                     #more likely if generous quest rewards/adverturer nation
@@ -144,6 +128,23 @@ country_event = {
                                 estate = estate_adventurers
                                 influence = 60
                             }
+                        }
+                    }
+                    #small influence boost at 30
+                    modifier = {
+                        factor = 1.5
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 30
+                            }
+                        }
+                    }
+                    #adventurer type sponsorships
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            has_estate_privilege = estate_adventurers_sponsor_holy_paladins
                         }
                     }
                     province_event = { id = aw_ghouls.23 }
@@ -153,6 +154,11 @@ country_event = {
                 #25 - monstrous natural tier down.
                 50 = {
                     #Base modifiers
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        NOT = { owner = { has_country_modifier = monstrous_nation } }
+                    }
                     province_event = { id = aw_ghouls.25 }   
                 }
 
@@ -186,7 +192,7 @@ country_event = {
                             NOT = { has_province_modifier = aw_ghouls_corpsefields }
                         }
                     }
-                    country_event = { id = aw_ghouls.203 }   
+                    owner = { country_event = { id = aw_ghouls.203 } }   
                 }
 
                 #204 - Ghastly Stench - ghast pops up
@@ -324,16 +330,18 @@ province_event = {
                 has_province_modifier = aw_ghouls_1
             }
             remove_province_modifier = aw_ghouls_1
+            owner = { add_prestige_excess_to_splendour_effect = { VAL=3 } }
         }
 
         owner = {
             add_estate_influence_modifier = {
                 estate = estate_adventurers
-                desc = successful_adventure
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
                 duration = 3650
                 influence = 5
             }
         }
+
     }
 }
 
@@ -376,6 +384,7 @@ province_event = {
                 has_province_modifier = aw_ghouls_1
             }
             remove_province_modifier = aw_ghouls_1
+            owner = { add_prestige_excess_to_splendour_effect = { VAL=3 } }
         }
     }
 }
@@ -436,7 +445,7 @@ province_event = {
 
     trigger = {
         is_city = yes
-        devastation = 5
+        devastation = 20
 
         NOT = { has_province_modifier = aw_ghouls_1 }
         NOT = { has_province_modifier = aw_ghouls_2 }
@@ -458,6 +467,15 @@ province_event = {
         }
 
         continent = europe
+    }
+
+    mean_time_to_happen = {
+        days = 1
+        # Special privelege to stop this
+        modifier = {
+            factor = 0.75
+            owner = { has_estate_privilege = estate_church_protected_burials }
+        }
     }
     
     #level up ghouls or make new ones
@@ -506,7 +524,7 @@ province_event = {
 
     trigger = {
         is_city = yes
-        devastation = 5
+        devastation = 20
 
         NOT = { has_province_modifier = aw_ghouls_1 }
         NOT = { has_province_modifier = aw_ghouls_2 }
@@ -528,6 +546,15 @@ province_event = {
         }
 
         continent = europe
+    }
+
+    mean_time_to_happen = {
+        days = 1
+        # Special privelege to stop this
+        modifier = {
+            factor = 0.75
+            owner = { has_estate_privilege = estate_church_protected_burials }
+        }
     }
     
     #level up ghouls or make new ones
@@ -594,6 +621,8 @@ province_event = {
 
         #Religion that dont use graves
         NOT = { religion_has_burials = yes }
+
+        NOT = { has_estate_privilege = estate_church_protected_burials }    #shouldnt fire if you have the privilege
     }
     
     option = {
