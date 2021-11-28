@@ -2301,8 +2301,8 @@ NReligion = {
 
 	SACRIFICE_LIBERTY_DESIRE = 25,							-- LD added from sacrifice (ruler)
 	SACRIFICE_LIBERTY_DESIRE_HEIR = 20,						-- LD added from sacrifice (heir)
-	AUTHORITY_FROM_DEVELOPMENT = 0.02,							-- Multiplied by development (affected by autonomy)
-	AUTHORITY_FROM_AUTONOMY = 0.2,							-- Authority loss from granting autonomy
+	AUTHORITY_FROM_DEVELOPMENT = -0.01,							-- Multiplied by development (affected by autonomy)
+	AUTHORITY_FROM_AUTONOMY = 0.0,							-- Authority loss from granting autonomy
 
 	RELIGIOUS_LEAGUE_COOLDOWN = 5,								-- Minimum years between joining/leaving religious league
 	RELIGIOUS_LEAGUE_WAR_BONUS_DURATION = 100,					-- How many years the 'Joined League War' bonus lasts
