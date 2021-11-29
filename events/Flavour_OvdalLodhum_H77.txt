@@ -65,9 +65,9 @@ country_event = {
 	option = { 
 		name = flavor_lodhum.3.a
 		2974 = {
-			discover_country = ROOT
-			change_native_size = -100
+			custom_tooltip = lodhum_remove_natives_tooltip
 			hidden_effect = {
+				change_native_size = -100
 				change_culture = garnet_dwarf
 				remove_province_modifier = goblin_majority_coexisting
 				add_permanent_province_modifier = { name = dwarven_majority_coexisting duration = -1 }
@@ -75,8 +75,9 @@ country_event = {
 		}
 		2977 = { 
 			discover_country = ROOT
-			change_native_size = -100
+			custom_tooltip = lodhum_remove_natives_tooltip
 			hidden_effect = {
+				change_native_size = -100
 				change_culture = garnet_dwarf
 				remove_province_modifier = orcish_majority_coexisting
 				add_permanent_province_modifier = { name = dwarven_majority_coexisting duration = -1 }
@@ -154,7 +155,7 @@ country_event = {
 			set_province_flag = lodhum_release_this
 		}
 		#tell player you won't keep these
-		custom_tooltip = flavor_lodhum_no_keep_lands_tooltip
+		custom_tooltip = lodhum_no_keep_lands_tooltip
 		ai_chance = { factor = 5 }
 	}
 
@@ -210,7 +211,7 @@ country_event = {
 				add_core = ROOT
 				set_province_flag = lodhum_release_this
 			}
-			custom_tooltip = flavor_lodhum_no_keep_lands_tooltip
+			custom_tooltip = lodhum_no_keep_lands_tooltip
 		}
 
 		set_country_flag = lodhum_bulwar_start
@@ -260,10 +261,146 @@ country_event = {
 		add_power_projection = { type = mission_rewards_power_projection amount = 20 }
 		add_country_modifier = { name = lodhum_tolerance_modifier duration = -1 }
 		custom_tooltip = flavor_lodhum.7.tooltip
+		custom_tooltip = flavor_lodhum.7.tooltip2
 		set_country_flag = lodhum_tourism_enabled
 		set_country_flag = lodhum_part3_start
+
+		#tungr
+		if = {
+			limit = { exists = F23 }
+			F23 = {
+				#stop them from immediately dying
+				if = {
+					limit = {
+						is_at_war = yes
+						ai = yes
+					}
+					every_known_country = {
+						limit = {
+							war_with = I33
+							ai = yes
+						}
+						white_peace = I33
+					}
+				}
+			}
+		}
+		else = {
+			tungr_mountains_area = { 
+				add_core = ROOT
+				set_province_flag = lodhum_release_this 
+			}
+			custom_tooltip = lodhum_no_keep_lands_tooltip
+		}
+
+
 		swap_non_generic_missions = yes
 		ai_chance = { factor = 5 }
+	}
+}
+
+#sun elf event about war or peace
+country_event = {
+	id = flavor_lodhum.8
+	title = flavor_lodhum.8.t
+	desc = flavor_lodhum.8.d
+	picture = SWORD_OF_OSMAN_eventPicture
+	
+	is_triggered_only = yes
+	trigger = { always = yes }
+
+	#yes we should be friends
+	option = {
+		name = flavor_lodhum.8.a
+		add_dip_power = 100
+		add_opinion = { who = F26 modifier = lodhum_acceptance_opinion }
+		add_opinion = { who = F27 modifier = lodhum_acceptance_opinion }
+		reverse_add_opinion = { who = H77 modifier = opinion_grateful }
+		set_country_flag = accepted_lodhum_friendship
+		ai_chance = { 
+			factor = 5 
+		}
+	}
+
+	#no, war!
+	option = {
+		name = flavor_lodhum.8.b
+		custom_tooltip = flavor_lodhum.8.tooltip
+		if = {
+			limit = { event_target:global_lodhum_elf_enemy_1 = { tag = ROOT } }
+			custom_tooltip = flavor_lodhum.8.tooltip2
+		}
+		else = { custom_tooltip = flavor_lodhum.8.tooltip2 }
+		set_country_flag = denied_lodhum_friendship
+		ai_chance = { 
+			factor = 5 
+		}
+	}
+}
+#lodhum event for elf response
+country_event = {
+	id = flavor_lodhum.9
+	title = flavor_lodhum.9.t
+	#either said no
+	desc = {
+		trigger = { 
+			OR = {
+				event_target:global_lodhum_elf_enemy_1 = { has_country_flag = denied_lodhum_friendship }
+				event_target:global_lodhum_elf_enemy_2 = { has_country_flag = denied_lodhum_friendship }
+			}
+		}
+		desc = flavor_lodhum.9.d
+	}
+	#both said yes
+	desc = {
+		trigger = { 
+			event_target:global_lodhum_elf_enemy_1 = { has_country_flag = accepted_lodhum_friendship }
+			event_target:global_lodhum_elf_enemy_2 = { has_country_flag = accepted_lodhum_friendship }
+		}
+		desc = flavor_lodhum.9.d2
+	}
+	picture = SWORD_OF_OSMAN_eventPicture
+	
+	is_triggered_only = yes
+	trigger = { always = yes }
+
+	#we fight
+	option = {
+		trigger = { 
+			OR = {
+				event_target:global_lodhum_elf_enemy_1 = { has_country_flag = denied_lodhum_friendship }
+				event_target:global_lodhum_elf_enemy_2 = { has_country_flag = denied_lodhum_friendship }
+			}
+		}
+		name = flavor_lodhum.9.a
+		if = {
+			limit = { event_target:global_lodhum_elf_enemy_1 = { has_country_flag = denied_lodhum_friendship } }
+			F26 = { declare_war_with_cb = { casus_belli = cb_lodhum_elf_war who = event_target:global_lodhum_elf_enemy_1 } }
+			custom_tooltip = flavor_lodhum.9.tooltip
+		}
+		if = {
+			limit = { event_target:global_lodhum_elf_enemy_2 = { has_country_flag = denied_lodhum_friendship } }
+			F26 = { declare_war_with_cb = { casus_belli = cb_lodhum_elf_war who = event_target:global_lodhum_elf_enemy_2 } }
+			custom_tooltip = flavor_lodhum.9.tooltip
+		}
+		set_country_flag = lodhum_part3_bulwar_war
+		ai_chance = { factor = 5 }
+	}
+
+	#yay love
+	option = {
+		trigger = { 
+			event_target:global_lodhum_elf_enemy_1 = { has_country_flag = accepted_lodhum_friendship }
+			event_target:global_lodhum_elf_enemy_2 = { has_country_flag = accepted_lodhum_friendship }
+		}
+		name = flavor_lodhum.9.b
+		set_country_flag = lodhum_part3_bulwar_peace
+		ai_chance = { factor = 5 }
+	}
+
+	after = {
+		set_country_flag = lodhum_part3_bulwar
+		swap_non_generic_missions = yes
 	}
 }
 
@@ -285,83 +422,154 @@ country_event = {
 	}
 	option = { 
 		name = flavor_lodhum.hidden
-		##later ones have higher base chance to somewhat help reduce repetitiveness once you get to them
 		random_list = {
 			#nothing
-			20 = {}
-			#wood elves
-			20 = { 
+			50 = {}
+			#get random event
+			50 = {
+				if = {
+					limit = { NOT = { check_variable = { which = lodhum_tourism_counter value = 45 } } }
+					change_variable = { which = lodhum_tourism_counter value = 1 }
+				}
+				#upgrade modifier, intervals of 7, mission requires 10
+				if = {
+					limit = { 
+						mission_completed = lodhum_tourism_benefits 
+						NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism6 } }
+					}
+					#max
+					if = {
+						limit = { 
+							check_variable = { which = lodhum_tourism_counter value = 45 } 
+							NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism6 } }
+						}
+						2942 = {
+							remove_province_modifier = lodhum_shaz_tourism5
+							add_permanent_province_modifier = { name = lodhum_shaz_tourism6 duration = -1 }
+						}
+					}
+					else_if = {
+						limit = { 
+							check_variable = { which = lodhum_tourism_counter value = 38 } 
+							NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism5 } }
+						}
+						2942 = {
+							remove_province_modifier = lodhum_shaz_tourism4
+							add_permanent_province_modifier = { name = lodhum_shaz_tourism5 duration = -1 }
+						}
+					}
+					else_if = {
+						limit = { 
+							check_variable = { which = lodhum_tourism_counter value = 31 } 
+							NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism4 } }
+						}
+						2942 = {
+							remove_province_modifier = lodhum_shaz_tourism3
+							add_permanent_province_modifier = { name = lodhum_shaz_tourism4 duration = -1 }
+						}
+					}
+					else_if = {
+						limit = { 
+							check_variable = { which = lodhum_tourism_counter value = 24 } 
+							NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism3 } }
+						}
+						2942 = {
+							remove_province_modifier = lodhum_shaz_tourism2
+							add_permanent_province_modifier = { name = lodhum_shaz_tourism3 duration = -1 }
+						}
+					}
+					else_if = {
+						limit = { 
+							check_variable = { which = lodhum_tourism_counter value = 17 } 
+							NOT = { 2942 = { has_province_modifier = lodhum_shaz_tourism2 } }
+						}
+						2942 = {
+							remove_province_modifier = lodhum_shaz_tourism1
+							add_permanent_province_modifier = { name = lodhum_shaz_tourism2 duration = -1 }
+						}
+					}
+				}
+
+				##later ones have higher base chance to somewhat help reduce repetitiveness once you get to them
 				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			
-			#humans
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_human_enabled }
-				modifier = {
-					NOT = { has_country_flag = lodhum_tourism_human_boost }
-					factor = 0.5
-				}
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#harpies
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_harpy_enabled }
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#surface dwarves
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_dwarf_enabled }
-				modifier = {
-					NOT = { has_country_flag = lodhum_tourism_dwarf_boost }
-					factor = 0.5
-				}
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#sun elves
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_sunelves_enabled }
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#halflings
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_halfling_enabled }
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#gnomes
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_gnome_enabled }
-				random_list = {
-					50 = {}
-					50 = {}
-				}
-			}
-			#moon elves
-			20 = {
-				trigger = { has_country_flag = lodhum_tourism_moonelf_enabled }
-				random_list = {
-					50 = {}
-					50 = {}
+					#wood elves
+					20 = {
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					
+					#humans
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_human_enabled }
+						modifier = {
+							NOT = { has_country_flag = lodhum_tourism_human_boost }
+							factor = 0.5
+						}
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#harpies
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_harpy_enabled }
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#surface dwarves
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_dwarf_enabled }
+						modifier = {
+							NOT = { has_country_flag = lodhum_tourism_dwarf_boost }
+							factor = 0.5
+						}
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#sun elves
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_sunelves_enabled }
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#halflings
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_halfling_enabled }
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#gnomes
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_gnome_enabled }
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
+					#moon elves
+					20 = {
+						trigger = { has_country_flag = lodhum_tourism_moonelf_enabled }
+						random_list = {
+							50 = {}
+							50 = {}
+						}
+					}
 				}
 			}
 		}
+		
+		
+		
 		ai_chance = { factor = 5 }
 	}
 }
@@ -385,6 +593,25 @@ country_event = {
 	}
 	option = {
 		add_country_modifier = { name = lodhum_orcrend duration = -1 }
+		ai_chance = { factor = 5 }
+	}
+}
+#build roads
+country_event = {
+	id = flavor_lodhum.151
+	title = flavor_lodhum.hidden
+	desc = flavor_lodhum.hidden
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	trigger = { always = yes }
+	
+	option = {
+		534 = { add_province_modifier = { name = lodhum_road duration = 3650 } }
+		531 = { add_province_modifier = { name = lodhum_road duration = 3650 } }
+		530 = { add_province_modifier = { name = lodhum_road duration = 3650 } }
+		528 = { add_province_modifier = { name = lodhum_road duration = 3650 } }
 		ai_chance = { factor = 5 }
 	}
 }
