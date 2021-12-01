@@ -1,4 +1,4 @@
-name="ScrobFork2"
+name="Anbennar-PublicFork"
 path="mod/Anbennar-PublicFork"
 tags={"Alternative History""Total Conversion""Fantasy"}
 
