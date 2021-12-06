@@ -1,0 +1,787 @@
+namespace = aw_satyrs
+
+#The Adventurers Wanted uses a strict ID system to make the system easier to author content for
+#The IDs below 100 are core utility systems that are usually straight copies or modifications of how the AW system works, such as monsters being able to migrate and be defeated by adventurers.
+#The IDs above 100 are more unique situations for the specific encounter, but they should correlate with the numbers from above: if ID 10s deal with migration, then ID 110s should be the unique events to do with migration - for example bribing a Thieves Guild to GTFO your country
+#Crazy and more uniques ones that dont conform to the utilities should be ID 200
+
+#USE THE anb_aw_satyrs TO SEE A SIMPLE COPY-PASTABLE FORMAT IN ADDITION TO STUFF LIKE MIGRATION STYLES ETC
+#Search for CHANGEABLE for the criteria you should change in that file and this one
+
+#################################################################
+# Welcome to the master file for the Adventurers Wanted System. In the comments below you'll see copy-pastable events for you to choose, different migration styles as well as prebuilt events to handle stuff like spawning rebellions
+#################################################################
+
+#0 - spawn in province
+province_event = {
+    id = aw_satyrs.0
+    title = aw_satyrs.0.t
+    desc = aw_satyrs.0.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    is_triggered_only = yes
+    #hidden = yes
+    
+    #yup thats happening
+    option = {
+        name = aw_basic.0.a
+        ai_chance = { 
+            factor = 1 
+        }
+        add_permanent_province_modifier  = {
+            name = aw_satyrs_1
+            duration = -1  
+        }
+
+        custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+    }
+}
+
+
+#1 - event manager, called by on_actions. This happens ONCE per pulse. If you have 7 of these, it still only fires the manager once
+country_event = {
+    id = aw_satyrs.1
+    title = aw_satyrs.1.t
+    desc = aw_satyrs.1.d
+    picture = COMET_SIGHTED_eventPicture
+    
+    hidden = yes
+    is_triggered_only = yes
+    
+    trigger = {
+        any_owned_province = {
+            OR = { 
+                has_province_modifier = aw_satyrs_1
+                has_province_modifier = aw_satyrs_2
+                has_province_modifier = aw_satyrs_3
+            }
+        }
+    }
+
+    mean_time_to_happen = {
+        days = 1
+        modifier = {
+            factor = 2
+            num_of_owned_provinces_with = {
+                value = 3
+                OR = { 
+                    has_province_modifier = aw_satyrs_1
+                    has_province_modifier = aw_satyrs_2
+                    has_province_modifier = aw_satyrs_3
+                }
+            }
+        }
+    }
+
+    immediate = {
+        random_owned_province = {
+            limit = {
+                OR = { 
+                    has_province_modifier = aw_satyrs_1
+                    has_province_modifier = aw_satyrs_2
+                    has_province_modifier = aw_satyrs_3
+                }
+            }
+            save_event_target_as = aw_satyrs_target
+        }
+    }
+    
+	
+	option = {
+        event_target:aw_satyrs_target = {
+            random_list = {
+
+
+                #20 - natural removal
+                7 = {
+                    province_event = { id = aw_satyrs.20 }    #Natural removal
+                }
+
+                #21 - adventurer removal
+                15 = {
+                    #Base modifiers
+
+                    #more likely if generous quest rewards/adverturer nation
+                    modifier = {
+                        factor = 2
+                        OR = {
+                            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+                            owner = { has_adventurer_reform = yes }
+                        }
+                    }
+
+                    #more likely if loyal
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_loyalty = {
+                                estate = estate_adventurers
+                                loyalty = 60
+                            }
+                        }
+                    }
+
+                    #more likely if high influence
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 60
+                            }
+                        }
+                    }
+                    #small influence boost at 30
+                    modifier = {
+                        factor = 1.5
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 30
+                            }
+                        }
+                    }
+                    #adventurer type sponsorships
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            has_estate_privilege = estate_adventurers_sponsor_rogues
+                        }
+                    }
+                    province_event = { id = aw_satyrs.21 }
+                }
+
+
+
+                #24 - monstrous nation removal
+                50 = {
+                    modifier = {
+                        #only want this to ever be part of the equation if you are monstrous
+                        factor = 0
+                        NOT = { owner = { has_country_modifier = monstrous_nation } }
+                    }
+                    #Base modifiers
+                    province_event = { id = aw_satyrs.24 }
+                }
+
+                #120 - Adventurer Peaceful Resolution
+                10 = {
+                    #more likely if generous quest rewards/adverturer nation
+                    modifier = {
+                        factor = 2
+                        OR = {
+                            owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+                            owner = { has_adventurer_reform = yes }
+                        }
+                    }
+
+                    #more likely if loyal
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_loyalty = {
+                                estate = estate_adventurers
+                                loyalty = 60
+                            }
+                        }
+                    }
+
+                    #more likely if high influence
+                    modifier = {
+                        factor = 2
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 60
+                            }
+                        }
+                    }
+                    #small influence boost at 30
+                    modifier = {
+                        factor = 1.5
+                        owner = {
+                            estate_influence = {
+                                estate = estate_adventurers
+                                influence = 30
+                            }
+                        }
+                    }
+                    #adventurer type sponsorships
+                    modifier = {
+                        factor = 3
+                        owner = {
+                            has_estate_privilege = estate_adventurers_sponsor_do_gooders
+                        }
+                    }
+                    province_event = { id = aw_satyrs.120 }
+                }
+
+                #121 - All Party'd Out so they disappear
+                10 = {
+                    province_event = { id = aw_satyrs.121 }
+                }
+
+                #122 - Beaten to Death by Angry Lovers
+                10 = {
+                    province_event = { id = aw_satyrs.122 }
+                }
+
+                #200 - Indecent Acts
+                10 = {
+                    province_event = { id = aw_satyrs.200 }
+                }
+
+                #201 - Indecent Statue. 8==D
+                10 = {
+                    province_event = { id = aw_satyrs.201 }
+                }
+
+                #202 - Satyr Hosts Hedonistic Party, people mad at each other
+                10 = {
+                    province_event = { id = aw_satyrs.202 }
+                }
+
+                #203 - Satyr Hosts Great Party, but Hangover
+                10 = {
+                    province_event = { id = aw_satyrs.203 }
+                }
+
+                #204 - Satyr consumates marriage instead of noble, pisses of estate
+                10 = {
+                    province_event = { id = aw_satyrs.204 }
+                }
+
+                #205 - Satyr musical show, happiness
+                10 = {
+                    province_event = { id = aw_satyrs.205 }
+                }
+
+            }
+        }
+	}
+    
+}
+
+
+#2 - notification of advanturers wanted spawning
+
+############## 10s - Migration and Propagation ###################
+
+#10 - Base migration
+
+
+#11 - migration target notification if it goes to other country
+
+
+#13 - Base propagation
+
+
+#14 - propagation target notification
+
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+
+
+############## 20s - Removal/Tier Down ###################
+
+#20 - natural removal
+province_event = {
+    id = aw_satyrs.20
+    title = aw_satyrs.20.t
+    desc = aw_satyrs.20.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+    }
+    
+    option = {
+ 
+        name = aw_satyrs.20.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+    }
+}
+
+#21 - adventurer removal
+province_event = {
+    id = aw_satyrs.21
+    title = aw_satyrs.21.t
+    desc = aw_satyrs.21.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+    }
+    
+    option = {
+        # oh, thank goodness
+        name = aw_satyrs.21.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        owner = { add_prestige_excess_to_splendour_effect = { VAL=3} }
+
+    }
+}
+
+#22 - natural tier down
+
+
+#23 - adventurer tier down
+
+
+#24 - monstrous nation removal
+province_event = {
+    id = aw_satyrs.24
+    title = aw_satyrs.24.t
+    desc = aw_satyrs.24.d
+    picture = COMET_SIGHTED_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { has_country_modifier = monstrous_nation }
+
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+    }
+    
+    option = {
+ 
+        name = aw_satyrs.24.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+        owner = { add_prestige_excess_to_splendour_effect = { VAL=3} }
+
+    }
+}
+
+#25 - monstrous natural tier down. keep if you want, or just rely on removal
+
+
+############## 30s - Tier Up ###################
+
+#30 - natural tier up
+
+
+############## 40s - Other Utility ###################
+
+#40 - convert to pop if tolerating
+
+#41 - convert to pop, monstrous subjugation
+
+
+############## 110s - Special Migration & Propagation ###################
+
+
+
+############## 120s - Special Removal/Tier Down ###################
+
+#120 - Adventurer Peaceful Resolution
+province_event = {
+    id = aw_satyrs.120
+    title = aw_satyrs.120.t
+    desc = aw_satyrs.120.d
+    picture = FEAST_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+    }
+    
+    option = {
+        # oh, thank goodness
+        name = aw_satyrs.120.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        owner = { add_prestige_excess_to_splendour_effect = { VAL=5 } }
+
+    }
+}
+
+#121 - All Party'd Out so they disappear
+province_event = {
+    id = aw_satyrs.121
+    title = aw_satyrs.121.t
+    desc = aw_satyrs.121.d
+    picture = FEAST_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        NOT = { has_province_modifier = aw_satyrs_hangover }
+    }
+    
+    option = {
+        name = aw_satyrs.121.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+
+        add_permanent_province_modifier = {
+            name = aw_satyrs_hangover
+            duration = 730
+        }
+
+    }
+}
+
+#122 - Beaten to Death by Angry Lovers
+province_event = {
+    id = aw_satyrs.122
+    title = aw_satyrs.122.t
+    desc = aw_satyrs.122.d
+    picture = ANGRY_MOB_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        NOT = { has_province_modifier = aw_satyrs_scorned_lovers }
+    }
+    
+    option = {
+        name = aw_satyrs.122.a
+        ai_chance = { factor = 100 }
+
+        remove_province_modifier = aw_satyrs_1
+        remove_province_modifier = aw_satyrs_2
+        remove_province_modifier = aw_satyrs_3
+
+
+        add_permanent_province_modifier = {
+            name = aw_satyrs_scorned_lovers
+            duration = 730
+        }
+
+    }
+}
+
+
+
+############## 130s - Special Tier Up ###################
+
+
+############## 140s - Other Special Utility ###################
+
+
+############## 200s - Special Flavour ###################
+
+#200 - Indecent Acts
+province_event = {
+    id = aw_satyrs.200
+    title = aw_satyrs.200.t
+    desc = aw_satyrs.200.d
+    picture = PAINTER_ARTIST_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+
+        NOT = { owner = { stability = -2 } }
+    }
+    
+    option = {
+        name = aw_satyrs.200.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_stability = -1
+        }
+
+    }
+}
+
+#201 - Indecent Statue. 8==D
+province_event = {
+    id = aw_satyrs.201
+    title = aw_satyrs.201.t
+    desc = aw_satyrs.201.d
+    picture = ARTWORK_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+    }
+    
+    option = {
+        name = aw_satyrs.201.a
+        ai_chance = { factor = 100 }
+
+        owner = { 
+            add_stability = -1
+            add_treasury = 69 
+        }
+
+    }
+}
+
+#202 - Satyr Hosts Hedonistic Party, people mad at each other
+province_event = {
+    id = aw_satyrs.202
+    title = aw_satyrs.202.t
+    desc = aw_satyrs.202.d
+    picture = EP_POLYNESIAN_DANCES_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        NOT = { has_province_modifier = aw_satyrs_hangover }
+    }
+    
+    option = {
+        name = aw_satyrs.202.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        add_permanent_province_modifier = {
+            name = aw_satyrs_scorned_lovers
+            duration = 730
+        }
+
+    }
+}
+
+#203 - Satyr Hosts Great Party, but Hangover
+province_event = {
+    id = aw_satyrs.203
+    title = aw_satyrs.203.t
+    desc = aw_satyrs.203.d
+    picture = EP_POLYNESIAN_DANCES_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        NOT = { has_province_modifier = aw_satyrs_hangover }
+    }
+    
+    option = {
+        name = aw_satyrs.203.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        add_permanent_province_modifier = {
+            name = aw_satyrs_hangover
+            duration = 730
+        }
+
+    }
+}
+
+#204 - Satyr consumates marriage instead of noble, pisses of estate
+province_event = {
+    id = aw_satyrs.204
+    title = aw_satyrs.204.t
+    desc = aw_satyrs.204.d
+    picture = CONSORT_DOING_BADLY_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        owner = {
+            NOT = {
+                has_estate_loyalty_modifier = {
+                    estate = estate_nobles
+                    modifier = EST_VAL_AW_CUCKED_BY_SATYRS
+                }
+            }
+        }
+        owner = { has_estate = estate_nobles }
+    }
+    
+    option = {
+        name = aw_satyrs.204.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_estate_loyalty_modifier = {
+                estate = estate_nobles
+                desc = EST_VAL_AW_CUCKED_BY_SATYRS
+                duration = 3650
+                loyalty = -10
+            }
+        }
+
+    }
+}
+
+#205 - Satyr musical show, happiness
+province_event = {
+    id = aw_satyrs.205
+    title = aw_satyrs.205.t
+    desc = aw_satyrs.205.d
+    picture = EP_POLYNESIAN_DANCES_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+    
+    trigger = {
+        OR = {
+            has_province_modifier = aw_satyrs_1
+            has_province_modifier = aw_satyrs_2
+            has_province_modifier = aw_satyrs_3
+        }
+
+        NOT = { has_province_modifier = aw_satyrs_music }
+    }
+    
+    option = {
+        name = aw_satyrs.205.a
+        ai_chance = { factor = 100 }
+
+        owner = {
+            add_estate_influence_modifier = {
+                estate = estate_adventurers
+                desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+                duration = 3650
+                influence = 5
+            }
+        }
+
+        add_permanent_province_modifier = {
+            name = aw_satyrs_music
+            duration = 730
+        }
+
+    }
+}
