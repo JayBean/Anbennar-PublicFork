@@ -107,7 +107,7 @@ country_event = {
                 }
 
                 #21 - adventurer removal
-                3 = {   #was 7, made 3
+                15 = {   #was 7, made 3
                     #Base modifiers
 
                     #more likely if generous quest rewards/adverturer nation
@@ -162,7 +162,7 @@ country_event = {
 
 
                 #24 - monstrous nation removal
-                3 = {  #was 50, made just as hard
+                20 = {
                     modifier = {
                         #only want this to ever be part of the equation if you are monstrous
                         factor = 0
@@ -175,6 +175,10 @@ country_event = {
                 #30 - natural tier up - settles wyvern nest
                 30 = {
                     #Specific modifiers
+                    modifier = {    #dont consider if this is already nested
+                        factor = 0
+                        has_province_modifier = aw_wyvern_2
+                    }
                     modifier = {    #preferred nests
                         factor = 3
                         OR = {
@@ -350,11 +354,14 @@ province_event = {
             remove_province_modifier = aw_wyvern_2
         }
 
-        event_target:aw_wyvern_migration_target = {
-            province_event = {
-                id = aw_wyvern.11
-            }
-        }
+        custom_tooltip = aw_wyvern_migrate_to_other_country_tt
+		hidden_effect = {
+			event_target:aw_wyvern_migration_target = {
+				province_event = {
+					id = aw_wyvern.11
+				}
+			}
+		}
     }
 }
 
@@ -467,7 +474,7 @@ province_event = {
     is_triggered_only = yes
     
     trigger = {
-        owner = { has_estate = estate_adventurers }
+        owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
         OR = {
             has_province_modifier = aw_wyvern_1
             has_province_modifier = aw_wyvern_2
@@ -590,7 +597,7 @@ province_event = {
     id = aw_wyvern.110
     title = aw_wyvern.110.t
     desc = aw_wyvern.110.d
-    picture = COMET_SIGHTED_eventPicture
+    picture = EP_ISLAND_eventPicture
     goto = ROOT
     
     hidden = no
@@ -629,14 +636,14 @@ province_event = {
     id = aw_wyvern.120
     title = aw_wyvern.120.t
     desc = aw_wyvern.120.d
-    picture = COMET_SIGHTED_eventPicture
+    picture = TRADEGOODS_eventPicture
     goto = ROOT
     
     hidden = no
     is_triggered_only = yes
     
     trigger = {
-        owner = { has_estate = estate_adventurers }
+        owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
         OR = {
             has_province_modifier = aw_wyvern_2
         }
@@ -741,7 +748,7 @@ province_event = {
     id = aw_wyvern.200
     title = aw_wyvern.200.t
     desc = aw_wyvern.200.d
-    picture = COMET_SIGHTED_eventPicture
+    picture = VILLAGE_BURNING_eventPicture
     goto = ROOT
     
     hidden = no
@@ -762,6 +769,17 @@ province_event = {
                 }
                 save_event_target_as = nested_wyvern_origin_province
             }
+            random_province = {
+                limit = {
+                    region = ROOT
+                    NOT = { has_province_modifier = aw_wyvern_1 }
+                    NOT = { has_province_modifier = aw_wyvern_2 }
+                    NOT = { has_province_modifier = aw_wyvern_3 }
+
+                    NOT = { devastation = 50 }
+                }
+                save_event_target_as = nested_wyvern_target
+            }
         }
         hidden_effect = {
             region = {
@@ -773,12 +791,72 @@ province_event = {
     option = {
         name = aw_wyvern.200.a
         ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                owned_by = ROOT
+            }
+        }
+        goto = nested_wyvern_target
 
         add_devastation = 50
         owner = {
-            event_target:nested_wyvern_origin_country = {
+            event_target:nested_wyvern_target = {
                 reverse_add_casus_belli = {
                     target = PREV
+                    type = cb_aw_monster_attack
+                    months = 18
+                }
+            }
+        }
+    }
+
+    option = {
+        name = aw_wyvern.200.b
+        ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                NOT = {
+                    owned_by = ROOT
+                }
+            }
+        }
+        goto = nested_wyvern_target
+
+        event_target:nested_wyvern_target = {
+            province_event = { id = aw_wyvern.2000 days = 7 }
+        }
+
+    }
+}
+
+#2000 - Nested Wyvern attacks farms NOTIFICATION
+province_event = {
+    id = aw_wyvern.2000
+    title = aw_wyvern.2000.t
+    desc = aw_wyvern.2000.d
+    picture = VILLAGE_BURNING_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+
+    option = {
+        name = aw_wyvern.2000.a
+        ai_chance = { factor = 100 }
+
+        add_devastation = 50
+
+        owner = {
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+        owner = {
+            event_target:nested_wyvern_target = {
+                add_casus_belli = {
+                    target = FROM
                     type = cb_aw_monster_attack
                     months = 18
                 }
@@ -792,7 +870,7 @@ province_event = {
     id = aw_wyvern.201
     title = aw_wyvern.201.t
     desc = aw_wyvern.201.d
-    picture = COMET_SIGHTED_eventPicture
+    picture = WOUNDED_SOLDIERS_eventPicture
     goto = ROOT
     
     hidden = no
@@ -814,6 +892,18 @@ province_event = {
                 }
                 save_event_target_as = nested_wyvern_origin_province
             }
+            random_province = {
+                limit = {
+                    region = ROOT
+                    NOT = { has_province_modifier = aw_wyvern_1 }
+                    NOT = { has_province_modifier = aw_wyvern_2 }
+                    NOT = { has_province_modifier = aw_wyvern_3 }
+
+                    NOT = { devastation = 25 }
+                    NOT = {has_province_modifier = aw_wyvern_attacks_on_caravans }
+                }
+                save_event_target_as = nested_wyvern_target
+            }
         }
         hidden_effect = {
             region = {
@@ -825,17 +915,66 @@ province_event = {
     option = {
         name = aw_wyvern.201.a
         ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                owned_by = ROOT
+            }
+        }
+        add_devastation = 25
+
+        add_province_modifier = {
+            name = aw_wyvern_attacks_on_caravans
+            duration = 1825
+        }
+    }
+
+    option = {
+        name = aw_wyvern.201.b
+        ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                NOT = { owned_by = ROOT }
+            }
+        }
+
+        event_target:nested_wyvern_target = {
+            province_event = { id = aw_wyvern.2001 days = 7 }
+        }
+    }
+}
+
+#2001 - Nested Wyvern attacks farms NOTIFICATION
+province_event = {
+    id = aw_wyvern.2001
+    title = aw_wyvern.2001.t
+    desc = aw_wyvern.2001.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+
+    option = {
+        name = aw_wyvern.2001.a
+        ai_chance = { factor = 100 }
 
         add_devastation = 25
 
         add_province_modifier = {
             name = aw_wyvern_attacks_on_caravans
-            duration = 730
+            duration = 1825
         }
         owner = {
-            event_target:nested_wyvern_origin_country = {
-                reverse_add_casus_belli = {
-                    target = PREV
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+
+        owner = {
+            event_target:nested_wyvern_target = {
+                add_casus_belli = {
+                    target = FROM
                     type = cb_aw_monster_attack
                     months = 18
                 }
@@ -849,7 +988,7 @@ province_event = {
     id = aw_wyvern.202
     title = aw_wyvern.202.t
     desc = aw_wyvern.202.d
-    picture = COMET_SIGHTED_eventPicture
+    picture = ANGRY_MOB_eventPicture
     goto = ROOT
     
     hidden = no
@@ -868,27 +1007,75 @@ province_event = {
                 limit = { has_province_modifier = aw_wyvern_2 }
                 owner = { save_event_target_as = nested_wyvern_origin_country }
             }
+            random_province = {
+                limit = {
+                    region = ROOT
+                    NOT = { has_province_modifier = aw_wyvern_1 }
+                    NOT = { has_province_modifier = aw_wyvern_2 }
+                    NOT = { has_province_modifier = aw_wyvern_3 }
+
+                    NOT = {has_province_modifier = aw_wyvern_flights_scare_people }
+                }
+                save_event_target_as = nested_wyvern_target
+            }
         }
     }
     option = {
         name = aw_wyvern.202.a
         ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                owned_by = ROOT
+            }
+        }
+        add_province_modifier = {
+            name = aw_wyvern_flights_scare_people
+            duration = 1825
+        }
+    }
+    option = {
+        name = aw_wyvern.202.b
+        ai_chance = { factor = 100 }
+        trigger = {
+            event_target:nested_wyvern_target = {
+                NOT = { owned_by = ROOT }
+            }
+        }
+        event_target:nested_wyvern_target = {
+            province_event = { id = aw_wyvern.2002 days = 7 }
+        }
+    }
+}
 
-        add_devastation = 25
+#2002 - Nested Aerial Flights scare people NOTIFICATION
+province_event = {
+    id = aw_wyvern.2002
+    title = aw_wyvern.2002.t
+    desc = aw_wyvern.2002.d
+    picture = WOUNDED_SOLDIERS_eventPicture
+    goto = ROOT
+    
+    hidden = no
+    is_triggered_only = yes
+
+    option = {
+        name = aw_wyvern.2002.a
+        ai_chance = { factor = 100 }
 
         add_province_modifier = {
             name = aw_wyvern_flights_scare_people
-            duration = 730
+            duration = 1825
         }
-
         owner = {
-            event_target:nested_wyvern_origin_country = {
-                reverse_add_opinion = {
-                    who = PREV
-                    modifier = aw_crossed_border
-                }
-                reverse_add_casus_belli = {
-                    target = PREV
+            add_opinion = {
+                who = FROM
+                modifier = aw_crossed_border
+            }
+        }
+        owner = {
+            event_target:nested_wyvern_target = {
+                add_casus_belli = {
+                    target = FROM
                     type = cb_aw_monster_attack
                     months = 18
                 }
