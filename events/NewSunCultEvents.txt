@@ -990,6 +990,14 @@ country_event = {
 					OR = {
 						NOT = { religion = bulwari_sun_cult }
 						is_chosen_country = no
+						NOT = { check_variable = { which = nscDisasterScoreVar value = 100 } }
+						NOT = { has_country_flag = nsc_dukeldar_pretender_spawned }
+						any_owned_province = {
+							religion = old_bulwari_sun_cult
+							religion = the_jadd
+						}
+						num_of_rebel_controlled_provinces = 1
+						num_of_rebel_armies = 1
 					}
 				}
 				set_country_flag = dukedal_lost
@@ -1018,43 +1026,41 @@ country_event = {
 		trigger = { has_country_flag = dukedal_lost ai = no }
 		add_prestige = -50
 		custom_tooltip = nsc_dukeldar_will_be_back_tt
-		clr_country_flag = dukedal_lost
+		#clr_country_flag = dukedal_lost
 		
 		clr_country_flag = locked_racial_administration
 		
-		if = { limit = { religion = old_bulwari_sun_cult }
-			if = {
-				limit = {
-					OR = {
-						primary_culture = sun_elf
-						primary_culture = dawn_elf
-					}
-				}
-				if = { limit = { capital_scope = { region = far_bulwar_region } }
-					change_primary_culture = surani
-				}
-				else_if = { limit = { capital_scope = { region = bahar_region } }
-					change_primary_culture = bahari
-				}
-				else = {
-					change_primary_culture = zanite
+		if = {
+			limit = {
+				OR = {
+					primary_culture = sun_elf
+					primary_culture = dawn_elf
 				}
 			}
-			if = { limit = { OR = { heir_culture = sun_elf heir_culture = dawn_elf } }
-				kill_heir = { allow_new_heir = no }
+			if = { limit = { capital_scope = { region = far_bulwar_region } }
+				change_primary_culture = surani
 			}
-			if = { limit = { OR = { consort_culture = sun_elf consort_culture = dawn_elf } }
-				remove_consort = yes
+			else_if = { limit = { capital_scope = { region = bahar_region } }
+				change_primary_culture = bahari
 			}
-			if = { limit = { OR = { ruler_culture = sun_elf ruler_culture = dawn_elf } }
-				kill_ruler = yes
+			else = {
+				change_primary_culture = zanite
 			}
-			
-			if = { limit = { NOT = { has_country_modifier = human_administration } }
-				clear_racial_administration = yes
-				add_country_modifier = { name = restructuring_administration duration = 3650 }
-				add_country_modifier = { name = human_administration duration = -1 }
-			}
+		}
+		if = { limit = { OR = { heir_culture = sun_elf heir_culture = dawn_elf } }
+			kill_heir = { allow_new_heir = no }
+		}
+		if = { limit = { OR = { consort_culture = sun_elf consort_culture = dawn_elf } }
+			remove_consort = yes
+		}
+		if = { limit = { OR = { ruler_culture = sun_elf ruler_culture = dawn_elf } }
+			kill_ruler = yes
+		}
+		
+		if = { limit = { NOT = { has_country_modifier = human_administration } }
+			clear_racial_administration = yes
+			add_country_modifier = { name = restructuring_administration duration = 3650 }
+			add_country_modifier = { name = human_administration duration = -1 }
 		}
 		
 		if = { limit = { tag = F38 }
@@ -1063,12 +1069,6 @@ country_event = {
 					NOT = { primary_culture = sun_elf }
 					NOT = { religion = the_jadd }
 					NOT = { exists = F52 }
-				}
-				
-				if = { limit = { NOT = { has_country_modifier = human_administration } }
-					clear_racial_administration = yes
-					add_country_modifier = { name = restructuring_administration duration = 3650 }
-					add_country_modifier = { name = human_administration duration = -1 }
 				}
 				
 				change_tag = F52
@@ -7670,29 +7670,8 @@ country_event = {
 			}
 			white_peace = ROOT
 		}
-		custom_tooltip = nsc_ruler_will_leave_tt
-		hidden_effect = { exile_heir_as = exiled_heir_@ROOT }
-		set_country_flag = nsc_no_level_loss
-		set_country_flag = nsc_ruler_will_come_back
-		exile_ruler_as = exiled_ruler_@ROOT
-		if = { limit = { NOT = { government = republic } }
-			define_ruler = {
-				name = "Temporary"
-				dynasty = "Council"
-				adm = 3
-				dip = 3
-				mil = 3
-				age = 35
-				claim = 100
-				female = yes
-			}
-			hidden_effect = { set_ruler_flag = nsc_temporary_council }
-		}
-		hidden_effect = {
-			add_stability_or_adm_power = yes
-			set_heir = exiled_heir_@ROOT
-		}
 		set_country_flag = nsc_sent_ruler
+		set_ruler_flag = nsc_is_at_samartal
 	}
 	
 	#Send your heir
@@ -7715,12 +7694,14 @@ country_event = {
 		}
 		custom_tooltip = nsc_wars_are_disabled_tt
 		every_known_country = {
-			limit = { defensive_war_with = ROOT }
+			limit = {
+				defensive_war_with = ROOT
+				religion = bulwari_sun_cult
+			}
 			white_peace = ROOT
 		}
-		exile_heir_as = exiled_heir_@ROOT
-		set_ruler_flag = was_ruler_when_heir_left
 		set_country_flag = nsc_sent_heir
+		set_heir_flag = nsc_is_at_samartal
 	}
 	
 	after = {
@@ -7803,8 +7784,12 @@ country_event = {
 	option = {
 		name = new_sun_cult.173.a
 		trigger = { has_country_flag = nsc_same_room_as_explosion }
-		if = { limit = { has_ruler_flag = nsc_temporary_council }
+		if = { limit = { has_ruler_flag = nsc_is_at_samartal }
 			kill_ruler = yes
+		}
+		else_if = { limit = { has_heir_flag = nsc_is_at_samartal }
+			kill_heir = { allow_new_heir = yes }
+			reduce_stability_or_adm_power = yes
 		}
 		else = {
 			reduce_stability_or_adm_power = yes
@@ -7889,17 +7874,9 @@ country_event = {
 		name = new_sun_cult.174.b
 		trigger = { has_country_flag = nsc_adjacent_room_as_explosion }
 		custom_tooltip = nsc_samartal_investigation_starts_tt
-		if = { limit = { has_country_flag = nsc_sent_ruler }
-			set_country_flag = nsc_no_level_loss
-			if = { limit = { has_heir = yes }
-				hidden_effect = { exile_heir_as = exiled_heir_@ROOT }
-				set_ruler = exiled_ruler_@ROOT
-				hidden_effect = { set_heir = exiled_heir_@ROOT }
-			}
-			else = {
-				set_ruler = exiled_ruler_@ROOT
-			}
+		if = { limit = { has_ruler_flag = nsc_is_at_samartal }
 			set_ruler_flag = nsc_injured
+			clr_ruler_flag = nsc_is_at_samartal
 			custom_tooltip = nsc_ruler_injured_tt
 			hidden_effect = {
 				if = { limit = { adm = 2 }
@@ -7929,9 +7906,9 @@ country_event = {
 				add_ruler_modifier = { name = nsc_wounded_ruler duration = 365 }
 			}
 		}
-		else_if = { limit = { has_country_flag = nsc_sent_heir }
-			set_heir = exiled_heir_@ROOT
+		else_if = { limit = { has_ruler_flag = nsc_is_at_samartal }
 			set_heir_flag = nsc_injured
+			clr_heir_flag = nsc_is_at_samartal
 			custom_tooltip = nsc_heir_injured_tt
 			hidden_effect = {
 				if = { limit = { heir_adm = 2 }
@@ -7959,18 +7936,6 @@ country_event = {
 					set_heir_flag = nsc_mil_1
 				}
 			}
-			if = {
-				limit = {
-					NOT = { has_ruler_flag = was_ruler_when_heir_left }
-					has_regency = no
-				}
-				custom_tooltip = nsc_ruler_will_step_down_tt
-				hidden_effect = {
-					set_country_flag = nsc_no_level_loss
-					kill_ruler = yes
-					add_stability_or_adm_power = yes
-				}
-			}
 		}
 		every_known_country = {
 			limit = {
@@ -7994,32 +7959,6 @@ country_event = {
 		name = new_sun_cult.174.c
 		trigger = { has_country_flag = nsc_far_from_explosion }
 		custom_tooltip = nsc_samartal_investigation_starts_tt
-		if = { limit = { has_country_flag = nsc_sent_ruler }
-			set_country_flag = nsc_no_level_loss
-			if = { limit = { has_heir = yes }
-				hidden_effect = { exile_heir_as = exiled_heir_@ROOT }
-				set_ruler = exiled_ruler_@ROOT
-				hidden_effect = { set_heir = exiled_heir_@ROOT }
-			}
-			else = {
-				set_ruler = exiled_ruler_@ROOT
-			}
-		}
-		else_if = { limit = { has_country_flag = nsc_sent_heir }
-			set_heir = exiled_heir_@ROOT
-			if = {
-				limit = {
-					NOT = { has_ruler_flag = was_ruler_when_heir_left }
-					has_regency = no
-				}
-				custom_tooltip = nsc_ruler_will_step_down_tt
-				hidden_effect = {
-					set_country_flag = nsc_no_level_loss
-					kill_ruler = yes
-					add_stability_or_adm_power = yes
-				}
-			}
-		}
 		every_known_country = {
 			limit = {
 				religion = bulwari_sun_cult
@@ -8029,11 +7968,6 @@ country_event = {
 			add_opinion = { who = ROOT modifier = nsc_tragedy_of_samartal }
 			add_trust = { who = ROOT value = -15  mutual = no }
 		}
-		hidden_effect = {	#This event is blocked while your ruler is away. Fires it again in case it was blocked
-			if = { limit = { has_country_flag = azka_evran_education_event_will_happen }
-				country_event = { id = azka_evran.8 days = 180 }
-			}
-		}
 	}
 	
 	after = {
@@ -8041,7 +7975,6 @@ country_event = {
 		clr_country_flag = nsc_same_room_as_explosion
 		clr_country_flag = nsc_adjacent_room_as_explosion
 		clr_country_flag = nsc_far_from_explosion
-		clr_ruler_flag = was_ruler_when_heir_left
 		set_country_flag = nsc_investigation_enabled
 	}
 }
@@ -9785,6 +9718,7 @@ country_event = {
 		custom_tooltip = nsc_artificery_enabled_tt
 		set_country_flag = nsc_artificery_enabled
 		end_incident = incident_rise_of_artificery
+		hidden_effect = { country_event = { id = estate_organization.5 days = 35 } }		#choose organization for artificer estate
 	}
 	
 	#Artificery for Elves only
@@ -9798,6 +9732,7 @@ country_event = {
 		set_country_flag = nsc_artificery_enabled
 		set_country_flag = nsc_sun_elf_artificery
 		end_incident = incident_rise_of_artificery
+		hidden_effect = { country_event = { id = estate_organization.5 days = 35 } }		#choose organization for artificer estate
 	}
 	
 	#Artificery Banned
@@ -11960,7 +11895,6 @@ country_event = {
 						66 = { spawn_rebels = { type = amussu_calamities_rebels size = 1 } }
 						33 = { spawn_rebels = { type = amussu_calamities_rebels size = 2 } }
 					}
-					change_controller = REB
 					set_province_flag = nsc_calamities_rebels_spawned
 					REB = { change_variable = { which = numOfBeasts value = 1 } }
 					every_neighbor_province = {
@@ -11973,7 +11907,6 @@ country_event = {
 							66 = { spawn_rebels = { type = amussu_calamities_rebels size = 1 } }
 							33 = { spawn_rebels = { type = amussu_calamities_rebels size = 2 } }
 						}
-						change_controller = REB
 						set_province_flag = nsc_calamities_rebels_spawned
 						REB = { change_variable = { which = numOfBeasts value = 1 } }
 						every_neighbor_province = {
@@ -11986,7 +11919,6 @@ country_event = {
 								66 = { spawn_rebels = { type = amussu_calamities_rebels size = 1 } }
 								33 = { spawn_rebels = { type = amussu_calamities_rebels size = 2 } }
 							}
-							change_controller = REB
 							set_province_flag = nsc_calamities_rebels_spawned
 							REB = { change_variable = { which = numOfBeasts value = 1 } }
 						}
