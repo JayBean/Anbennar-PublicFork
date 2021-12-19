@@ -282,6 +282,10 @@ province_event = {
 			custom_tooltip = claiming_the_raj_tooltip
 			
 			raj_cohesion_change_absolute = { amount = -10 }
+			if = {
+				limit = { NOT = { has_estate_privilege = estate_raj_ministries_raj_cohesion } }
+				set_estate_privilege = estate_raj_ministries_raj_cohesion
+			}
 		}
 		if = {
 			limit = {
@@ -291,12 +295,12 @@ province_event = {
 			}
 			owner = {
 				if = {
-					limit = { NOT = { has_global_flag = destroyed_shogunate } }
+					limit = { NOT = { has_global_flag = destroyed_raj } }
 					add_prestige = 20
 					add_adm_power = 50
 					add_dip_power = 50
 					add_mil_power = 50
-					set_global_flag = destroyed_shogunate
+					set_global_flag = destroyed_raj
 					4411 = {
 						remove_province_modifier = rahen_corrupt_ministers
 						remove_province_modifier = rahen_powerful_nobility
@@ -325,8 +329,9 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 	
 	trigger = {
 		is_subject_of_type = great_daimyo_vassal
-		NOT = { has_country_modifier = raj_mandate_senapti_primacy }
 		NOT = { has_country_modifier = prabhi_recently_promoted }
+		NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+		NOT = { has_country_modifier = rajiya_senapti }
 		OR = {
 			AND = {
 				OR = {
@@ -355,6 +360,7 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 							is_subject_of_type = great_daimyo_vassal
 							NOT = { has_country_modifier = prabhi_recently_promoted }
 							NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+							NOT = { has_country_modifier = rajiya_senapti }
 							NOT = { tag = ROOT }
 							ROOT = { total_development = PREV }
 						}
@@ -3522,6 +3528,55 @@ country_event = { #Control over [rahenraj_slipping_vassal.GetName] slipping away
 }
 
 
+
+################################
+#####   Flavour 'n shit    #####
+################################
+
+country_event = { #The title of Sar
+	id = rahenraj.401
+	title = rahenraj.401.t
+	desc = rahenraj.401.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.401.a
+		
+		FROM = {
+			add_country_modifier = {
+				name = rajiya_senapti
+				duration = -1
+			}
+		}
+		if = {
+			limit = { NOT = { is_subject_of_type = great_daimyo_vassal } }
+			
+			FROM = {
+				overlord = {
+					create_subject = {
+						subject_type = great_daimyo_vassal
+						subject = FROM
+					}
+				}
+				add_government_reform = senapti_reform
+			}
+			hidden_effect = { 4411 = { change_variable = { raj_current_num_of_senaptia = 1 } } }
+		}
+	}
+	option = {
+		ai_chance = { factor = 0 }
+		name = rahenraj.401.b
+		
+		FROM = {
+			add_liberty_desire = 50
+		}
+	}
+}
+
+
 #####################################
 ### General Raj Management Extras ###
 #####################################
@@ -3536,7 +3591,10 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		overlord = { has_reform = raja_reform }
+		OR = {
+			has_reform = raja_reform
+			overlord = { has_reform = raja_reform }
+		}
 		OR = {
 			AND = {
 				is_subject_of_type = daimyo_vassal
@@ -3560,7 +3618,11 @@ country_event = {
 			}
 			add_government_reform = prabhi_reform
 		}
-		else = {
+		if_else = {
+			limit = {
+				is_subject_of_type = great_daimyo_vassal
+				NOT = { has_reform = senapti_reform }
+			}
 			add_government_reform = senapti_reform
 		}
 		
@@ -3912,6 +3974,7 @@ country_event = { #Requesting Raj Mandates
 							is_subject_of_type = great_daimyo_vassal
 							NOT = { has_country_modifier = prabhi_recently_promoted }
 							NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+							NOT = { has_country_modifier = rajiya_senapti }
 							NOT = { tag = ROOT }
 							NOT = { total_development = ROOT }
 						}
