@@ -85,6 +85,7 @@ province_event = {
 	
 
 	immediate = {
+		# Save new owner as Raja if valid
 		hidden_effect = {
 			owner = {
 				if = {
@@ -97,8 +98,176 @@ province_event = {
 					}
 					add_core = 4411
 					set_capital = 4411
+					grant_independence = yes
 					add_government_reform = raja_reform
 					save_event_target_as = new_shogunate
+				}
+			}
+		}
+		
+		# Handle all Prabhi+Senapti transfers
+		hidden_effect = {
+			if = { #Case: new owner is the new Raja, previous Raja lives -> all Prahbi+Senapti get transferred to new Raja
+				limit = {
+					#FROM = Previous Raja
+					FROM = { exists = yes }
+					FROM = { has_reform = raja_reform }
+					#New owner is Raja
+					owner = { has_reform = raja_reform }
+				}
+				#Degrade the previous Raja to Prahbi level, and gives them+their daimyo vassals to new raja
+				FROM = {
+					every_subject_country = {
+						limit = {
+							OR = {
+								is_subject_of_type = daimyo_vassal
+								is_subject_of_type = great_daimyo_vassal
+							}
+						}
+						#Make subject of new raja 
+						event_target:new_shogunate = {
+							vassalize = PREV
+						}
+					}
+					
+					#Make old raja subject of new raja
+					event_target:new_shogunate = {
+						vassalize = FROM
+					}
+					
+					#Downgrade rank and force prabhi reform onto old raja
+					set_government_rank = 1
+					add_government_reform = prabhi_reform
+				}
+				#Cleanup event.
+				event_target:new_shogunate = {
+					country_event = {
+						id = rahenraj.1001
+						days = 5
+					}
+				}
+			}
+			if = { #Case: new owner is NOT the new Raja, previous Raja lives -> all Prahbi+Senapti go free
+				limit = {
+					#FROM = Previous Raja
+					FROM = { exists = yes }
+					FROM = { has_reform = raja_reform }
+					#New owner is NOT raja
+					NOT = { owner = { has_reform = raja_reform } }
+				}
+				#Degrade the previous Raja to Prahbi level, release everyone, disband the Raja
+				FROM = {
+					every_subject_country = {
+						limit = {
+							OR = {
+								is_subject_of_type = daimyo_vassal
+								is_subject_of_type = great_daimyo_vassal
+							}
+						}
+						
+						#Grant freedom from old raja
+						grant_independence = yes
+						
+						if = {
+							limit = {
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+							#Previous subjects become independent Prabhi
+							add_government_reform = indep_prabhi_reform
+						}
+					}
+					
+					#Downgrade rank and force indep_prabhi reform onto old raja
+					set_government_rank = 1
+					add_government_reform = indep_prabhi_reform
+				}
+			}
+			if = { #Case: new owner is the new Raja, previous Raja is dead -> all Prahbi+Senapti get transferred to new Raja
+				limit = {
+					#FROM = Previous Raja is dead
+					NOT = { FROM = { exists = yes } }
+					#New owner is raja
+					owner = { has_reform = raja_reform }
+				}
+				#Vassalize all old prabhi/senapti.
+				every_country = {
+					limit = {
+						OR = {
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+						NOT = { war_with = event_target:new_shogunate }
+					}
+					event_target:new_shogunate = {
+						vassalize = PREV
+					}
+				}
+				#Any old prabhi/senapti still at war with the new raja get independence
+				every_country = {
+					limit = {
+						OR = {
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+						war_with = event_target:new_shogunate
+					}
+					add_government_reform = indep_prabhi_reform
+				}
+				
+				#Cleanup event.
+				event_target:new_shogunate = {
+					country_event = {
+						id = rahenraj.1001
+						days = 5
+					}
+				}
+			}
+			if = { #Case: new owner is NOT the new Raja, previous Raja dead -> all Prahbi+Senapti go free, disband the Raja
+				limit = {
+					#FROM = Previous Raja is dead
+					NOT = { FROM = { exists = yes } }
+					#New owner is NOT raja
+					NOT = { owner = { has_reform = raja_reform } }
+				}
+				
+				#Grant freedom to all old prabhi/senapti
+				every_country = {
+					limit = { 
+						OR = {
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+					
+					#Grant freedom
+					grant_independence = yes
+					add_government_reform = indep_prabhi_reform
+				}
+			}
+		}
+		
+		hidden_effect = {
+			if = {
+				limit = {
+					any_country = {
+						OR = {
+							is_subject_of_type = daimyo_vassal
+							is_subject_of_type = great_daimyo_vassal
+						}
+						NOT = { overlord = { has_reform = raja_reform } }
+					}
+				}
+				every_country = {
+					limit = {
+						OR = {
+							is_subject_of_type = daimyo_vassal
+							is_subject_of_type = great_daimyo_vassal
+						}
+						NOT = { overlord = { has_reform = raja_reform } }
+					}
+					grant_independence = yes
+					add_government_reform = indep_daimyo
 				}
 			}
 		}
@@ -113,133 +282,9 @@ province_event = {
 			custom_tooltip = claiming_the_raj_tooltip
 			
 			raj_cohesion_change_absolute = { amount = -10 }
-		}
-		hidden_effect = {
 			if = {
-				limit = {
-					FROM = { exists = yes }
-					owner = { has_reform = raja_reform }
-					FROM = { has_reform = raja_reform }
-				}
-				event_target:new_shogunate = {
-					country_event = {
-						id = rahenraj.1001
-						days = 5
-					}
-				}
-				FROM = {
-					free_vassal = PREV
-				}
-				FROM = {
-					every_subject_country = {
-						limit = {
-							OR = {
-								has_reform = prabhi_reform
-								has_reform = senapti_reform
-								has_reform = indep_prabhi_reform
-							}
-							NOT = { war_with = event_target:new_shogunate }
-						}
-						event_target:new_shogunate = {
-							vassalize = PREV
-						}
-					}
-					every_subject_country = {
-						limit = {
-							OR = {
-								has_reform = prabhi_reform
-								has_reform = senapti_reform
-								has_reform = indep_prabhi_reform
-							}
-							war_with = event_target:new_shogunate
-						}
-						from = {
-							free_vassal = prev
-						}
-						if = {
-							limit = {
-								NOT = { has_reform = indep_prabhi_reform }
-							}
-							add_government_reform = indep_prabhi_reform
-						}
-					}
-					add_government_reform = indep_prabhi_reform
-				}
-			}
-			if = {
-				limit = {
-					FROM = { exists = yes }
-					NOT = { owner = { has_reform = raja_reform } }
-					FROM = { has_reform = raja_reform }
-				}
-				FROM = {
-					every_subject_country = {
-						limit = {
-							OR = {
-								has_reform = prabhi_reform
-								has_reform = senapti_reform
-								has_reform = indep_prabhi_reform
-							}
-						}
-						FROM = {
-							free_vassal = PREV
-						}
-					}
-					add_government_reform = indep_prabhi_reform
-				}
-			}
-			if = {
-				limit = {
-					NOT = { FROM = { exists = yes } }
-					owner = { has_reform = raja_reform }
-				}
-				event_target:new_shogunate = {
-					country_event = {
-						id = rahenraj.1001
-						days = 5
-					}
-				}
-				every_country = {
-					limit = {
-						OR = {
-							has_reform = prabhi_reform
-							has_reform = senapti_reform
-						}
-						NOT = { war_with = event_target:new_shogunate }
-					}
-					event_target:new_shogunate = {
-						vassalize = PREV
-					}
-				}
-				every_country = {
-					limit = {
-						OR = {
-							has_reform = prabhi_reform
-							has_reform = senapti_reform
-						}
-						war_with = event_target:new_shogunate
-					}
-					add_government_reform = indep_prabhi_reform
-				}
-			}
-			if = {
-				limit = {
-					NOT = { FROM = { exists = yes } }
-					NOT = {
-						owner = { has_reform = raja_reform }
-					}
-				}
-				every_country = {
-					limit = { 
-						OR = {
-							has_reform = prabhi_reform
-							has_reform = senapti_reform
-						}
-					}
-					overlord = {
-						free_vassal = PREV
-					}
-				}
+				limit = { NOT = { has_estate_privilege = estate_raj_ministries_raj_cohesion } }
+				set_estate_privilege = estate_raj_ministries_raj_cohesion
 			}
 		}
 		if = {
@@ -250,36 +295,17 @@ province_event = {
 			}
 			owner = {
 				if = {
-					limit = { NOT = { has_global_flag = destroyed_shogunate } }
+					limit = { NOT = { has_global_flag = destroyed_raj } }
 					add_prestige = 20
 					add_adm_power = 50
 					add_dip_power = 50
 					add_mil_power = 50
-					set_global_flag = destroyed_shogunate
+					set_global_flag = destroyed_raj
 					4411 = {
 						remove_province_modifier = rahen_corrupt_ministers
 						remove_province_modifier = rahen_powerful_nobility
 						remove_province_modifier = rahen_arrogant_foreign_office
 						remove_province_modifier = rahen_disloyal_officers
-					}
-				}
-			}
-		}
-		hidden_effect = {
-			if = {
-				limit = {
-					any_country = {
-						is_subject_of_type = daimyo_vassal
-						NOT = { overlord = { has_reform = raja_reform } }
-					}
-				}
-				every_country = {
-					limit = {
-						is_subject_of_type = daimyo_vassal
-						NOT = { overlord = { has_reform = raja_reform } }
-					}
-					overlord = {
-						free_vassal = PREV
 					}
 				}
 			}
@@ -303,8 +329,9 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 	
 	trigger = {
 		is_subject_of_type = great_daimyo_vassal
-		NOT = { has_country_modifier = raj_mandate_senapti_primacy }
 		NOT = { has_country_modifier = prabhi_recently_promoted }
+		NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+		NOT = { has_country_modifier = rajiya_senapti }
 		OR = {
 			AND = {
 				OR = {
@@ -326,35 +353,6 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 				}
 			}
 			AND = {
-				# OR = {
-					# overlord = {
-						# great_daimyo_vassal = 15
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 100 }
-						# great_daimyo_vassal = 13
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 70 }
-						# great_daimyo_vassal = 11
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 50 }
-						# great_daimyo_vassal = 9
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 35 }
-						# great_daimyo_vassal = 7
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 25 }
-						# great_daimyo_vassal = 5
-					# }
-					# overlord = {
-						# NOT = { num_of_subjects = 15 }
-						# great_daimyo_vassal = 3
-					# }
-				# }
 				raj_above_allowed_senaptia = yes
 				overlord = {
 					NOT = {
@@ -362,6 +360,7 @@ country_event = { #This event lowers a Senapti to Prabhi rank
 							is_subject_of_type = great_daimyo_vassal
 							NOT = { has_country_modifier = prabhi_recently_promoted }
 							NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+							NOT = { has_country_modifier = rajiya_senapti }
 							NOT = { tag = ROOT }
 							ROOT = { total_development = PREV }
 						}
@@ -3529,6 +3528,55 @@ country_event = { #Control over [rahenraj_slipping_vassal.GetName] slipping away
 }
 
 
+
+################################
+#####   Flavour 'n shit    #####
+################################
+
+country_event = { #The title of Sar
+	id = rahenraj.401
+	title = rahenraj.401.t
+	desc = rahenraj.401.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.401.a
+		
+		FROM = {
+			add_country_modifier = {
+				name = rajiya_senapti
+				duration = -1
+			}
+		}
+		if = {
+			limit = { NOT = { is_subject_of_type = great_daimyo_vassal } }
+			
+			FROM = {
+				overlord = {
+					create_subject = {
+						subject_type = great_daimyo_vassal
+						subject = FROM
+					}
+				}
+				add_government_reform = senapti_reform
+			}
+			hidden_effect = { 4411 = { change_variable = { raj_current_num_of_senaptia = 1 } } }
+		}
+	}
+	option = {
+		ai_chance = { factor = 0 }
+		name = rahenraj.401.b
+		
+		FROM = {
+			add_liberty_desire = 50
+		}
+	}
+}
+
+
 #####################################
 ### General Raj Management Extras ###
 #####################################
@@ -3543,7 +3591,10 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		overlord = { has_reform = raja_reform }
+		OR = {
+			has_reform = raja_reform
+			overlord = { has_reform = raja_reform }
+		}
 		OR = {
 			AND = {
 				is_subject_of_type = daimyo_vassal
@@ -3567,7 +3618,11 @@ country_event = {
 			}
 			add_government_reform = prabhi_reform
 		}
-		else = {
+		if_else = {
+			limit = {
+				is_subject_of_type = great_daimyo_vassal
+				NOT = { has_reform = senapti_reform }
+			}
 			add_government_reform = senapti_reform
 		}
 		
@@ -3919,6 +3974,7 @@ country_event = { #Requesting Raj Mandates
 							is_subject_of_type = great_daimyo_vassal
 							NOT = { has_country_modifier = prabhi_recently_promoted }
 							NOT = { has_country_modifier = raj_mandate_senapti_primacy }
+							NOT = { has_country_modifier = rajiya_senapti }
 							NOT = { tag = ROOT }
 							NOT = { total_development = ROOT }
 						}
