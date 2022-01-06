@@ -41,6 +41,7 @@ lodhum_intro_part_1 = {
 		
 		effect = {
 			country_event = { id = flavor_lodhum.3 }
+			tooltip = { swap_non_generic_missions = yes }
 		}
 	}
 }
@@ -885,8 +886,11 @@ lodhum_start_5 = {
 		trigger = {
 			serpentreach_region = {
 				type = all
-				NOT = { has_orcish_majority_trigger = yes }
-				NOT = { has_orcish_minority_trigger = yes }
+				custom_trigger_tooltip = {
+					tooltip = lodhum_no_orc_mountain_tooltip
+					NOT = { has_orcish_majority_trigger = yes }
+					NOT = { has_orcish_minority_trigger = yes }
+				}
 			}
 		}
 		
@@ -954,7 +958,50 @@ lodhum_feywoods_branch_1 = {
 		}
 		
 		effect = {
+			#they're a vassal
 			if = {
+				limit = {
+					exists = I33
+					I33 = { is_subject = yes }
+				}
+				if = {
+					limit = { 
+						I33 = {
+							overlord = {
+								culture_is_elven = yes 
+								ai = yes
+								NOT = { tag = I45 } #cyranavar
+							}
+						}
+					}
+					I33 = {
+						hidden_effect = { overlord = { save_event_target_as = temp_target } }
+						grant_independence = yes
+						vassalize = event_target:temp_target
+					}
+				}
+				else = {
+					I33 = {
+						custom_tooltip = lodhum_feywoods_tooltip2
+						hidden_effect = {
+							overlord = {
+								I33 = {
+									declare_war_with_cb = {
+										who = PREV
+										casus_belli = cb_independence_war
+									}
+								}
+							}
+						}
+					}
+					hidden_effect = {
+						create_alliance = I33
+						join_all_offensive_wars_of = I33
+					}
+				}
+			}
+			#they're alive
+			else_if = {
 				limit = { exists = I33 }
 				add_treasury = -100
 				add_manpower = -2
@@ -963,8 +1010,9 @@ lodhum_feywoods_branch_1 = {
 					add_manpower = 2
 				}
 			}
+			#they're dead
 			else = {
-				custom_tooltip = lodhum_feywoods_tooltip2
+				custom_tooltip = lodhum_feywoods_tooltip3
 				hidden_effect = {
 					every_owned_province = {
 						limit = {
@@ -976,6 +1024,7 @@ lodhum_feywoods_branch_1 = {
 							add_adm_power = 20
 							add_treasury = 15
 						}
+						add_core = I33
 						cede_province = I33
 						clr_province_flag = lodhum_release_this
 					}
@@ -985,12 +1034,20 @@ lodhum_feywoods_branch_1 = {
 						remove_core = ROOT
 						clr_province_flag = lodhum_release_this
 					}
+					every_owned_province = { discover_country = I33 }
+					I33 = {
+						change_primary_culture = wood_elf
+						set_ruler_culture = wood_elf
+						change_religion = fey_court
+						set_ruler_religion = fey_court
+						every_owned_province = { change_religion = fey_court }
+					}
 				}
 				create_guarantee = I33
 				reverse_add_opinion = { who = I33 modifier = returned_province }
 			}
 			#idk why this tooltip is broken so made custom one
-			custom_tooltip = lodhum_feywoods_tooltip3
+			custom_tooltip = lodhum_feywoods_tooltip4
 			hidden_effect = { deepwoods_superregion = { discover_country = ROOT } }
 		}
 	}
@@ -1013,6 +1070,13 @@ lodhum_feywoods_branch_1 = {
 
 		trigger = {
 			if = {
+				limit = {
+					exists = I45
+					I45 = { is_rival = ROOT }
+				}
+				I45 = { has_opinion_modifier = { who = ROOT modifier = improved_relation value = 100 } }
+			}
+			else_if = {
 				limit = { exists = I45 }
 				alliance_with = I45
 			}
@@ -1024,17 +1088,30 @@ lodhum_feywoods_branch_1 = {
 			add_dip_power = -100
 			add_country_modifier = { name = lodhum_greentide_modifier duration = 7300 }
 			if = {
+				limit = {
+					exists = I45
+					I45 = { is_rival = ROOT }
+				}
+				I45 = {
+					add_historical_friend = ROOT
+					create_alliance = ROOT
+					add_favors = { who = H77 amount = 20 }
+					add_country_modifier = { name = lodhum_greentide_modifier duration = 7300 }
+				}
+				add_historical_friend = I45
+			}
+			else_if = {
 				limit = { exists = I45 }
 				I45 = {
-					add_favors = { who = ROOT amount = 20 }
+					add_favors = { who = H77 amount = 20 }
 					add_country_modifier = { name = lodhum_greentide_modifier duration = 7300 }
 				}
 			}
 			else = {
 				add_historical_friend = I33
-				I33 = { 
+				I33 = {
 					add_historical_friend = ROOT 
-					add_favors = { who = ROOT amount = 20 }
+					add_favors = { who = H77 amount = 20 }
 					add_country_modifier = { name = lodhum_greentide_modifier duration = 7300 }
 				}
 			}
@@ -1061,7 +1138,9 @@ lodhum_feywoods_branch_1 = {
 		}
 		
 		effect = {
-			add_dip_power = 50
+			add_adm_power = 25
+			add_dip_power = 25
+			add_mil_power = 25
 			add_power_projection = { type = mission_rewards_power_projection amount = 5 }
 			if = {
 				limit = { exists = I45 }
@@ -1115,7 +1194,8 @@ lodhum_feywoods_branch_1 = {
 		
 		effect = {
 			add_treasury = -200
-			add_dip_power = 50
+			add_dip_power = 75
+			add_prestige = 10
 			small_increase_of_elven_tolerance_effect = yes
 			if = {
 				limit = { exists = I45 }
@@ -1476,6 +1556,7 @@ lodhum_bulwar_branch_5 = {
 							add_adm_power = 20
 							add_treasury = 15
 						}
+						add_core = F26
 						cede_province = F26
 						clr_province_flag = lodhum_release_this
 					}
@@ -1489,8 +1570,16 @@ lodhum_bulwar_branch_5 = {
 				F26 = { 
 					create_alliance = ROOT 
 					add_opinion = { who = ROOT modifier = returned_province }
-					add_favors = { who = ROOT amount = 20 }
-					hidden_effect = { set_ai_personality = { personality = ai_militarist locked = yes } }
+					add_favors = { who = H77 amount = 20 }
+					hidden_effect = {
+						remove_ruler_personality = immortal_personality
+						change_primary_culture = gelkar
+						set_ruler_culture = gelkar
+						change_religion = bulwari_sun_cult
+						set_ruler_religion = bulwari_sun_cult
+						every_owned_province = { change_religion = bulwari_sun_cult }
+						set_ai_personality = { personality = ai_militarist locked = yes } 
+					}
 				}
 			}
 		}
@@ -1522,7 +1611,7 @@ lodhum_bulwar_branch_5 = {
 			F26 = {
 				add_historical_friend = ROOT 
 				add_trust = { who = ROOT value = 10 mutual = yes }
-				add_favors = { who = ROOT amount = 20 }
+				add_favors = { who = H77 amount = 20 }
 				650 = { add_permanent_claim = PREV }
 				652 = { add_permanent_claim = PREV }
 			}
@@ -2320,6 +2409,12 @@ lodhum_part2_5 = {
 					hidden_effect = {
 						reverse_add_opinion = { who = ROOT modifier = lodhum_harpylen_chance_opinion }
 						reverse_add_opinion = { who = F26 modifier = lodhum_harpylen_chance_opinion }
+						remove_ruler_personality = immortal_personality
+						change_primary_culture = firanyan_harpy
+						set_ruler_culture = firanyan_harpy
+						change_religion = the_hunt
+						set_ruler_religion = the_hunt
+						every_owned_province = { change_religion = the_hunt }
 					}
 					remove_historical_rival = F26
 				}
@@ -2487,7 +2582,7 @@ lodhum_part2_5 = {
 							if = {
 								limit = { NOT = { has_country_flag = removing_monstrous } }
 								set_country_flag = removing_monstrous
-								set_variable = { monstrousPoints = 50 }
+								set_variable = { which = monstrousPoints value = 50 }
 							}
 							#already demonsterizing, just give boost
 							else = { change_variable = { which = monstrousPoints value = -50 } }
@@ -2501,12 +2596,21 @@ lodhum_part2_5 = {
 				hidden_effect = {
 					harpylen_area = {
 						remove_core = ROOT
+						add_core = F27
 						cede_province = F27
 						clr_province_flag = lodhum_release_this
 					}
 					ROOT = { 
 						add_adm_power = 60
 						add_treasury = 45
+					}
+					F27 = {
+						remove_ruler_personality = immortal_personality
+						change_primary_culture = firanyan_harpy
+						set_ruler_culture = firanyan_harpy
+						change_religion = the_hunt
+						set_ruler_religion = the_hunt
+						every_owned_province = { change_religion = the_hunt }
 					}
 				}
 				##demonsterizing stuff
@@ -2528,7 +2632,7 @@ lodhum_part2_5 = {
 							if = {
 								limit = { NOT = { has_country_flag = removing_monstrous } }
 								set_country_flag = removing_monstrous
-								set_variable = { monstrousPoints = 50 }
+								set_variable = { which = monstrousPoints value = 50 }
 							}
 							#already demonsterizing, just give boost
 							else = { change_variable = { which = monstrousPoints value = -50 } }
@@ -2595,20 +2699,31 @@ lodhum_part2_5 = {
 			#return gelkalis eastern cores
 			if = {
 				limit = { 668 = { owned_by = F27 } }
-				668 = { cede_province = F26 remove_core = F27 }
+				668 = {
+					add_core = F26 
+					cede_province = F26 
+					remove_core = F27 
+				}
 			}
 			if = {
 				limit = { 669 = { owned_by = F27 } }
-				669 = { cede_province = F26 remove_core = F27 }
+				669 = {
+					add_core = F26 
+					cede_province = F26 
+					remove_core = F27 
+				}
 			}
 			if = {
 				limit = { 671 = { owned_by = F27 } }
-				671 = { cede_province = F26 remove_core = F27 }
+				671 = { 
+					add_core = F26 
+					cede_province = F26 
+					remove_core = F27  
+				}
 			}
 			#atmontna remove gelkalis core if controlled by harpylen
 			if = {
-				limit = { 
-				663 = { owned_by = F27 } }
+				limit = { 663 = { owned_by = F27 } }
 				663 = { remove_core = F26 }
 			}
 			#remove harpy cores in gelkalis
@@ -2794,7 +2909,7 @@ lodhum_part3_2 = {
 				create_alliance = F23
 				add_dip_power = 50
 				F23 = { 
-					add_favors = { who = ROOT amount = 20 } 
+					add_favors = { who = H77 amount = 20 } 
 					hidden_effect = { set_ai_personality = { personality = ai_militarist locked = yes } }
 				}
 				528 = { add_permanent_claim = F23 }
@@ -2808,14 +2923,22 @@ lodhum_part3_2 = {
 							add_adm_power = 60
 							add_treasury = 45
 						}
+						add_core = F23
 						cede_province = F23
 						clr_province_flag = lodhum_release_this
 					}
 				}
 				create_alliance = F23
 				F23 = { 
-					add_favors = { who = ROOT amount = 20 } 
-					hidden_effect = { set_ai_personality = { personality = ai_militarist locked = yes } }
+					add_favors = { who = H77 amount = 20 } 
+					hidden_effect = { 
+						set_ai_personality = { personality = ai_militarist locked = yes } 
+						change_primary_culture = copper_dwarf
+						set_ruler_culture = copper_dwarf
+						change_religion = ancestor_worship
+						set_ruler_religion = ancestor_worship
+						every_owned_province = { change_religion = ancestor_worship }
+					}
 				}
 				528 = { add_permanent_claim = F23 }
 				magairous_area = { add_permanent_claim = F23 }
@@ -3279,8 +3402,8 @@ lodhum_part3_3 = {
 				}
 				511 = {
 					remove_core = I45
-					cede_province = F23
 					add_core = F23
+					cede_province = F23
 				}
 			}
 			if = {
@@ -3290,8 +3413,8 @@ lodhum_part3_3 = {
 				}
 				510 = {
 					remove_core = I45
-					cede_province = F23
 					add_core = F23
+					cede_province = F23
 				}
 			}
 		}
