@@ -1118,7 +1118,7 @@ on_war_won = {
 	if = {
 		limit = { has_reform = raja_reform }
 		FROM = {
-			raj_cohesion_change = { amount = 0.1 }
+			raj_cohesion_change = { amount = 0.1 non_monthly = yes }
 		}
 	}
 	
@@ -1297,19 +1297,36 @@ on_war_won = {
 		remove_country_modifier = black_overseer_6
 	}
 	
-
-	#lodhum disable orcrend modifier
+	#Raj internal wars
 	if = {
-		limit = { 
-			H77 = { 
-				has_country_flag = orcrend_war_enabled
-				has_country_modifier = lodhum_orcrend
-				is_at_war = no
+		limit = {
+			has_country_modifier = raj_internal_war_leader
+			OR = {
+				has_reform = prabhi_reform
+				has_reform = senapti_reform
+				has_reform = raja_reform
 			}
 		}
-		H77 = { remove_country_modifier = lodhum_orcrend }
+		save_event_target_as = raj_subject_at_war
+		if = {
+			limit = {
+				4411 = {
+					owner = {
+						NOT = {
+							any_subject_country = {
+								is_in_war = {
+									attacker_leader = event_target:raj_subject_at_war
+									defender_leader = THIS
+								}
+							}
+						}
+					}
+				}
+			}
+			remove_country_modifier = raj_internal_war_leader
+		}
 	}
-
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -1369,7 +1386,7 @@ on_war_lost = {
 	if = {
 		limit = { has_reform = raja_reform }
 		FROM = {
-			raj_cohesion_change = { amount = -0.1 }
+			raj_cohesion_change = { amount = -0.1 non_monthly = yes }
 		}
 	}
 	
@@ -1439,18 +1456,36 @@ on_war_lost = {
 		remove_country_modifier = black_overseer_6
 	}
 	
-	#lodhum disable orcrend modifier
+	#Raj internal wars
 	if = {
-		limit = { 
-			H77 = { 
-				has_country_flag = orcrend_war_enabled
-				has_country_modifier = lodhum_orcrend
-				is_at_war = no
+		limit = {
+			has_country_modifier = raj_internal_war_leader
+			OR = {
+				has_reform = prabhi_reform
+				has_reform = senapti_reform
+				has_reform = raja_reform
 			}
 		}
-		H77 = { remove_country_modifier = lodhum_orcrend }
+		save_event_target_as = raj_subject_at_war
+		if = {
+			limit = {
+				4411 = {
+					owner = {
+						NOT = {
+							any_subject_country = {
+								is_in_war = {
+									attacker_leader = event_target:raj_subject_at_war
+									defender_leader = THIS
+								}
+							}
+						}
+					}
+				}
+			}
+			remove_country_modifier = raj_internal_war_leader
+		}
 	}
-
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -2166,6 +2201,8 @@ on_new_monarch = {
 		eordand.30
 		
 		new_sun_cult.10 #Getting back mage estate if NSC and not human anymore
+		
+		rahenraj.2100 	#Raj Vizier Nomination
 	}
 	
 	country_event = { id = estate_organization.1 days = 35 }		#choose magical organization for mage estate
@@ -2346,6 +2383,11 @@ on_new_monarch = {
 		limit = { religion = ynn_river_worship }
 		country_event = { id = ynn_worship.3 }
 		ruler_ynn_zodiac = yes
+	}
+	
+	#Raj Vizier
+	if = { limit = { has_country_flag = raj_vizier }
+		overlord = { country_event = { id = rahenraj.2100 } }
 	}
 }
 
@@ -3587,7 +3629,7 @@ on_bi_yearly_pulse = {
 		set_country_flag = bim_lau_mage_entombment
 	}
 	if = { limit = { religion = xhazobkult } country_event = { id = xhazobkult_events.2000 days = 365 } }
-	if = { limit = { tag = H76 has_country_flag = lodhum_tourism_enabled } country_event = { id = flavor_lodhum.100 } } 
+	if = { limit = { tag = H77 has_country_flag = lodhum_tourism_enabled } country_event = { id = flavor_lodhum.100 } } 
 	random_events = {
 		# randomevents.txt
 		100 = 3051
@@ -7694,7 +7736,14 @@ on_dependency_gained = {
 
 # ROOT = Overlord, FROM = Minor
 on_dependency_lost = {
-	FROM = { update_nsc_level_secondary_effects = yes }
+	FROM = {
+		update_nsc_level_secondary_effects = yes
+		
+		if = { limit = { has_country_flag = raj_vizier }
+			raj_clear_vizier = yes
+			ROOT = { country_event = { id = rahenraj.2100 } }
+		}
+	}
 	
 	if = {
 		limit = {
