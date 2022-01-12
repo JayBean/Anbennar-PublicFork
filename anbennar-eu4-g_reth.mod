@@ -22,4 +22,8 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.32.*"
+<<<<<<< HEAD
 path="C:/Users/ethan/OneDrive/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-g_reth"
+=======
+path="D:/Users/ethan/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-g_reth"
+>>>>>>> new-master
