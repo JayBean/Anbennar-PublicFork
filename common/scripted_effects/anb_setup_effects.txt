@@ -1689,3 +1689,163 @@ setup_ai_attitude = {
 		}
 	}
 }
+
+setup_caste_estates = {
+	if = {
+		limit = { exists = yes has_country_flag = has_caste_estates }
+
+		
+		############Initialize Caste Fluidity################
+		set_variable = { which = castes_fluidity value = 20 }
+
+		############Calculate percentage of harimari################
+		# calculate what proportion of dev is harimari cultured
+		set_variable = {
+			which = nbHarimariMajority
+			value = 0
+		}
+		set_variable = {
+			which = nbHarimariMajorityCounter
+			value = 0
+		}
+		every_owned_province = {
+			if = { #Harimari Dev
+				limit = { 
+					OR = {
+						culture = east_harimari
+						culture = royal_harimari
+					}
+					is_core = ROOT 
+					is_state = yes 
+				}
+				ROOT = {
+					export_to_variable = {
+						variable_name = nbHarimariMajorityCounter
+						value = development
+						who = PREV
+					}
+					change_variable = {
+						which = nbHarimariMajority
+						which = nbHarimariMajorityCounter
+					}
+				}
+			}
+		}
+
+		### Set Comparison Variables
+		set_variable = {
+			which = totalDev
+			value = 0
+		}
+		set_variable = {
+			which = totalDevCounter
+			value = 0
+		}
+
+		every_owned_province = {
+			if = { #Total Dev
+				limit = {
+					AND = {
+						is_core = ROOT
+						is_state = yes
+					}
+				}
+				ROOT = {										#ROOT = Country
+					export_to_variable = {
+						variable_name = totalDevCounter
+						value = development						# Dev of Province
+						who = PREV								# PREV = Province
+					}
+					change_variable = {
+						which = totalDev
+						which = totalDevCounter
+					}
+				}
+			}
+		}
+
+		#############################
+		##    Calculate %Dev of harimari Race
+		#############################
+		divide_variable = {
+			which = nbHarimariMajority
+			which = totalDev
+		}
+
+		############################################################
+
+		################Populate Upper castes.######################
+		##Add Harimari
+		if = { 
+			limit = {
+				OR = {
+					primary_culture = royal_harimari
+					ruler_is_harimari = yes		#Harimari in charge
+					overlord = { has_reform = raja_reform } #Overlord part of Raj
+					has_reform = raja_reform	#Part of the Raj
+				}
+			}
+			set_country_flag = harimari_in_uppercastes
+		}
+		else = {
+			set_country_flag = human_in_uppercastes # If there are no Harimari, humans rule
+		}
+		##Add Humans
+		if = {
+			limit = {
+				culture_is_human = yes
+				ruler_is_human = yes
+			}
+			set_country_flag = human_in_uppercastes
+		}
+		#############################################################
+		
+		
+		################Populate Middle castes.######################
+		##Add Harimari if they inhabit 50% of the dev		
+		set_variable = {
+			which = PercentDevMiddleCastes
+			value = 0.5			#How much Dev does the race need to have for the options to appears. 1 = 100%
+		}
+		if = {
+			limit = {
+				OR = {
+					NOT = {has_country_flag = harimari_in_uppercastes} #If not in uppercastes, harimari are surely in middlecastes
+					check_variable = { #If >50% of pop harimari, add to caste
+						which = nbHarimariMajority
+						which = PercentDevMiddleCastes #set to 50% for Middle castes
+					}
+				}
+			}
+			set_country_flag = harimari_in_middlecastes
+		}
+
+		#Add Humans
+		set_country_flag = human_in_middlecastes	#Always Humans
+		#############################################################
+		
+		
+		################Populate Lower castes.#######################
+		##Add Harimari if they inhabit 75% of the dev		
+		set_variable = {
+			which = PercentDevLowerCastes
+			value = 0.75			#How much Dev does the race need to have for the options to appears. 1 = 100%
+		}
+		if = {
+			limit = {
+				OR = {
+					NOT = {has_country_flag = harimari_in_uppercastes} #If not in uppercastes, harimari are surely in middlecastes
+					check_variable = { #If >75% of pop harimari, add to caste
+						which = nbHarimariMajority
+						which = PercentDevLowerCastes #set to 75% for Lower castes
+					}
+				}
+			}
+			set_country_flag = harimari_in_lowercastes
+		}
+		
+		#Add Humans
+		set_country_flag = human_in_lowercastes	#Always Humans
+		#############################################################
+	}
+}
