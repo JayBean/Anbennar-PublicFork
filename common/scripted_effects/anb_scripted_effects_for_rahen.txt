@@ -59,7 +59,6 @@ raj_cohesion_calc = {
 		set_variable = { which = rajCohesionMonthy_ministries_influence value = 0 }
 		set_variable = { which = rajCohesionMonthy_low_liberty_desire value = 0 }
 		set_variable = { which = rajCohesionMonthy_high_liberty_desire value = 0 }
-		set_variable = { which = rajCohesionMonthy_internal_wars value = 0 }
 		set_variable = { which = rajDev value = 0 }
 		set_variable = { which = rajNbMandate value = 0 }
 		set_variable = { which = rajNbLowLD value = 0 }
@@ -78,29 +77,31 @@ raj_cohesion_calc = {
 				
 				if = { limit = { has_estate = estate_raj_ministries }
 					if = { limit = { estate_influence = { estate = estate_raj_ministries influence = 60 } }
-						raj_cohesion_change = {	amount = 0.02 ministries_influence = yes }
+						raj_cohesion_change = {	amount = 1 ministries_influence = yes }
 					}
 					else_if = { limit = { estate_influence = { estate = estate_raj_ministries influence = 40 } }
-						raj_cohesion_change = {	amount = 0.01 ministries_influence = yes }
+						raj_cohesion_change = {	amount = 0.5 ministries_influence = yes }
 					}
 					else_if = { limit = { NOT = { estate_influence = { estate = estate_raj_ministries influence = 20 } } }
-						raj_cohesion_change = {	amount = -0.01 ministries_influence = yes }
+						raj_cohesion_change = {	amount = -1 ministries_influence = yes }
 					}
 					
-					if = { limit = { liberty_desire = 40 }
-						raj_cohesion_change = {	amount = -0.01 high_liberty_desire = yes }
+					if = { limit = { liberty_desire = 60 }
+						raj_cohesion_change = {	amount = -1 high_liberty_desire = yes }
+					}
+					else_if = { limit = { liberty_desire = 40 }
+						raj_cohesion_change = {	amount = -0.5 high_liberty_desire = yes }
 					}
 					else_if = { limit = { NOT = { liberty_desire = 20 } }
-						raj_cohesion_change = {	amount = 0.01 low_liberty_desire = yes }
+						raj_cohesion_change = {	amount = 0.5 low_liberty_desire = yes }
 					}
-				}
-				
-				if = { limit = { has_country_modifier = raj_internal_war_leader }
-					raj_cohesion_change = {	amount = -0.06 internal_wars = yes }
 				}
 			}
 			4411 = { PREV = { divide_variable = { which = rajDev which = PREV } } }
 		}
+		
+		change_variable = { which = rajCohesionMonthy which = rajCohesionMonthy_internal_wars }
+		
 		change_variable = { which = rajCohesionMonthy which = rajaVizierCohesion }
 	}
 }
@@ -143,7 +144,6 @@ raj_cohesion_change = {
 	hidden_effect = {
 		#Set amount to change by
 		set_variable = { which = rajCohesionChangeAmount value = $amount$ }
-		multiply_variable = { which = rajCohesionChangeAmount value = 100 }
 		if = { limit = { NOT = { check_variable = { which = rajDev value = 0.001 } } }
 			export_to_variable = { which = rajDev value = total_development }
 			4411 = { PREV = { divide_variable = { which = rajDev which = PREV } } }
@@ -201,10 +201,8 @@ raj_cohesion_change = {
 				change_variable = { which = rajCohesionMonthy which = rajCohesionChangeAmount }
 			]
 			[[vassal_integration]
-				if = { limit = { check_variable = { which = rajCohesionChangeAmount value = -10 } }
-					set_variable = { which = rajCohesionChangeAmount value = -10 }
-				}
-				else_if = { limit = { NOT = [ check_variable = { which = rajCohesionChangeAmount value = -50 } }
+				change_variable = { which = rajCohesionChangeAmount value = -10 }
+				if = { limit = { NOT = { check_variable = { which = rajCohesionChangeAmount value = -50 } } }
 					set_variable = { which = rajCohesionChangeAmount value = -50 }
 				}
 				
@@ -328,7 +326,12 @@ raj_clear_vizier = {
 raj_cohesion_yearly_tick = {
 	raj_calc_max_allowed_senaptia = yes
 	raj_calc_vizier_sway = yes
-	4411 = {	
+	4411 = {
+		owner = {
+			if = { limit = { NOT = { any_subject_country = { has_country_flag = raj_vizier } } }
+				country_event = { id = rahenraj.2100 }
+			}
+		}
 		change_variable = { which = vizierSway which = vizierYearlySway }
 		if = { limit = { check_variable = { which = vizierSway value = 100 } }
 			set_variable = { which = vizierSway value = 100 }
@@ -379,7 +382,7 @@ raj_calc_vizier_sway = {
 			change_variable = { which = rajaVizierCohesion which = rajaMil }
 		}
 		subtract_variable = { which = rajaVizierCohesion value = 9 }
-		divide_variable = { which = rajaVizierCohesion value = 10 }
+		divide_variable = { which = rajaVizierCohesion value = 20 }
 		
 		#Sway
 		set_variable = { which = vizierSkillDiff which = vizierAdm }
@@ -394,10 +397,41 @@ raj_calc_vizier_sway = {
 		set_variable = { which = vizierYearlySway which = vizierTotalDev }
 		multiply_variable = { which = vizierYearlySway value = 100 }
 		change_variable = { which = vizierYearlySway which = vizierSkillDiff }
-		multiply_variable = { which = vizierYearlySway value = 0.25 }
+		multiply_variable = { which = vizierYearlySway value = 0.15 }
 		
 		divide_variable = { which = vizierYearlySway value = 100 }
 		multiply_variable = { which = vizierYearlySway value = 100 }
+	}
+}
+
+raj_calc_internal_wars = {
+	4411 = {
+		set_variable = { which = rajCohesionMonthy_internal_wars value = 0 }
+		owner = {
+			every_subject_country = {
+				limit = { is_in_war = { attacker_leader = THIS } }
+				save_event_target_as = raj_subject_at_war
+				if = {
+					limit = {
+						PREV = {
+							any_subject_country = {
+								is_in_war = {
+									attacker_leader = event_target:raj_subject_at_war
+									defender_leader = THIS
+								}
+							}
+						}
+					}
+					if = { limit = { NOT = { check_variable = { which = rajDev value = 0.0001 } } }
+						export_to_variable = { which = rajDev value = total_development }
+						4411 = { PREV = { divide_variable = { which = rajDev which = PREV } } }
+					}
+					set_variable = { which = rajCohesionMonthy_internal_wars which = rajDev }
+					4411 = { change_variable = { which = rajCohesionMonthy_internal_wars which = PREV } }
+				}
+			}
+		}
+		multiply_variable = { which = rajCohesionMonthy_internal_wars value = -3 } #ratio between % of dev at war and monthly cohesion impact
 	}
 }
 
@@ -508,7 +542,7 @@ raj_calc_vizier_shortlist = {
 			export_to_variable = { which = vizierDip value = DIP }
 			export_to_variable = { which = vizierMil value = MIL }
 			export_to_variable = { which = rajaOpinion value = opinion who = PREV }
-			divide_variable = { which = rajaOpinion value = 10 }
+			divide_variable = { which = rajaOpinion value = 5 }
 			
 			#Monthly Cohesion
 			if = { limit = { check_variable = { which = vizierAdm which = rajaAdm } }
@@ -530,11 +564,14 @@ raj_calc_vizier_shortlist = {
 				change_variable = { which = vizierCohesion which = rajaMil }
 			}
 			subtract_variable = { which = vizierCohesion value = 9 }
-			divide_variable = { which = vizierCohesion value = 10 }
+			divide_variable = { which = vizierCohesion value = 20 }
 			
 			#Yearly Sway
-			4411 = { PREV = { set_variable = { which = rajDev which = PREV } } }
-			divide_variable = { which = vizierTotalDev which = rajDev }
+			4411 = {
+				set_variable = { which = temp which = rajDev }
+				PREV = { set_variable = { which = temp which = PREV } }
+			}
+			divide_variable = { which = vizierTotalDev which = temp }
 			
 			set_variable = { which = vizierYearlySway which = vizierTotalDev }
 			multiply_variable = { which = vizierYearlySway value = 100 }
@@ -544,33 +581,19 @@ raj_calc_vizier_shortlist = {
 			subtract_variable = { which = vizierYearlySway which = rajaAdm }
 			subtract_variable = { which = vizierYearlySway which = rajaDip }
 			subtract_variable = { which = vizierYearlySway which = rajaMil }
-			divide_variable = { which = vizierYearlySway value = 100 }	
-			multiply_variable = { which = vizierYearlySway value = 25 }			
+			divide_variable = { which = vizierYearlySway value = 1000 }
+			multiply_variable = { which = vizierYearlySway value = 150 }			
 			
 			#Vizier Score
 			set_variable = { which = vizierScore which = vizierTotalDev }
-			multiply_variable = { which = vizierScore value = 150 }
+			multiply_variable = { which = vizierScore value = 200 }
 			change_variable = { which = vizierScore which = vizierAdm }
 			change_variable = { which = vizierScore which = vizierDip }
 			change_variable = { which = vizierScore which = vizierMil }
-			# if = { limit = { reverse_has_opinion = { who = PREV value = 200 } }
-				# change_variable = { which = vizierScore value = 20 }
-			# }
-			# else_if = { limit = { reverse_has_opinion = { who = PREV value = 150 } }
-				# change_variable = { which = vizierScore value = 15 }
-			# }
-			# else_if = { limit = { reverse_has_opinion = { who = PREV value = 100 } }
-				# change_variable = { which = vizierScore value = 10 }
-			# }
-			# else_if = { limit = { reverse_has_opinion = { who = PREV value = 50 } }
-				# change_variable = { which = vizierScore value = 5 }
-			# }
-			# else_if = { limit = { NOT = { reverse_has_opinion = { who = PREV value = 0 } } }
-				# change_variable = { which = vizierScore value = -20 }
-			# }
 			change_variable = { which = vizierScore which = rajaOpinion }
-			multiply_variable = { which = vizierDipRep value = 5 }
+			multiply_variable = { which = vizierDipRep value = 3 }
 			change_variable = { which = vizierScore which = vizierDipRep }
+			set_variable = { which = vizierScoreDebug2 which = vizierScore }
 		}
 		
 		random_subject_country = {
@@ -694,6 +717,83 @@ raj_calc_vizier_shortlist = {
 		
 		every_subject_country = {
 			clr_country_flag = raj_not_sorted
+		}
+	}
+}
+
+raj_calc_vizier_ranking = {
+	hidden_effect = {
+		4411 = {
+			set_variable = { which = temp which = rajDev }
+			owner = {
+				set_variable = { which = numRajSubjects value = 0 }
+			
+				every_subject_country = {
+					limit = {
+						OR = {
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+					PREV = { change_variable = { which = numRajSubjects value = 1 } }
+					set_country_flag = raj_not_sorted
+					
+					export_to_variable = { which = vizierTotalDev value = total_development }
+					4411 = { PREV = { set_variable = { which = temp which = PREV } } }
+					divide_variable = { which = vizierTotalDev which = temp }
+					export_to_variable = { which = vizierDipRep value = modifier:diplomatic_reputation }
+					export_to_variable = { which = vizierAdm value = ADM }
+					export_to_variable = { which = vizierDip value = DIP }
+					export_to_variable = { which = vizierMil value = MIL }
+					export_to_variable = { which = rajaOpinion value = opinion who = PREV }
+					divide_variable = { which = rajaOpinion value = 5 }
+					set_variable = { which = vizierRanking value = 9 }		
+					
+					#Vizier Score
+					set_variable = { which = vizierScore which = vizierTotalDev }
+					multiply_variable = { which = vizierScore value = 200 }
+					change_variable = { which = vizierScore which = vizierAdm }
+					change_variable = { which = vizierScore which = vizierDip }
+					change_variable = { which = vizierScore which = vizierMil }
+					change_variable = { which = vizierScore which = rajaOpinion }
+					multiply_variable = { which = vizierDipRep value = 3 }
+					change_variable = { which = vizierScore which = vizierDipRep }
+					set_variable = { which = vizierScoreDebug which = vizierScore }
+				}
+				
+				set_variable = { which = vizierRanking value = 1 }
+				
+				random_subject_country = {
+					limit = { has_country_flag = raj_not_sorted }
+					save_event_target_as = ranked_vizier
+				}
+				
+				while = {
+					limit = {
+						NOT = { check_variable = { which = vizierRanking value = 9 } }
+						check_variable = { which = numRajSubjects which = vizierRanking }
+					}
+					
+					every_subject_country = { 
+						limit = {
+							has_country_flag = raj_not_sorted
+							check_variable = { which = vizierScore which = event_target:ranked_vizier }
+						}
+						save_event_target_as = ranked_vizier
+					}
+					event_target:ranked_vizier = {
+						clr_country_flag = raj_not_sorted
+						set_variable = { which = vizierScore value = 0 }
+						set_variable = { which = vizierRanking which = PREV }
+					}
+					
+					change_variable = { which = vizierRanking value = 1 }
+				}
+				
+				every_subject_country = {
+					clr_country_flag = raj_not_sorted
+				}
+			}
 		}
 	}
 }
