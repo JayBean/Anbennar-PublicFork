@@ -1,3 +1,4 @@
+
 namespace = vampires_estate_events
 
 #Emigre become Bloody Aristocracy
@@ -156,7 +157,7 @@ country_event = {
 	}
 	
 	mean_time_to_happen = {
-		years = 15
+		years = 10
 		
 	}
 
@@ -196,7 +197,7 @@ country_event = {
 			estate = estate_vampires
 			influence = 75
 		}
-		NOT = {has_estate_privilege = estate_vampires_organization_vampiric_emigres}
+		NOT = { has_estate_privilege = estate_vampires_organization_vampiric_emigres }
 		#Hopefully this is easily achievable
 		estate_loyalty = {
 			estate = estate_vampires
@@ -206,6 +207,7 @@ country_event = {
 		NOT = { has_ruler_flag = offered_blood_gift }
 		NOT = { ruler_is_immortal = yes }
 		NOT = { has_regency = yes }
+		is_lesser_in_union = no 
 	}
 	
 	immediate = {
@@ -453,7 +455,7 @@ country_event = {
 	option = {
 		name = vampires_estate_events.8.a
 		ai_chance = { factor = 20 }
-		kill_heir = yes
+		kill_heir = { allow_new_heir = no }
 		reduce_stability_or_adm_power = yes
 	}
 }
@@ -468,7 +470,7 @@ country_event = {
 	trigger = {
 		has_estate = estate_vampires
 		has_estate_privilege = estate_vampires_organization_vampiric_emigres
-		any_state = {
+		any_owned_province = {
 			is_capital = no
 		}
 		NOT = {
@@ -482,7 +484,7 @@ country_event = {
 	mean_time_to_happen = {
 		years = 30
 		modifier = {
-			factor = 0.35
+			factor = 0.6
 			has_country_flag = population_boom_buff
 		}
 	}
@@ -533,9 +535,9 @@ country_event = {
 	}
 	
 	mean_time_to_happen = {
-		years = 15
+		years = 25
 		modifier = {
-			factor = 0.7
+			factor = 0.6
 			has_country_flag = population_boom_buff
 		}
 	}
@@ -573,24 +575,76 @@ country_event = {
    			save_global_event_target_as = blood_court_founder
 		}
 	}
+
+    immediate = {
+        hidden_effect = {
+
+            #CHANGEABLE - MIGRATION TYPE - Any province within my region - dont do area as those are too small. its essentially adjacent anyway
+            random_owned_province = {
+                limit = {
+                    is_city = yes
+					continent = europe
+
+                    NOT = { has_province_modifier = aw_vampires_1 }
+                    NOT = { has_province_modifier = aw_vampires_2 }
+                    NOT = { has_province_modifier = aw_vampires_3 }
+
+                }
+                save_event_target_as = aw_vampires_migration_target
+            }
+        }
+    }
+
 	#Chase them out
 	option = {
 		name = vampires_estate_events.11.a
 		ai_chance = { factor = 50 }
 		add_prestige = 5
 		hidden_effect = {
-			 random_neighbor_country = {
+			ROOT = { save_event_target_as = emigres_landing }
+
+			#  random_neighbor_country = {		#used to be a thing so it goes on infinitely until it finds someone, not anymore due to Adventurers Wanted -Jay.
+			# 	limit = {
+			# 		NOT = {
+			# 			has_country_flag = has_vampires_estate
+			# 		}
+			# 	}
+			# 	country_event = { id = vampires_estate_events.11 days = 7 random = 5 } 
+
+				#fail notification
+
+			event_target:vampire_origin = {
+				country_event = {
+					id = asheniande.10 #emigres landing notification for spreader
+					days = 7
+				}
+				#uncomment to make failure reset the cooldown
+				#remove_country_modifier = vamp_spread_cooldown
+				
+				#clr_country_flag = currently_spreading_vampires
+			}
+		}
+
+		event_target:aw_vampires_migration_target = {
+			if = {
 				limit = {
-					NOT = {
-						has_country_flag = has_vampires
+					NOT = { has_province_modifier = aw_vampires_1 }
+                    NOT = { has_province_modifier = aw_vampires_2 }
+                    NOT = { has_province_modifier = aw_vampires_3 }
+				}
+				random = {
+					chance = 33
+					add_province_modifier = {
+						name = aw_vampires_1
+						duration = -1
 					}
 				}
-				  country_event = { id = vampires_estate_events.11 days = 10 random = 30 } 
 			}
 		}
 	}
+
 	
-	#Let them stay
+	#Let them stay and gain estate
 	option = {
 		name = vampires_estate_events.11.b
 		ai_chance = {
@@ -598,18 +652,44 @@ country_event = {
 			modifier = {
 				factor = 0.1
 				ROOT = {
-					NOT = {culture_group_is_human = yes}
+					NOT = { culture_is_human = yes }
+				}
+			}
+			modifier = {
+				factor = 1.25
+				capital_scope = {
+					region = the_borders_region
 				}
 			}
 		}
-		ROOT = {save_event_target_as = emigres_landing}
+		add_stability = -1
 		hidden_effect = { 
-			set_country_flag = has_vampires
+			ROOT = { save_event_target_as = emigres_landing }
+			set_country_flag = has_vampires_estate
 			country_event = { id = vampires_estate_events.12 days = 2 }
-			event_target:blood_court_founder = {
+			event_target:vampire_origin = {
 				country_event = {
-					id = asheniande.8 #emigres landing notification for the leaader of the blood court
-					days = 10
+					id = asheniande.8 #emigres landing notification for spreader
+					days = 7
+				}
+				#clr_country_flag = currently_spreading_vampires
+			}
+		}
+		custom_tooltip = estate_vampies_gain_tooltip
+
+		event_target:aw_vampires_migration_target = {
+			if = {
+				limit = {
+					NOT = { has_province_modifier = aw_vampires_1 }
+                    NOT = { has_province_modifier = aw_vampires_2 }
+                    NOT = { has_province_modifier = aw_vampires_3 }
+				}
+				random = {
+					chance = 33
+					add_province_modifier = {
+						name = aw_vampires_2
+						duration = -1
+					}
 				}
 			}
 		}
@@ -630,7 +710,6 @@ country_event = {
 		always = yes
 	}
 
-	#Chase them out
 	option = {
 		name = vampires_estate_events.12.a
 		ai_chance = { factor = 90 }
@@ -658,7 +737,7 @@ country_event = {
 		has_country_flag = vampire_ruler
 		NOT = { has_country_flag = lich_ruler }				#Stop weird lich shenanigans going on (hopefully)
 		has_country_flag = vampire_ruler_has_coffin
-		
+		NOT = { is_subject_of_type = acolyte_dominion }		#plz stop
 		NOT = { has_country_flag = interregnum }
 		
 		NOT = { has_ruler_flag = is_a_vampire }
@@ -668,6 +747,11 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
+		
+			if = {
+				limit = { is_lesser_in_union = yes }
+			}
+		
 			set_country_flag = interregnum
 			
 			
@@ -703,9 +787,6 @@ country_event = {
 				}
 				
 				set_heir_flag = is_a_vampire
-				
-				exile_ruler_as = dynastic_heir_@ROOT
-				add_stability = 1 # Ruler is dead
 			}
 			
 			# Govs without Heirs straight ruler boy
@@ -738,6 +819,7 @@ country_event = {
 				}
 				
 				set_ruler_flag = is_a_vampire
+				add_stability = 1 # Ruler is dead		
 			}
 		}
 	}
@@ -748,7 +830,8 @@ country_event = {
 		ai_chance = {
 			factor = 50
 		}
-		
+		exile_ruler_as = dynastic_heir_@ROOT
+		add_stability = 1 # Ruler is dead								 
 		# Revied Rulers are slighlty worse than normal ones, you don't want your ruler to die
 		tooltip = {
 			if = {
@@ -860,7 +943,7 @@ province_event = {
 			has_ruler_flag = is_a_vampire
 			has_country_flag = vampire_ruler
 			has_country_flag = vampire_ruler_has_coffin
-			has_country_flag = exposed_ruler_vampire
+			has_country_flag = exposed_vampire_ruler
 		}
 		is_capital = yes
 		NOT = { controlled_by = ROOT }
@@ -1042,7 +1125,7 @@ country_event = {
 	mean_time_to_happen = {
 		years = 40
 		modifier = {
-			factor = 0.35
+			factor = 0.5
 			has_country_flag = population_boom_buff
 		}
 	}
@@ -1069,24 +1152,35 @@ country_event = {
 }
 
 
-####Privilege removal events
-# country_event = {
-	# id = vampires_estate_events.1000
-	# title = vampires_estate_events.1000.t
-	# desc = vampires_estate_events.1000.d
-	# picture = END_OF_TIME_eventPicture
+#Setup Integrate Vampires
+country_event = {
+	id = vampires_estate_events.1000
+	title = vampires_estate_events.1000.t
+	desc = vampires_estate_events.1000.d
+	picture = END_OF_TIME_eventPicture
 	
-	# hidden = yes
-	# is_triggered_only = yes
+	hidden = yes
+	is_triggered_only = yes
 	
-	# option = {
-		# name = vampires_estate_events.1000.a
-		# clr_country_flag = remove_vampire_ownership
-		# clr_country_flag = remove_vampire_expell_landowners
-		# clr_country_flag = remove_vampire_fill_stock
-		# clr_country_flag = remove_vampire_masquerade
-		# ai_chance = {
-			# factor = 1
-		# }
-	# }
-# }
+	option = {
+		name = vampires_estate_events.1000.a
+		
+		clear_vampire_law = yes
+		clear_vampire_organization = yes
+		
+		if = {
+			limit = { has_country_flag = vampire_ruler }
+			set_estate_privilege = estate_vampires_organization_vampires_lord
+			set_estate_privilege = estate_vampires_law_state_collusion_masquerade
+		}
+		else = {
+			set_estate_privilege = estate_vampires_organization_bloody_aristocracy
+			set_estate_privilege = estate_vampires_law_traditional_masquerade
+			country_event = { id = vampires_estate_events.3 days = 30 days = 30 }
+		}
+		set_country_flag = recent_masquerade_disaster
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
