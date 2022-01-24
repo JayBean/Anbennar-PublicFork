@@ -1,4 +1,3 @@
-
 # INSTRUCTIONS:
 #
 # condition				A diplomatic action can have any number of condition blocks, each with its own
@@ -145,6 +144,10 @@ transfer_trade_power = {
 			set_country_flag = trade_power_count_4
 			clr_country_flag = trade_power_count_3
 		}
+		if = {
+			limit = { TAG = Y20 }
+			FROM = { set_country_flag = transfers_trade_to_feiten }
+		}
 	}
 }
 
@@ -221,6 +224,7 @@ declarewar = {
 				has_reform = prabhi_reform
 				has_reform = senapti_reform
 			}
+			NOT = { has_country_flag = raj_vizier }
 			4411 = {
 				check_variable = {
 					which = raj_cohesion
@@ -232,6 +236,22 @@ declarewar = {
 			is_at_war = no
 			OR = {
 				has_country_modifier = raj_mandate_right_to_expansion
+				FROM = { has_reform = raja_reform }
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = RAJ_NEED_RIGHT_TO_EXPANSION
+		potential = {
+			has_reform = senapti_reform
+		}
+		allow = {
+			is_at_war = no
+			OR = {
+				has_country_modifier = raj_mandate_right_to_expansion
+				FROM = { has_reform = prabhi_reform }
+				FROM = { has_reform = senapti_reform }
 				FROM = { has_reform = raja_reform }
 			}
 		}
@@ -263,6 +283,17 @@ declarewar = {
 				NOT = { has_country_modifier = raj_mandate_territorial_limits }
 				FROM = { has_reform = raja_reform }
 			}
+			NOT = { has_country_modifier = raj_ai_introspecting }
+		}
+	}
+	
+	condition = {
+		tooltip = ISOLATIONIST_DAENGUN
+		potential = {
+			tag = Y93
+		}
+		allow = {
+			NOT = { has_reform = isolated_kingdom_reform }
 		}
 	}
 
@@ -278,6 +309,16 @@ declarewar = {
 					continent = serpentspine
 				}
 			}
+		}
+	}
+	
+	condition = {
+		tooltip = ADVENTURER_NO_NO_CB
+		potential = {
+			has_country_modifier = adventurer_no_cb
+		}
+		allow = {
+			always = no
 		}
 	}
 	
@@ -313,6 +354,25 @@ declarewar = {
 			}
 			remove_country_modifier = federation_war_mandat
 		}
+		
+		if = {
+			limit = { 
+				OR = {
+					tag = G93
+					FROM = { tag = G93 }
+				}
+				G93 = {
+					has_country_flag = mykx_hellfire_cannons_unlocked
+				}
+				NOT = { 
+					G93 = {
+						has_country_flag = mykx_hellfire_cannons_flag
+					}
+				}
+			}
+			G93 = { country_event = { id = mykx.33 } }
+		}
+		
 		if = {
 			limit = {
 				NOT = { has_country_modifier = lake_federation_member }
@@ -345,8 +405,9 @@ declarewar = {
 					}
 				}
 			}
-			raj_cohesion_change = { amount = -0.3 }
-			FROM = { raj_cohesion_change = { amount = -0.1 } }
+			raj_calc_internal_wars = yes
+			# raj_cohesion_change = { amount = 30 non_monthly = yes }
+			# FROM = { raj_cohesion_change = { amount = 10 } non_monthly = yes }
 		}
 		if = {
 			limit = { 
@@ -423,6 +484,20 @@ declarewar = {
 			}
 			remove_country_modifier = roadwarrior_truce
 			country_event = { id = roadwarrior.8 days = 1825 }
+		}
+		
+		#ovdal lodhum orcrend modifier when at war with orcs
+		if = {
+			limit = {
+				H77 = { has_country_flag = orcrend_war_enabled }
+				OR = {
+					tag = H77
+					alliance_with = H77
+					FROM = { tag = H77 }
+					FROM = { alliance_with = H77 }
+				}
+			}
+			H77 = { country_event = { id = flavor_lodhum.150 days = 20 } }
 		}
 #		if = {
 #			limit = {
@@ -593,6 +668,16 @@ allianceaction = {
 					mission_completed = G32_with_two_companions
 				}
 			}
+		}
+	}
+	
+	condition = {
+		tooltip = ISOLATIONIST_DAENGUN
+		potential = {
+			tag = Y93
+		}
+		allow = {
+			NOT = { has_reform = isolated_kingdom_reform }
 		}
 	}
 }
@@ -964,6 +1049,16 @@ royal_marriage = {
 			}
 		}
 	}
+	
+	condition = {
+		tooltip = ISOLATIONIST_DAENGUN
+		potential = {
+			tag = Y93
+		}
+		allow = {
+			NOT = { has_reform = isolated_kingdom_reform }
+		}
+	}
 }
 
 annexationaction = {
@@ -1033,6 +1128,16 @@ annexationaction = {
 		allow = {
 			always = no
 		}
+	}
+
+	condition = {
+		tooltip = LODHUM_GELKALIS_NO_INTERGRATE
+		potential = {
+			ROOT = { tag = F26 }
+			FROM = { tag = F27 }
+			H77 = { mission_completed = lodhum_yesterdays_enemy }
+		}
+		allow = { always = no }
 	}
 }
 
@@ -1153,6 +1258,16 @@ form_coalition = {
 			NOT = { has_country_flag = nsc_was_at_samartal }
 		}
 	}
+	
+	condition = { #Raja subjects can't join external coalitions
+		tooltip = RAJ_EXTERNAL_COALITIONS
+		potential = {
+			overlord = { has_reform = raja_reform }
+		}
+		allow = {
+			FROM = { overlord = { has_reform = raja_reform } }
+		}
+	}
 }
 
 request_to_join_trade_league = {
@@ -1242,19 +1357,35 @@ callaction = {
 			}
 		}
 	}
+	condition = { #Can't call to arms during Ovdal Lodhum's scripted war
+		tooltip = LODHUM_NO_CALL_WAR
+		potential = {
+			has_global_flag = lodhum_elf_war_begin
+			OR = {
+				tag = H77
+				has_country_flag = denied_lodhum_friendship #so they can't call in either
+			}
+		}
+		allow = {
+			FROM = {
+				OR = {
+					tag = F26 #gelkalis
+					tag = F27 #harpylen
+				}
+			}
+		}
+	}
 }
 
 tributary_state_action = {
 	condition = {
 		tooltip = YNN_TRIBUTARY_YNNICS
 		potential = {
+			culture_group = ynnic_ruinborn_elf
 		}
 		allow = {
 			NOT = {
-				AND = {
-					culture_group = ynnic_ruinborn_elf
-					FROM = { culture_group = ynnic_ruinborn_elf }
-				}
+				FROM = { culture_group = ynnic_ruinborn_elf }
 			}
 		}
 	}
