@@ -99,10 +99,10 @@ country_decisions = {
 						manpower = 20
 					}
 					NOT = { num_of_loans = 2 }
+					NOT = { overextension_percentage = 0.3 }
 					any_neighbor_country = {
 						NOT = { truce_with = I45 }
 						NOT = { truce_with = H77 }
-						NOT = { alliance_with = I45 }
 						NOT = { alliance_with = H77 }
 						any_owned_province = { superregion = deepwoods_superregion }
 					}
@@ -119,10 +119,10 @@ country_decisions = {
 						manpower = 20
 					}
 					NOT = { num_of_loans = 2 }
+					NOT = { overextension_percentage = 0.3 }
 					any_neighbor_country = {
 						NOT = { truce_with = I33 }
 						NOT = { truce_with = H77 }
-						NOT = { alliance_with = I33 }
 						NOT = { alliance_with = H77 }
 						any_owned_province = { superregion = deepwoods_superregion }
 					}
@@ -134,26 +134,152 @@ country_decisions = {
 			#cyranavar
 			if = {
 				limit = { exists = I45 }
+				#you or your vassal owns it
 				if = {
-					limit = { I45 = { any_neighbor_country = {  is_subject_of = H77 } } }
-					random_subject_country = {
-						limit = { is_neighbor_of = I45 }
-						if = {
-							limit = { total_development = 100 }
-							H77 = { add_adm_power = 300 add_dip_power = 300 add_mil_power = 300 }
+					limit = {
+						I45 = {
+							any_neighbor_country = {  
+								OR = {
+									tag = H77
+									is_subject_of = H77
+								}
+								any_owned_province = { superregion = deepwoods_superregion }
+							}
 						}
-						else_if = {
-							limit = { total_development = 75 }
-							H77 = { add_adm_power = 225 add_dip_power = 225 add_mil_power = 225 }
+					}
+					#you own it
+					if = {
+						limit = { any_owned_province = { superregion = deepwoods_superregion } }
+						every_owned_province = {
+							limit = { superregion = deepwoods_superregion }
+							ROOT = { 
+								add_adm_power = 50
+								add_dip_power = 50
+								add_mil_power = 50
+							}
+							hidden_effect = { 
+								remove_core = ROOT 
+								add_core = I45
+							}
+							cede_province = I45
 						}
-						else_if = {
-							limit = { total_development = 50 }
-							H77 = { add_adm_power = 150 add_dip_power = 150 add_mil_power = 150 }
+					}
+					#vassal owns it
+					else = {
+						random_subject_country = {
+							limit = { any_owned_province = { superregion = deepwoods_superregion } }
+							every_owned_province = {
+								limit = { superregion = deepwoods_superregion }
+								ROOT = { 
+									add_adm_power = 50
+									add_dip_power = 50
+									add_mil_power = 50
+								}
+								hidden_effect = {
+									remove_core = PREV
+									remove_core = ROOT 
+									add_core = I45
+								}
+								cede_province = I45
+							}
 						}
-						else = { H77 = { add_adm_power = 75 add_dip_power = 75 add_mil_power = 75 } }
-						I45 = { inherit = PREV }
 					}
 				}
+				#they are allied/guaranteed
+				else_if = {
+					limit = {
+						I45 = {
+							any_neighbor_country = {
+								ai = yes
+								OR = {
+									alliance_with = PREV
+									guaranteed_by = PREV
+								}
+								any_owned_province = { superregion = deepwoods_superregion }
+							}
+						}
+					}
+					#if they are an orc/goblin break it and attack
+					if = {
+						limit = {
+							I45 = {
+								any_neighbor_country = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									OR = {
+										culture_is_orcish = yes
+										culture_is_goblin = yes
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+							}
+						}
+						add_dip_power = -100
+						add_mil_power = -50
+						I45 = {
+							random_neighbor_country = {
+								limit = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									OR = {
+										culture_is_orcish = yes
+										culture_is_goblin = yes
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+								I45 = { declare_war_with_cb = {  who = PREV casus_belli = cb_civ_vs_monster } }
+							}
+							custom_tooltip = lodhum_join_war_tooltip
+							hidden_effect = { every_ally = { join_all_offensive_wars_of = I45 } }
+						}
+					}
+					#if they're not, then pay more points and take it
+					else = {
+						add_adm_power = -50
+						add_dip_power = -150
+						add_mil_power = -50
+						I45 = {
+							random_neighbor_country = {
+								limit = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+								if = {
+									limit = { num_of_cities = 2 }
+									if = {
+										limit = { num_of_cities = 3 }
+										add_truce_with = I45
+									}
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I45
+									}
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I45
+									}
+								}
+								else = {
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I45
+									}
+								}
+							}
+						}
+					}
+				}
+				#go to war
 				else = {
 					add_dip_power = -100
 					add_mil_power = -50
@@ -162,7 +288,6 @@ country_decisions = {
 							limit = {
 								NOT = { truce_with = I45 }
 								NOT = { truce_with = H77 }
-								NOT = { alliance_with = I45 }
 								NOT = { alliance_with = H77 }
 								any_owned_province = { superregion = deepwoods_superregion }
 							}
@@ -179,26 +304,152 @@ country_decisions = {
 			}
 			#salla ayeth
 			else = {
+				#you or your vassal owns it
 				if = {
-					limit = { I33 = { any_neighbor_country = {  is_subject_of = H77 } } }
-					random_subject_country = {
-						limit = { is_neighbor_of = I33 }
-						if = {
-							limit = { total_development = 100 }
-							H77 = { add_adm_power = 300 add_dip_power = 300 add_mil_power = 300 }
+					limit = {
+						I33 = {
+							any_neighbor_country = {  
+								OR = {
+									tag = H77
+									is_subject_of = H77
+								}
+								any_owned_province = { superregion = deepwoods_superregion }
+							}
 						}
-						else_if = {
-							limit = { total_development = 75 }
-							H77 = { add_adm_power = 225 add_dip_power = 225 add_mil_power = 225 }
+					}
+					#you own it
+					if = {
+						limit = { any_owned_province = { superregion = deepwoods_superregion } }
+						every_owned_province = {
+							limit = { superregion = deepwoods_superregion }
+							ROOT = { 
+								add_adm_power = 50
+								add_dip_power = 50
+								add_mil_power = 50
+							}
+							hidden_effect = { 
+								remove_core = ROOT 
+								add_core = I33
+							}
+							cede_province = I33
 						}
-						else_if = {
-							limit = { total_development = 50 }
-							H77 = { add_adm_power = 150 add_dip_power = 150 add_mil_power = 150 }
+					}
+					#vassal owns it
+					else = {
+						random_subject_country = {
+							limit = { any_owned_province = { superregion = deepwoods_superregion } }
+							every_owned_province = {
+								limit = { superregion = deepwoods_superregion }
+								ROOT = { 
+									add_adm_power = 50
+									add_dip_power = 50
+									add_mil_power = 50
+								}
+								hidden_effect = {
+									remove_core = PREV
+									remove_core = ROOT 
+									add_core = I33
+								}
+								cede_province = I33
+							}
 						}
-						else = { H77 = { add_adm_power = 75 add_dip_power = 75 add_mil_power = 75 } }
-						I33 = { inherit = PREV }
 					}
 				}
+				#they are allied/guaranteed
+				else_if = {
+					limit = {
+						I33 = {
+							any_neighbor_country = {
+								ai = yes
+								OR = {
+									alliance_with = PREV
+									guaranteed_by = PREV
+								}
+								any_owned_province = { superregion = deepwoods_superregion }
+							}
+						}
+					}
+					#if they are an orc/goblin break it and attack
+					if = {
+						limit = {
+							I33 = {
+								any_neighbor_country = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									OR = {
+										culture_is_orcish = yes
+										culture_is_goblin = yes
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+							}
+						}
+						add_dip_power = -100
+						add_mil_power = -50
+						I33 = {
+							random_neighbor_country = {
+								limit = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									OR = {
+										culture_is_orcish = yes
+										culture_is_goblin = yes
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+								I33 = { declare_war_with_cb = {  who = PREV casus_belli = cb_civ_vs_monster } }
+							}
+							custom_tooltip = lodhum_join_war_tooltip
+							hidden_effect = { every_ally = { join_all_offensive_wars_of = I33 } }
+						}
+					}
+					#if they're not, then pay more points and take it
+					else = {
+						add_adm_power = -50
+						add_dip_power = -150
+						add_mil_power = -50
+						I33 = {
+							random_neighbor_country = {
+								limit = {
+									ai = yes
+									OR = {
+										alliance_with = PREV
+										guaranteed_by = PREV
+									}
+									any_owned_province = { superregion = deepwoods_superregion }
+								}
+								if = {
+									limit = { num_of_cities = 2 }
+									if = {
+										limit = { num_of_cities = 3 }
+										add_truce_with = I33
+									}
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I33
+									}
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I33
+									}
+								}
+								else = {
+									random_owned_province = {
+										hidden_effect = { remove_core = PREV }
+										cede_province = I33
+									}
+								}
+							}
+						}
+					}
+				}
+				#go to war
 				else = {
 					add_dip_power = -100
 					add_mil_power = -50
@@ -207,7 +458,6 @@ country_decisions = {
 							limit = {
 								NOT = { truce_with = I33 }
 								NOT = { truce_with = H77 }
-								NOT = { alliance_with = I33 }
 								NOT = { alliance_with = H77 }
 								any_owned_province = { superregion = deepwoods_superregion }
 							}
@@ -247,10 +497,10 @@ country_decisions = {
 					manpower = 20
 				}
 				NOT = { num_of_loans = 2 }
+				NOT = { overextension_percentage = 0.3 }
 				any_neighbor_country = {
 					NOT = { truce_with = F26 }
 					NOT = { truce_with = H77 }
-					NOT = { alliance_with = F26 }
 					NOT = { alliance_with = H77 }
 					any_owned_province = { 
 						OR = {
@@ -264,16 +514,29 @@ country_decisions = {
 		}
 
 		effect = {
-			add_dip_power = -100
-			add_mil_power = -50
-			F26 = {
-				random_neighbor_country = {
+			#you or vassal owns it
+			if = {
+				limit = {
+					F26 = {
+						any_neighbor_country = {  
+							OR = {
+								tag = H77
+								is_subject_of = H77
+							}
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+					}
+				}
+				#you own it
+				if = {
 					limit = {
-						NOT = { truce_with = F26 }
-						NOT = { truce_with = H77 }
-						NOT = { alliance_with = F26 }
-						NOT = { alliance_with = H77 }
-						any_owned_province = { 
+						any_owned_province = {
 							OR = {
 								is_core = F26
 								province_id = 652
@@ -281,15 +544,218 @@ country_decisions = {
 							}
 						}
 					}
-					if = {
-						limit = { has_country_modifier = monstrous_nation }
-						F26 = { declare_war_with_cb = { who = PREV casus_belli = cb_civ_vs_monster } }
+					every_owned_province = {
+						limit = {
+							OR = {
+								is_core = F26
+								province_id = 652
+								province_id = 650
+							}
+						}
+						ROOT = { 
+							add_adm_power = 50
+							add_dip_power = 50
+							add_mil_power = 50
+						}
+						hidden_effect = {
+							remove_core = ROOT
+							add_core = F26
+						}
+						cede_province = F26
 					}
-					else = { F26 = { declare_war_with_cb = { who = PREV casus_belli = cb_annex } } }
 				}
-				hidden_effect = { every_ally = { join_all_offensive_wars_of = F26 } }
+				#vassal owns it
+				else = {
+					random_subject_country = {
+						limit = {
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+						every_owned_province = {
+							limit = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+							ROOT = { 
+								add_adm_power = 50
+								add_dip_power = 50
+								add_mil_power = 50
+							}
+							hidden_effect = {
+								remove_core = PREV
+								remove_core = ROOT 
+								add_core = F26
+							}
+							cede_province = F26
+						}
+					}
+				}
 			}
-			custom_tooltip = lodhum_join_war_tooltip
+			#they have an alliance or guarantee by any of the 3
+			else_if = {
+				limit = {
+					F26 = {
+						any_neighbor_country = {
+							ai = yes
+							OR = {
+								alliance_with = F26
+								guaranteed_by = F26
+								alliance_with = I45
+								guaranteed_by = I45
+								alliance_with = F23
+								guaranteed_by = F23
+							}
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+					}
+				}
+				add_adm_power = -50
+				add_dip_power = -150
+				add_mil_power = -50
+				F26 = {
+					random_neighbor_country = {
+						limit = {
+							ai = yes
+							OR = {
+								alliance_with = F26
+								guaranteed_by = F26
+								alliance_with = I45
+								guaranteed_by = I45
+								alliance_with = F23
+								guaranteed_by = F23
+							}
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+						if = {
+							limit = { num_of_cities = 2 }
+							if = {
+								limit = { num_of_cities = 3 }
+								add_truce_with = F26
+							}
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F26
+							}
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F26
+							}
+						}
+						else = {
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F26
+							}							
+						}
+					}
+				}
+			}
+			#owned by other allies
+			else_if = {
+				limit = {
+					F26 = {
+						any_neighbor_country = {
+							ai = yes
+							OR = {
+								tag = I45
+								is_subject_of = I45
+								tag = F23
+								is_subject_of = F23
+								tag = F27
+								is_subject_of = F27
+							}
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+					}
+				}
+				add_adm_power = -100
+				F26 = {
+					random_neighbor_country = {
+						limit = {
+							ai = yes
+							OR = {
+								tag = I45
+								is_subject_of = I45
+								tag = F23
+								is_subject_of = F23
+								tag = F27
+								is_subject_of = F27
+							}
+							any_owned_province = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+						every_owned_province = {
+							limit = {
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+							hidden_effect = { remove_core = PREV }
+							cede_province = F26							
+						}
+					}
+				}
+			}
+			else = {
+				add_dip_power = -100
+				add_mil_power = -50
+				F26 = {
+					random_neighbor_country = {
+						limit = {
+							NOT = { truce_with = F26 }
+							NOT = { truce_with = H77 }
+							NOT = { alliance_with = H77 }
+							any_owned_province = { 
+								OR = {
+									is_core = F26
+									province_id = 652
+									province_id = 650
+								}
+							}
+						}
+						if = {
+							limit = { has_country_modifier = monstrous_nation }
+							F26 = { declare_war_with_cb = { who = PREV casus_belli = cb_civ_vs_monster } }
+						}
+						else = { F26 = { declare_war_with_cb = { who = PREV casus_belli = cb_annex } } }
+					}
+					hidden_effect = { every_ally = { join_all_offensive_wars_of = F26 } }
+				}
+				custom_tooltip = lodhum_join_war_tooltip
+			}
 		}
 	}
 
@@ -315,10 +781,10 @@ country_decisions = {
 					manpower = 20
 				}
 				NOT = { num_of_loans = 2 }
+				NOT = { overextension_percentage = 0.3 }
 				any_neighbor_country = {
 					NOT = { truce_with = F23 }
 					NOT = { truce_with = H77 }
-					NOT = { alliance_with = F23 }
 					NOT = { alliance_with = H77 }
 					any_owned_province = { 
 						#OR = {
@@ -339,16 +805,34 @@ country_decisions = {
 		}
 
 		effect = {
-			add_dip_power = -100
-			add_mil_power = -50
-			F23 = {
-				random_neighbor_country = {
+			#you or vassal owns it
+			if = {
+				limit = {
+					F23 = {
+						any_neighbor_country = {  
+							OR = {
+								tag = H77
+								is_subject_of = H77
+							}
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+					}
+				}
+				#you own it
+				if = {
 					limit = {
-						NOT = { truce_with = F23 }
-						NOT = { truce_with = H77 }
-						NOT = { alliance_with = F23 }
-						NOT = { alliance_with = H77 }
-						any_owned_province = { 
+						any_owned_province = {
 							OR = {
 								province_id = 528
 								province_id = 520
@@ -361,15 +845,263 @@ country_decisions = {
 							}
 						}
 					}
-					if = {
-						limit = { has_country_modifier = monstrous_nation }
-						F23 = { declare_war_with_cb = { who = PREV casus_belli = cb_civ_vs_monster } }
+					every_owned_province = {
+						limit = {
+							OR = {
+								province_id = 528
+								province_id = 520
+								area = south_overmarch_area
+								area = east_overmarch_area
+								AND = {
+									area = magairous_area
+									NOT = { province_id = 533 }
+								}
+							}
+						}
+						ROOT = { 
+							add_adm_power = 50
+							add_dip_power = 50
+							add_mil_power = 50
+						}
+						hidden_effect = {
+							remove_core = ROOT
+							add_core = F23
+						}
+						cede_province = F23
 					}
-					else = { F23 = { declare_war_with_cb = { who = PREV casus_belli = cb_annex } } }
 				}
-				hidden_effect = { every_ally = { join_all_offensive_wars_of = F23 } }
+				#vassal owns it
+				else = {
+					random_subject_country = {
+						limit = {
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+						every_owned_province = {
+							limit = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+							ROOT = { 
+								add_adm_power = 50
+								add_dip_power = 50
+								add_mil_power = 50
+							}
+							hidden_effect = {
+								remove_core = PREV
+								remove_core = ROOT 
+								add_core = F23
+							}
+							cede_province = F23
+						}
+					}
+				}
 			}
-			custom_tooltip = lodhum_join_war_tooltip
+			#they have an alliance or guarantee by any of the 3
+			else_if = {
+				limit = {
+					F23 = {
+						any_neighbor_country = {
+							ai = yes
+							OR = {
+								alliance_with = F26
+								guaranteed_by = F26
+								alliance_with = I45
+								guaranteed_by = I45
+								alliance_with = F23
+								guaranteed_by = F23
+							}
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+					}
+				}
+				add_adm_power = -50
+				add_dip_power = -150
+				add_mil_power = -50
+				F23 = {
+					random_neighbor_country = {
+						limit = {
+							ai = yes
+							OR = {
+								alliance_with = F26
+								guaranteed_by = F26
+								alliance_with = I45
+								guaranteed_by = I45
+								alliance_with = F23
+								guaranteed_by = F23
+							}
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+						if = {
+							limit = { num_of_cities = 2 }
+							if = {
+								limit = { num_of_cities = 3 }
+								add_truce_with = F23
+							}
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F23
+							}
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F23
+							}
+						}
+						else = {
+							random_owned_province = {
+								hidden_effect = { remove_core = PREV }
+								cede_province = F23
+							}							
+						}
+					}
+				}
+			}
+			#owned by other allies
+			else_if = {
+				limit = {
+					F23 = {
+						any_neighbor_country = {
+							ai = yes
+							OR = {
+								tag = I45
+								is_subject_of = I45
+								tag = F26
+								is_subject_of = F26
+								tag = F27
+								is_subject_of = F27
+							}
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+					}
+				}
+				add_adm_power = -100
+				F23 = {
+					random_neighbor_country = {
+						limit = {
+							ai = yes
+							OR = {
+								tag = I45
+								is_subject_of = I45
+								tag = F26
+								is_subject_of = F26
+								tag = F27
+								is_subject_of = F27
+							}
+							any_owned_province = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+						every_owned_province = {
+							limit = {
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+							hidden_effect = { remove_core = PREV }
+							cede_province = F23							
+						}
+					}
+				}
+			}
+			else = {
+				add_dip_power = -100
+				add_mil_power = -50
+				F23 = {
+					random_neighbor_country = {
+						limit = {
+							NOT = { truce_with = F23 }
+							NOT = { truce_with = H77 }
+							NOT = { alliance_with = H77 }
+							any_owned_province = { 
+								OR = {
+									province_id = 528
+									province_id = 520
+									area = south_overmarch_area
+									area = east_overmarch_area
+									AND = {
+										area = magairous_area
+										NOT = { province_id = 533 }
+									}
+								}
+							}
+						}
+						if = {
+							limit = { has_country_modifier = monstrous_nation }
+							F23 = { declare_war_with_cb = { who = PREV casus_belli = cb_civ_vs_monster } }
+						}
+						else = { F23 = { declare_war_with_cb = { who = PREV casus_belli = cb_annex } } }
+					}
+					hidden_effect = { every_ally = { join_all_offensive_wars_of = F23 } }
+				}
+				custom_tooltip = lodhum_join_war_tooltip
+			}
 		}
 	}
 }
