@@ -1775,6 +1775,19 @@ country_event = { #Requesting Raj Mandates
 		}
 	}
 	
+	#Close
+	option = {
+		name = rahenraj.1002.z
+		ai_chance = { factor = 0 }
+		add_dip_power = 50
+		hidden_effect = {
+			clr_country_flag = raj_requested_mandate
+			if = { limit = { ai = no }
+				country_event = { id = rahenraj.3000 }
+			}
+		}
+	}
+	
 	#Ask the Raja for protection
 	option = {
 		name = rahenraj.1002.a
@@ -2264,9 +2277,8 @@ country_event = { #Requesting Raj Mandates
 	
 	#Close
 	option = {
-		ai_chance = { factor = 0 }
 		name = rahenraj.1002.z
-		trigger = { always = yes }
+		ai_chance = { factor = 0 }
 		
 		add_dip_power = 50
 		hidden_effect = {
@@ -3455,8 +3467,8 @@ country_event = { # Ministries failing their administration in FROM
 				}
 			}
 		}
-		add_adm_power = -25
-		add_dip_power = -25
+		add_adm_power = -10
+		add_dip_power = -10
 	}
 	option = { # We have other priorities currently
 		name = rahenraj.1201.b
@@ -4222,16 +4234,398 @@ country_event = {
 	id = rahenraj.3002
 	title = rahenraj.3002.t
 	desc = rahenraj.3002.d
-	picture = EMPTY_eventPicture
+	picture = RAJ_SUBMENU_eventPicture
 	
 	is_triggered_only = yes
 	
+	#Close
 	option = {
 		name = rahenraj.1002.z
+		hidden_effect = { country_event = { id = rahenraj.3000 } }
 	}
 	
-	after = {
-		country_event = { id = rahenraj.3000 }
+	#Increase Ministerial controls
+	option = {
+		name = rahenraj.3002.a
+		trigger = { NOT = { has_country_modifier = raj_increased_ministries_controls } }
+		add_country_modifier = { name = raj_increased_ministries_controls duration = 3650 }
+		custom_tooltip = raj_vassals_get_increased_controls_privilege_tt
+		hidden_effect = {
+			every_subject_country = {
+				limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal
+						is_subject_of_type = great_daimyo_vassal
+					}
+				}
+				set_estate_privilege = estate_raj_ministries_increased_controls
+				country_event = { id = rahenraj.3011 }
+			}
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Increase Ministerial controls - not available
+	option = {
+		name = rahenraj.3002.b
+		trigger = { has_country_modifier = raj_increased_ministries_controls }
+		custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Demand introspection
+	option = {
+		name = rahenraj.3002.c
+		trigger = { NOT = { has_country_modifier = raj_demanded_introspection } }
+		add_country_modifier = { name = raj_raja_introspecting duration = 1095 }
+		custom_tooltip = raj_vassals_get_introspection_privilege_tt
+		hidden_effect = {
+			add_country_modifier = { name = raj_demanded_introspection duration = 3650 hidden = yes }
+			every_subject_country = {
+				limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal
+						is_subject_of_type = great_daimyo_vassal
+					}
+				}
+				set_estate_privilege = estate_raj_ministries_demand_of_introspection
+				country_event = { id = rahenraj.3010 }
+			}
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Demand introspection - not available
+	option = {
+		name = rahenraj.3002.dd
+		trigger = { has_country_modifier = raj_demanded_introspection }
+		custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Pursue Aggressive Policies
+	option = {
+		name = rahenraj.3002.e
+		trigger = {
+			NOT = { has_country_modifier = raj_raja_aggressive_policies }
+			4411 = { check_variable = { which = raj_cohesion value = 75 } }
+		}
+		add_country_modifier = { name = raj_raja_aggressive_policies duration = 3650 }
+		custom_tooltip = raj_vassals_get_aggressive_policies_privilege_tt
+		hidden_effect = {
+			every_subject_country = {
+				limit = { is_subject_of_type = great_daimyo_vassal }
+				set_estate_privilege = estate_raj_ministries_aggressive_policies
+				country_event = { id = rahenraj.3012 }
+			}
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Pursue Aggressive Policies - not available
+	option = {
+		name = rahenraj.3002.f
+		trigger = {
+			OR = {
+				has_country_modifier = raj_raja_aggressive_policies
+				4411 = { NOT = { check_variable = { which = raj_cohesion value = 75 } } }
+			}
+		}
+		if = { limit = { has_country_modifier = raj_raja_aggressive_policies }
+			custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		}
+		if = { limit = { 4411 = { NOT = { check_variable = { which = raj_cohesion value = 70 } } } }
+			custom_tooltip = raj_need_cohesion_75_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Ask Ministers to tutor heir
+	option = {
+		name = rahenraj.3002.g
+		trigger = {
+			has_heir = yes
+			NOT = { heir_age = 15 }
+			NOT = { has_country_modifier = raj_tutoring_heir }
+			NOT = {
+				has_heir_flag = raj_tutored_adm
+				has_heir_flag = raj_tutored_dip
+				has_heir_flag = raj_tutored_mil
+			}
+		}
+		custom_tooltip = raj_heir_tutoring_effect_in_3_years_tt
+		add_years_of_income = -0.1
+		tooltip = {
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_adm } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+						change_heir_adm = 1
+					}
+					2 = { }
+				}
+			}
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_dip } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+						change_heir_dip = 1
+					}
+					2 = { }
+				}
+			}
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_mil } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+						change_heir_mil = 1
+					}
+					2 = { }
+				}
+			}
+		}
+		hidden_effect = {
+			add_country_modifier = { name = raj_tutoring_heir duration = 1115 hidden = yes }
+			set_heir_flag = raj_ministries_tutoring
+			country_event = { id = rahenraj.3008 }
+			country_event = { id = rahenraj.3013 days = 1095 }
+		}
+	}
+	#Ask Ministers to tutor heir - not available
+	option = {
+		name = rahenraj.3002.h
+		trigger = {
+			OR = {
+				NOT = { has_heir = yes }
+				heir_age = 15
+				has_country_modifier = raj_tutoring_heir
+				AND = {
+					has_heir_flag = raj_tutored_adm
+					has_heir_flag = raj_tutored_dip
+					has_heir_flag = raj_tutored_mil
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					has_heir = no
+					heir_age = 15
+				}
+			}
+			custom_tooltip = raj_has_an_heir_younger_than_15_tt
+		}
+		if = { limit = { has_country_modifier = raj_tutoring_heir }
+			custom_tooltip = raj_ministries_actions_only_every_3_years_tt
+		}
+		if = {
+			limit = {
+				has_heir_flag = raj_tutored_adm
+				has_heir_flag = raj_tutored_dip
+				has_heir_flag = raj_tutored_mil
+			}
+			custom_tooltip = raj_ministries_actions_only_every_3_years_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Census
+	option = {
+		name = rahenraj.3002.i
+		trigger = {
+			NOT = { has_country_modifier = raj_ministerial_census }
+			adm_power = 50
+			dip_power = 50
+			mil_power = 50
+		}
+		raj_cohesion_change_absolute = { amount = 5 }
+		add_adm_power = -50
+		add_dip_power = -50
+		add_mil_power = -50
+		custom_tooltip = raj_ministries_ministerial_census_tt
+		hidden_effect = {
+			add_country_modifier = { name = raj_ministerial_census duration = 3650 hidden = yes }
+			every_subject_country = {
+				limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal
+						is_subject_of_type = great_daimyo_vassal
+					}
+				}
+				country_event = { id = rahenraj.1200 days = 14 random = 300 }
+			}
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Census - not available
+	option = {
+		name = rahenraj.3002.j
+		trigger = {
+			OR = {
+				has_country_modifier = raj_ministerial_census
+				NOT = {
+					adm_power = 50
+					dip_power = 50
+					mil_power = 50
+				}
+			}
+		}
+		if = { limit = { has_country_modifier = raj_ministerial_census }
+			custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		}
+		if = { limit = { NOT = { adm_power = 50 } }
+			custom_tooltip = raj_need_50_adm_tt
+		}
+		if = { limit = { NOT = { dip_power = 50 } }
+			custom_tooltip = raj_need_50_dip_tt
+		}
+		if = { limit = { NOT = { mil_power = 50 } }
+			custom_tooltip = raj_need_50_mil_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Crack down on decadence
+	option = {
+		name = rahenraj.3002.k
+		trigger = {
+			4411 = { NOT = { check_variable = { which = raj_cohesion value = 30 } } }
+			NOT = { has_country_modifier = raj_cracking_on_decadence }
+			dip_power = 50
+			treasury = 350
+		}
+		raj_cohesion_change_absolute = { amount = 15 }
+		add_dip_power = -50
+		add_treasury = -350
+		custom_tooltip = raj_cracking_on_decadence_tt
+		hidden_effect = {
+			add_country_modifier = { name = raj_cracking_on_decadence duration = 3650 hidden = yes }
+			every_subject_country = {
+				limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal
+						is_subject_of_type = great_daimyo_vassal
+					}
+				}
+				country_event = { id = rahenraj.3014 }
+				add_liberty_desire = 15
+				set_estate_privilege = estate_raj_cracking_on_decadence
+			}
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Crack down on decadence - not available
+	option = {
+		name = rahenraj.3002.l
+		trigger = {
+			OR = {
+				4411 = { check_variable = { which = raj_cohesion value = 30 } }
+				has_country_modifier = raj_cracking_on_decadence
+				NOT = {
+					dip_power = 50
+					treasury = 350
+				}
+			}
+		}
+		if = { limit = { has_country_modifier = raj_cracking_on_decadence }
+			custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		}
+		if = { limit = { 4411 = { check_variable = { which = raj_cohesion value = 30 } } }
+			custom_tooltip = raj_need_less_cohesion_30_tt
+		}
+		if = { limit = { NOT = { dip_power = 50 } }
+			custom_tooltip = raj_need_50_dip_tt
+		}
+		if = { limit = { NOT = { treasury = 350 } }
+			custom_tooltip = raj_need_350_cash_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Regulate the Grand Vizier
+	option = {
+		name = rahenraj.3002.m
+		trigger = {
+			4411 = { check_variable = { which = raj_cohesion value = 60 } }
+			NOT = { has_country_modifier = raj_regulating_vizier }
+			adm_power = 50
+		}
+		add_adm_power = -50
+		raj_cohesion_change_absolute = { amount = -10 }
+		raj_vizier_sway_change = { amount = -10 }
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			add_opinion = { who = ROOT modifier = raj_regulated_vizier }
+			hidden_effect = { country_event = { id = rahenraj.3015 } }
+		}
+		hidden_effect = {
+			add_country_modifier = { name = raj_regulating_vizier duration = 3650 hidden = yes }
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#Regulate the Grand Vizier - not available
+	option = {
+		name = rahenraj.3002.n
+		trigger = {
+			OR = {
+				has_country_modifier = raj_regulating_vizier
+				4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } }
+				NOT = { adm_power = 50 }
+			}
+		}
+		if = { limit = { has_country_modifier = raj_regulating_vizier }
+			custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		}
+		if = { limit = { 4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } } }
+			custom_tooltip = raj_need_cohesion_60_tt
+		}
+		if = { limit = { NOT = { adm_power = 50 } }
+			custom_tooltip = raj_need_50_adm_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#New taxes
+	option = {
+		name = rahenraj.3002.o
+		trigger = {
+			4411 = { check_variable = { which = raj_cohesion value = 60 } }
+			NOT = { has_country_modifier = raj_new_tax_policies }
+			dip_power = 50
+		}
+		raj_cohesion_change_absolute = { amount = -10 }
+		add_dip_power = 50
+		add_country_modifier = { name = raj_new_tax_policies duration = 3650 }
+		hidden_effect = {
+			country_event = { id = rahenraj.3008 }
+		}
+	}
+	#New taxes - not available
+	option = {
+		name = rahenraj.3002.p
+		trigger = {
+			OR = {
+				has_country_modifier = raj_new_tax_policies
+				4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } }
+				NOT = { dip_power = 50 }
+			}
+		}
+		if = { limit = { has_country_modifier = raj_new_tax_policies }
+			custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		}
+		if = { limit = { 4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } } }
+			custom_tooltip = raj_need_cohesion_60_tt
+		}
+		if = { limit = { NOT = { dip_power = 50 } }
+			custom_tooltip = raj_need_50_dip_tt
+		}
+		hidden_effect = { country_event = { id = rahenraj.3008 } }
+	}
+	
+	#Close
+	option = {
+		name = rahenraj.1002.z
+		hidden_effect = { country_event = { id = rahenraj.3000 } }
 	}
 }
 
@@ -4666,6 +5060,146 @@ country_event = {
 	option = {
 		name = rahenraj.3001.a
 		country_event = { id = rahenraj.1002 }
+	}
+}
+
+country_event = {
+	id = rahenraj.3008
+	title = rahenraj.3008.t
+	desc = rahenraj.3008.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	option = {
+		name = rahenraj.3001.a
+		country_event = { id = rahenraj.3002 }
+	}
+}
+
+#Info event - get introspection privilege
+country_event = {
+	id = rahenraj.3010
+	title = rahenraj.3010.t
+	desc = rahenraj.3010.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.3010.a
+		custom_tooltip = raj_vassals_get_introspection_privilege_tt
+	}
+}
+#Info event - get increased controls privilege
+country_event = {
+	id = rahenraj.3011
+	title = rahenraj.3011.t
+	desc = rahenraj.3011.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.3011.a
+		custom_tooltip = raj_vassals_get_increased_controls_privilege_tt
+	}
+}
+#Info event - get aggressive policy privilege
+country_event = {
+	id = rahenraj.3012
+	title = rahenraj.3012.t
+	desc = rahenraj.3012.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.3012.a
+		custom_tooltip = raj_vassals_get_aggressive_policies_privilege_tt
+	}
+}
+#Heir tutoring results
+country_event = {
+	id = rahenraj.3013
+	title = rahenraj.3013.t
+	desc = rahenraj.3013.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_heir_flag = raj_ministries_tutoring
+	}
+	
+	option = {
+		name = rahenraj.3013.a
+		if = { limit = { NOT = { has_heir_flag = raj_tutored_adm } }
+			random_list = {
+				1 = {
+					modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+					modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+					change_heir_adm = 1
+					set_heir_flag = raj_tutored_adm
+				}
+				2 = { }
+			}
+		}
+		if = { limit = { NOT = { has_heir_flag = raj_tutored_dip } }
+			random_list = {
+				1 = {
+					modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+					modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+					change_heir_dip = 1
+					set_heir_flag = raj_tutored_dip
+				}
+				2 = { }
+			}
+		}
+		if = { limit = { NOT = { has_heir_flag = raj_tutored_mil } }
+			random_list = {
+				1 = {
+					modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+					modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+					change_heir_mil = 1
+					set_heir_flag = raj_tutored_mil
+				}
+				2 = { }
+			}
+		}
+		hidden_effect = {
+			remove_country_modifier = raj_tutoring_heir
+			clr_heir_flag = raj_ministries_tutoring
+		}
+	}
+}
+#Info event - get crack down on decadence privilege
+country_event = {
+	id = rahenraj.3014
+	title = rahenraj.3014.t
+	desc = rahenraj.3014.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.3014.a
+		custom_tooltip = raj_cracking_on_decadence_tt
+	}
+}
+#Info event - vizier get regulated
+country_event = {
+	id = rahenraj.3015
+	title = rahenraj.3015.t
+	desc = rahenraj.3015.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.3015.a
+		tooltip = { change_variable = { which = vizierSway value = -10 } }
 	}
 }
 
