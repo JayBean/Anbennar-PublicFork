@@ -36,11 +36,11 @@ rahen_calc_reform_ministry_of_agriculture = {
 			change_variable = { which = reformMinistryAgricultureScore value = 10 }
 		}
 		if = {
-			limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 10 has_terrain = farmlands development = 20 } }
+			limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 10 has_terrain = farmlands development = 18 } }
 			change_variable = { which = reformMinistryAgricultureScore value = 10 }
 		}
 		if = {
-			limit = { monthly_income = 15 }
+			limit = { monthly_income = 20 }
 			change_variable = { which = reformMinistryAgricultureScore value = 5 }
 		}
 		if = {
@@ -74,19 +74,6 @@ rahen_calc_reform_ministry_of_philosophy = {
 			change_variable = { which = reformMinistryPhilosophyScore value = 5 }
 		}
 		
-		# if = {
-			# limit = { check_variable = { which = rahen_court_debates_won value = 10 } }
-			# change_variable = { which = reformMinistryPhilosophyScore value = 5 }
-		# }
-		# if = {
-			# limit = { check_variable = { which = rahen_court_debates_won value = 20 } }
-			# change_variable = { which = reformMinistryPhilosophyScore value = 5 }
-		# }
-		# if = {
-			# limit = { check_variable = { which = rahen_court_debates_won value = 30 } }
-			# change_variable = { which = reformMinistryPhilosophyScore value = 5 }
-		# }
-		
 		if = {
 			limit = { NOT = { corruption = 1 } }
 			change_variable = { which = reformMinistryPhilosophyScore value = 5 }
@@ -101,7 +88,7 @@ rahen_calc_reform_ministry_of_philosophy = {
 		}
 		
 		if = {
-			limit = { limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 20 has_tax_building_trigger = yes } } }
+			limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 20 has_tax_building_trigger = yes } }
 			change_variable = { which = reformMinistryPhilosophyScore value = 5 }
 		}
 		if = {
@@ -131,7 +118,7 @@ rahen_calc_reform_ministry_of_internal_relations = {
 		}
 		if = {
 			limit = { all_subject_country = { estate_influence = { estate = estate_raj_ministries influence = 50 } } }
-			change_variable = { which = reformMinistryInternalRelationsScore value = 5 }
+			change_variable = { which = reformMinistryInternalRelationsScore value = 10 }
 		}
 		
 		if = {
@@ -278,13 +265,8 @@ rahen_add_new_neglected_infrastructure = {
 
 rahen_clear_court_disaster_province_modifiers = {
 	remove_province_modifier = rahen_suspicious_ministry_estate
-	if = {
-		limit = { OR = { has_province_modifier = rahen_severely_neglected_infrastructure has_province_modifier = rahen_neglected_infrastructure } }
-		remove_province_modifier = rahen_neglected_infrastructure
-		remove_province_modifier = rahen_severely_neglected_infrastructure
-		remove_province_triggered_modifier = rahen_repairing_infrastructure_monthly_tick
-		remove_province_triggered_modifier = rahen_repairing_infrastructure
-	}
+	remove_province_modifier = rahen_neglected_infrastructure
+	remove_province_modifier = rahen_severely_neglected_infrastructure
 }
 
 rahen_remove_harimraj_reforms_effect = {
@@ -365,6 +347,9 @@ raj_cohesion_calc = {
 					}
 					else_if = { limit = { NOT = { estate_influence = { estate = estate_raj_ministries influence = 20 } } }
 						raj_cohesion_change = {	amount = -1 ministries_influence = yes }
+					}
+					else_if = { limit = { NOT = { estate_influence = { estate = estate_raj_ministries influence = 1 } } }
+						raj_cohesion_change = {	amount = -2 ministries_influence = yes }
 					}
 					
 					if = { limit = { liberty_desire = 60 }
@@ -792,14 +777,91 @@ raj_calc_max_allowed_senaptia = {
 			}
 		}
 		
-		set_variable = {
-			which = raj_current_num_of_senaptia
-			value = 0
-		}
+		set_variable = { which = rajNbSenapti value = 0 }
 		owner = {
 			every_subject_country = {
 				limit = { is_subject_of_type = great_daimyo_vassal }
-				4411 = { change_variable = { raj_current_num_of_senaptia = 1 } }
+				4411 = { change_variable = { rajNbSenapti = 1 } }
+			}
+			
+			#If a senapti rank is available
+			if = { limit = { raj_below_allowed_senaptia = yes }
+				export_to_variable = { which = senaptiCandidateMilTech value = mil_tech }
+				every_subject_country = {
+					limit = {
+						is_subject_of_type = daimyo_vassal
+						if = {
+							limit = { overlord = { has_country_modifier = raj_closed_senapti_ranks } }
+							if = {
+								limit = { overlord = { culture_group = harimari } }
+								ruler_is_harimari = yes
+							}
+							else = {
+								ruler_is_human = yes
+							}
+						}
+						NOT = { has_country_modifier = prabhi_promotion_rejected }
+						NOT = { has_country_modifier = senapti_recently_demoted }
+						NOT = { has_country_modifier = raj_mandate_extended_prabhi_privileges }
+						num_of_cities = 2
+					}
+					if = { limit = { ai = no }
+						country_event = { id = rahenraj.7 days = 1 }	#info event "a senapti rank is available"
+						set_country_flag = raj_player_senapti_candidate
+					}
+					else = {
+						set_country_flag = raj_senapti_candidate
+					}
+					
+					export_to_variable = { which = senaptiCandidateDev value = total_development }
+					divide_variable = { which = senaptiCandidateDev value = 4 }
+					
+					export_to_variable = { which = senaptiCandidateOpinion value = opinion who = PREV }
+					divide_variable = { which = senaptiCandidateOpinion value = 10 }
+					
+					export_to_variable = { which = senaptiCandidateMilTech value = mil_tech }
+					subtract_variable = { which = senaptiCandidateMilTech which = PREV }
+					multiply_variable = { which = senaptiCandidateMilTech value = 15 }
+					
+					export_to_variable = { which = senaptiCandidateForceLimit value = land_forcelimit }
+					
+					set_variable = { which = senaptiCandidateScore which = senaptiCandidateDev }
+					change_variable = { which = senaptiCandidateScore which = senaptiCandidateOpinion }
+					change_variable = { which = senaptiCandidateScore which = senaptiCandidateMilTech }
+					change_variable = { which = senaptiCandidateScore which = senaptiCandidateForceLimit }
+				}
+				
+				random_subject_country = {
+					limit = { has_country_flag = raj_senapti_candidate }
+					save_event_target_as = next_ai_senapti
+				}
+				every_subject_country = { 
+					limit = {
+						has_country_flag = raj_senapti_candidate
+						check_variable = { which = senaptiCandidateScore which = event_target:next_ai_senapti }
+					}
+					save_event_target_as = next_ai_senapti
+				}
+				every_subject_country = {
+					limit = {
+						OR = {
+							has_country_flag = raj_senapti_candidate
+							has_country_flag = raj_player_senapti_candidate
+						}
+					}
+					divide_variable = { which = senaptiCandidateScore which = event_target:next_ai_senapti }
+					clr_country_flag = raj_senapti_candidate
+					clr_country_flag = raj_player_senapti_candidate
+				}
+				
+				if = { limit = { ai = no }
+					country_event = { id = rahenraj.7 days = 1 }	#info event "a senapti rank is available"
+				}
+				else = {
+					event_target:next_ai_senapti = {	#The n°1 ai candidate will become senapti in 150 days if the raja is ai
+						overlord = { country_event = { id = rahenraj.4 days = 150 } }
+					}
+				}
 			}
 		}
 	}
