@@ -1,5 +1,23 @@
 namespace = anb_miscevents
 
+country_event = {
+	id = anb_miscevents.0
+	title = anb_miscevents.0.t
+	desc = anb_miscevents.0.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+        name = anb_miscevents.0.a
+		hidden_effect = { country_event = { id = anb_miscevents.16 } }
+	}
+	
+	option = {
+        name = anb_miscevents.0.b
+	}
+}
+
 # #No Longer used
 # #CountyToDuchy - vassal plea
 # country_event = {
@@ -239,11 +257,35 @@ country_event = {
 			duration = 18250 #50 years
 		}
 		
+		remove_country_modifier = restructuring_administration
+		
 		#Make the newfound place your core, etc
 		capital_scope = {
+			# Give AI vision 2 provs out
+			if = {
+				limit = { owner = { ai = yes } }
+				every_neighbor_province = {
+					discover_country = ROOT
+					every_neighbor_province = {
+						discover_country = ROOT
+					}
+					every_empty_neighbor_province = {
+						discover_country = ROOT
+					}
+				}
+				every_empty_neighbor_province = {
+					discover_country = ROOT
+					every_neighbor_province = {
+						discover_country = ROOT
+					}
+					every_empty_neighbor_province = {
+						discover_country = ROOT
+					}
+				}
+			}
+			
 			add_core = ROOT
 			change_culture = ROOT
-			#change_religion = event_target:home_province
 			change_religion = ROOT
 			
 			add_base_tax = 2
@@ -382,6 +424,9 @@ country_event = {
 				NOT = { has_idea_group = exploration_ideas }
 			}
 			add_idea_group = exploration_ideas
+			add_idea = quest_for_the_new_world
+			add_idea = colonial_ventures
+			add_idea = overseas_exploration
 		}
 
 
@@ -626,7 +671,7 @@ country_event = {
 	trigger = {
 		is_adventurer = yes
 		is_revolutionary = no 
-		NOT = { has_reform = adventurer_reform }
+		NOT = { has_adventurer_reform = yes }
 		NOT = { has_country_flag = adventurer_derived_government }
 	}
 	
@@ -636,7 +681,24 @@ country_event = {
 			limit = { NOT = { government = theocracy } }
 			change_government = theocracy
 		}
-		add_government_reform = adventurer_reform
+		if = {
+			limit = { capital_scope = { continent = serpentspine } }
+			add_government_reform = dwarovar_adventurer_reform
+		}
+		else_if = {
+			limit = {
+				capital_scope = {
+					OR = {
+						continent = north_america
+						continent = south_america
+					}
+				}
+			}
+			add_government_reform = aelantir_adventurer_reform
+		}
+		else = {
+			add_government_reform = adventurer_reform
+		}
 		clr_country_flag = adventurer_derived_government
 	}
 }
@@ -688,7 +750,7 @@ country_event = {
 		OR = {
 			capital_scope = { has_colonist = yes } #This lower intensity and AI like putting their settler in the capital
 			AND = {
-				NOT = { num_of_colonies = 1 }
+				NOT = { colony = 1 }
 				any_owned_province = {
 					has_colonist = yes
 					is_city = yes
@@ -705,7 +767,7 @@ country_event = {
 		every_owned_province = {
 			limit = { has_colonist = yes is_city = yes }
 			cancel_construction = yes
-			add_treasury = 48 # Refund for the settlement growth
+			owner = { add_treasury = 48 } # Refund for the settlement growth
 		}
 		if = {	#Create a colony and don't take their colonist away if they need it
 			limit = { 
@@ -714,15 +776,15 @@ country_event = {
 			random_owned_province = {
 				limit = { is_city = yes has_empty_adjacent_province = yes }
 				if = {
-					limit = { ROOT = { capital_scope = { OR = { region = west_forbidden_plains_region region = east_forbidden_plains_region } } } }
+					limit = { ROOT = { capital_scope = { OR = { superregion = escann_superregion region = west_forbidden_plains_region region = east_forbidden_plains_region } } } }
 					random_empty_neighbor_province = {
 						limit = { development = 3 }	#Don't colonize 0 0 0
 						create_colony = 400	#Boosted or this colony will finish slowly as the AI doesn't send their colonists
 					}
-				} 
+				}
 				else = {
 					random_empty_neighbor_province = {
-						limit = { development = 3 NOT = { region = west_forbidden_plains_region } }	#No plains dwarves
+						limit = { development = 3 NOT = { superregion = escann_superregion } NOT = { region = west_forbidden_plains_region } }	#No plains dwarves
 						create_colony = 300	#Boosted or this colony will finish slowly as the AI doesn't send their colonists
 					}
 				}
@@ -741,7 +803,8 @@ country_event = {
 		}
 		else_if = { #Check if they still need their colonists
 			limit = {
-				NOT = { num_of_colonies = 1 }
+				NOT = { colony = 1 }
+				NOT = { any_owned_province = { is_colony = yes } }
 			}
 			if = { #turn off the colonist if all of escann is colonized
 				limit = {
@@ -825,5 +888,80 @@ province_event = {
 			add_colonysize = -1000
 			clr_province_flag = cant_colonize
 		}
+	}
+}
+
+country_event = {
+	id = anb_miscevents.14
+	title = anb_miscevents.14.t
+	desc = anb_miscevents.14.d
+	picture = ARTWORK_eventPicture
+	
+	hidden = yes
+	
+	mean_time_to_happen = {
+		months = 10
+	}
+	
+	trigger = {
+		has_government_attribute = ai_migration
+		NOT = { num_of_cities = 2 }
+		capital_scope = {
+			NOT = { has_province_flag = sent_expedition_@ROOT }
+			NOT = {
+				OR = {
+					has_terrain = dwarven_hold
+					has_terrain = dwarven_hold_surface
+				}
+			}
+			NOT = { devastation = 5 }
+		}
+		ai = yes
+	}
+	
+	option = {
+        name = anb_miscevents.14.a
+        ai_chance = { factor = 100 }
+		capital_scope = {
+			add_devastation = 6
+		}
+	}
+}
+
+country_event = {
+	id = anb_miscevents.15
+	title = anb_miscevents.15.t
+	desc = anb_miscevents.15.d
+	picture = ARTWORK_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		ai = yes
+	}
+	
+	option = {
+        name = anb_miscevents.15.a
+        ai_chance = { factor = 100 }
+		change_estate_land_share = {
+			estate = all
+			share = -2.5
+		}
+	}
+}
+
+country_event = {
+	id = anb_miscevents.16
+	title = anb_miscevents.16.t
+	desc = anb_miscevents.16.d
+	picture = EMPTY_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	option = {
+        name = anb_miscevents.0.a
+		hidden_effect = { country_event = { id = anb_miscevents.0 } }
 	}
 }
