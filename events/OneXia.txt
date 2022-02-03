@@ -18,17 +18,23 @@ province_event = {
 		trigger = {
 			owner = { has_reform = wulin }
 			FROM = {
-				has_reform = wulin
+				OR = {
+					has_reform = wulin
+					has_reform = xiaken
+				}
 			}
 		}
-		desc = one_xia.t.da
+		desc = one_xia.1.da
 	}
 	
 	desc = {
 		trigger = {
 			owner = { has_reform = wulin }
 			FROM = {
-				NOT = { has_reform = wulin }
+				NOT = {
+					has_reform = wulin
+					has_reform = xiaken
+				}
 			}
 		}
 		desc = one_xia.1.db
@@ -55,6 +61,7 @@ province_event = {
 	}
 	
 	immediate = {
+		#Save new owner as wulin if valid
 		hidden_effect = {
 			owner = {
 				if = {
@@ -66,74 +73,57 @@ province_event = {
 					}
 					add_core = 4559
 					set_capital = 4559
+					#There was a bug, which made it possible that the new wulin remained a xiaken despite having Kyoto
+					#I couldn't replicate it though, so I hope the line below might fix it - in the worst case it does nothing
+					grant_independence = yes
 					add_government_reform = wulin
 					save_event_target_as = new_wulin
 					add_legitimacy = 75
 				}
 			}
 		}
-	}
-	
-	option = {
-		name = one_xia.1.a
-		if = {
-			limit = {
-				owner = { has_reform = wulin }
-			}
-			custom_tooltip = claiming_the_wulin_tooltip
-		}
+		#Handle xiaken transfer
 		hidden_effect = {
+			#Case - new owner is the new wulin, previous still lives -> all xiakens get transferred from the previous to the new one
 			if = {
 				limit = {
 					FROM = { exists = yes }
 					owner = { has_reform = wulin }
 					FROM = { has_reform = wulin }
 				}
-				FROM = {
-					free_vassal = PREV
-				}
+				#Degrade the previous wulin to xiaken level
 				FROM = {
 					every_subject_country = {
 						limit = {
-							OR = {
-								has_reform = xiaken
-								has_reform = indep_xiaken
-
-							}
-							NOT = { war_with = event_target:new_wulin }
+							is_subject_of_type = daimyo_xiaken_vassal
 						}
-						event_target:new_wulin = {
-							create_subject = {
-								subject_type = daimyo_xiaken_vassal
-								subject = PREV
-							}
-						}
+						set_country_flag = tobe_xiaken_of_new_wulin
+						grant_independence = yes
 					}
-					every_subject_country = {
-						limit = {
-							OR = {
-								has_reform = xiaken
-								has_reform = indep_xiaken
-							}
-							war_with = event_target:new_wulin
-						}
-						from = {
-							free_vassal = prev
-						}
-						if = {
-							limit = {
-								NOT = { has_reform = indep_xiaken }
-								NOT = { has_reform = pirate_republic_reform }
-								NOT = { has_reform = pirate_king_reform }
-								NOT = { has_reform = war_against_the_world_doctrine_reform }
-								NOT = { has_reform = black_market_consortium_reform }
-							}
-							add_government_reform = indep_xiaken
-						}
+					event_target:new_wulin = {
+						vassalize = FROM
 					}
-					add_government_reform = indep_xiaken
+					set_government_rank = 1
+					add_government_reform = xiaken
 				}
+				#Vassalize all of the former xiakens
+				#NOTE: originally, it was intended that xiakens, who are at war with the wulin, should not be vassalized
+				every_country = {
+					limit = {
+						has_country_flag = tobe_xiaken_of_new_wulin
+					}
+					event_target:new_wulin = {
+						vassalize = PREV
+					}
+				}
+				# owner = {
+					# country_event = {
+						# id = japan.4
+						# days = 1
+					# }
+				# }
 			}
+			#Case - new owner is not the new wulin, previous still lives -> all xiakens get free
 			if = {
 				limit = {
 					FROM = { exists = yes }
@@ -143,18 +133,20 @@ province_event = {
 				FROM = {
 					every_subject_country = {
 						limit = {
-							OR = {
-								has_reform = xiaken
-								has_reform = indep_xiaken
-							}
+							is_subject_of_type = daimyo_xiaken_vassal
 						}
-						FROM = {
-							free_vassal = PREV
+						grant_independence = yes
+						if = {
+							limit = {
+								has_reform = xiaken
+							}
+							add_government_reform = indep_xiaken
 						}
 					}
 					add_government_reform = indep_xiaken
 				}
 			}
+			#Case - new owner is wulin, previous wulin is dead -> all xiakens become subjects of the new wulin
 			if = {
 				limit = {
 					NOT = {
@@ -168,10 +160,7 @@ province_event = {
 						NOT = { war_with = event_target:new_wulin }
 					}
 					event_target:new_wulin = {
-						create_subject = {
-							subject_type = daimyo_xiaken_vassal
-							subject = PREV
-						}
+						vassalize = PREV
 					}
 				}
 				every_country = {
@@ -181,14 +170,22 @@ province_event = {
 					}
 					add_government_reform = indep_xiaken
 				}
-				#solution for So Pirates	#we dont have pirates in the Xianjie
-				# every_country = {
-				# 	limit = {
-				# 		NOT = { war_with = event_target:new_wulin }
-				# 	}
-				# 	country_event = { id = one_xia.2 }
-				# }
+				#solution for So Pirates	#we don't have pirates in the Xianjie
+				#every_country = {
+				#	limit = {
+				#		tag = SOO
+				#		OR = {
+				#			has_reform = pirate_republic_reform
+				#			has_reform = pirate_king_reform
+				#			has_reform = war_against_the_world_doctrine_reform
+				#			has_reform = black_market_consortium_reform
+				#		}
+				#		NOT = { war_with = event_target:new_wulin }
+				#	}
+				#	country_event = { id = one_xia.2 }
+				#}
 			}
+			#Case - new owner is not the new wulin, previous one is dead -> all former xiakens become independent xiaken
 			if = {
 				limit = {
 					NOT = {
@@ -203,26 +200,11 @@ province_event = {
 					overlord = {
 						free_vassal = PREV
 					}
+					add_government_reform = indep_xiaken
 				}
 			}
 		}
-		if = {
-			limit = {
-				NOT = {
-					owner = { has_reform = wulin }
-				}
-			}
-			owner = {
-				if = {
-					limit = { NOT = { has_country_flag = destroyed_wulin } }
-					add_prestige = 20
-					add_adm_power = 50
-					add_dip_power = 50
-					add_mil_power = 50
-					set_country_flag = destroyed_wulin
-				}
-			}
-		}
+		#Catch all remaining xiakens and let them free
 		hidden_effect = {
 			if = {
 				limit = {
@@ -239,6 +221,40 @@ province_event = {
 					overlord = {
 						free_vassal = PREV
 					}
+					if = {
+						limit = {
+							has_reform = xiaken
+						}
+						remove_government_reform = xiaken
+						add_government_reform = indep_xiaken
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = one_xia.1.a
+		if = {
+			limit = {
+				owner = { has_reform = wulin }
+			}
+			custom_tooltip = claiming_the_wulin_tooltip
+		}
+		if = {
+			limit = {
+				NOT = {
+					owner = { has_reform = wulin }
+				}
+			}
+			owner = {
+				if = {
+					limit = { NOT = { has_country_flag = destroyed_wulin } }
+					add_prestige = 20
+					add_adm_power = 50
+					add_dip_power = 50
+					add_mil_power = 50
+					set_country_flag = destroyed_wulin
 				}
 			}
 		}
@@ -1508,6 +1524,10 @@ country_event = {
 			culture = western_yan
 			religion = righteous_path
 		}
+		if = { 
+			limit = { culture_is_human = no }
+			large_increase_of_human_tolerance_effect = yes
+		}
 		if = {
 			limit = {
 				has_country_modifier = xia_patronizing_sages
@@ -1563,6 +1583,10 @@ country_event = {
 			adm = 2
 			culture = rasarhid
 			religion = righteous_path
+		}
+		if = { 
+			limit = { culture_is_human = no }
+			large_increase_of_human_tolerance_effect = yes
 		}
 		if = {
 			limit = {
@@ -1678,6 +1702,10 @@ country_event = {
 			culture = western_yan
 			religion = righteous_path
 		}
+		if = { 
+			limit = { culture_is_human = no }
+			large_increase_of_human_tolerance_effect = yes
+		}
 		if = {
 			limit = {
 				has_country_modifier = xia_patronizing_sages
@@ -1733,6 +1761,10 @@ country_event = {
 			max_random_dip = 5
 			culture = western_yan
 			religion = righteous_path
+		}
+		if = { 
+			limit = { culture_is_human = no }
+			large_increase_of_human_tolerance_effect = yes
 		}
 		if = {
 			limit = {
@@ -2394,7 +2426,7 @@ country_event = {
 	}
 }
 
-#Xia New Ruler is Keeper, gets to wield Kongjian triggered on_new_monarch
+#Xia New Ruler is Keeper, gets to wield kongren triggered on_new_monarch
 country_event = {
 	id = one_xia.56
 	title = one_xia.56.t
@@ -2410,7 +2442,7 @@ country_event = {
 	option = {							#Bet
 		name = one_xia.56.a
 		add_ruler_modifier = {
-			name = xia_wielding_kongjian
+			name = xia_wielding_kongren
 			duration = -1
 		}
 	}
@@ -3401,7 +3433,7 @@ country_event = {
 	option = {
 		name = one_xia.79.a
 		add_ruler_modifier = { 
-			name = xia_wielding_kongjian
+			name = xia_wielding_kongren
 			duration = -1
 		}
 		add_ruler_modifier = { 
