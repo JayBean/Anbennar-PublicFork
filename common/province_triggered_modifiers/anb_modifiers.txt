@@ -3574,7 +3574,7 @@ merc_seinathil_warsingers_free = {
 	}
 }
 
-# Krakdhûmvror Grim Legion
+# Krakdhï¿½mvror Grim Legion
 merc_grim_legion_free = {
 	potential = {
 		I02 = { exists = yes }
@@ -3600,6 +3600,45 @@ merc_grim_legion_free = {
 	
 	on_deactivation = {
 	}
+}
+
+# Azkare/Sunrise Empire Convocationary Guard
+merc_convocationary_guard_free = {
+    potential = {
+		owner = {
+			OR = {
+				tag = Y00 # sunrise empire
+				was_tag = Y00
+			}
+		}
+    }
+
+    trigger = {
+		owner = {
+			OR = {
+				tag = Y00
+				was_tag = Y00
+			}
+		}
+		any_hired_mercenary_company = {
+			template = merc_convocationary_guard
+		}
+    }
+    
+    #Province scope
+	hidden = yes
+
+    on_activation = {
+        owner = {
+            if = {
+                limit = { army_professionalism = 0.0001 }
+                add_army_professionalism = 0.05
+            }
+        }
+    }
+    
+    on_deactivation = {
+    }
 }
 
 #Elikhand Capitals
@@ -3740,6 +3779,109 @@ phoenix_empire_timer = {
 	}
 }
 
+rahen_repairing_infrastructure_monthly_tick = {
+	potential = {
+		OR = {
+			has_province_modifier = rahen_severely_neglected_infrastructure
+			has_province_modifier = rahen_neglected_infrastructure
+		}
+	}
+	trigger = {
+		OR = {
+			AND = {
+				is_month = 0
+				NOT = { is_month = 1 }
+			}
+			AND = {
+				is_month = 2
+				NOT = { is_month = 3 }
+			}
+			AND = {
+				is_month = 4
+				NOT = { is_month = 5 }
+			}
+			AND = {
+				is_month = 6
+				NOT = { is_month = 7 }
+			}
+			AND = {
+				is_month = 8
+				NOT = { is_month = 9 }
+			}
+			AND = {
+				is_month = 10
+				NOT = { is_month = 11 }
+			}
+		}
+	}
+	on_activation = {
+		if = {
+			limit = { infantry_in_province  = 2 }
+			change_variable = {
+				which = rahen_months_to_repair
+				value = -1
+			}
+			if = {
+				limit = { NOT = { check_variable = { which = rahen_months_to_repair value = 1 } } }
+				if = {
+					limit = { has_province_modifier = rahen_severely_neglected_infrastructure }
+					remove_province_modifier = rahen_severely_neglected_infrastructure
+					add_permanent_province_modifier = {
+						name = rahen_neglected_infrastructure
+						duration = -1
+					}
+					set_variable = { which = rahen_months_to_repair value = 6 }
+				}
+				else = {
+					remove_province_modifier = rahen_neglected_infrastructure
+					remove_province_triggered_modifier = rahen_repairing_infrastructure_monthly_tick
+					remove_province_triggered_modifier = rahen_repairing_infrastructure
+				}
+			}
+		}
+	}
+	hidden = yes
+	on_deactivation = {
+		if = {
+			limit = { infantry_in_province  = 2 has_siege = no }
+			change_variable = {
+				which = rahen_months_to_repair
+				value = -1
+			}
+			if = {
+				limit = { NOT = { check_variable = { which = rahen_months_to_repair value = 1 } } }
+				if = {
+					limit = { has_province_modifier = rahen_severely_neglected_infrastructure }
+					remove_province_modifier = rahen_severely_neglected_infrastructure
+					add_permanent_province_modifier = {
+						name = rahen_neglected_infrastructure
+						duration = -1
+					}
+				}
+				else = {
+					remove_province_modifier = rahen_neglected_infrastructure
+					remove_province_triggered_modifier = rahen_repairing_infrastructure_monthly_tick
+					remove_province_triggered_modifier = rahen_repairing_infrastructure
+				}
+			}
+		}
+	}
+}
+rahen_repairing_infrastructure = {
+	potential = {
+		OR = {
+			has_province_modifier = rahen_severely_neglected_infrastructure
+			has_province_modifier = rahen_neglected_infrastructure
+		}
+	}
+	trigger = {
+		check_variable = { which = rahen_months_to_repair value = 1 }
+		infantry_in_province  = 2
+		has_siege = no
+	}
+	local_build_time = 10
+}
+
 ghavaanaj_monthly_tick = {
 	potential = {
 		always = yes
@@ -3778,6 +3920,102 @@ ghavaanaj_monthly_tick = {
 	hidden = yes
 	on_deactivation = {
 		event_target:ghavaanaj_herd_country = { country_event = { id = ghavaanaj.2002 } }
+	}
+}
+
+sharaajaghal_games_tick = {
+	potential = {
+		NOT = { has_province_flag = sharaajaghal_games_finished }
+	}
+	trigger = {
+		OR = {
+			has_province_flag = sharaajaghal_games_tick_0_flag
+			has_province_flag = sharaajaghal_games_tick_2_flag
+			has_province_flag = sharaajaghal_games_tick_4_flag
+			has_province_flag = sharaajaghal_games_tick_6_flag
+			has_province_flag = sharaajaghal_games_tick_8_flag
+			has_province_flag = sharaajaghal_games_tick_10_flag
+		}
+	}
+	on_activation = { #! This will only work for one country, if there are more countries with this mechanic it breaks down, future fix?
+		if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_0_flag }
+			clr_province_flag = sharaajaghal_games_tick_0_flag
+			set_province_flag = sharaajaghal_games_tick_1_flag
+			sharaajaghal_games_run_game = { game = elephant_racing }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_2_flag }
+			clr_province_flag = sharaajaghal_games_tick_2_flag
+			set_province_flag = sharaajaghal_games_tick_3_flag
+			sharaajaghal_games_run_game = { game = elephant_jousting }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_4_flag }
+			clr_province_flag = sharaajaghal_games_tick_4_flag
+			set_province_flag = sharaajaghal_games_tick_5_flag
+			sharaajaghal_games_run_game = { game = horse_archery }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_6_flag }
+			clr_province_flag = sharaajaghal_games_tick_6_flag
+			set_province_flag = sharaajaghal_games_tick_7_flag
+			sharaajaghal_games_run_game = { game = duelling_staff }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_8_flag }
+			clr_province_flag = sharaajaghal_games_tick_8_flag
+			set_province_flag = sharaajaghal_games_tick_9_flag
+			sharaajaghal_games_run_game = { game = archery }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_10_flag }
+			clr_province_flag = sharaajaghal_games_tick_10_flag
+			set_province_flag = sharaajaghal_games_tick_11_flag
+			sharaajaghal_games_run_game = { game = distance_running }
+		}
+	}
+	hidden = no
+	on_deactivation = {
+		if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_1_flag }
+			clr_province_flag = sharaajaghal_games_tick_1_flag
+			set_province_flag = sharaajaghal_games_tick_2_flag
+			sharaajaghal_games_run_game = { game = elephant_archery }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_3_flag }
+			clr_province_flag = sharaajaghal_games_tick_3_flag
+			set_province_flag = sharaajaghal_games_tick_4_flag
+			sharaajaghal_games_run_game = { game = horse_racing }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_5_flag }
+			clr_province_flag = sharaajaghal_games_tick_5_flag
+			set_province_flag = sharaajaghal_games_tick_6_flag
+			sharaajaghal_games_run_game = { game = horse_jousting }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_7_flag }
+			clr_province_flag = sharaajaghal_games_tick_7_flag
+			set_province_flag = sharaajaghal_games_tick_8_flag
+			sharaajaghal_games_run_game = { game = duelling_sword }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_9_flag }
+			clr_province_flag = sharaajaghal_games_tick_9_flag
+			set_province_flag = sharaajaghal_games_tick_10_flag
+			sharaajaghal_games_run_game = { game = javelin }
+		}
+		else_if = {
+			limit = { has_province_flag = sharaajaghal_games_tick_11_flag }
+			clr_province_flag = sharaajaghal_games_tick_11_flag
+			sharaajaghal_games_run_game = { game = sprint }
+			
+			4485 = {
+				remove_province_triggered_modifier = sharaajaghal_games_tick
+			}
+		}
 	}
 }
 
@@ -4263,4 +4501,395 @@ azkare_parliament_calculations_pulse = {
 	
 	on_deactivation = {
 	}
+}
+
+raj_cohesion_pulse = {
+	potential = {
+		always = yes
+	}
+	
+	hidden = yes
+	
+	trigger = {
+		OR = {
+			AND = {
+				is_month = 0
+				NOT = { is_month = 1 }
+			}
+			AND = {
+				is_month = 2
+				NOT = { is_month = 3 }
+			}
+			AND = {
+				is_month = 4
+				NOT = { is_month = 5 }
+			}
+			AND = {
+				is_month = 6
+				NOT = { is_month = 7 }
+			}
+			AND = {
+				is_month = 8
+				NOT = { is_month = 9 }
+			}
+			AND = {
+				is_month = 10
+				NOT = { is_month = 11 }
+			}
+		}
+	}
+	
+	on_activation = {
+		raj_monthy_calc = yes
+	}
+	
+	on_deactivation = {
+		raj_monthy_calc = yes
+	}
+}
+
+demons_blood_export_mod1 = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		owner = {
+			has_reform = black_market_consortium_reform
+			owns_core_province = 1077
+		}
+	}
+	
+	local_development_cost = -0.1
+	pr_smugglers_influence = 0.001
+	province_trade_power_value = 10
+	tax_income = 24
+	yearly_patriarch_authority = 0.001
+	
+	#Province scope
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+demons_blood_export_mod2 = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		owner = {
+			has_reform = black_market_consortium_reform
+			owns_core_province = 1077
+		}
+	}
+	
+	local_development_cost = -0.15
+	pr_smugglers_influence = 0.002
+	province_trade_power_value = 15
+	tax_income = 48
+	yearly_patriarch_authority = 0.002
+	
+	#Province scope
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+demons_blood_export_mod3 = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		owner = {
+			has_reform = black_market_consortium_reform
+			owns_core_province = 1077
+		}
+	}
+	
+	local_development_cost = -0.2
+	pr_smugglers_influence = 0.005
+	province_trade_power_value = 20
+	tax_income = 74
+	yearly_patriarch_authority = 0.003
+	
+	#Province scope
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+demons_blood_export_mod4 = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		owner = {
+			has_reform = black_market_consortium_reform
+			owns_core_province = 1077
+		}
+	}
+	
+	local_development_cost = -0.25
+	pr_smugglers_influence = 0.01
+	province_trade_power_value = 25
+	tax_income = 96
+	yearly_patriarch_authority = 0.004
+	
+	#Province scope
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+# Mykx hellfire cannons deactivation
+mykx_hellfire_cannons_triggered_deactivation = {
+	hidden = yes
+	potential = {
+		G93 = { exists = yes }
+	}
+
+	trigger = {
+		owner = { tag = G93 }
+		G93 = {
+			is_at_war = no
+		}
+	}
+	
+	#Province scope
+	on_activation = {
+		G93 = { clr_country_flag = mykx_hellfire_cannons_flag }
+	}
+	
+	on_deactivation = {
+	}
+}
+
+# Mykx hellfire cannons modifier
+mykx_hellfire_cannons_triggered_mod = {
+	potential = {
+		G93 = { exists = yes }
+	}
+
+	trigger = {
+		owner = {
+			tag = G93
+			has_country_flag = mykx_hellfire_cannons_flag
+			patriarch_authority = 0.01
+		}
+	}
+	
+	yearly_patriarch_authority = -0.1
+	global_naval_barrage_cost = -0.2
+	heavy_ship_power = 0.25
+	galley_power = 0.25
+	sailor_maintenance_modifer = 0.25
+	
+	#Province scope
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+beikdugang_triunic = {
+	potential = {
+		owner = { 
+			always = yes
+		}
+	}
+	trigger = {
+		owner = {
+			mission_completed = Y15_haven_sea
+			accepted_culture = zabatlari
+			accepted_culture = khamgunai
+			accepted_culture = metsamic
+		}
+	}
+	picture = "num_accepted_cultures"
+	num_accepted_cultures = 3
+	diplomatic_reputation = 1
+	diplomatic_upkeep = 1
+
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+beikdugang_nanxin_academy = {
+	potential = {
+		owner = { 
+			always = yes
+		}
+	}
+	trigger = {
+		owner = { 
+			mission_completed = Y15_modernize_nanxin
+			if = {
+				limit = {
+					any_known_country = { 
+						OR = {
+							has_idea_group = maritime_ideas
+							has_idea_group = naval_ideas
+						}
+						capital_scope = { continent = europe }
+					}
+				}
+				any_known_country = { 
+					OR = {
+						has_idea_group = maritime_ideas
+						has_idea_group = naval_ideas
+					}
+					capital_scope = { continent = europe }
+					has_opinion = { who = PREV value = 80 }
+				}
+			}
+			else = {
+				any_known_country = {
+					has_opinion = { who = PREV value = 80 }
+					capital_scope = { continent = europe }
+				}
+			}
+		}
+	}
+	picture = "leader_naval_fire"
+	free_leader_pool = 1
+	leader_naval_fire = 1
+	navy_tradition_decay = -0.005
+
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+#Treasure Fleet Activator (pulse)
+JY_LF_activator = {
+	potential = {
+		owner = { 
+			culture_group = triunic
+		}
+		NOT = { has_province_modifier = JY_LF_countdown }
+	}
+	hidden = yes
+	trigger = {
+		NOT = { has_province_modifier = JY_LF_countdown }
+	}
+	picture = "treasure_fleet"
+	province_trade_power_value = 2
+
+	on_activation = {
+		province_event = { id = treasurefleet.1 }
+		add_province_modifier = { name = JY_LF_countdown duration = 3648 }
+	}
+	
+	on_deactivation = {
+	}
+}
+
+spirit_pulse_province_modifier = {	#This modifier sends a spirit event to a random Halessi city on the 1st of every 3rd month
+	potential = {
+		always = yes
+	}
+	
+	hidden = yes
+	
+	trigger = {
+		OR = {
+			AND = {
+				is_month = 2
+				NOT = { is_month = 3 }
+			}
+			AND = {
+				is_month = 5
+				NOT = { is_month = 6 }
+			}
+			AND = {
+				is_month = 8
+				NOT = { is_month = 9 }
+			}
+			is_month = 11
+		}
+	}
+	
+	on_activation = {
+		random_province = {
+			limit = {
+				continent = asia
+				NOT = { superregion = forbidden_lands_superregion }
+				is_city = yes
+				owner = { NOT = { has_country_modifier = spirit_event_cooldown } }
+			}
+			province_event = { id = spirits.000 }
+		}
+	}
+	
+	on_deactivation = {
+	}
+}
+
+corrupted_temple_complex = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		religion = lefthand_path
+	}
+	
+	local_warscore_cost_modifier = 0.1
+	trade_value = 0.25 #Precursor relics found inside are being sold
+	church_power_modifier = 0.1
+	
+	on_activation = {
+		remove_province_modifier = storm_of_spirits
+	}
+	
+	on_deactivation = {
+		add_province_modifier = {
+			name = storm_of_spirits
+			duration = -1
+		}
+	}
+}
+
+merc_cannorian_veterans_free = {
+    potential = {
+        Y65 = { exists = yes } # the tag that uses these elite mercs. 
+    }
+ 
+    trigger = {
+        Y65 = { # the tag that uses these elite mercs. 
+            any_hired_mercenary_company = {
+                template = merc_cannorian_veterans
+            }
+        }
+    }
+    
+    #Province scope
+    on_activation = {
+        Y65 = {  # the tag that uses these elite mercs. 
+            if = {
+                limit = { army_professionalism = 0.0001 }
+                add_army_professionalism = 0.05
+            }
+        }
+    }
+    
+    on_deactivation = {
+    }
 }
