@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="Anbennar EU4 (Fork Koilinger)"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -22,4 +22,4 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.32.*"
-path="mod/Anbennar-PublicFork"
+path="D:/Drawings/AnbennarGit/anbennar-eu4-fork-koilinger"
