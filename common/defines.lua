@@ -567,7 +567,7 @@ NCountry = {
 	ESTATE_INFLUENCE_PER_DEV = 0.5,
 	ESTATE_MAX_INFLUENCE_FROM_DEV = 100.0,
 	ESTATE_MIN_DISTRIBUTED_CROWNLAND = 30.0, 	-- Minimum of crownland when distributing land at start
-	ESTATE_CROWNLAND_INFLUENCE = 60.0,			-- Crownland has n% influence, this is modified by absolutism.
+	ESTATE_CROWNLAND_INFLUENCE = 80.0,			-- ANBENNAR: CHANGED TO 80 (UP FROM 60) TO ACCOUNT FOR MORE ESTATES. Crownland has n% influence, this is modified by absolutism.
 	ESTATE_START_CROWNLAND_INFLUENCE = 10.0,	-- Crownland has n% influence at start of a new game.
 	ESTATE_CROWNLAND_FROM_DEV = 0.2,			-- How much crownland you gain from developing a province.
 
