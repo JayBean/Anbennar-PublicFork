@@ -1203,15 +1203,28 @@ on_war_won = {
 	}
 	
 	#Raja winning war
-	if = { limit = { has_reform = raja_reform }
+	if = { 
+		limit = { has_reform = raja_reform }
 		FROM = { raj_cohesion_change = { amount = 10 non_monthly = yes } }
 		every_subject_country = {
-			limit = { is_subject_of_type = daimyo_vassal }
-			if = { limit = { NOT = { government = monarchy } }
-				change_government = monarchy
+			# make sure all subjects of the Raja get truces with the party. 
+			if = { 
+				limit = { 
+					NOT = { FROM = { is_subject_of = ROOT } }	# make sure FROM is external party
+					NOT = { truce_with = FROM } 			# check for truces
+				}
+				add_truce_with = FROM						# add truce with external party
+				FROM = { add_truce_with = PREV }			# add truce with subject
 			}
-			add_government_reform = prabhi_reform
-			country_event = { id = rahenraj.10 days = 35 }	#adds the raj cohesion privilege
+			if = { 
+				limit = { is_subject_of_type = daimyo_vassal }
+				if = { 
+					limit = { NOT = { government = monarchy } }
+					change_government = monarchy
+				}
+				add_government_reform = prabhi_reform
+				country_event = { id = rahenraj.10 days = 35 }	#adds the raj cohesion privilege
+			}
 		}
 	}
 	
@@ -1460,8 +1473,21 @@ on_war_lost = {
 	#Raja losing war
 	if = {
 		limit = { has_reform = raja_reform }
-		FROM = {
-			raj_cohesion_change = { amount = -10 non_monthly = yes }
+		FROM = { raj_cohesion_change = { amount = -10 non_monthly = yes } }
+
+		if = {
+			# make sure all subjects of the Raja get truces with the party. 
+			limit = { NOT = { FROM = { is_subject_of = ROOT } } }		# make sure FROM is external party
+
+			every_subject_country = {
+				if = { 
+					limit = { 
+						NOT = { truce_with = FROM } 			# check for truces
+					}
+					add_truce_with = FROM						# add truce with external party
+					FROM = { add_truce_with = PREV }			# add truce with subject
+				}
+			}
 		}
 	}
 	
