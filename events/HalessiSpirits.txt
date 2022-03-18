@@ -233,9 +233,9 @@ province_event = {	#Handler event, determines which spirit event the country get
 			3 = { owner = { country_event = { id = spirits.202 } } } #Ancestor gives adm advice
 			3 = { owner = { country_event = { id = spirits.203 } } } #Ancestor gives dip advice
 			3 = { owner = { country_event = { id = spirits.204 } } } #Ancestor gives mil advice
-			1 = { trigger = { has_heir = yes } owner = { country_event = { id = spirits.205 } } } #Ancestor tutors your heir - adm
-			1 = { trigger = { has_heir = yes } owner = { country_event = { id = spirits.206 } } } #Ancestor tutors your heir - dip
-			1 = { trigger = { has_heir = yes } owner = { country_event = { id = spirits.207 } } } #Ancestor tutors your heir - mil
+			1 = { trigger = { owner = { has_heir = yes } } owner = { country_event = { id = spirits.205 } } } #Ancestor tutors your heir - adm
+			1 = { trigger = { owner = { has_heir = yes } } owner = { country_event = { id = spirits.206 } } } #Ancestor tutors your heir - dip
+			1 = { trigger = { owner = { has_heir = yes } } owner = { country_event = { id = spirits.207 } } } #Ancestor tutors your heir - mil
 			1 = { owner = { country_event = { id = spirits.208 } } } #Ancestor gives you wisdom - adm
 			1 = { owner = { country_event = { id = spirits.209 } } } #Ancestor gives you wisdom - dip
 			1 = { owner = { country_event = { id = spirits.210 } } } #Ancestor gives you wisdom - mil
@@ -793,6 +793,7 @@ province_event = { #Cleanup event to clear restoration/corruption/temple quest f
 		OR = {
 			has_province_modifier = temple_restoration_efforts
 			has_province_modifier = rite_of_corruption
+			has_province_modifier = azjakuma_rite_of_corruption
 			has_province_flag = temple_being_quested
 			has_province_flag = temple_heart_trail
 			has_province_modifier = temple_heart_discovered
@@ -813,8 +814,9 @@ province_event = { #Cleanup event to clear restoration/corruption/temple quest f
 				temple_quest_cash_out = yes
 			}
 		}
-		if = { limit = { has_province_modifier = rite_of_corruption }
+		if = { limit = { OR = { has_province_modifier = rite_of_corruption has_province_modifier = azjakuma_rite_of_corruption } }
 			remove_province_modifier = rite_of_corruption
+			remove_province_modifier = azjakuma_rite_of_corruption
 			FROM = {
 				clr_country_flag = currently_corrupting_temple
 			}
@@ -1111,7 +1113,7 @@ province_event = { #Continue Temple Plundering
 		}
 		trigger = {
 			owner = {
-				has_estate = artificers
+				has_estate = estate_artificers
 				OR = { 
 					artifice_has_points_for_basic = yes
 					has_estate_privilege = artifice_invention_korashi_drills
@@ -1139,7 +1141,7 @@ province_event = { #Continue Temple Plundering
 		}
 		trigger = {
 			owner = {
-				has_estate = artificers
+				has_estate = estate_artificers
 			}
 		}
 		hidden_effect = {
@@ -1158,7 +1160,7 @@ province_event = { #Continue Temple Plundering
 	option = {	#Don't have Artificers, automatically ends plundering
         name = spirits.010.c
         ai_chance = { factor = 5 }
-		trigger = { NOT = { owner = { has_estate = artificers } } }
+		trigger = { NOT = { owner = { has_estate = estate_artificers } } }
 		hidden_effect = {
 			remove_province_modifier = temple_being_plundered
 			clr_province_flag = permanent_precursor_relics
@@ -1808,10 +1810,12 @@ province_event = { #White Tiger spotted
 	
 	option = { #Zamn
 		name = spirits.101.a
-		add_legitimacy = 25
-		add_horde_unity = 25
-		add_devotion = 25
-		add_republican_tradition = 10
+		owner = {
+			add_legitimacy = 25
+			add_horde_unity = 25
+			add_devotion = 25
+			add_republican_tradition = 10
+		}
 	}
 }
 
@@ -2338,6 +2342,7 @@ country_event = { #Temple Quest Pulse
 						has_province_modifier = derelict_temple_complex
 					}
 					NOT = { has_province_modifier = rite_of_corruption }
+					NOT = { has_province_modifier = azjakuma_rite_of_corruption }
 				}
 				religion = lefthand_path
 			}
@@ -4608,6 +4613,11 @@ country_event = { #Temple Corruption menu
 			begin_temple_corruption = yes
 		}
 		hidden_effect = { set_country_flag = currently_corrupting_temple }
+		if = {
+			limit = {
+
+			}
+		}
 	}
 	
 	option = {
@@ -4681,12 +4691,16 @@ province_event = {	#Temple Corrupted
 	is_triggered_only = yes
 	
 	trigger = {
-		has_province_modifier = rite_of_corruption
+		OR = {
+			has_province_modifier = rite_of_corruption
+			has_province_modifier = azjakuma_rite_of_corruption
+		}
 	}
 
 	after = {
 		hidden_effect = { clr_country_flag = currently_corrupting_temple }
 		remove_province_modifier = rite_of_corruption
+		remove_province_modifier = azjakuma_rite_of_corruption
 	}
 	
 	option = {
@@ -4854,28 +4868,87 @@ country_event = {	#Draining the Heart
 			skill = 4
 			cost_multiplier = 0.25
 		}
-		add_estate_loyalty_modifier = {
-			estate = estate_mages
-			desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
-			loyalty = 5
-			duration = 7300
-		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
+		if = {
+			limit = {
+				NOT = { tag = Y01 }
 			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
+			add_estate_loyalty_modifier = {
+				estate = estate_mages
+				desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+				loyalty = 5
+				duration = 7300
 			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
 		}
+		else_if = { #for azjakumas unique estates
+			limit = {
+				tag = Y01
+			}
+			random_list = {
+				20 = {
+					trigger = {
+						has_estate = estate_shinukhorchi
+					}
+					add_estate_loyalty_modifier = {
+						estate = estate_shinukhorchi
+						desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+						loyalty = 5
+						duration = 7300
+					}
+				}
+				20 = {
+					trigger = {
+						has_estate = estate_chumijemoya
+					}
+					add_estate_loyalty_modifier = {
+						estate = estate_chumijemoya
+						desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+						loyalty = 5
+						duration = 7300
+					}
+				}
+				20 = {
+					trigger = {
+						has_estate = estate_ajgriijarul
+					}
+					add_estate_loyalty_modifier = {
+						estate = estate_ajgriijarul
+						desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+						loyalty = 5
+						duration = 7300
+					}
+				}
+				20 = {
+					trigger = {
+						has_estate = estate_kabiurgarko
+					}
+					add_estate_loyalty_modifier = {
+						estate = estate_kabiurgarko
+						desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+						loyalty = 5
+						duration = 7300
+					}
+				}
+				20 = {
+					trigger = {
+						has_estate = estate_khelorvalshi
+					}
+					add_estate_loyalty_modifier = {
+						estate = estate_khelorvalshi
+						desc = EST_VAL_LEFTHAND_EMPOWERED_COURT_SORCEROR_LOY
+						loyalty = 5
+						duration = 7300
+					}
+				}
+			}
+		}
+		lhp_heart_drain_choose_option_shallower = yes
 	}
 	
 	option = {	#Give the chi to the Sorcerers
 		name = spirits.606.f
+		trigger = {
+			NOT = { tag = Y01 } #needs custom menu for Shirgrii
+		}
 		add_estate_loyalty_modifier = {
 			estate = estate_mages
 			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
@@ -4892,18 +4965,16 @@ country_event = {	#Draining the Heart
 			name = lefthand_empowered_sorcerers
 			duration = 1825
 		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
+		lhp_heart_drain_choose_option_shallower = yes
+	}
+
+	option = { #Give the chi to the shirgrii
+		name = spirits.606.g
+		trigger = {
+			tag = Y01
 		}
+		country_event = { id = spirits.610 }	#Give Shirgrii Chi Menu
+		hidden_effect = { set_country_flag = in_deeper_heart_drain_menu }	
 	}
 }
 
@@ -4959,19 +5030,7 @@ country_event = {	#A Sinister Ritual
 			name = lefthand_eldritch_foresight
 			duration = 90
 		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#Unnatural Plant Growth
@@ -4984,19 +5043,7 @@ country_event = {	#A Sinister Ritual
 				duration = 1825
 			}
 		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#Epic Raise Dead
@@ -5007,19 +5054,7 @@ country_event = {	#A Sinister Ritual
 			name = lefthand_epic_raise_dead
 			duration = 1825
 		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#Summon a Damestear Meteor
@@ -5038,19 +5073,7 @@ country_event = {	#A Sinister Ritual
 			add_base_manpower = -3
 			add_devastation = 20
 		}
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	#Go Back
@@ -5077,57 +5100,21 @@ country_event = {	#Unlimited Power
 		name = spirits.609.a
 		trigger = { NOT = { adm = 6 } }
 		change_adm = 1
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#an Enthralling Soul
 		name = spirits.609.b
 		trigger = { NOT = { dip = 6 } }
 		change_dip = 1
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#a Mighty Will
 		name = spirits.609.c
 		trigger = { NOT = { mil = 6 } }
 		change_mil = 1
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#an Infusion of Chi
@@ -5136,25 +5123,183 @@ country_event = {	#Unlimited Power
 		add_adm_power = 75
 		add_dip_power = 75
 		add_mil_power = 75
-		hidden_effect = {
-			clr_country_flag = in_heart_drain_menu
-			clr_country_flag = in_deeper_heart_drain_menu
-			event_target:corrupted_temple_drain_target = {
-				set_variable = { which = CorruptedHeartMana value = 0 }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
+		lhp_heart_drain_choose_option_deeper = yes
 	}
 	
 	option = {	#an Infusion of Power
 		name = spirits.609.f
 		trigger = { NOT = { ruler_has_mage_personality = yes } }
 		add_ruler_personality = mage_personality
+		lhp_heart_drain_choose_option_deeper = yes
+	}
+	
+	option = {	#Life extension
+	#please work
+	name = spirits.609.g
+	trigger = { 
+		ruler_has_mage_personality = yes
+		has_country_flag = lefthand_life_extension_unlocked
+		NOT = { has_ruler_flag = is_a_lich }
+		NOT = { has_ruler_flag = is_a_vampire } #Its pointless if you go lich or vampire
+	}
+	
+	add_ruler_personality = immortal_personality
+
+	hidden_effect = { #I know this is bad, but it shouldn't hurt performance and I don't know what the hell I'm doing
+		if = {
+			limit = {
+				NOT = { has_ruler_flag = lefthand_life_extension }
+			}
+			set_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 120 #extends life to 120 years
+			}
+			set_ruler_flag = lefthand_life_extension
+		}
+		else_if = {
+			limit = {
+				has_ruler_flag = lefthand_life_extension
+				check_variable = { #make sure it is selecting the correct life extension
+					which = lefthand_life_extension_max_age_var
+					value = 110
+				}
+				NOT = {
+					check_variable = {
+						which = lefthand_life_extension_max_age_var
+						value = 111
+					}
+				}
+			}
+			change_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 30 #adds another 30 years, continues for the rest of these
+			}
+		}
+		else_if = {
+			limit = {
+				has_ruler_flag = lefthand_life_extension
+				check_variable = { #make sure it is selecting the correct life extension
+					which = lefthand_life_extension_max_age_var
+					value = 140
+				}
+				NOT = {
+					check_variable = {
+						which = lefthand_life_extension_max_age_var
+						value = 141
+					}
+				}
+			}
+			change_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 20
+			}
+		}
+		else_if = {
+			limit = {
+				has_ruler_flag = lefthand_life_extension
+				check_variable = { #make sure it is selecting the correct life extension
+					which = lefthand_life_extension_max_age_var
+					value = 160
+				}
+				NOT = {
+					check_variable = {
+						which = lefthand_life_extension_max_age_var
+						value = 161
+					}
+				}
+			}
+			change_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 15
+			}
+		}
+		else_if = {
+			limit = {
+				has_ruler_flag = lefthand_life_extension
+				check_variable = { #make sure it is selecting the correct life extension
+					which = lefthand_life_extension_max_age_var
+					value = 175
+				}
+				NOT = {
+					check_variable = {
+						which = lefthand_life_extension_max_age_var
+						value = 176
+					}
+				}
+			}
+			change_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 10 #increase life extension
+			}
+		}
+		else_if = {
+			limit = {
+				has_ruler_flag = lefthand_life_extension
+				check_variable = {
+					which = lefthand_life_extension_max_age_var
+					value = 185
+				}
+			}
+			change_variable = {
+				which = lefthand_life_extension_max_age_var
+				value = 5
+			}
+		}
+	}
+	
+	lhp_heart_drain_choose_option_deeper = yes
+}
+
+	#Go Back
+	option = {
+        name = spirits.602.h
+        ai_chance = { factor = 0 }
+		country_event = { id = spirits.606 }
+	}
+}
+
+country_event = { #Azjakuma - Give the Chi to the Shirgrii
+	id = spirits.610
+	title = spirits.610.t
+	desc = spirits.610.d
+	picture = GREAT_MAN_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+
+	option = { #Shinukhorchi
+		name = spirits.610.a
+		trigger = {
+			has_estate = estate_shinukhorchi
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_shinukhorchi
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
+			loyalty = 15
+			duration = 7300
+		}
+		add_estate_influence_modifier = {	#Empowers the spells they can cast for a bit
+			estate = estate_shinukhorchi
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS
+			influence = 33
+			duration = 730
+		}
+		add_country_modifier = {
+			name = lefthand_empowered_sorcerers
+			duration = 1825
+		}
+		every_owned_province = {
+			limit = {
+				area = sugroltona_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
 		hidden_effect = {
 			clr_country_flag = in_heart_drain_menu
 			clr_country_flag = in_deeper_heart_drain_menu
@@ -5169,11 +5314,198 @@ country_event = {	#Unlimited Power
 			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
 		}
 	}
-	
+
+	option = { #Chumijemoya
+		name = spirits.610.b
+		trigger = {
+			has_estate = estate_chumijemoya
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_chumijemoya
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
+			loyalty = 15
+			duration = 7300
+		}
+		add_estate_influence_modifier = {	#Empowers the spells they can cast for a bit
+			estate = estate_chumijemoya
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS
+			influence = 33
+			duration = 730
+		}
+		add_country_modifier = {
+			name = lefthand_empowered_sorcerers
+			duration = 1825
+		}
+		every_owned_province = {
+			limit = {
+				area = yambioka_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
+		hidden_effect = {
+			clr_country_flag = in_heart_drain_menu
+			clr_country_flag = in_deeper_heart_drain_menu
+			event_target:corrupted_temple_drain_target = {
+				set_variable = { which = CorruptedHeartMana value = 0 }
+			}
+			add_country_modifier = { #Cooldown for balance concerns
+				name = corrupted_heart_drain_cooldown
+				duration = 1825
+				hidden = yes
+			}
+			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
+		}
+	}
+
+	option = {
+		name = spirits.610.c
+		trigger = {
+			has_estate = estate_ajgriijarul
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_ajgriijarul
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
+			loyalty = 15
+			duration = 7300
+		}
+		add_estate_influence_modifier = {	#Empowers the spells they can cast for a bit
+			estate = estate_ajgriijarul
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS
+			influence = 33
+			duration = 730
+		}
+		add_country_modifier = {
+			name = lefthand_empowered_sorcerers
+			duration = 1825
+		}
+		every_owned_province = {
+			limit = {
+				area = unbeksu_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
+		hidden_effect = {
+			clr_country_flag = in_heart_drain_menu
+			clr_country_flag = in_deeper_heart_drain_menu
+			event_target:corrupted_temple_drain_target = {
+				set_variable = { which = CorruptedHeartMana value = 0 }
+			}
+			add_country_modifier = { #Cooldown for balance concerns
+				name = corrupted_heart_drain_cooldown
+				duration = 1825
+				hidden = yes
+			}
+			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
+		}
+	}
+
+	option = {
+		name = spirits.610.e
+		trigger = {
+			has_estate = estate_kabiurgarko
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_kabiurgarko
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
+			loyalty = 15
+			duration = 7300
+		}
+		add_estate_influence_modifier = {	#Empowers the spells they can cast for a bit
+			estate = estate_kabiurgarko
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS
+			influence = 33
+			duration = 730
+		}
+		add_country_modifier = {
+			name = lefthand_empowered_sorcerers
+			duration = 1825
+		}
+		every_owned_province = {
+			limit = {
+				area = sugroltona_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
+		every_owned_province = {
+			limit = {
+				area = moryokang_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
+		hidden_effect = {
+			clr_country_flag = in_heart_drain_menu
+			clr_country_flag = in_deeper_heart_drain_menu
+			event_target:corrupted_temple_drain_target = {
+				set_variable = { which = CorruptedHeartMana value = 0 }
+			}
+			add_country_modifier = { #Cooldown for balance concerns
+				name = corrupted_heart_drain_cooldown
+				duration = 1825
+				hidden = yes
+			}
+			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
+		}
+	}
+	option = {
+		name = spirits.610.f
+		trigger = {
+			has_estate = estate_khelorvalshi
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_khelorvalshi
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS_LOY
+			loyalty = 15
+			duration = 7300
+		}
+		add_estate_influence_modifier = {	#Empowers the spells they can cast for a bit
+			estate = estate_khelorvalshi
+			desc = EST_VAL_LEFTHAND_EMPOWERED_SORCERERS
+			influence = 33
+			duration = 730
+		}
+		add_country_modifier = {
+			name = lefthand_empowered_sorcerers
+			duration = 1825
+		}
+		every_owned_province = {
+			limit = {
+				area = jinqiu_area
+			}
+			add_province_modifier = {
+				name = azjakuma_give_chi_to_shirgrii
+				duration = 7300
+			}
+		}
+		hidden_effect = {
+			clr_country_flag = in_heart_drain_menu
+			clr_country_flag = in_deeper_heart_drain_menu
+			event_target:corrupted_temple_drain_target = {
+				set_variable = { which = CorruptedHeartMana value = 0 }
+			}
+			add_country_modifier = { #Cooldown for balance concerns
+				name = corrupted_heart_drain_cooldown
+				duration = 1825
+				hidden = yes
+			}
+			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
+		}
+	}
 	#Go Back
 	option = {
-        name = spirits.602.h
-        ai_chance = { factor = 0 }
+		name = spirits.602.h
+		ai_chance = { factor = 0 }
 		country_event = { id = spirits.606 }
 	}
 }
