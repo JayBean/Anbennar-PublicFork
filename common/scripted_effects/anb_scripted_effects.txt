@@ -18700,3 +18700,851 @@ magic_legend_lore_effect = {
 	}
 }
 
+
+
+#Seghdihr
+seghdihr_update_flow_modifiers = {
+	#intentionally clears everything and recalcs, so it doesn't get stuck when you eclipse rivals
+	remove_country_modifier = seghdihr_limit_flow_1a
+	remove_country_modifier = seghdihr_limit_flow_1b
+	remove_country_modifier = seghdihr_limit_flow_2a
+	remove_country_modifier = seghdihr_limit_flow_2b
+	remove_country_modifier = seghdihr_limit_flow_2c
+	remove_country_modifier = seghdihr_limit_flow_3a
+	remove_country_modifier = seghdihr_limit_flow_3b
+	remove_country_modifier = seghdihr_limit_flow_3c
+	remove_country_modifier = seghdihr_limit_flow_3d
+
+	#lvl 3 modifier
+	if = {
+		limit = { mission_completed = seghdihr_the_syndicates }
+		if = {
+			limit = { 
+				calc_true_if = {
+					amount = 3
+					all_known_country = {
+						trade_embargo_by = H78
+						NOT = { is_enemy = H78 }
+					}
+				}
+			}
+			add_country_modifier = { name = seghdihr_limit_flow_3d duration = -1 }
+		}
+		else_if = {
+			limit = { 
+				calc_true_if = {
+					amount = 2
+					all_known_country = {
+						trade_embargo_by = H78
+						NOT = { is_enemy = H78 }
+					}
+				}
+			}
+			add_country_modifier = { name = seghdihr_limit_flow_3c duration = -1 }
+		}
+		else_if = {
+			limit = { 
+					any_known_country = {
+						trade_embargo_by = H78
+						NOT = { is_enemy = H78 }
+					}
+				}
+			add_country_modifier = { name = seghdihr_limit_flow_3b duration = -1 }
+		}
+		else = { add_country_modifier = { name = seghdihr_limit_flow_3a duration = -1 } }
+	}
+	#lvl 2 modifier
+	else_if = {
+		limit = { mission_completed = seghdihr_first_last_stop }
+		if = {
+			limit = {
+				calc_true_if = {
+					amount = 2
+					all_known_country = {
+						trade_embargo_by = H78
+						NOT = { is_enemy = H78 }
+					}
+				}
+			}
+			add_country_modifier = { name = seghdihr_limit_flow_2c duration = -1 }
+		}
+		else_if = {
+			limit = { 
+					any_known_country = {
+						trade_embargo_by = H78
+						NOT = { is_enemy = H78 }
+					}
+				}
+			add_country_modifier = { name = seghdihr_limit_flow_2b duration = -1 }
+		}
+		else = { add_country_modifier = { name = seghdihr_limit_flow_2a duration = -1 } }
+	}
+	#lvl 1 modifier
+	else = {
+		if = {
+			limit = { 
+				any_known_country = {
+					trade_embargo_by = H78
+					NOT = { is_enemy = H78 }
+				}
+			}
+			add_country_modifier = { name = seghdihr_limit_flow_1b duration = -1 }
+		}
+		else = { add_country_modifier = { name = seghdihr_limit_flow_1a duration = -1 } }
+	}
+}
+
+seghdihr_calculate_incursion_strength = {
+	set_variable = { which = incursion_empty_provinces value = 0 }
+	set_variable = { which = incursion_goblin_provinces value = 0 }
+	set_variable = { which = incursion_goblin_tribes value = 0 }
+	set_variable = { which = incursion_ozumbrog_forts value = 0 }
+	set_variable = { which = incursion_kanzad_hold value = 0 }
+	set_variable = { which = incursion_grozumdihr_hold value = 0 }
+	set_variable = { which = incursion_azan_hold value = 0 }
+	set_variable = { which = incursion_krakazol_hold value = 0 }
+	set_variable = { which = incursion_total value = 1000 } #1k base
+
+	#tree of stone provinces
+	tree_of_stone_region = {
+		limit = { NOT = { province_group = hold_province } }
+		if = {
+			limit = { is_city = no }
+			ROOT = { change_variable = { which = incursion_empty_provinces value = 10 } }
+		}
+		else_if = {
+			limit = { culture = cave_goblin } #yes even if owned by a dwarf
+			ROOT = { change_variable = { which = incursion_goblin_provinces value = 30 } } 
+		}
+	}
+
+	#goblin tags
+	if = {
+		limit = { exists = H92 } #poisoned rock
+		change_variable = { which = incursion_goblin_tribes value = 50 }
+	}
+	if = {
+		limit = { exists = H88 } #ambersniffer
+		change_variable = { which = incursion_goblin_tribes value = 50 }
+	}
+	if = {
+		limit = { exists = H93 } #dirtwater
+		change_variable = { which = incursion_goblin_tribes value = 50 }
+	}
+	if = {
+		limit = { exists = H74 } #chaingrasper
+		change_variable = { which = incursion_goblin_tribes value = 100 }
+	}
+
+	####holds
+	#fort lvl in ozumbrog
+	4218 = {
+		if = {
+			limit = { fort_level = 8 }
+			ROOT = { set_variable = { which = incursion_ozumbrog_forts value = -80 } }
+		}
+		else_if = {
+			limit = { fort_level = 6 }
+			ROOT = { set_variable = { which = incursion_ozumbrog_forts value = -60 } }
+		}
+		else_if = {
+			limit = { fort_level = 4 }
+			ROOT = { set_variable = { which = incursion_ozumbrog_forts value = -40 } }
+		}
+		else_if = {
+			limit = { fort_level = 2 }
+			ROOT = { set_variable = { which = incursion_ozumbrog_forts value = -20 } }
+		}
+	}
+	#kanzad
+	4247 = {
+		if = {
+			limit = { owner = { culture_group = dwarven } }
+			ROOT = { change_variable = { which = incursion_kanzad_hold value = -100 } }
+		}
+		else_if = {
+			limit = { is_city = no }
+			ROOT = { change_variable = { which = incursion_kanzad_hold value = 50 } }
+		}
+		else = { ROOT = { change_variable = { which = incursion_kanzad_hold value = 100 } } }
+	}
+	#grozumdihr
+	4265 = {
+		if = {
+			limit = { owner = { culture_group = dwarven } }
+			ROOT = { change_variable = { which = incursion_grozumdihr_hold value = -100 } }
+		}
+		else_if = {
+			limit = { is_city = no }
+			ROOT = { change_variable = { which = incursion_grozumdihr_hold value = 50 } }
+		}
+		else = { ROOT = { change_variable = { which = incursion_grozumdihr_hold value = 100 } } }
+	}
+	#az-an
+	4284 = {
+		if = {
+			limit = { owner = { culture_group = dwarven } }
+			ROOT = { change_variable = { which = incursion_azan_hold value = -100 } }
+		}
+		else_if = {
+			limit = { is_city = no }
+			ROOT = { change_variable = { which = incursion_azan_hold value = 50 } }
+		}
+		else = { ROOT = { change_variable = { which = incursion_azan_hold value = 100 } } }
+	}
+	#krakazol
+	4266 = {
+		if = {
+			limit = { owner = { culture_group = dwarven } }
+			ROOT = { change_variable = { which = incursion_krakazol_hold value = -100 } }
+		}
+		else_if = {
+			limit = { is_city = no }
+			ROOT = { change_variable = { which = incursion_krakazol_hold value = 50 } }
+		}
+		else = { ROOT = { change_variable = { which = incursion_krakazol_hold value = 100 } } }
+	}
+
+	##calc
+	change_variable = { which = incursion_total which = incursion_empty_provinces }
+	change_variable = { which = incursion_total which = incursion_goblin_provinces }
+	change_variable = { which = incursion_total which = incursion_goblin_tribes }
+	change_variable = { which = incursion_total which = incursion_kanzad_hold }
+	change_variable = { which = incursion_total which = incursion_grozumdihr_hold }
+	change_variable = { which = incursion_total which = incursion_azan_hold }
+	change_variable = { which = incursion_total which = incursion_krakazol_hold }
+	change_variable = { which = incursion_total which = incursion_ozumbrog_forts }
+	change_variable = { which = incursion_total which = incursion_gathering_strength }
+	change_variable = { which = incursion_total which = incursion_mission_bonus }
+}
+seghdihr_spawn_incursion_main_goblins = {
+	if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 2500 } } }
+		spawn_rebels = {
+			size = 5.5
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 2000 } } }
+		spawn_rebels = {
+			size = 5
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 1500 } } }
+		spawn_rebels = {
+			size = 4.5
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 1000 } } }
+		spawn_rebels = {
+			size = 4
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 500 } } }
+		spawn_rebels = {
+			size = 3.5
+			type = cave_goblin_rebel
+		}
+	}
+	else = { 
+		spawn_rebels = {
+			size = 3
+			type = cave_goblin_rebel
+		}
+	}
+}
+seghdihr_spawn_incursion_small_goblins = {
+	if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 2500 } } }
+		spawn_rebels = {
+			size = 3
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 2000 } } }
+		spawn_rebels = {
+			size = 2.5
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 1500 } } }
+		spawn_rebels = {
+			size = 2
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 1000 } } }
+		spawn_rebels = {
+			size = 1.5
+			type = cave_goblin_rebel
+		}
+	}
+	else_if = {
+		limit = { ROOT = { check_variable = { which = incursion_total value = 500 } } }
+		spawn_rebels = {
+			size = 1
+			type = cave_goblin_rebel
+		}
+	}
+	else = { 
+		spawn_rebels = {
+			size = 0.5
+			type = cave_goblin_rebel
+		}
+	}
+}
+
+seghdihr_sgc_update_trade_modifiers = {
+	[[Highway]
+		2901 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_highway_power value = 120 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 110 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 100 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 90 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 80 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 70 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 60 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 50 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 40 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 30 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 20 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_highway_power value = 10 } }
+			2901 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[WestGulf]
+		1350 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 140 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 130 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 120 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 110 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 100 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 90 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 80 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 70 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 60 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 50 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 40 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 30 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 20 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_westgulf_power value = 10 } }
+			1350 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Rhak]
+		4435 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 140 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 130 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 120 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 110 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 100 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 90 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 80 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 70 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 60 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 50 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 40 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 30 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 20 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rhak_power value = 10 } }
+			4435 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Rahen]
+		4485 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 140 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 130 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 120 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 110 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 100 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 90 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 80 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 70 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 60 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 50 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 40 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 30 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 20 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_rahen_power value = 10 } }
+			4485 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Nadimraj]
+		4460 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 140 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 130 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 120 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 110 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 100 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 90 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 80 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 70 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 60 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 50 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 40 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 30 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 20 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_nadimraj_power value = 10 } }
+			4460 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Gulf]
+		1361 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 200 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 200 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 190 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 190 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 180 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 180 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 170 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 170 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 160 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 160 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 150 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 150 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 140 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 130 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 120 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 110 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 100 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 90 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 80 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 70 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 60 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 50 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 40 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 30 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 20 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_gulf_power value = 10 } }
+			1361 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Kharun]
+		4500 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 160 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 160 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 150 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 150 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 140 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 140 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 130 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 130 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 120 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 110 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 100 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 90 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 80 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 70 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 60 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 50 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 40 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 30 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 20 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_kharun_power value = 10 } }
+			4500 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+	[[Bianfang]
+		4952 = { remove_trade_modifier = { who = ROOT key = seghdihr_sgc_power } }
+		if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 120 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 120 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 110 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 110 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 100 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 100 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 90 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 90 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 80 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 80 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 70 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 70 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 60 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 60 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 50 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 50 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 40 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 40 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 30 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 30 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 20 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 20 key = seghdihr_sgc_power } }
+		}
+		else_if = {
+			limit = { check_variable = { which = sgc_bianfang_power value = 10 } }
+			4952 = { add_trade_modifier = { who = ROOT duration = -1 power = 10 key = seghdihr_sgc_power } }
+		}
+	]
+}
+seghdihr_sgc_adm_missing_req = {
+	if = {
+		limit = { NOT = { treasury = 750 } }
+		custom_tooltip = seghdihr_sgc_missing_req_750g
+	}
+	if = {
+		limit = { NOT = { adm_power = 200 } }
+		custom_tooltip = seghdihr_sgc_missing_req_200adm
+	}
+	if = {
+		limit = { seghdihr_sgc_adm_req = yes }
+		custom_tooltip = seghdihr_sgc_node_busy
+	}
+}
+seghdihr_sgc_dip_missing_req = {
+	if = {
+		limit = { NOT = { treasury = 500 } }
+		custom_tooltip = seghdihr_sgc_missing_req_500g
+	}
+	if = {
+		limit = { NOT = { dip_power = 200 } }
+		custom_tooltip = seghdihr_sgc_missing_req_200dip
+	}
+	if = {
+		limit = { seghdihr_sgc_dip_req = yes }
+		custom_tooltip = seghdihr_sgc_node_busy
+	}
+}
+seghdihr_sgc_mil_missing_req = {
+	if = {
+		limit = { NOT = { treasury = 750 } }
+		custom_tooltip = seghdihr_sgc_missing_req_750g
+	}
+	if = {
+		limit = { NOT = { mil_power = 200 } }
+		custom_tooltip = seghdihr_sgc_missing_req_10kman
+	}
+	if = {
+		limit = { seghdihr_sgc_mil_req = yes }
+		custom_tooltip = seghdihr_sgc_node_busy
+	}
+}
+seghdihr_sgc_adm_cost = {
+	add_treasury = -750
+	add_adm_power = -200
+}
+seghdihr_sgc_dip_cost = {
+	add_treasury = -500
+	add_dip_power = -200
+}
+seghdihr_sgc_mil_cost = {
+	add_manpower = -10
+	add_mil_power = -200
+}
