@@ -43,7 +43,7 @@ on_startup = {
 		#kheteratan_events.1		#Sets up Khetarch for Kheterata
 		#kobold_events.1 		#Sets up for kobolds
 		diggy.108				#Dwarovar Claimer event
-		diggy.110				#AI Discover shit, Hold setup  #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
+		diggy.110				#Hold and Colonial nerf setup event
 		#deepwoods.100			#Deepwoods setup - this caused black screen crash and is redundant as other anbennar_setup.3 does it
 		verkalgulan_events.1		#Verkal Gulan setup
 		#vegan.101				#Setup abundant wood in deepwoods
@@ -54,7 +54,7 @@ on_startup = {
 		ogre.2					#Sets up warring northern Fathide clan opinions
 		ogre.3					#Sets up Ogre Monarch v Tribal opinion
 		ogre.4					#Sets up Ogre Tribal v Monarch opinion
-		magic_ruler.8			#Sets up magic for rulers with undefined skills
+		magic_ruler.109			#Sets up magic for rulers with undefined skills
 		# anbennar_setup.17		#exodus goblin invasion
 		flavor_corintar.3		#Adds Lothane Bluetusk's Leadership to Corintar
 		religious_leagues.10	#Starting religious peace
@@ -1203,15 +1203,28 @@ on_war_won = {
 	}
 	
 	#Raja winning war
-	if = { limit = { has_reform = raja_reform }
+	if = { 
+		limit = { has_reform = raja_reform }
 		FROM = { raj_cohesion_change = { amount = 10 non_monthly = yes } }
 		every_subject_country = {
-			limit = { is_subject_of_type = daimyo_vassal }
-			if = { limit = { NOT = { government = monarchy } }
-				change_government = monarchy
+			# make sure all subjects of the Raja get truces with the party. 
+			if = { 
+				limit = { 
+					NOT = { FROM = { is_subject_of = ROOT } }	# make sure FROM is external party
+					NOT = { truce_with = FROM } 			# check for truces
+				}
+				add_truce_with = FROM						# add truce with external party
+				FROM = { add_truce_with = PREV }			# add truce with subject
 			}
-			add_government_reform = prabhi_reform
-			country_event = { id = rahenraj.10 days = 35 }	#adds the raj cohesion privilege
+			if = { 
+				limit = { is_subject_of_type = daimyo_vassal }
+				if = { 
+					limit = { NOT = { government = monarchy } }
+					change_government = monarchy
+				}
+				add_government_reform = prabhi_reform
+				country_event = { id = rahenraj.10 days = 35 }	#adds the raj cohesion privilege
+			}
 		}
 	}
 	
@@ -1460,8 +1473,21 @@ on_war_lost = {
 	#Raja losing war
 	if = {
 		limit = { has_reform = raja_reform }
-		FROM = {
-			raj_cohesion_change = { amount = -10 non_monthly = yes }
+		FROM = { raj_cohesion_change = { amount = -10 non_monthly = yes } }
+
+		if = {
+			# make sure all subjects of the Raja get truces with the party. 
+			limit = { NOT = { FROM = { is_subject_of = ROOT } } }		# make sure FROM is external party
+
+			every_subject_country = {
+				if = { 
+					limit = { 
+						NOT = { truce_with = FROM } 			# check for truces
+					}
+					add_truce_with = FROM						# add truce with external party
+					FROM = { add_truce_with = PREV }			# add truce with subject
+				}
+			}
 		}
 	}
 	
@@ -2196,10 +2222,6 @@ on_new_monarch = {
 
 	#Anbennar
 	set_runelink_level = yes
-	if = {
-		limit = { has_any_heir_cult_active = yes }
-		remove_heir_cult = yes
-	}
 	events = {
 	
 		#Anbennar
@@ -2210,7 +2232,7 @@ on_new_monarch = {
 		anbennar_setup.19			#Setup for artifice system
 		# racial_modifiers.5		#Racial admin change if unmatching
 		# racial_modifiers.6		#Racial mil change if unmatching
-		magic_ruler.8				#gives magic schools
+		magic_ruler.109				#gives magic schools
 		anb_miscevents.10 			# Make you adventurer reform if youre not - this is for released countries
 		anb_miscevents.11			# Makes temples theocracies when released
 		#adventuring.7	#A new Captain rises
@@ -2287,7 +2309,7 @@ on_new_monarch = {
 				ruler_is_half_elven = yes
 			}
 		}
-		country_event = { id = magic_ruler.1 days = 3700 } #Since long-lived races can no longer naturally roll mage_personality has first trait fire after second trait received
+		country_event = { id =  magic_ruler.102 days = 3700 } #Since long-lived races can no longer naturally roll mage_personality has first trait fire after second trait received
 	}
 	if = {
 		limit = { religion = the_jadd has_global_flag = the_jadd_is_the_true_faith NOT = { has_country_modifier = jaddari_the_true_faith } }
@@ -2838,10 +2860,6 @@ on_heir_death = {
 		clr_ruler_flag = returned_from_sancaga_sikma_province
 	}
 	if = {
-		limit = { has_any_heir_cult_active = yes }
-		remove_heir_cult = yes
-	}
-	if = {
 		limit = { has_reform = teplinbasiet_arena_kingdom_reform }
 		clr_country_flag = Y58_allied_noble_won
 		clr_country_flag = Y58_local_fighter_won
@@ -2956,10 +2974,6 @@ on_queen_death = {
 
 # country
 on_new_heir = {
-	if = {
-		limit = { has_any_heir_cult_active = yes }
-		remove_heir_cult = yes
-	}
 	# if = {
 	# 	limit = {
 	# 		has_country_flag = enabled_cult_for_heirs
@@ -3844,7 +3858,8 @@ on_bi_yearly_pulse = {
 		set_country_flag = bim_lau_mage_entombment
 	}
 	if = { limit = { religion = xhazobkult } country_event = { id = xhazobkult_events.2000 days = 365 } }
-	if = { limit = { tag = H77 has_country_flag = lodhum_tourism_enabled } country_event = { id = flavor_lodhum.100 } } 
+	if = { limit = { tag = H77 has_country_flag = lodhum_tourism_enabled } country_event = { id = flavor_lodhum.100 } }
+	if = { limit = { tag = H78 mission_completed = seghdihr_rely_ourselves } seghdihr_update_flow_modifiers = yes }
 	random_events = {
 		# randomevents.txt
 		100 = 3051
@@ -7796,6 +7811,18 @@ on_province_owner_change = {
 			}
 		}
 	}
+	#seghdihr military modifiers
+	if = {
+		limit = { 
+			owned_by = H78
+			H78 = { has_reform = seghdihr_segbandalic_military }
+		}
+		if = {
+			limit = { province_group = segbandal_hold_province }
+			add_province_modifier = { name = seghdihr_reform_holds duration = -1 hidden = yes }
+		}
+		else = { add_province_modifier = { name = seghdihr_reform_non_holds duration = -1 hidden = yes } }
+	}
 }
 
 # country
@@ -8002,6 +8029,15 @@ on_mercenary_recruited = {
 		FROM = {
 			add_army_professionalism = -0.05
 		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				tag = H78
+				has_reform = seghdihr_segbandalic_military
+			}
+		}
+		FROM = { add_army_professionalism = -0.15 }
 	}
 }
 
