@@ -176,6 +176,7 @@ artifice_invention_research_privilege = {
 			NOT = { has_estate_privilege = estate_artificers_organization_state }
 			has_estate_privilege = artifice_invention_research_privilege
 		}
+		NOT = { has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre }
 	}
 	can_select = {
 		artifice_has_points_for_basic = yes
@@ -230,7 +231,10 @@ artifice_invention_directed_research = {
 	loyalty = 0.05
 	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
 	is_valid = {
-		has_estate_privilege = estate_artificers_organization_state
+		OR = {
+			has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre
+			has_estate_privilege = estate_artificers_organization_state
+		}
 		NOT = { has_country_flag = remove_artifice_invention_research }
 	}
 	can_select = {
@@ -279,6 +283,312 @@ artifice_invention_directed_research = {
 		}
 	}
 }
+
+# Some unique Feiten Shuimu Engineering Cadre privileges
+# Invest in Shuimu stuffs
+estate_artificers_feiten_invest_engineering_workshop = {
+	icon = privilege_give_money
+	influence = 0
+	loyalty = 0.05
+	land_share = 5
+	max_absolutism = -5
+	is_valid = {
+		has_country_flag = feiten_shuimu_engineering_workshop_unlocked
+		NOT = { has_country_flag = feiten_able_to_build_shuimu_extension }
+	}
+	can_select = {
+		any_owned_province = {
+			superregion = yanshen_superregion
+			NOT = { has_province_modifier = feiten_shuimu_engineering_workshop }
+			OR = {
+				has_building = university
+				has_production_building_trigger = yes
+			}
+		}
+	}
+	can_revoke = {
+	}
+	on_granted = {
+		add_dip_power = -33
+		if = {
+			limit = { monthly_income = 40 }
+			add_treasury = -500
+		}
+		else = { add_years_of_income = -1 }
+		custom_tooltip = "The following will apply after the privilege expires:"
+		random_owned_province = {
+			limit = {
+				superregion = yanshen_superregion
+				NOT = { has_province_modifier = feiten_shuimu_engineering_workshop }
+				has_production_building_trigger = yes
+			}
+			set_province_flag = shuimu_workshop_build_location
+			if = {
+				limit = {
+					check_variable = {
+						which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+						value = 5
+					}
+				}
+				tooltip = {
+					add_province_modifier = {
+						name = feiten_shuimu_engineering_workshop_no_tech_cost
+						duration = -1
+					}
+				}
+			}
+			else = {
+				tooltip = {
+					add_province_modifier = {
+						name = feiten_shuimu_engineering_workshop
+						duration = -1
+					}
+				}
+			}
+		}
+	}
+	
+	on_invalid = {
+		hidden_effect = { clr_country_flag = feiten_able_to_build_shuimu_extension }
+	}
+	
+	penalties = { }
+	
+	benefits = { }
+	
+	cooldown_years = 5
+	on_cooldown_expires = {
+		set_country_flag = feiten_able_to_build_shuimu_extension
+		random_owned_province = {
+			limit = { has_province_flag = shuimu_workshop_build_location }
+			clr_province_flag = shuimu_workshop_build_location
+			if = {
+				limit = {
+					check_variable = {
+						which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+						value = 5
+					}
+				}
+				add_province_modifier = {
+					name = feiten_shuimu_engineering_workshop_no_tech_cost
+					duration = -1
+				}
+			}
+			else = {
+				add_province_modifier = {
+					name = feiten_shuimu_engineering_workshop
+					duration = -1
+				}
+			}
+		}
+		change_variable = {
+			which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+			value = 1
+		}
+	}
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Promote Starry-Eye scholars
+estate_artificers_feiten_starry_eye_promotion = {
+	icon = privilege_give_money
+	influence = 0.05
+	loyalty = 0.05
+	land_share = 0
+	max_absolutism = -5
+	is_valid = { mission_completed = feiten_shuimu_engineering_cadre }
+	can_select = { }
+	can_revoke = { }
+	on_granted = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			add_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+
+	on_revoked = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			remove_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+	
+	on_invalid = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			remove_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+	
+	penalties = {
+		global_tax_modifier = -0.1
+	}
+	
+	benefits = {
+		institution_spread_from_true_faith = 0.2
+		innovativeness_gain = 0.5
+	}
+	
+	on_cooldown_expires = { }
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Grant Foreign Membership
+estate_artificers_feiten_grant_foreign_membership = {
+	icon = privilege_give_money
+	influence = -0.05
+	loyalty = -0.05
+	land_share = 0
+	max_absolutism = -5
+	is_valid = { mission_completed = feiten_arrival_of_gnomes }
+	can_select = { }
+	can_revoke = { }
+	on_granted = {
+		add_prestige = -10
+		random_owned_province = {
+			limit = { has_any_gnomish_pop_trigger = no }
+			add_unrest = 10
+			add_gnomish_minority_size_effect = yes
+		}
+	}
+
+	on_revoked = { }
+	
+	on_invalid = { }
+	
+	penalties = {
+		global_unrest = 2
+		stability_cost_modifier = 0.2
+	}
+	
+	benefits = {
+		global_institution_spread = 0.25
+		technology_cost = -0.05
+	}
+	
+	cooldown_years = 5
+	on_cooldown_expires = { }
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Faster research
+artifice_invention_directed_research_feiten_precursor_secrets = {
+	icon = privilege_Artf_Research
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		OR = {
+			has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre
+			has_estate_privilege = estate_artificers_organization_state
+		}
+		NOT = { has_country_flag = remove_artifice_invention_research }
+		mission_completed = feiten_secrets_of_the_precursors
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+		is_year = 1445
+		NOT = {
+			has_estate_privilege = artifice_invention_research_privilege
+		}
+	}
+	can_revoke = {
+		always = no
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		country_event = {
+			id = artifice_events.4
+		}
+		every_owned_province = {
+			limit = {
+				OR = {
+					trade_goods = precursor_relics
+					trade_goods = damestear
+				}
+			}
+			add_province_modifier = {
+				name = feiten_directed_research
+				duration = 1825
+			}
+		}
+		every_subject_country = {
+			every_owned_province = {
+				limit = {
+					OR = {
+						trade_goods = precursor_relics
+						trade_goods = damestear
+					}
+				}
+				add_province_modifier = {
+					name = feiten_directed_research
+					duration = 1825
+				}
+			}
+		}
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		clr_country_flag = remove_artifice_invention_research
+	}
+	on_revoked = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+		#custom_tooltip = decreases_our_artifice_upkeep_by_10
+	}
+	penalties = {
+		prestige_decay = 0.02
+		global_tax_modifier = -0.5
+		all_power_cost = -0.025
+	}
+	benefits = {
+		#foo
+	}
+	cooldown_years = 5
+	on_cooldown_expires = {
+		country_event = {
+			id = artifice_events.3
+		}
+	}
+	ai_will_do = {
+		factor = 100 #ai shouldn't use this one. Just too much work getting them to understand it and making it not crash for linux. Their research will be done via decision?
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
 
 #inventions
 
@@ -5077,6 +5387,90 @@ artifice_invention_spirit_proof_exoskeleton = {
 	benefits = {
 		production_efficiency = 0.1
 		trade_goods_size_modifier = 0.05
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_nitroglycerin_rockets = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_nitroglycerin_rockets
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		fire_damage = 0.2
+		artillery_fire = 0.1
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_nitroglycerin_tnt = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_nitroglycerin_rockets
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		production_efficiency = 0.1
+		development_cost = -0.1
 	}
 	ai_will_do = {
 		factor = 50
