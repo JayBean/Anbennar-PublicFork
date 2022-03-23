@@ -1545,6 +1545,15 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = {
+		hidden_effect = { 
+			count_provinces_owned_by_rivals_effect = { which = amount_of_rival_provinces }
+			count_provinces_owned_by_neighbours_effect = { which = amount_of_neighbour_provinces }
+			count_provinces_owned_by_country_effect = { which = amount_of_owned_provinces }
+			count_provinces_owned_by_war_enemies_effect = { which = amount_of_war_enemy_provinces }
+		}
+	}
+	
 	#Go back
 	option = {
 		name = magic_ruler.1.z
@@ -1618,33 +1627,45 @@ country_event = {
 		hidden_effect = { country_event = { id = magic_ruler.9 } }
 	}
 	
-	#1 - Scrying
+	#1 - Scrying - Spy on Rivals
 	option = {	#available
 		name = magic_ruler.3.b
 		trigger = {
 			has_ruler_flag = divination_1
-			adm_power = 50
-			OR = {
-				AND = {
-					any_rival_country  = { exists = yes }
-					NOT = { has_ruler_modifier = magic_realm_divination_scrying_rivals }
-				}
-				AND = {
-					any_country = { is_neighbor_of = ROOT }
-					NOT = { has_ruler_modifier = magic_realm_divination_scrying_neighbours }
-				}
-				NOT = { has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents }
-				NOT = { has_ruler_modifier = magic_realm_divination_scrying_affairs }
-			}
-			NOT = { has_ruler_modifier = magic_scrying_cooldown }
+			adm_power = 25
+			dip_power = 25
+			any_rival_country  = { exists = yes }
+			has_ruler_modifier = magic_realm_divination_scrying_rivals
 		}
 		ai_chance = {
 			factor = 50
+			modifier = {
+				factor = 4
+				is_great_power = yes
+			}
 		}
 		
-		country_event = { id = magic_ruler.13 }
+		magic_casted_spell = yes
+		magic_scrying_rivals_cost = yes
+		if = {
+			limit = { has_ruler_flag = honored_ancestor_patron }
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_rivals
+				duration = 365
+			}
+			custom_tooltip = magic_booster_by_patron_tt
+		}
+		else = {
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_rivals
+				duration = 180
+			}
+		}
+		every_rival_country = { remove_fow = 6 }
 		
-		custom_tooltip = magic_scrying_effect_tt
+		set_country_flag = divination_menu
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
 		custom_tooltip = magic_scrying_desc_tt
 	}
 	option = {	#unavailable - low mastery
@@ -1661,7 +1682,25 @@ country_event = {
 		
 		custom_tooltip = magic_effect_separator_tt
 		
-		custom_tooltip = magic_scrying_effect_tt
+		tooltip = {
+			magic_scrying_rivals_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_rivals
+					duration = 365
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_rivals
+					duration = 180
+				}
+			}
+		}
+		custom_tooltip = magic_scrying_rival_effect_tt
+		
 		custom_tooltip = magic_scrying_desc_tt
 	}
 	option = {	#unavailable - other
@@ -1670,41 +1709,22 @@ country_event = {
 			ai = no
 			has_ruler_flag = divination_1
 			OR = {
-				NOT = { adm_power = 50 }
-				AND = {
-					OR = {
-						NOT = { any_rival_country  = { exists = yes } }
-						has_ruler_modifier = magic_realm_divination_scrying_rivals
-					}
-					OR = {
-						NOT = { any_country = { is_neighbor_of = ROOT } }
-						has_ruler_modifier = magic_realm_divination_scrying_neighbours
-					}
-					has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents
-					has_ruler_modifier = magic_realm_divination_scrying_affairs
-				}
-				has_ruler_modifier = magic_scrying_cooldown
+				NOT = { adm_power = 25 }
+				NOT = { dip_power = 25 }
+				NOT = { any_rival_country  = { exists = yes } }
+				has_ruler_modifier = magic_realm_divination_scrying_rivals
 			}
 		}
-		if = { limit = { has_ruler_modifier = magic_scrying_cooldown }
-			custom_tooltip = magic_1_month_cooldown_tt
+		if = { limit = { has_ruler_modifier = magic_realm_divination_scrying_rivals }
+			custom_tooltip = magic_spell_already_active_tt
 		}
-		if = { limit = { NOT = { adm_power = 50 } }
-			custom_tooltip = magic_need_50_adm_tt
+		if = { limit = { NOT = { adm_power = 25 } }
+			custom_tooltip = magic_need_25_adm_tt
 		}
-		if = {
-			limit = {
-				OR = {
-					NOT = { any_rival_country  = { exists = yes } }
-					has_ruler_modifier = magic_realm_divination_scrying_rivals
-				}
-				OR = {
-					NOT = { any_country = { is_neighbor_of = ROOT } }
-					has_ruler_modifier = magic_realm_divination_scrying_neighbours
-				}
-				has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents
-				has_ruler_modifier = magic_realm_divination_scrying_affairs
-			}
+		if = { limit = { NOT = { dip_power = 25 } }
+			custom_tooltip = magic_need_25_dip_tt
+		}
+		if = { limit = { NOT = { any_rival_country  = { exists = yes } } }
 			custom_tooltip = magic_need_valid_target_tt
 		}
 		
@@ -1714,13 +1734,401 @@ country_event = {
 		
 		custom_tooltip = magic_effect_separator_tt
 		
-		custom_tooltip = magic_scrying_effect_tt
+		tooltip = {
+			magic_scrying_rivals_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_rivals
+					duration = 365
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_rivals
+					duration = 180
+				}
+			}
+		}
+		custom_tooltip = magic_scrying_rival_effect_tt
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	
+	#1 - Scrying - Spy on Neighbours
+	option = {	#available
+		name = magic_ruler.3.c
+		trigger = {
+			has_ruler_flag = divination_1
+			adm_power = 50
+			any_country = { is_neighbor_of = ROOT }
+			NOT = { has_ruler_modifier = magic_realm_divination_scrying_neighbours }
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 4
+				personality = ai_diplomat
+			}
+		}
+		
+		magic_casted_spell = yes
+		magic_scrying_neighbours_cost = yes
+		if = {
+			limit = { has_ruler_flag = honored_ancestor_patron }
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_neighbours
+				duration = 365
+			}
+			custom_tooltip = magic_booster_by_patron_tt
+		}
+		else = {
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_neighbours
+				duration = 180
+			}
+		}
+		every_country = {
+			limit = { is_neighbor_of  = ROOT }
+			remove_fow = 6
+		}
+		
+		set_country_flag = divination_menu
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - low mastery
+		name = magic_ruler.3.cm
+		trigger = {
+			ai = no
+			NOT = { has_ruler_flag = divination_1 }
+		}
+		custom_tooltip = school_mastery_not_talented_tt
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_neighbours_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_neighbours
+					duration = 365
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_neighbours
+					duration = 180
+				}
+			}
+		}
+		custom_tooltip = magic_scrying_neighbours_effect_tt
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - other
+		name = magic_ruler.3.cx
+		trigger = {
+			ai = no
+			has_ruler_flag = divination_1
+			OR = {
+				NOT = { adm_power = 50 }
+				NOT = { any_country = { is_neighbor_of = ROOT } }
+				has_ruler_modifier = magic_realm_divination_scrying_neighbours
+			}
+		}
+		if = { limit = { has_ruler_modifier = magic_realm_divination_scrying_neighbours }
+			custom_tooltip = magic_spell_already_active_tt
+		}
+		if = { limit = { NOT = { adm_power = 50 } }
+			custom_tooltip = magic_need_50_adm_tt
+		}
+		if = { limit = { NOT = { any_country = { is_neighbor_of = ROOT } } }
+			custom_tooltip = magic_need_valid_target_tt
+		}
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_neighbours_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_neighbours
+					duration = 365
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_neighbours
+					duration = 180
+				}
+			}
+		}
+		custom_tooltip = magic_scrying_neighbours_effect_tt
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	
+	#1 - Scrying - Dissidents
+	option = {	#available
+		name = magic_ruler.3.dd
+		trigger = {
+			has_ruler_flag = divination_1
+			adm_power = 50
+			NOT = { has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents }
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 4
+				average_unrest = 5
+			}
+			modifier = {
+				factor = 4
+				NOT = { stability = 1 }
+			}
+			modifier = {
+				factor = 8
+				any_subject_country = {
+					liberty_desire = 50
+				}
+			}
+		}
+		
+		magic_casted_spell = yes
+		magic_scrying_dissidents_cost = yes
+		if = {
+			limit = { has_ruler_flag = honored_ancestor_patron }
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_internal_dissidents
+				duration = 2190
+			}
+			custom_tooltip = magic_booster_by_patron_tt
+		}
+		else = {
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_internal_dissidents
+				duration = 1095
+			}
+		}
+		
+		set_country_flag = divination_menu
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - low mastery
+		name = magic_ruler.3.ddm
+		trigger = {
+			ai = no
+			NOT = { has_ruler_flag = divination_1 }
+		}
+		custom_tooltip = school_mastery_not_talented_tt
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_dissidents_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_internal_dissidents
+					duration = 2190
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_internal_dissidents
+					duration = 1095
+				}
+			}
+		}
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - other
+		name = magic_ruler.3.ddx
+		trigger = {
+			ai = no
+			has_ruler_flag = divination_1
+			OR = {
+				NOT = { adm_power = 50 }
+				has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents
+			}
+		}
+		if = { limit = { has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents }
+			custom_tooltip = magic_spell_already_active_tt
+		}
+		if = { limit = { NOT = { adm_power = 50 } }
+			custom_tooltip = magic_need_50_adm_tt
+		}
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_dissidents_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_internal_dissidents
+					duration = 2190
+				}
+				custom_tooltip = magic_booster_by_patron_tt
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_internal_dissidents
+					duration = 1095
+				}
+			}
+		}
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	
+	#1 - Scrying - Realm affairs
+	option = {	#available
+		name = magic_ruler.3.e
+		trigger = {
+			has_ruler_flag = divination_1
+			adm_power = 50
+			NOT = { has_ruler_modifier = magic_realm_divination_scrying_affairs }
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 8
+				OR = {
+					adm_power = 200
+					dip_power = 200
+					mil_power = 200
+				}
+			}
+		}
+		
+		magic_casted_spell = yes
+		magic_scrying_realm_cost = yes
+		if = {
+			limit = { has_ruler_flag = honored_ancestor_patron }
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_affairs
+				duration = 2190
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = magic_realm_divination_scrying_affairs
+				duration = 1095
+			}
+		}
+		
+		set_country_flag = divination_menu
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - low mastery
+		name = magic_ruler.3.em
+		trigger = {
+			ai = no
+			NOT = { has_ruler_flag = divination_1 }
+		}
+		custom_tooltip = school_mastery_not_talented_tt
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_realm_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_affairs
+					duration = 2190
+				}
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_affairs
+					duration = 1095
+				}
+			}
+		}
+		
+		custom_tooltip = magic_scrying_desc_tt
+	}
+	option = {	#unavailable - other
+		name = magic_ruler.3.ex
+		trigger = {
+			ai = no
+			has_ruler_flag = divination_1
+			OR = {
+				NOT = { adm_power = 50 }
+				has_ruler_modifier = magic_realm_divination_scrying_affairs
+			}
+		}
+		if = { limit = { has_ruler_modifier = magic_realm_divination_scrying_affairs }
+			custom_tooltip = magic_spell_already_active_tt
+		}
+		if = { limit = { NOT = { adm_power = 50 } }
+			custom_tooltip = magic_need_50_adm_tt
+		}
+		
+		set_country_flag = divination_menu
+		clr_ruler_flag = magic_just_casted_spell
+		hidden_effect = { country_event = { id = magic_ruler.9 } }
+		
+		custom_tooltip = magic_effect_separator_tt
+		
+		tooltip = {
+			magic_scrying_realm_cost = yes
+			if = {
+				limit = { has_ruler_flag = honored_ancestor_patron }
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_affairs
+					duration = 2190
+				}
+			}
+			else = {
+				add_country_modifier = {
+					name = magic_realm_divination_scrying_affairs
+					duration = 1095
+				}
+			}
+		}
+		
 		custom_tooltip = magic_scrying_desc_tt
 	}
 	
 	#2 - Loreseeker
 	option = {	#available
-		name = magic_ruler.3.c
+		name = magic_ruler.3.f
 		trigger = {
 			has_ruler_flag = divination_2
 			ruler_studying_magic = yes
@@ -1738,7 +2146,7 @@ country_event = {
 		custom_tooltip = magic_loreseeker_desc_tt
 	}
 	option = {	#unavailable - low mastery
-		name = magic_ruler.3.cm
+		name = magic_ruler.3.fm
 		trigger = {
 			ai = no
 			NOT = { has_ruler_flag = divination_2 }
@@ -1755,7 +2163,7 @@ country_event = {
 		custom_tooltip = magic_loreseeker_desc_tt
 	}
 	option = {	#unavailable - other
-		name = magic_ruler.3.cx
+		name = magic_ruler.3.fx
 		trigger = {
 			ai = no
 			has_ruler_flag = divination_2
@@ -1783,7 +2191,7 @@ country_event = {
 	
 	#3 - Foresight
 	option = {	#available
-		name = magic_ruler.3.dd
+		name = magic_ruler.3.g
 		trigger = {
 			has_ruler_flag = divination_3
 			adm_power = 150
@@ -1844,7 +2252,7 @@ country_event = {
 		custom_tooltip = magic_foresight_desc_tt
 	}
 	option = {	#unavailable - low mastery
-		name = magic_ruler.3.ddm
+		name = magic_ruler.3.gm
 		trigger = {
 			ai = no
 			NOT = { has_ruler_flag = divination_3 }
@@ -1864,7 +2272,7 @@ country_event = {
 		custom_tooltip = magic_foresight_desc_tt
 	}
 	option = {	#unavailable - other
-		name = magic_ruler.3.ddx
+		name = magic_ruler.3.gx
 		trigger = {
 			ai = no
 			has_ruler_flag = divination_3
@@ -6311,7 +6719,7 @@ country_event = {
 		add_adm_power = -5
 		add_mil_power = -5
 		custom_tooltip = magic_absorb_life_effect_tt
-		country_event = { id = magic_ruler.14 }
+		country_event = { id = magic_ruler.13 }
 		
 		custom_tooltip = magic_absorb_life_desc_tt
 	}
@@ -6420,11 +6828,7 @@ country_event = {
 			infantry = ROOT
 		}
 		
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
+		increase_witch_king_points_massive = yes
 		
 		if = { limit = { NOT = { has_country_modifier = undead_military } }
 			clear_racial_military = yes
@@ -6471,11 +6875,7 @@ country_event = {
 				infantry = ROOT
 			}
 			
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
+			increase_witch_king_points_massive = yes
 			
 			if = { limit = { NOT = { has_country_modifier = undead_military } }
 				clear_racial_military = yes
@@ -6537,11 +6937,7 @@ country_event = {
 				infantry = ROOT
 			}
 			
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
+			increase_witch_king_points_massive = yes
 			
 			if = { limit = { NOT = { has_country_modifier = undead_military } }
 				clear_racial_military = yes
@@ -6610,11 +7006,7 @@ country_event = {
 			cavalry = ROOT
 		}
 		
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
-		increase_witch_king_points_large = yes
+		increase_witch_king_points_massive = yes
 		
 		if = { limit = { NOT = { has_country_modifier = undead_military } }
 			clear_racial_military = yes
@@ -6665,11 +7057,7 @@ country_event = {
 				cavalry = ROOT
 			}
 			
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
+			increase_witch_king_points_massive = yes
 			
 			if = { limit = { NOT = { has_country_modifier = undead_military } }
 				clear_racial_military = yes
@@ -6735,11 +7123,7 @@ country_event = {
 				cavalry = ROOT
 			}
 			
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
-			increase_witch_king_points_large = yes
+			increase_witch_king_points_massive = yes
 			
 			if = { limit = { NOT = { has_country_modifier = undead_military } }
 				clear_racial_military = yes
@@ -6997,7 +7381,7 @@ country_event = {
 		
 		add_adm_power = -30
 		add_dip_power = -5
-		country_event = { id = magic_ruler.18 }
+		country_event = { id = magic_ruler.17 }
 		custom_tooltip = magic_selected_province_tt
 		tooltip = {
 			add_province_modifier = {
@@ -7123,7 +7507,7 @@ country_event = {
 		
 		add_adm_power = -30
 		add_dip_power = -5
-		country_event = { id = magic_ruler.18 }
+		country_event = { id = magic_ruler.17 }
 		custom_tooltip = magic_selected_province_tt
 		tooltip = {
 			add_province_modifier = {
@@ -7263,7 +7647,7 @@ country_event = {
 		}
 		
 		custom_tooltip = magic_enhance_effect_1_tt
-		country_event = { id = magic_ruler.19 }
+		country_event = { id = magic_ruler.18 }
 		
 		custom_tooltip = magic_enhance_desc_tt
 	}
@@ -7457,7 +7841,7 @@ country_event = {
 			}
 		}
 		
-		hidden_effect = { country_event = { id = magic_ruler.21 } }
+		hidden_effect = { country_event = { id = magic_ruler.20 } }
 		
 		set_country_flag = transmutation_menu
 		hidden_effect = { country_event = { id = magic_ruler.9 } }
@@ -7830,7 +8214,7 @@ country_event = {
 		
 		add_adm_power = -30
 		add_dip_power = -5
-		country_event = { id = magic_ruler.18 }
+		country_event = { id = magic_ruler.17 }
 		custom_tooltip = magic_selected_province_tt
 		tooltip = {
 			add_province_modifier = {
@@ -7959,7 +8343,7 @@ country_event = {
 		}
 		
 		custom_tooltip = magic_enhance_effect_2_tt
-		country_event = { id = magic_ruler.19 }
+		country_event = { id = magic_ruler.18 }
 		
 		custom_tooltip = magic_enhance_desc_tt
 	}
@@ -8132,7 +8516,7 @@ country_event = {
 			}
 		}
 		
-		hidden_effect = { country_event = { id = magic_ruler.21 } }
+		hidden_effect = { country_event = { id = magic_ruler.20 } }
 		
 		set_country_flag = transmutation_menu
 		hidden_effect = { country_event = { id = magic_ruler.9 } }
@@ -9171,782 +9555,17 @@ country_event = {
 	}
 }
 
-#Scrying
+# Absorb Life Energy
 country_event = {
 	id = magic_ruler.13
 	title = magic_ruler.13.t
 	desc = magic_ruler.13.d
-	picture = CITY_VIEW_eventPicture
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { 
-			count_provinces_owned_by_rivals_effect = {
-				which = amount_of_rival_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_neighbours_effect = {
-				which = amount_of_neighbour_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_country_effect = {
-				which = amount_of_owned_provinces
-			}
-		}
-		hidden_effect = { 
-			count_provinces_owned_by_war_enemies_effect = {
-				which = amount_of_war_enemy_provinces
-			}
-		}
-	}
-	
-	option = {	#Spy on our rivals
-		name = magic_ruler.13.a
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 4
-				is_great_power = yes
-			}
-		}
-		
-		trigger = {
-			any_rival_country  = {
-				exists = yes
-			}
-			NOT = { has_ruler_modifier = magic_realm_divination_scrying_rivals }
-		}
-		#Supernal Scrying for Patrons
-		if = {
-			limit = { has_ruler_flag = honored_ancestor_patron }
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_rivals
-				duration = 362
-			}
-		}
-		#Normal Scrying
-		else = {
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_rivals
-				duration = 182
-			}
-		}
-		every_rival_country = {
-			remove_fow = 6
-		}
-		
-		magic_casted_spell = yes
-		add_ruler_modifier = { name = magic_scrying_cooldown duration = 30 hidden = yes }
-
-		
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 1 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 5 } }
-			}
-			
-			add_adm_power = -25
-			add_dip_power = -25
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 5 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 10 } }
-			}
-			add_adm_power = -30
-			add_dip_power = -30
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 10 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 15 } }
-			}
-			add_adm_power = -35
-			add_dip_power = -35
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 15 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 20 } }
-			}
-			add_years_of_income = -0.4
-			add_adm_power = -40
-			add_dip_power = -40
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 20 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 30 } }
-			}
-			add_years_of_income = -0.5
-			add_adm_power = -45	
-			add_dip_power = -45
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 30 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 40 } }
-			}
-			add_years_of_income = -0.6
-			add_adm_power = -50
-			add_dip_power = -50
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 40 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 50 } }
-			}
-			add_years_of_income = -0.7
-			add_adm_power = -55	
-			add_dip_power = -55
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 50 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 60 } }
-			}
-			add_years_of_income = -0.8
-			add_adm_power = -60
-			add_dip_power = -60
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 60 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 70 } }
-			}
-			add_years_of_income = -0.9
-			add_adm_power = -65
-			add_dip_power = -65
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 70 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 80 } }
-			}
-			add_years_of_income = -1
-			add_adm_power = -70	
-			add_dip_power = -70
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 80 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 90 } }
-			}
-			add_years_of_income = -1.1
-			add_adm_power = -75
-			add_dip_power = -75
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 90 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 100 } }
-			}
-			add_years_of_income = -1.2
-			add_adm_power = -80
-			add_dip_power = -80
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 100 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 200 } }
-			}
-			
-			add_adm_power = -85
-			add_dip_power = -85
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 300 } }
-			}
-			add_years_of_income = -1.4
-			add_adm_power = -90
-			add_dip_power = -90
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 300 } }
-			}
-			
-			add_adm_power = -95
-			add_dip_power = -95
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 300 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 400 } }
-			}
-			add_years_of_income = -1.6
-			add_adm_power = -100
-			add_dip_power = -100
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 400 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 500 } }
-			}
-			add_years_of_income = -1.7
-			add_adm_power = -105
-			add_dip_power = -105
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_rival_provinces value = 500 }
-				NOT = { check_variable = { which = amount_of_rival_provinces value = 1000 } }
-			}
-			add_years_of_income = -3
-			add_adm_power = -150
-			add_dip_power = -150
-		}
-	}
-	
-	option = {	#Spy on our neighbours
-		name = magic_ruler.13.b
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 4
-				personality = ai_diplomat
-			}
-		}
-		
-		#Check to see if the country actually has any neighbours
-		trigger = {
-			any_country = {
-				is_neighbor_of = ROOT
-			}
-			NOT = { has_ruler_modifier = magic_realm_divination_scrying_neighbours }
-		}
-		#Supernal Scrying for Patrons
-		if = {
-			limit = { has_ruler_flag = honored_ancestor_patron }
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_neighbours
-				duration = 362
-			}
-		}
-		#Normal Scrying
-		else = {
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_neighbours
-				duration = 182
-			}
-		}
-		every_country = {
-			limit = { 
-				is_neighbor_of  = ROOT 
-			}
-			remove_fow = 6
-		}
-		
-		magic_casted_spell = yes
-		add_ruler_modifier = { name = magic_scrying_cooldown duration = 30 hidden = yes }
-
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 1 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 5 } }
-			}
-			
-			add_adm_power = -50	#adm power is the administrative cost of watching all these scrying balls
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 5 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 10 } }
-			}
-			add_adm_power = -60	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 10 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 15 } }
-			}
-			add_adm_power = -70
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 15 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 20 } }
-			}
-			add_adm_power = -80
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 20 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 30 } }
-			}
-			add_adm_power = -90	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 30 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 40 } }
-			}
-			add_adm_power = -100	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 40 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 50 } }
-			}
-			add_adm_power = -110	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 50 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 60 } }
-			}
-			add_adm_power = -120
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 60 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 70 } }
-			}
-			add_adm_power = -130	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 70 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 80 } }
-			}
-			add_adm_power = -140	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 80 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 90 } }
-			}
-			add_adm_power = -150
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 90 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 100 } }
-			}
-			add_adm_power = -160
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 100 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 200 } }
-			}
-			
-			add_adm_power = -170
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 300 } }
-			}
-			add_adm_power = -180
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 300 } }
-			}
-			
-			add_adm_power = -190
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 300 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 400 } }
-			}
-			add_adm_power = -200
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 400 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 500 } }
-			}
-			add_adm_power = -210
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_neighbour_provinces value = 500 }
-				NOT = { check_variable = { which = amount_of_neighbour_provinces value = 1000 } }
-			}
-			add_adm_power = -300
-		}
-	}
-	
-	option = {	#Scry on internal dissidents
-		name = magic_ruler.13.c
-		trigger = {
-			NOT = { has_ruler_modifier = magic_realm_divination_scrying_internal_dissidents }
-		}
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 4
-				average_unrest = 5
-			}
-			modifier = {
-				factor = 4
-				NOT = { stability = 1 }
-			}
-			modifier = {
-				factor = 8
-				any_subject_country = {
-					liberty_desire = 50
-				}
-			}
-		}
-		#Supernal Scrying for Patrons
-		if = {
-			limit = { has_ruler_flag = honored_ancestor_patron }
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_internal_dissidents
-				duration = 2192
-			}
-		}
-		#Normal Scrying
-		else = {
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_internal_dissidents
-				duration = 1096
-			}
-		}
-		
-		magic_casted_spell = yes
-		add_ruler_modifier = { name = magic_scrying_cooldown duration = 30 hidden = yes }
-		
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 1 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 5 } }
-			}
-			
-			add_adm_power = -50	#adm power is the administrative cost of watching all these scrying balls
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 5 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 10 } }
-			}
-			add_adm_power = -60	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 10 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 15 } }
-			}
-			add_adm_power = -70
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 15 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 20 } }
-			}
-			add_adm_power = -80
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 20 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 30 } }
-			}
-			add_adm_power = -90	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 30 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 40 } }
-			}
-			add_adm_power = -100	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 40 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 50 } }
-			}
-			add_adm_power = -110	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 50 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 60 } }
-			}
-			add_adm_power = -120
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 60 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 70 } }
-			}
-			add_adm_power = -130	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 70 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 80 } }
-			}
-			add_adm_power = -140	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 80 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 90 } }
-			}
-			add_adm_power = -150
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 90 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 100 } }
-			}
-			add_adm_power = -160
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 100 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 200 } }
-			}
-			add_adm_power = -170
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 300 } }
-			}
-			add_adm_power = -180
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 300 } }
-			}
-			add_adm_power = -190
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 300 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 400 } }
-			}
-			add_adm_power = -200
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 400 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 500 } }
-			}
-			add_adm_power = -210
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 500 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 1000 } }
-			}
-			add_adm_power = -300
-		}
-	}
-	
-	option = {	#Scry the affairs of the realm
-		name = magic_ruler.13.dd
-		trigger = {
-			NOT = { has_ruler_modifier = magic_realm_divination_scrying_affairs }
-		}
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 8
-				OR = {
-					adm_power = 200
-					dip_power = 200
-					mil_power = 200
-				}
-			}
-		}
-		
-		magic_casted_spell = yes
-		add_ruler_modifier = { name = magic_scrying_cooldown duration = 30 hidden = yes }
-		#Supernal Scrying for Patrons
-		if = {
-			limit = { has_ruler_flag = honored_ancestor_patron }
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_affairs
-				duration = 2192
-			}
-		}
-		#Normal Scrying
-		else = {
-			add_country_modifier = {
-				name = magic_realm_divination_scrying_affairs
-				duration = 1096
-			}
-		}
-	
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 1 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 5 } }
-			}
-			
-			add_adm_power = -50	#adm power is the administrative cost of watching all these scrying balls
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 5 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 10 } }
-			}
-			add_adm_power = -60	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 10 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 15 } }
-			}
-			add_adm_power = -70
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 15 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 20 } }
-			}
-			add_adm_power = -80
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 20 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 30 } }
-			}
-			add_adm_power = -90	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 30 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 40 } }
-			}
-			add_adm_power = -100	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 40 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 50 } }
-			}
-			add_adm_power = -110	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 50 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 60 } }
-			}
-			add_adm_power = -120
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 60 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 70 } }
-			}
-			add_adm_power = -130	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 70 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 80 } }
-			}
-			add_adm_power = -140	
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 80 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 90 } }
-			}
-			add_adm_power = -150
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 90 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 100 } }
-			}
-			add_adm_power = -160
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 100 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 200 } }
-			}
-			add_adm_power = -170
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 300 } }
-			}
-			add_adm_power = -180
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 200 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 300 } }
-			}
-			add_adm_power = -190
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 300 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 400 } }
-			}
-			add_adm_power = -200
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 400 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 500 } }
-			}
-			add_adm_power = -210
-		}
-		if = {
-			limit = {
-				check_variable = { which = amount_of_owned_provinces value = 500 }
-				NOT = { check_variable = { which = amount_of_owned_provinces value = 1000 } }
-			}
-			add_adm_power = -300
-		}
-	}
-	
-	option = {	#Option B: Go back
-		name = magic_siege.goback
-		ai_chance = {
-			factor = 5
-		}
-	}
-	
-	after = {
-		if = {
-			limit = {
-				ai = yes	#makes ai back out of casting completely to prevent spam
-			}
-			add_ruler_modifier = { 
-				name = magic_realm_menu_cooldown
-				duration = 1825	#prevents them casting for 5 years
-				hidden = yes
-			}
-			close_single_menu = yes
-		}
-		else = {
-			country_event = { id = magic_ruler.3 }
-		}
-	}
-}
-
-# Absorb Life Energy
-country_event = {
-	id = magic_ruler.14
-	title = magic_ruler.14.t
-	desc = magic_ruler.14.d
 	picture = NEW_HEIR_eventPicture
 	
 	is_triggered_only = yes
 	
 	option = {	#Absorb Heir
-		name = magic_ruler.14.a
+		name = magic_ruler.13.a
 		trigger = {
 			has_ruler_flag = necromancy_1
 			has_heir = yes
@@ -9987,7 +9606,7 @@ country_event = {
 				kill_heir = { allow_new_heir = no }
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.16 } }
+		hidden_effect = { country_event = { id = magic_ruler.15 } }
 	
 		set_country_flag = spell_1
 		tooltip = {
@@ -10003,11 +9622,11 @@ country_event = {
 				}
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.15 } }
+		hidden_effect = { country_event = { id = magic_ruler.14 } }
 	}
 	
 	option = {	#Absorb Consort
-		name = magic_ruler.14.b
+		name = magic_ruler.13.b
 		trigger = {
 			has_ruler_flag = necromancy_1
 			has_consort = yes
@@ -10047,7 +9666,7 @@ country_event = {
 				remove_consort = yes
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.16 } }
+		hidden_effect = { country_event = { id = magic_ruler.15 } }
 		
 		set_country_flag = spell_2
 		tooltip = {
@@ -10063,11 +9682,11 @@ country_event = {
 				}
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.15 } }
+		hidden_effect = { country_event = { id = magic_ruler.14 } }
 	}
 	
 	option = {	#Absorb Advisor
-		name = magic_ruler.14.c
+		name = magic_ruler.13.c
 		trigger = {
 			has_ruler_flag = necromancy_1
 			has_advisor = yes
@@ -10098,7 +9717,7 @@ country_event = {
 				kill_advisor = random
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.16 } }
+		hidden_effect = { country_event = { id = magic_ruler.15 } }
 		
 		set_country_flag = spell_2
 		tooltip = {
@@ -10114,11 +9733,11 @@ country_event = {
 				}
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.15 } }
+		hidden_effect = { country_event = { id = magic_ruler.14 } }
 	}
 	
 	option = {	#Absorb the Populace
-		name = magic_ruler.14.e
+		name = magic_ruler.13.e
 		trigger = {
 			has_ruler_flag = necromancy_1
 			any_owned_province = {
@@ -10170,7 +9789,7 @@ country_event = {
 					}
 				}
 			}
-			hidden_effect = { province_event = { id = magic_ruler.17 } }
+			hidden_effect = { province_event = { id = magic_ruler.16 } }
 			add_devastation = 20
 		}
 		
@@ -10188,7 +9807,7 @@ country_event = {
 				}
 			}
 		}
-		hidden_effect = { country_event = { id = magic_ruler.15 } }
+		hidden_effect = { country_event = { id = magic_ruler.14 } }
 	}
 	
 	option = {	#Option B: Go back
@@ -10220,16 +9839,16 @@ country_event = {
 
 #Result Selection for power type
 country_event = {
-	id = magic_ruler.15
-	title = magic_ruler.15.t
-	desc = magic_ruler.15.d
+	id = magic_ruler.14
+	title = magic_ruler.14.t
+	desc = magic_ruler.14.d
 	picture = TEMPORAL_RIFT_eventPicture
 	
 	hidden = yes
 	is_triggered_only = yes
 	
 	option = { #Adm
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 33 }
 		if = { limit = { has_country_flag = spell_1 }
 			add_adm_power = 30
@@ -10242,7 +9861,7 @@ country_event = {
 		}
 	}
 	option = { #Dip
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 33 }
 		if = { limit = { has_country_flag = spell_1 }
 			add_dip_power = 30
@@ -10255,7 +9874,7 @@ country_event = {
 		}
 	}
 	option = { #Mil
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 10 }
 		if = { limit = { has_country_flag = spell_1 }
 			add_mil_power = 30
@@ -10277,16 +9896,16 @@ country_event = {
 
 #Result Selection for drain target death
 country_event = {
-	id = magic_ruler.16
-	title = magic_ruler.15.t
-	desc = magic_ruler.15.d
+	id = magic_ruler.15
+	title = magic_ruler.14.t
+	desc = magic_ruler.14.d
 	picture = TEMPORAL_RIFT_eventPicture
 	
 	hidden = yes
 	is_triggered_only = yes
 	
 	option = { #Death
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = {
 			factor = 25
 		}
@@ -10301,7 +9920,7 @@ country_event = {
 		}
 	}
 	option = { #No death
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = {
 			factor = 75
 		}
@@ -10315,26 +9934,26 @@ country_event = {
 
 #Result Selection for prov dev drain
 province_event = {
-	id = magic_ruler.17
-	title = magic_ruler.15.t
-	desc = magic_ruler.15.d
+	id = magic_ruler.16
+	title = magic_ruler.14.t
+	desc = magic_ruler.14.d
 	picture = TEMPORAL_RIFT_eventPicture
 	
 	hidden = yes
 	is_triggered_only = yes
 	
 	option = { #Adm
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 33 }
 		add_base_tax = -1
 	}
 	option = { #Dip
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 33 }
 		add_base_production = -1
 	}
 	option = { #Mil
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		ai_chance = { factor = 33 }
 		add_base_manpower = -1
 	}
@@ -10342,9 +9961,9 @@ province_event = {
 
 # 1 - Encourage Plant Growth
 country_event = {
-	id = magic_ruler.18
-	title = magic_ruler.18.t
-	desc = magic_ruler.18.d
+	id = magic_ruler.17
+	title = magic_ruler.17.t
+	desc = magic_ruler.17.d
 	picture = FARMING_eventPicture
 	
 	is_triggered_only = yes
@@ -10426,7 +10045,7 @@ country_event = {
 	}
 
 	option = {	# Province target
-		name = magic_ruler.18.a
+		name = magic_ruler.17.a
 		trigger = {
 			NOT = { has_country_flag = better_plant_growth }
 		}
@@ -10465,7 +10084,7 @@ country_event = {
 	}
 
 	option = {	# Province target
-		name = magic_ruler.18.b
+		name = magic_ruler.17.b
 		trigger = {
 			has_saved_event_target = plant_growth_province_2
 			NOT = { has_country_flag = better_plant_growth }
@@ -10505,7 +10124,7 @@ country_event = {
 	}
 
 	option = {	# Province target
-		name = magic_ruler.18.c
+		name = magic_ruler.17.c
 		trigger = {
 			has_saved_event_target = plant_growth_province_3
 			NOT = { has_country_flag = better_plant_growth }
@@ -10545,7 +10164,7 @@ country_event = {
 	}
 
 	option = {	# Province target
-		name = magic_ruler.18.e
+		name = magic_ruler.17.e
 		trigger = {
 			has_saved_event_target = plant_growth_province_4
 			NOT = { has_country_flag = better_plant_growth }
@@ -10585,7 +10204,7 @@ country_event = {
 	}
 
 	option = {	#Eilisin Exception; targets capital
-		name = magic_ruler.18.f
+		name = magic_ruler.17.f
 		trigger = {
 			capital_scope = {
 				province_with_farm_goods = yes
@@ -10661,16 +10280,16 @@ country_event = {
 
 # 2 - Enchance Ability (its a temp stat increases) WHAT IF ITS PERMANENT? see notes
 country_event = {
-	id = magic_ruler.19
-	title = magic_ruler.19.t
-	desc = magic_ruler.19.d
+	id = magic_ruler.18
+	title = magic_ruler.18.t
+	desc = magic_ruler.18.d
 	picture = BUDDHA_eventPicture
 	
 	is_triggered_only = yes
 	
 	#Cast Dame's Wisdom (adm)
 	option = {	#available
-		name = magic_ruler.19.a
+		name = magic_ruler.18.a
 		trigger = {			
 			NOT = { adm = 6 }
 			enhance_ability_cost_adm_trigger = yes	#makes it available if country can afford it
@@ -10753,10 +10372,10 @@ country_event = {
 		}
 		
 		set_country_flag = spell_1
-		hidden_effect = { country_event = { id = magic_ruler.20 } }
+		hidden_effect = { country_event = { id = magic_ruler.19 } }
 	}
 	option = {	#unavailable
-		name = magic_ruler.19.ax
+		name = magic_ruler.18.ax
 		trigger = {
 			NOT = { enhance_ability_cost_adm_trigger = yes }
 			NOT = { adm = 6 }
@@ -10795,7 +10414,7 @@ country_event = {
 	}
 	
 	option = {	#Cast Minara's Tongue (dip)
-		name = magic_ruler.19.b
+		name = magic_ruler.18.b
 		trigger = {	
 			NOT = { dip = 6 }
 			enhance_ability_cost_dip_trigger = yes	#makes it available if country can afford it
@@ -10878,10 +10497,10 @@ country_event = {
 		}
 		
 		set_country_flag = spell_2
-		hidden_effect = { country_event = { id = magic_ruler.20 } }
+		hidden_effect = { country_event = { id = magic_ruler.19 } }
 	}
 	option = {	#unavailable
-		name = magic_ruler.19.b
+		name = magic_ruler.18.b
 		trigger = {
 			NOT = { enhance_ability_cost_dip_trigger = yes }
 			NOT = { dip = 6 }
@@ -10920,7 +10539,7 @@ country_event = {
 	}
 	
 	option = {	#Cast Adean's Might (mil)
-		name = magic_ruler.19.c
+		name = magic_ruler.18.c
 		trigger = {
 			NOT = { mil = 6 }
 			enhance_ability_cost_mil_trigger = yes	#makes it available if country can afford it
@@ -10996,10 +10615,10 @@ country_event = {
 		}
 		
 		set_country_flag = spell_3
-		hidden_effect = { country_event = { id = magic_ruler.20 } }
+		hidden_effect = { country_event = { id = magic_ruler.19 } }
 	}
 	option = {	#unavailable
-		name = magic_ruler.19.cx
+		name = magic_ruler.18.cx
 		trigger = {
 			NOT = { enhance_ability_cost_mil_trigger = yes }
 			NOT = { mil = 6 }
@@ -11064,16 +10683,16 @@ country_event = {
 
 #Result Selection for Enchance Ability Mil
 country_event = {
-	id = magic_ruler.20
-	title = magic_ruler.15.t
-	desc = magic_ruler.15.d
+	id = magic_ruler.19
+	title = magic_ruler.14.t
+	desc = magic_ruler.14.d
 	picture = TEMPORAL_RIFT_eventPicture
 	
 	hidden = yes
 	is_triggered_only = yes
 	
 	option = {
-		name = magic_ruler.15.a	#Success
+		name = magic_ruler.14.a	#Success
 		trigger = { has_ruler_flag = transmutation_3 }
 		ai_chance = {
 			factor = 70
@@ -11089,7 +10708,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a	#Success
+		name = magic_ruler.14.a	#Success
 		trigger = { NOT = { has_ruler_flag = transmutation_3 } }
 		ai_chance = {
 			factor = 50
@@ -11106,14 +10725,14 @@ country_event = {
 	}
 	
 	option = {	#Failure - no consequences
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = { has_ruler_flag = transmutation_3 }
 		ai_chance = {
 			factor = 25
 		}
 	}
 	option = {	#Failure - no consequences
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = { NOT = { has_ruler_flag = transmutation_3 } }
 		ai_chance = {
 			factor = 40
@@ -11121,7 +10740,7 @@ country_event = {
 	}
 	
 	option = {	#Failure - with consequences
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = { has_ruler_flag = transmutation_3 }
 		ai_chance = {
 			factor = 5
@@ -11137,7 +10756,7 @@ country_event = {
 		}
 	}
 	option = {	#Failure - with consequences
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = { NOT = { has_ruler_flag = transmutation_3 } }
 		ai_chance = {
 			factor = 10
@@ -11162,9 +10781,9 @@ country_event = {
 
 #Result Selection for Rite of Conception Mistress
 country_event = {
-	id = magic_ruler.21
-	title = magic_ruler.15.t
-	desc = magic_ruler.15.d
+	id = magic_ruler.20
+	title = magic_ruler.14.t
+	desc = magic_ruler.14.d
 	picture = TEMPORAL_RIFT_eventPicture
 	
 	hidden = yes
@@ -11189,7 +10808,7 @@ country_event = {
 	
 	#Success
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_1
@@ -11218,7 +10837,7 @@ country_event = {
 		set_heir_mage_effect = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_1
@@ -11247,7 +10866,7 @@ country_event = {
 		set_heir_mage_effect = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_2
@@ -11276,7 +10895,7 @@ country_event = {
 		set_heir_mage_effect = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_2
@@ -11305,7 +10924,7 @@ country_event = {
 		set_heir_mage_effect = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_3
@@ -11334,7 +10953,7 @@ country_event = {
 		set_heir_mage_effect = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_3
@@ -11365,7 +10984,7 @@ country_event = {
 	
 	#Failure
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_1
@@ -11375,7 +10994,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_1
@@ -11385,7 +11004,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_2
@@ -11395,7 +11014,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_2
@@ -11405,7 +11024,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_3
@@ -11415,7 +11034,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_3
@@ -11427,7 +11046,7 @@ country_event = {
 	
 	#Failure + Ruler Death
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			has_ruler_flag = transmutation_3
 			has_country_flag = spell_1
@@ -11438,7 +11057,7 @@ country_event = {
 		kill_ruler = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = {
 				AND = {
@@ -11455,7 +11074,7 @@ country_event = {
 	
 	#Failure - consort death
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			OR = {
 				has_ruler_flag = transmutation_3
@@ -11468,7 +11087,7 @@ country_event = {
 		remove_consort = yes
 	}
 	option = {
-		name = magic_ruler.15.a
+		name = magic_ruler.14.a
 		trigger = {
 			NOT = { has_ruler_flag = transmutation_3 }
 			has_country_flag = spell_2
@@ -11488,9 +11107,9 @@ country_event = {
 
 # 3 - Simulacrum (activated when studying)
 country_event = {
-	id = magic_ruler.22
-	title = magic_ruler.22.t
-	desc = magic_ruler.22.d
+	id = magic_ruler.21
+	title = magic_ruler.21.t
+	desc = magic_ruler.21.d
 	picture = wihgfx_FEMALES_eventPicture
 	
 	is_triggered_only = yes
@@ -11502,7 +11121,7 @@ country_event = {
 	}
 	
 	option = {	#Summon Simulacrum
-		name = magic_ruler.22.a
+		name = magic_ruler.21.a
 		trigger = {
 			has_ruler_flag = illusion_3
 			has_ruler_flag = magic_project_simulacrum_complete
@@ -11539,7 +11158,7 @@ country_event = {
 	}
 	
 	option = {	#No thanks
-		name = magic_ruler.22.b
+		name = magic_ruler.21.b
 		ai_chance = {
 			factor = 10
 		}
