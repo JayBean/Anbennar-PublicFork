@@ -543,145 +543,88 @@ country_event = {
 				}
 			}
 		}
-		if = {	#If a Iosahar was allied with ROOT and thus went to war with their overlord, this effect restores their subject status
-			limit = {
-				FROM = { has_country_flag = ynn_overlord_at_war_with_iosahar }
-			}
-			FROM = { clr_country_flag = ynn_overlord_at_war_with_iosahar }
-			every_ally = {
-				limit = {
-					has_country_flag = ynn_iosahar_at_war_with_overlord
-				}
-				FROM = {
-					create_subject = {
-						subject_type = ynnic_iosahar
-						subject = PREV
-					}
-				}
-				clr_country_flag = ynn_iosahar_at_war_with_overlord
-			}
-		}
 	}
 }
 
-#Iosahar-overlord war ends and iosahar is returned
+#Iosahar Defects Due to Alliance
 country_event = {
 	id = ynn_events.10
 	title = ynn_events.10.t
 	desc = ynn_events.10.d
-	picture = RELIGION_eventPicture
+	picture = SIEGE_eventPicture
 
 	is_triggered_only = yes
 	
 	trigger = {
-		has_country_modifier = ynn_diplo
-		has_country_flag = ynn_overlord_at_war_with_iosahar
+		FROM = {
+			has_country_modifier = ynn_diplo
+		}
+		any_ally = {
+			war_with = FROM
+		}
 	}
 	
-	hidden = yes
-	
 	option = {
-		name = ynn_events.10.a
+		name = ynn_events.10.a		
 		
 		ai_chance = {
 			factor = 1
 		}
 		
-		if = {		#If the rogue Iosahar is defeated
-			limit = {
-				FROM = {
-					has_country_flag = ynn_iosahar_at_war_with_overlord
-				}
+		FROM = {
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_overlord_at_war_with_iosahar
 			}
-			ROOT = {
-				create_subject = {
-					subject_type = ynnic_iosahar
-					subject = FROM
-				}
+			add_trust = {
+				who = ROOT
+				value = -5
+				mutual = yes	#Mutual loss of trust is so that you won't purposefully declare war on your Iosahar's allies to use the Iosahar as a piggy bank
 			}
-			FROM = { clr_country_flag = ynn_iosahar_at_war_with_overlord }
+			add_prestige = -5 
 		}
 		
-		if = {		#If the war leader of the rogue Iosahar is defeated
-			limit = {
-				FROM = {
-					any_ally = { has_country_flag = ynn_iosahar_at_war_with_overlord }
-				}
-			}
-			FROM = {
-				every_ally = {
-					limit = {
-						has_country_flag = ynn_iosahar_at_war_with_overlord
-					}
-					ROOT = {
-						create_subject = {
-							subject_type = ynnic_iosahar
-							subject = PREV
-						}
-					}
-					clr_country_flag = ynn_iosahar_at_war_with_overlord
-				}
-			}
-		}
-	}
-	
-	after = {
-		if = {
-			limit = {
-				NOT = {
-					any_known_country = {
-						war_with = ROOT
-						has_country_flag = ynn_iosahar_at_war_with_overlord
-					}
-				}
-			}
-			clr_country_flag = ynn_overlord_at_war_with_iosahar
-		}
+		custom_tooltip = you_as_iosahar_defect_tooltip
+		hidden_effect = { FROM = { country_event = { id = ynn_events.11 } } }
 	}
 }
 
-#Iosahar-overlord war ends with Iosahar going free
+#Overlord is Informed of Iosahar Defection
 country_event = {
 	id = ynn_events.11
 	title = ynn_events.11.t
 	desc = ynn_events.11.d
-	picture = RELIGION_eventPicture
+	picture = SIEGE_eventPicture
 
 	is_triggered_only = yes
 	
-	trigger = {
-		has_country_flag = ynn_iosahar_at_war_with_overlord
-		FROM = { has_country_flag = ynn_overlord_at_war_with_iosahar }
-	}
-	
-	hidden = yes
+	#hidden = yes #Can hide it if it's too obnoxious
 	
 	option = {
-		name = ynn_events.11.a
+		name = ynn_events.11.a		
 		
 		ai_chance = {
 			factor = 1
 		}
 		
-		clr_country_flag = ynn_iosahar_at_war_with_overlord
-		
-		if = {
-			limit = {
-				NOT = {
-					FROM = {
-						any_known_country = { 
-							war_with = FROM
-							has_country_flag = ynn_iosahar_at_war_with_overlord
-						}
-					}
-				}
+		tooltip = {
+			add_opinion = {
+				who = FROM
+				modifier = ynn_overlord_at_war_with_iosahar
 			}
-			FROM = { clr_country_flag = ynn_overlord_at_war_with_iosahar }
+			add_trust = {
+				who = FROM
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5 
 		}
+	
+		custom_tooltip = iosahar_defects_tooltip
 	}
 }
 
-#Iosahar-overlord war ends and iosahar is returned (utility to set a FROM scope in the next event)
+#Iosahar-overlord war ends
 country_event = {
 	id = ynn_events.12
 	title = ynn_events.12.t
@@ -691,7 +634,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		FROM = { has_country_modifier = ynn_diplo }
+		FROM = { has_country_modifier = ynn_diplo }	#Defeated by a country that observes Ynnic Diplomacy
 	}
 	
 	hidden = yes
@@ -703,42 +646,181 @@ country_event = {
 			factor = 1
 		}
 		
-		FROM = { country_event = { id = ynn_events.10 } }
-		FROM = { country_event = { id = ynn_events.11 } }
+		country_event = { id = ynn_events.13 }
+		every_ally = { country_event = { id = ynn_events.13 } }
 	}
 }
 
-#Utility event to clean up flags from .10-.13 once all wars end
+#Sorter Event
 country_event = {
-	id = ynn_events.14
-	title = ynn_events.14.t
-	desc = ynn_events.14.d
+	id = ynn_events.13
+	title = ynn_events.13.t
+	desc = ynn_events.13.d
 	picture = RELIGION_eventPicture
 
 	is_triggered_only = yes
 	
-	trigger = {
-		is_at_war = no
-	}
-	
 	hidden = yes
 	
+	trigger = {
+		any_known_country = {
+			OR = {
+				has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+				reverse_has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+		}
+	}
+	
 	option = {
-		name = ynn_events.14.a		
+		name = ynn_events.13.a
 		
 		ai_chance = {
 			factor = 1
 		}
 		
-		clr_country_flag = ynn_overlord_at_war_with_iosahar
-		clr_country_flag = ynn_iosahar_at_war_with_overlord
-		
-		every_ally = {
-			limit = {
-				is_at_war = no
+		random_known_country = {	#Checks if you are a Iosahar defector, you regain them
+			limit = { 
+				has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
 			}
-			clr_country_flag = ynn_overlord_at_war_with_iosahar
-			clr_country_flag = ynn_iosahar_at_war_with_overlord
+			country_event = { id = ynn_events.14 }
+			overlord = {
+				country_event = { id = ynn_events.14 } 
+				set_country_flag = ynn_14_overlord
+			}
+		}
+		
+		random_known_country = {	#Checks if you have any Iosahar defector, you lose em
+			limit = { 
+				reverse_has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+			country_event = { id = ynn_events.15 }
+		}
+	}
+}
+
+#Your Iosahar is returned
+country_event = {
+	id = ynn_events.14
+	title = ynn_events.14.t
+	desc = {
+		trigger = { NOT = { has_country_flag = ynn_14_overlord } }
+	   desc = ynn_events.14.d1
+	}
+	desc = {
+	   trigger = { has_country_flag = ynn_14_overlord }
+	   desc = ynn_events.14.d2
+	}
+	picture = RELIGION_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = { is_subject = no }
+	
+	option = {
+		name = ynn_events.14.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		remove_opinion = {
+			who = FROM
+			modifier = ynn_overlord_at_war_with_iosahar
+		}
+		
+		create_subject = {
+			subject_type = ynnic_iosahar
+			subject = FROM
+		}
+		
+		add_prestige = 10
+		
+		clr_country_flag = ynn_14_overlord
+	}
+}
+
+#Defector Iosahar goes free
+country_event = {
+	id = ynn_events.15
+	title = ynn_events.15.t
+	desc = ynn_events.15.d
+	picture = RELIGION_eventPicture
+
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	option = {
+		name = ynn_events.15.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		hidden_effect = {
+			FROM = {
+				remove_opinion = {
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+		}
+		
+		FROM = {
+			add_opinion = {
+				who = ROOT
+				modifier = opinion_betrayal
+			}
+			add_trust = {
+				who = ROOT
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5
+			country_event = { id = ynn_events.16 }
+		}
+	}
+}
+
+#You are informed your defector Iosahar went free
+country_event = {
+	id = ynn_events.16
+	title = ynn_events.16.t
+	desc = ynn_events.16.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+	
+	option = {
+		name = ynn_events.16.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		tooltip = {
+			add_opinion = {
+				who = FROM
+				modifier = opinion_betrayal
+			}
+			add_trust = {
+				who = FROM
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5
 		}
 	}
 }
