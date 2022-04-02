@@ -36,11 +36,11 @@ rahen_calc_reform_ministry_of_agriculture = {
 			change_variable = { which = reformMinistryAgricultureScore value = 10 }
 		}
 		if = {
-			limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 10 has_terrain = farmlands development = 20 } }
+			limit = { num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 10 has_terrain = farmlands development = 18 } }
 			change_variable = { which = reformMinistryAgricultureScore value = 10 }
 		}
 		if = {
-			limit = { monthly_income = 15 }
+			limit = { monthly_income = 20 }
 			change_variable = { which = reformMinistryAgricultureScore value = 5 }
 		}
 		if = {
@@ -118,7 +118,7 @@ rahen_calc_reform_ministry_of_internal_relations = {
 		}
 		if = {
 			limit = { all_subject_country = { estate_influence = { estate = estate_raj_ministries influence = 50 } } }
-			change_variable = { which = reformMinistryInternalRelationsScore value = 5 }
+			change_variable = { which = reformMinistryInternalRelationsScore value = 10 }
 		}
 		
 		if = {
@@ -265,17 +265,85 @@ rahen_add_new_neglected_infrastructure = {
 
 rahen_clear_court_disaster_province_modifiers = {
 	remove_province_modifier = rahen_suspicious_ministry_estate
-	if = {
-		limit = { OR = { has_province_modifier = rahen_severely_neglected_infrastructure has_province_modifier = rahen_neglected_infrastructure } }
-		remove_province_modifier = rahen_neglected_infrastructure
-		remove_province_modifier = rahen_severely_neglected_infrastructure
-		remove_province_triggered_modifier = rahen_repairing_infrastructure_monthly_tick
-		remove_province_triggered_modifier = rahen_repairing_infrastructure
-	}
+	remove_province_modifier = rahen_neglected_infrastructure
+	remove_province_modifier = rahen_severely_neglected_infrastructure
 }
 
 rahen_remove_harimraj_reforms_effect = {
 	
+}
+
+rahen_ai_disaster_progress_effect = {
+	if = {
+		limit = { ai = yes }
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = rahen_disaster_progress_agriculture_ai
+					has_country_flag = rahen_disaster_progress_philosophy_ai
+					has_country_flag = rahen_disaster_progress_internal_relations_ai
+					has_country_flag = rahen_disaster_progress_foreign_relations_ai
+				}
+			}
+			random_list = {
+				1 = {
+					trigger = { 4411 = { has_province_modifier = rahen_corrupt_ministery_of_agriculture } }
+					set_country_flag = rahen_disaster_progress_agriculture_ai
+				}
+				1 = {
+					trigger = { 4411 = { has_province_modifier = rahen_corrupt_ministery_of_philosophy } }
+					set_country_flag = rahen_disaster_progress_philosophy_ai
+				}
+				1 = {
+					trigger = { 4411 = { has_province_modifier = rahen_corrupt_ministery_of_internal_relations } }
+					set_country_flag = rahen_disaster_progress_internal_relations_ai
+				}
+				1 = {
+					trigger = { 4411 = { has_province_modifier = rahen_corrupt_ministery_of_foreign_relations } }
+					set_country_flag = rahen_disaster_progress_foreign_relations_ai
+				}
+			}
+		}
+		random_list = {
+			1 = { }
+			1 = {
+				modifier = { factor = 0.8 NOT = { mil = 1 } }
+				modifier = { factor = 0.8 NOT = { mil = 2 } }
+				modifier = { factor = 0.8 NOT = { mil = 3 } }
+				modifier = { factor = 1.2 mil = 4 }
+				modifier = { factor = 1.2 mil = 5 }
+				modifier = { factor = 1.2 mil = 6 }
+				modifier = { factor = 0.8 NOT = { dip = 1 } }
+				modifier = { factor = 0.8 NOT = { dip = 2 } }
+				modifier = { factor = 0.8 NOT = { dip = 3 } }
+				modifier = { factor = 1.2 dip = 4 }
+				modifier = { factor = 1.2 dip = 5 }
+				modifier = { factor = 1.2 dip = 6 }
+				modifier = { factor = 0.8 NOT = { adm = 1 } }
+				modifier = { factor = 0.8 NOT = { adm = 2 } }
+				modifier = { factor = 0.8 NOT = { adm = 3 } }
+				modifier = { factor = 1.2 adm = 4 }
+				modifier = { factor = 1.2 adm = 5 }
+				modifier = { factor = 1.2 adm = 6 }
+				modifier = { factor = 1.2 has_country_modifier = great_conqueror_modifier }
+				modifier = { factor = 1.5 has_country_modifier = mythical_conqueror_modifier }
+				
+				change_variable = {
+					which = reformMinistryProgressAI
+					value = 1
+				}
+			}
+			1 = {
+				trigger = { OR = { has_country_modifier = great_conqueror_modifier has_country_modifier = mythical_conqueror_modifier } }
+				modifier = { factor = 1.2 has_country_modifier = mythical_conqueror_modifier }
+				
+				change_variable = {
+					which = reformMinistryProgressAI
+					value = 2
+				}
+			}
+		}
+	}
 }
 
 rahen_add_completed_reforms_flag = {
@@ -425,9 +493,13 @@ raj_cohesion_change = {
 	hidden_effect = {
 		#Set amount to change by
 		set_variable = { which = rajCohesionChangeAmount value = $amount$ }
-		if = { limit = { NOT = { check_variable = { which = rajDev value = 0.001 } } }
+		if = { limit = { NOT = { overlord = { has_reform = raja_reform } } }	#Raj countries already have this part calculated every month
 			export_to_variable = { which = rajDev value = total_development }
 			4411 = { PREV = { divide_variable = { which = rajDev which = PREV } } }	#divides the country's dev but the total Raj dev
+		}
+		else_if = { limit = { NOT = { check_variable = { which = rajDev value = 0.001 } } }
+			export_to_variable = { which = rajDev value = total_development }
+			4411 = { PREV = { divide_variable = { which = rajDev which = PREV } } }
 		}
 		multiply_variable = { which = rajCohesionChangeAmount which = rajDev }
 		
@@ -602,6 +674,13 @@ raj_clear_vizier = {
 	clr_country_flag = raj_outmaneuvered_raja
 	clr_country_flag = raj_discredited_raja
 	clr_country_flag = raj_became_raja_confident
+	
+	clr_country_flag = raj_had_promising_heir_event
+	clr_country_flag = raj_had_harassed_by_elephants_event
+	clr_country_flag = raj_had_tianlou_event
+	clr_country_flag = raj_had_deputised_event
+	clr_country_flag = raj_had_religious_school_event
+	clr_country_flag = raj_had_wife_offer_event
 }
 
 raj_cohesion_yearly_tick = {
@@ -1240,6 +1319,82 @@ raj_vizier_nomination_effects = {
 		}
 	}
 }
+
+
+######################
+### Caste Fluidity ###
+######################
+
+caste_fluidity_increase_small = {
+	change_variable = { which = casteFluidityVar value = 1 }
+	if = { limit = { check_variable = { casteFluidityVar = 100 } }
+		set_variable = { which = casteFluidityVar value = 100 }
+	}
+}
+
+caste_fluidity_increase_medium = {
+	change_variable = { which = casteFluidityVar value = 3 }
+	if = { limit = { check_variable = { casteFluidityVar = 100 } }
+		set_variable = { which = casteFluidityVar value = 100 }
+	}
+}
+
+caste_fluidity_increase_large = {
+	change_variable = { which = casteFluidityVar value = 5 }
+	if = { limit = { check_variable = { casteFluidityVar = 100 } }
+		set_variable = { which = casteFluidityVar value = 100 }
+	}
+}
+
+caste_fluidity_increase_huge = {
+	change_variable = { which = casteFluidityVar value = 10 }
+	if = { limit = { check_variable = { casteFluidityVar = 100 } }
+		set_variable = { which = casteFluidityVar value = 100 }
+	}
+}
+
+caste_fluidity_increase_gargantuan = {
+	change_variable = { which = casteFluidityVar value = 20 }
+	if = { limit = { check_variable = { casteFluidityVar = 100 } }
+		set_variable = { which = casteFluidityVar value = 100 }
+	}
+}
+
+caste_fluidity_decrease_small = {
+	subtract_variable = { which = casteFluidityVar value = 1 }
+	if = { limit = { NOT = { check_variable = { casteFluidityVar = 0 } } }
+		set_variable = { which = casteFluidityVar value = 0 }
+	}
+}
+
+caste_fluidity_decrease_medium = {
+	subtract_variable = { which = casteFluidityVar value = 3 }
+	if = { limit = { NOT = { check_variable = { casteFluidityVar = 0 } } }
+		set_variable = { which = casteFluidityVar value = 0 }
+	}
+}
+
+caste_fluidity_decrease_large = {
+	subtract_variable = { which = casteFluidityVar value = 5 }
+	if = { limit = { NOT = { check_variable = { casteFluidityVar = 0 } } }
+		set_variable = { which = casteFluidityVar value = 0 }
+	}
+}
+
+caste_fluidity_decrease_huge = {
+	subtract_variable = { which = casteFluidityVar value = 10 }
+	if = { limit = { NOT = { check_variable = { casteFluidityVar = 0 } } }
+		set_variable = { which = casteFluidityVar value = 0 }
+	}
+}
+
+caste_fluidity_decrease_gargantuan = {
+	subtract_variable = { which = casteFluidityVar value = 20 }
+	if = { limit = { NOT = { check_variable = { casteFluidityVar = 0 } } }
+		set_variable = { which = casteFluidityVar value = 0 }
+	}
+}
+
 
 #------# Blood Lotus #------#
 

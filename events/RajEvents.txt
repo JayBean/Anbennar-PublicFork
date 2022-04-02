@@ -901,7 +901,7 @@ country_event = { #The Court has finally been reformed
 	picture = COURT_eventPicture
 	
 	is_triggered_only = yes
-	trigger = { has_country_flag = reformed_rahen_court }
+	trigger = { has_global_flag = rahen_corrupt_court_completed }
 	
 	option = { #Shit
 		ai_chance = { factor = 1 }
@@ -986,12 +986,15 @@ country_event = { #The Court has finally been reformed
 		ai_chance = { factor = 1 }
 		name = rahenraj.99.a
 		
-		set_country_flag = rahen_corrupt_court_completed
-		hidden_effect = {
-			if = { limit = { has_reform = raja_reform }
-				set_country_flag = reformed_rahen_court
-			}
+		if = {
+			limit = { has_reform = raja_reform }
+			set_global_flag = rahen_corrupt_court_completed
 		}
+		if = {
+			limit = { ai = yes }
+			add_corruption = -20
+		}
+		
 		country_event = {
 			id = rahenraj.97
 			days = 5
@@ -1194,7 +1197,7 @@ country_event = { #Raid on the archives
 		name = rahenraj.104.b
 		
 		
-		4411 = { change_variable = { which = rahen_court_case_strength value = 2 } }
+		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
 	}
 	option = { #This is not proper
 		ai_chance = { factor = 1 }
@@ -1259,7 +1262,7 @@ country_event = { #Evidence found
 		ai_chance = { factor = 1 }
 		name = rahenraj.106.b
 		
-		add_corruption = 0.5
+		add_corruption = 1
 		add_stability_or_adm_power = yes
 	}
 }
@@ -1280,6 +1283,29 @@ country_event = { #Honest courtiers replace the corrupt
 		name = rahenraj.107.a
 		
 		add_corruption = -0.5
+	}
+}
+country_event = { #Ministers do good work
+	id = rahenraj.108
+	title = rahenraj.108.t
+	desc = rahenraj.108.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		4411 = { has_province_modifier = rahen_corrupt_ministery_of_philosophy }
+	}
+	
+	option = { #I guess they are good for something
+		ai_chance = { factor = 1 }
+		name = rahenraj.108.a
+		random_list = {
+			1 = { add_adm_power = 20 }
+			1 = { add_dip_power = 10 }
+			1 = { add_mil_power = 5 }
+		}
+		4411 = { change_variable = { which = rahen_court_case_strength value = -1 } }
 	}
 }
 
@@ -1389,7 +1415,11 @@ country_event = { #Investigation meets resistance
 			influence = -2
 			duration = 3650
 		}
-		4411 = { change_variable = { which = rahen_court_case_strength value = 5 } }
+		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
+		change_estate_land_share = {
+			estate = estate_raj_ministries
+			share = -0.5
+		}
 		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
@@ -1417,6 +1447,7 @@ country_event = { #Estate investigation found evidence!
 			influence = -2
 			duration = 3650
 		}
+		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
 		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
@@ -3653,7 +3684,14 @@ country_event = {
 	id = rahenraj.2100
 	title = rahenraj.2100.t
 	desc = { trigger = { has_country_flag = vizier_nomination_on_new_raja } desc = rahenraj.2100.da }
-	desc = { trigger = { NOT = { has_country_flag = vizier_nomination_on_new_raja } } desc = rahenraj.2100.db }
+	desc = { trigger = { has_country_flag = raj_vizier_just_died } desc = rahenraj.2100.db }
+	desc = {
+		trigger = {
+			NOT = { has_country_flag = vizier_nomination_on_new_raja }
+			NOT = { has_country_flag = raj_vizier_just_died }
+		}
+		desc = rahenraj.2100.dc
+	}
 	picture = COURT_eventPicture
 
 	is_triggered_only = yes
@@ -3792,6 +3830,7 @@ country_event = {
 	
 	after = {
 		clr_country_flag = vizier_nomination_on_new_raja
+		clr_country_flag = raj_vizier_just_died
 		raj_calc_vizier_sway = yes
 		country_event = { id = rahenraj.2101 }
 	}
@@ -3963,6 +4002,745 @@ country_event = {
 			add_opinion = { who = FROM modifier = raj_discredited_by_vizier_opinion }
 			add_spy_network_from = { who = FROM value = -60 }
 		}
+	}
+}
+
+
+#-----# Raja-Vizier Interaction #-----#
+
+#Vizier's son promising with Blade and Bow
+country_event = {
+	id = rahenraj.2111
+	title = rahenraj.2111.t
+	desc = rahenraj.2111.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		overlord = { has_reform = raja_reform }
+		has_country_flag = raj_vizier
+		NOT = { has_country_flag = raj_had_promising_heir_event }
+		has_heir = yes
+	}
+	
+	#Demand he be made a general
+	option = {
+		name = rahenraj.2111.a
+		ai_chance = { factor = 100 }
+		add_dip_power = -10
+		raj_vizier_sway_change = { amount = 2.5 }
+		custom_tooltip = raj_raja_vizier_risky_option_tt
+		set_country_flag = raj_vizier_risky_option
+		hidden_effect = {
+			export_to_variable = { which = vizierCulture value = ruler_culture }
+			export_to_variable = { which = vizierReligion value = ruler_religion }
+		}
+		overlord = { country_event = { id = rahenraj.2112 } }
+	}
+	
+	#Introduce him in a lavish ceremony
+	option = {
+		name = rahenraj.2111.b
+		ai_chance = { factor = 0 }
+		add_years_of_income = -0.35
+		overlord = { country_event = { id = rahenraj.2112 } }
+	}
+	
+	#Reject his request
+	option = {
+		name = rahenraj.2111.c
+		ai_chance = { factor = 0 }
+		create_general = { tradition = 50 }
+	}
+	
+	after = {
+		set_country_flag = raj_had_promising_heir_event
+	}
+}
+#Vizier's son promising - Answer
+country_event = {
+	id = rahenraj.2112
+	title = rahenraj.2112.t
+	desc = rahenraj.2112.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		is_subject_of = ROOT
+		has_country_flag = raj_vizier
+	}
+	
+	#Accept him as a general
+	option = {
+		name = rahenraj.2112.a
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 0.01 NOT = { has_opinion = { who = FROM value = 0 } } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 50 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 100 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 150 } }
+			modifier = { factor = 2 FROM = { army_strength = { who = ROOT value = 0.2 } } }
+			modifier = { factor = 2 FROM = { total_development = 100 } }
+			modifier = { factor = 2 FROM = { total_development = 200 } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 60 } } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 80 } } }
+			modifier = { factor = 0.5 FROM = { has_country_flag = raj_vizier_risky_option } }
+		}
+		create_general = { tradition = 50 }
+		raj_vizier_sway_change = { amount = 2.5 }
+	}
+	
+	#Accept him as an advisor
+	option = {
+		name = rahenraj.2112.b
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 0.01 NOT = { has_opinion = { who = FROM value = 0 } } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 50 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 100 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 150 } }
+			modifier = { factor = 2 FROM = { army_strength = { who = ROOT value = 0.2 } } }
+			modifier = { factor = 2 FROM = { total_development = 100 } }
+			modifier = { factor = 2 FROM = { total_development = 200 } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 60 } } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 80 } } }
+			modifier = { factor = 0.5 FROM = { has_country_flag = raj_vizier_risky_option } }
+		}
+		define_advisor = {
+			type = commandant
+			skill = 2
+			culture = variable:From::vizierCulture
+			religion = variable:From::vizierReligion
+			discount = yes
+		}
+		raj_vizier_sway_change = { amount = 2.5 }
+	}
+	
+	#Reject the request
+	option = {
+		name = rahenraj.2112.c
+		ai_chance = { factor = 50 }
+		reduce_stability_or_adm_power = yes
+		reverse_add_opinion = { who = FROM modifier = raj_rejected_vizier_demands }
+		raj_vizier_sway_change = { amount = -2.5 }
+	}
+	
+	after = {
+		FROM = { clr_country_flag = raj_vizier_risky_option }
+	}
+}
+
+#The Raja's elephants harass the vizier
+country_event = { 
+	id = rahenraj.2113
+	title = rahenraj.2113.t
+	desc = rahenraj.2113.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		overlord = { has_reform = raja_reform }
+		has_country_flag = raj_vizier
+		NOT = { has_country_flag = raj_had_harassed_by_elephants_event }
+	}
+	
+	#Demand elephants be punished
+	option = {
+		name = rahenraj.2113.a
+		ai_chance = { factor = 100 }
+		add_prestige = -10
+		custom_tooltip = raj_raja_vizier_risky_option_tt
+		set_country_flag = raj_vizier_risky_option
+		hidden_effect = {
+			export_to_variable = { which = vizierCulture value = ruler_culture }
+			export_to_variable = { which = vizierReligion value = ruler_religion }
+		}
+		overlord = { country_event = { id = rahenraj.2114 } }
+	}
+	
+	#Let it go
+	option = {
+		name = rahenraj.2113.b
+		ai_chance = { factor = 0 }
+		add_prestige = -25
+	}
+	
+	after = {
+		set_country_flag = raj_had_harassed_by_elephants_event
+	}
+}
+#The Raja's elephants - Answer
+country_event = {
+	id = rahenraj.2114
+	title = rahenraj.2114.t
+	desc = rahenraj.2114.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		is_subject_of = ROOT
+		has_country_flag = raj_vizier
+	}
+	
+	#Execute the elephants!
+	option = {
+		name = rahenraj.2114.a
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 0.01 NOT = { has_opinion = { who = FROM value = 0 } } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 50 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 100 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 150 } }
+			modifier = { factor = 2 FROM = { army_strength = { who = ROOT value = 0.2 } } }
+			modifier = { factor = 2 FROM = { total_development = 100 } }
+			modifier = { factor = 2 FROM = { total_development = 200 } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 60 } } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 80 } } }
+			modifier = { factor = 0.5 FROM = { has_country_flag = raj_vizier_risky_option } }
+		}
+		raj_vizier_sway_change = { amount = 2.5 }
+		reverse_add_opinion = { who = FROM modifier = raj_granted_vizier_demands }
+		every_known_country = {
+			limit = { culture = ghavaanaj }
+			add_opinion = { who = ROOT modifier = raj_executed_elephant }
+		}
+		add_country_modifier = { name = raj_angered_elephant_riders duration = 3650 }
+	}
+	
+	#Banish the trainers!
+	option = {
+		name = rahenraj.2114.b
+		ai_chance = {
+			factor = 80
+			modifier = { factor = 0 4411 = { NOT = { check_variable = { which = raj_cohesion value = 20 } } } }
+			modifier = { factor = 0.5 4411 = { NOT = { check_variable = { which = raj_cohesion value = 30 } } } }
+			modifier = { factor = 0 4411 = { check_variable = { which = vizierSway value = 80 } } }
+		}
+		raj_cohesion_change_absolute = { amount = -2.5 }
+	}
+	
+	#Reject the request
+	option = {
+		name = rahenraj.2114.c
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 0.5 4411 = { NOT = { check_variable = { which = raj_cohesion value = 30 } } } }
+			modifier = { factor = 0 4411 = { NOT = { check_variable = { which = raj_cohesion value = 20 } } } }
+			modifier = { factor = 8 4411 = { check_variable = { which = vizierSway value = 80 } } }
+		}
+		raj_vizier_sway_change = { amount = -2.5 }
+		raj_cohesion_change_absolute = { amount = -5 }
+		reverse_add_opinion = { who = FROM modifier = raj_rejected_vizier_demands }
+	}
+	
+	after = {
+		FROM = { clr_country_flag = raj_vizier_risky_option }
+	}
+}
+
+#Send the vizier to Tianlou
+country_event = { 
+	id = rahenraj.2115
+	title = rahenraj.2115.t
+	desc = rahenraj.2115.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_reform = raja_reform
+		any_subject_country = {
+			has_country_flag = raj_vizier
+			NOT = { has_country_flag = raj_had_tianlou_event }
+		}
+	}
+	
+	#Send him
+	option = {
+		name = rahenraj.2115.a
+		ai_chance = { factor = 100 }
+		add_adm_power = -50
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			country_event = { id = rahenraj.2116 }
+		}
+	}
+	
+	#Send him, and ensure his visit lasts a while
+	option = {
+		name = rahenraj.2115.b
+		ai_chance = { factor = 0 }
+		add_adm_power = -50
+		add_years_of_income = -0.50
+		raj_vizier_sway_change = { amount = -2.5 }
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			country_event = { id = rahenraj.2116 }
+		}
+	}
+	
+	#Maybe another time
+	option = {
+		name = rahenraj.2115.c
+		ai_chance = { factor = 0 }
+		raj_vizier_sway_change = { amount = 2.5 }
+	}
+	
+	after = {
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			set_country_flag = raj_had_tianlou_event
+		}
+	}
+}
+#Send the vizier to Tianlou - Answer
+country_event = {
+	id = rahenraj.2116
+	title = rahenraj.2116.t
+	desc = rahenraj.2116.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		overlord_of = ROOT
+	}
+	
+	#Go
+	option = {
+		name = rahenraj.2116.a
+		raj_vizier_sway_change = { amount = -2.5 }
+		ai_chance = { factor = 30 }
+		add_country_modifier = { name = hindu_withdrawn_contemplation duration = 730 }
+		add_country_modifier = { name = raj_trip_to_tianlou duration = 3650 }
+	}
+	
+	#Refuse
+	option = {
+		name = rahenraj.2116.b
+		ai_chance = {
+			factor = 70
+			modifier = { factor = 0 NOT = { stability = 0 } }
+			modifier = { factor = 0.1 NOT = { stability = 1 } }
+			modifier = { factor = 0 FROM = { NOT = { has_opinion = { who = ROOT value = 50 } } } }
+			modifier = { factor = 0.1 FROM = { NOT = { has_opinion = { who = ROOT value = 100 } } } }
+		}
+		reduce_stability_or_adm_power = yes
+		reverse_add_opinion = { who = FROM modifier = raj_rejected_raja_demands }
+	}
+}
+
+#Deputize the vizier to X
+country_event = { 
+	id = rahenraj.2117
+	title = rahenraj.2117.t
+	desc = rahenraj.2117.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_reform = raja_reform
+		any_subject_country = {
+			has_country_flag = raj_vizier
+			NOT = { has_country_flag = raj_had_deputised_event }
+		}
+		any_subject_country = {
+			NOT = { has_country_flag = raj_vizier }
+			is_subject_of_type = daimyo_vassal
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_subject_country = {
+				limit = {
+					NOT = { has_country_flag = raj_vizier }
+					is_subject_of_type = daimyo_vassal
+				}
+				save_event_target_as = vizier_destination
+				capital_scope = { save_event_target_as = vizier_destination_capital }
+			}
+		}
+	}
+	
+	#Tell the vizier to pack his bags
+	option = {
+		name = rahenraj.2117.a
+		ai_chance = { factor = 100 }
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			country_event = { id = rahenraj.2118 }
+		}
+	}
+	
+	#Send a delegation of advisors
+	option = {
+		name = rahenraj.2117.b
+		trigger = {
+			OR = {
+				AND = {
+					employed_advisor = { category = ADM }
+					employed_advisor = { category = DIP }
+				}
+				AND = {
+					employed_advisor = { category = DIP }
+					employed_advisor = { category = MIL }
+				}
+				AND = {
+					employed_advisor = { category = MIL }
+					employed_advisor = { category = ADM }
+				}
+			}
+		}
+		ai_chance = { factor = 0 }
+		random_list = {
+			33 = {
+				trigger = {
+					employed_advisor = { category = ADM }
+					employed_advisor = { category = DIP }
+				}
+				remove_advisor_by_category = ADM
+				remove_advisor_by_category = DIP
+			}
+			33 = {
+				trigger = {
+					employed_advisor = { category = DIP }
+					employed_advisor = { category = MIL }
+				}
+				remove_advisor_by_category = DIP
+				remove_advisor_by_category = MIL
+			}
+			33 = {
+				trigger = {
+					employed_advisor = { category = MIL }
+					employed_advisor = { category = ADM }
+				}
+				remove_advisor_by_category = MIL
+				remove_advisor_by_category = ADM
+			}
+		}
+		event_target:vizier_destination = {
+			add_country_modifier = { name = raj_raja_delegation duration = 1825 }
+			add_opinion = { who = ROOT modifier = raj_raja_delegation_opinion }
+			hidden_effect = { country_event = { id = rahenraj.2119 } }
+		}
+	}
+	
+	#Maybe another time
+	option = {
+		name = rahenraj.2117.c
+		ai_chance = { factor = 0 }
+		event_target:vizier_destination = {
+			add_country_modifier = { name = raj_raja_neglected duration = 1825 }
+			add_opinion = { who = ROOT modifier = raj_raja_neglected_opinion }
+			hidden_effect = { country_event = { id = rahenraj.2120 } }
+		}
+	}
+	
+	after = {
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			set_country_flag = raj_had_deputised_event
+		}
+	}
+}
+#Deputize the vizier to X - Answer
+country_event = {
+	id = rahenraj.2118
+	title = rahenraj.2118.t
+	desc = rahenraj.2118.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		overlord_of = ROOT
+	}
+	
+	#Leverage the opportunity for connections
+	option = {
+		name = rahenraj.2118.a
+		raj_vizier_sway_change = { amount = 5 }
+		ai_chance = { factor = 100 }
+		add_adm_power = -50
+		add_dip_power = -50
+		add_mil_power = -50
+	}
+	
+	#Leverage the opportunity for self-profit
+	option = {
+		name = rahenraj.2118.b
+		ai_chance = { factor = 0 }
+		add_country_modifier = { name = raj_raja_delegation duration = 1825 }
+		add_adm_power = -20
+		add_dip_power = -20
+		add_mil_power = -20
+	}
+	
+	#Refuse
+	option = {
+		name = rahenraj.2118.c
+		ai_chance = { factor = 0 }
+		raj_cohesion_change_absolute = { amount = -2.5 }
+		add_prestige = -10
+	}
+}
+#Raja Delegation - Info event
+country_event = {
+	id = rahenraj.2119
+	title = rahenraj.2119.t
+	desc = rahenraj.2119.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.2119.a
+		tooltip = {
+			add_country_modifier = { name = raj_raja_delegation duration = 1825 }
+			add_opinion = { who = ROOT modifier = raj_raja_delegation_opinion }
+		}
+	}
+}
+#Neglected by Raja - Info event
+country_event = {
+	id = rahenraj.2120
+	title = rahenraj.2120.t
+	desc = rahenraj.2120.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	option = {
+		name = rahenraj.2120.a
+		tooltip = {
+			add_country_modifier = { name = raj_raja_neglected duration = 1825 }
+			add_opinion = { who = FROM modifier = raj_raja_neglected_opinion }
+		}
+	}
+}
+
+#Vizier spreads religious school
+country_event = { 
+	id = rahenraj.2121
+	title = rahenraj.2121.t
+	desc = rahenraj.2121.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		overlord = { has_reform = raja_reform }
+		has_country_flag = raj_vizier
+		NOT = { has_country_flag = raj_had_religious_school_event }
+		overlord = { NOT = { abn_same_religious_school_trigger = { who = ROOT } } }
+	}
+	
+	#Share the wisdom
+	option = {
+		name = rahenraj.2121.a
+		ai_chance = { factor = 100 }
+		raj_vizier_sway_change = { amount = 2.5 }
+		add_adm_power = -20
+		custom_tooltip = raj_raja_vizier_risky_option_tt
+		set_country_flag = raj_vizier_risky_option
+		overlord = { country_event = { id = rahenraj.2122 } }
+	}
+	
+	#Share the wisdom... but time is money
+	option = {
+		name = rahenraj.2121.b
+		ai_chance = { factor = 0 }
+		add_treasury = 100
+		add_adm_power = -20
+		overlord = { country_event = { id = rahenraj.2122 } }
+	}
+	
+	#You are not worthy of these teachings
+	option = {
+		name = rahenraj.2121.c
+		ai_chance = { factor = 0 }
+		add_prestige = 10
+	}
+	
+	after = {
+		set_country_flag = raj_had_religious_school_event
+	}
+}
+#Vizier spreads religious school - Answer
+country_event = {
+	id = rahenraj.2122
+	title = rahenraj.2122.t
+	desc = rahenraj.2122.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		is_subject_of = ROOT
+		has_country_flag = raj_vizier
+	}
+	
+	#Let it be
+	option = {
+		name = rahenraj.2122.a
+		ai_chance = {
+			factor = 10
+			modifier = { factor = 0.01 NOT = { has_opinion = { who = FROM value = 0 } } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 50 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 100 } }
+			modifier = { factor = 2 has_opinion = { who = FROM value = 150 } }
+			modifier = { factor = 2 FROM = { army_strength = { who = ROOT value = 0.2 } } }
+			modifier = { factor = 2 FROM = { total_development = 100 } }
+			modifier = { factor = 2 FROM = { total_development = 200 } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 60 } } }
+			modifier = { factor = 0.5 4411 = { check_variable = { which = vizierSway value = 80 } } }
+			modifier = { factor = 0.5 FROM = { has_country_flag = raj_vizier_risky_option } }
+		}
+		if = { limit = { FROM = { religious_school = { group = raheni school = starry_eye_school } } }
+			add_country_modifier = { name = starry_eye_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = radiant_sun_school } } }
+			add_country_modifier = { name = radiant_sun_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = orange_sash_school } } }
+			add_country_modifier = { name = orange_sash_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = golden_palace_school } } }
+			add_country_modifier = { name = golden_palace_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = unbroken_claw_school } } }
+			add_country_modifier = { name = unbroken_claw_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = silk_turban_school } } }
+			add_country_modifier = { name = silk_turban_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = ascendant_soul_school } } }
+			add_country_modifier = { name = ascendant_soul_scholar_modifier duration = 3650 }
+		}
+		else_if = { limit = { FROM = { religious_school = { group = raheni school = true_school } } }
+			add_country_modifier = { name = true_school_scholar_modifier duration = 3650 }
+		}
+	}
+	
+	#That is not their role at court!
+	option = {
+		name = rahenraj.2122.b
+		ai_chance = { factor = 40 }
+		raj_vizier_sway_change = { amount = -2.5 }
+		add_prestige = -10
+		add_country_modifier = { name = raj_refused_vizier_school duration = 3650 }
+		reverse_add_opinion = { who = FROM modifier = raj_rejected_vizier_demands }
+	}
+	
+	after = {
+		FROM = { clr_country_flag = raj_vizier_risky_option }
+	}
+}
+
+#Offer the vizier a wife
+country_event = { 
+	id = rahenraj.2123
+	title = rahenraj.2123.t
+	desc = rahenraj.2123.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_reform = raja_reform
+		any_subject_country = {
+			has_country_flag = raj_vizier
+			NOT = { has_country_flag = raj_had_wife_offer_event }
+			ruler_culture = ROOT
+			NOT = { marriage_with = ROOT }
+		}
+	}
+	
+	#Offer a wife
+	option = {
+		name = rahenraj.2123.a
+		ai_chance = { factor = 100 }
+		raj_vizier_sway_change = { amount = 2.5 }
+		add_adm_power = 50
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			country_event = { id = rahenraj.2124 }
+		}
+	}
+	
+	#Nonsense!
+	option = {
+		name = rahenraj.2123.b
+		ai_chance = { factor = 0 }
+		add_prestige = -5
+	}
+	
+	after = {
+		random_subject_country = {
+			limit = { has_country_flag = raj_vizier }
+			set_country_flag = raj_had_wife_offer_event
+		}
+	}
+}
+#Offer the vizier a wife - Answer
+country_event = {
+	id = rahenraj.2124
+	title = rahenraj.2124.t
+	desc = rahenraj.2124.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	major = yes
+	major_trigger = {
+		overlord_of = ROOT
+	}
+	
+	immediate = {
+		hidden_effect = {
+			export_to_variable = { which = vizierYearlyIncome which = years_of_income }
+			multiply_variable = { which = vizierYearlyIncome value = 3 }
+		}
+	}
+	
+	# I am honoured... what's this about a dowry?
+	option = {
+		name = rahenraj.2124.a
+		ai_chance = {
+			factor = 100
+			modifier = { factor = 0 num_of_loans = 5 }
+			modifier = { factor = 0 NOT = { check_variable = { which = vizierYearlyIncome value = 250 } } }
+			modifier = { factor = 0 is_in_deficit = yes }
+		}
+		add_treasury = -250
+		overlord = { add_treasury = 250 }
+		add_prestige = 10
+		create_marriage = FROM
+		define_consort = {
+			country_of_origin = FROM
+			religion = FROM
+			culture = FROM
+			dynasty = FROM
+		}
+	}
+	
+	#Matchmaker is not a good role for the Raja
+	option = {
+		name = rahenraj.2124.b
+		ai_chance = { factor = 0 }
+		raj_vizier_sway_change = { amount = -2.5 }
+		reverse_add_opinion = { who = FROM modifier = raj_rejected_raja_demands }
 	}
 }
 
