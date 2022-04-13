@@ -1068,10 +1068,10 @@ NCountry = {
 	TRIBE_SETTLE_DIP_COST = 50,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
 	TRIBE_SETTLE_MIL_COST = 0,
 
-	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.25,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05, buffed these to compensate for no colonizer bonus, was 0.15 and 0.1
-	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.2,	
-	COHESION_FEDERATION_MEMBER_STRONGER = -0.20,
-	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.2,	--was -0.40
+	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.35,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05, buffed these to compensate for no colonizer bonus, was 0.15 and 0.1
+	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.3,	
+	COHESION_FEDERATION_MEMBER_STRONGER = -0.30, -- Anbennar was -0.20
+	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.30,	--was -0.40
 	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_NUMBER = 3,	
 	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_MODIFIER = 0.5,	--was 1
 	COHESION_NEIGHBOURING_COLONIZER = 0,	-- Anbennar removed this for adventurers, was 0.5
