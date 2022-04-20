@@ -2074,6 +2074,104 @@ generate_party_stats = {
 	}
 }
 
+generate_ai_party = {
+	#Basic stats
+	generate_party_stats = yes
+	set_variable = { partyMorale = 7 }
+	set_variable = { partyManpower = 5000 }
+	set_variable = { partySupplies = 80 }
+	random_list = {
+		20 = { multiply_variable = { partyEffectiveness = 0.8 } }
+		20 = { multiply_variable = { partyEffectiveness = 0.9 } }
+		20 = { multiply_variable = { partyEffectiveness = 1 } }
+		20 = { multiply_variable = { partyEffectiveness = 1.1 } }
+		20 = { multiply_variable = { partyEffectiveness = 1.2 } }
+	}
+	random_list = {
+		20 = { multiply_variable = { partyMorale = 1.1 } }
+		20 = { multiply_variable = { partyMorale = 1.2 } }
+		20 = { multiply_variable = { partyMorale = 1.3 } }
+		20 = { multiply_variable = { partyMorale = 1.4 } }
+		20 = { multiply_variable = { partyMorale = 1.5 } }
+	}
+	random_list = {
+		20 = { multiply_variable = { partyManpower = 1.1 } }
+		20 = { multiply_variable = { partyManpower = 1.2 } }
+		20 = { multiply_variable = { partyManpower = 1.3 } }
+		20 = { multiply_variable = { partyManpower = 1.4 } }
+		20 = { multiply_variable = { partyManpower = 1.5 } }
+	}
+	random_list = {
+		20 = { multiply_variable = { partySupplies = 0.8 } }
+		20 = { multiply_variable = { partySupplies = 0.9 } }
+		20 = { multiply_variable = { partySupplies = 1 } }
+		20 = { multiply_variable = { partySupplies = 1.1 } }
+		20 = { multiply_variable = { partySupplies = 1.2 } }
+	}
+	#Racial Shit
+	if = {
+		limit = { owner = { has_country_modifier = goblin_military } }
+		multiply_variable = { partyManpower = 1.5 }
+		multiply_variable = { partyEffectiveness = 1.1 }
+		multiply_variable = { partyMorale = 1.2 }
+		multiply_variable = { partySupplies = 0.8 }
+	}
+	if = {
+		limit = { owner = { has_country_modifier = dwarven_military } }
+		multiply_variable = { partyManpower = 1.2 }
+		multiply_variable = { partyEffectiveness = 1.3 }
+		multiply_variable = { partyMorale = 1.2 }
+		multiply_variable = { partySupplies = 1.2 }
+	}
+	if = {
+		limit = { owner = { has_country_modifier = orcish_military } }
+		multiply_variable = { partyManpower = 0.9 }
+		multiply_variable = { partyEffectiveness = 1.1 }
+		multiply_variable = { partyMorale = 1.3 }
+		multiply_variable = { partySupplies = 1 }
+	}
+	if = {
+		limit = { owner = { has_country_modifier = kobold_military } }
+		multiply_variable = { partyManpower = 1.4 }
+		multiply_variable = { partyEffectiveness = 0.8 }
+		multiply_variable = { partyMorale = 1.2 }
+		multiply_variable = { partySupplies = 1 }
+	}
+	
+	#Rewards
+	set_variable = { which = partyRewards  which = lowLootEstimate }
+	random_list = {
+		20 = { multiply_variable = { partyRewards = 0.8 } }
+		20 = { multiply_variable = { partyRewards = 0.9 } }
+		20 = { multiply_variable = { partyRewards = 1 } }
+		20 = { multiply_variable = { partyRewards = 1.1 } }
+		20 = { multiply_variable = { partyRewards = 1.2 } }
+	}
+	
+	#Sanity Check
+	if = {
+		limit = { check_variable = { which = partyRewards which = highLootEstimate } }
+		divide_variable = { partyRewards = 2 }
+	}
+	if = {
+		limit = { check_variable = { partyRewards = 1000 } }
+		set_variable = { partyRewards = 1000 }
+	}
+	if = {
+		limit = { check_variable = { partySupplies = 100 } }
+		set_variable = { partySupplies = 100 }
+	}
+	if = {
+		limit = { check_variable = { partyManpower = 10000 } }
+		set_variable = { partyManpower = 10000 }
+	}
+	if = {
+		limit = { check_variable = { partyEffectiveness = 200 } }
+		set_variable = { partyEffectiveness = 200 }
+	}
+	set_province_flag = generated_party_stats_@ROOT
+}
+
 generate_expedition = {
 	hidden_effect = {
 		if = {
@@ -2759,9 +2857,18 @@ progress_advancement = {
 		multiply_variable = { addProgress = 2 }
 	}
 	
-	random = {
-		chance = 20
-		change_party_effectiveness = { loss = 1 }
+	if = {
+		limit = { owner = { NOT = { num_of_cities = 2 } } }
+		random = {
+			chance = 20
+			change_party_effectiveness = { loss = 1 }
+		}
+	}
+	else = {
+		random = {
+			chance = 7
+			change_party_effectiveness = { loss = 1 }
+		}
 	}
 	
 	
@@ -2895,6 +3002,10 @@ increase_remnant_react = {
 		[[big]
 			change_variable = { awakeningReact = 15 }
 		]
+		if = {
+			limit = { check_variable = { awakeningReact = 100 } }
+			country_event = { id = diggy_remnant_stagnation.3 }
+		}
 	}
 }
 
@@ -3127,6 +3238,7 @@ clear_expedition_effect = {
 	clr_province_flag = sent_expedition_@owner
 	clr_province_flag = expedition_in_progress
 	clr_province_flag = generated_party_stats_@ROOT
+	clr_province_flag = generated_expedition
 	owner = { clr_country_flag = expedition_happening }
 	
 	#Encounter flags
@@ -3329,7 +3441,6 @@ special_reward_expedition = {
 	#Dwarovkron
 	if = {
 		limit = { has_province_flag = dwarovkron_amethyst }
-		custom_tooltip = found_gem_amethyst_tooltip
 		hidden_effect = { clr_province_flag = dwarovkron_amethyst }
 		owner = {
 			hidden_effect = {
@@ -3344,7 +3455,6 @@ special_reward_expedition = {
 	}
 	if = {
 		limit = { has_province_flag = dwarovkron_diamond }
-		custom_tooltip = found_gem_diamond_tooltip
 		hidden_effect = { clr_province_flag = dwarovkron_diamond }
 		owner = {
 			hidden_effect = {
@@ -3359,7 +3469,6 @@ special_reward_expedition = {
 	}
 	if = {
 		limit = { has_province_flag = dwarovkron_citrine }
-		custom_tooltip = found_gem_citrine_tooltip
 		hidden_effect = { clr_province_flag = dwarovkron_citrine }
 		owner = {
 			hidden_effect = {
@@ -3374,7 +3483,6 @@ special_reward_expedition = {
 	}
 	if = {
 		limit = { has_province_flag = dwarovkron_ruby }
-		custom_tooltip = found_gem_ruby_tooltip
 		hidden_effect = { clr_province_flag = dwarovkron_ruby }
 		owner = {
 			hidden_effect = {
