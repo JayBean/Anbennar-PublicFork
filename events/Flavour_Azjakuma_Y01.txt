@@ -148,6 +148,17 @@ country_event = {
 		tag = Y01
 	}
 
+	immediate = {
+		hidden_effect = {
+			4833 = {
+				province_event = {
+					id = flavor_azjakuma.1101
+					days = 25535 #70 years after game start
+				}
+			}
+		}
+	}
+
 	option = {
 		name = flavor_azjakuma.15.a #make truce offer
 		ai_chance = { factor = 100 }
@@ -157,6 +168,7 @@ country_event = {
 				id = flavor_azjakuma.18
 			}
 		}
+		hidden_effect = { clr_country_flag = oni_truce_happened }
 	}
 	option = {
 		name = flavor_azjakuma.15.b #do not make truce offer
@@ -169,6 +181,7 @@ country_event = {
 				days = 365
 			}
 		}
+		hidden_effect = { clr_country_flag = oni_truce_happened }
 	}
 }
 
@@ -384,13 +397,9 @@ country_event = {
 
 	trigger = {
 		tag = Y01
-		has_country_flag = birb_acceptance_possible
 	}
 	fire_only_once = yes
-
-	mean_time_to_happen = {
-		months = 120
-	}
+	is_triggered_only = yes
 	
 
 	option = {
@@ -400,7 +409,6 @@ country_event = {
 		custom_tooltip = azjakuma_birb_full_integration_tooltip
 		hidden_effect = {
 			clr_country_flag = oni_birb_caution_setup
-			clr_country_flag = oni_birb_acceptance_possible
 			set_country_flag = oni_birb_accepted
 			every_owned_province = {
 				limit = {
@@ -729,19 +737,11 @@ country_event = {
 				influence = -5
 				duration = -1
 			}
-			add_estate_loyalty_modifier = {
-				estate = estate_khelorvalshi
-				desc = accepted_cursed_desc
-				loyalty = 15
-				duration = -1
-			}
-			add_estate_influence_modifier = {
-				estate = estate_khelorvalshi
-				desc = accepted_cursed_desc
-				influence = 10
-				duration = -1
-			}
 			set_country_flag = accepted_khelorvalshi
+			country_event = {
+				id = flavor_azjakuma.37
+				days = 1
+			}
 		}
 	}
 	option = {
@@ -756,19 +756,11 @@ country_event = {
 		add_stability_or_adm_power = yes
 		add_devotion = 10
 		hidden_effect = {
-			add_estate_loyalty_modifier = {
-				estate = estate_khelorvalshi
-				desc = restricive_regulations_desc
-				loyalty = 10
-				duration = -1
-			}
-			add_estate_influence_modifier = {
-				estate = estate_khelorvalshi
-				desc = restricive_regulations_desc
-				influence = -20
-				duration = -1
-			}
 			set_country_flag = restricted_khelorvalshi
+			country_event = {
+				id = flavor_azjakuma.37
+				days = 1
+			}
 		}
 	}
 }
@@ -1344,6 +1336,55 @@ country_event = { #adds senukagrii province mod for those without leviathan
 	}
 }
 
+country_event = { #applies khelorvalshi loyalty/influence changes before they are unlocked
+	id = flavor_azjakuma.37
+	title = flavor_azjakuma.1.t
+	desc = flavor_azjakuma.1.d
+	picture = CITY_VIEW_eventPicture
+
+	is_triggered_only = yes
+	immediate = {
+		if = {
+			limit = {
+				has_country_flag = accepted_khelorvalshi
+			}
+			add_estate_loyalty_modifier = {
+				estate = estate_khelorvalshi
+				desc = accepted_cursed_desc
+				loyalty = 15
+				duration = -1
+			}
+			add_estate_influence_modifier = {
+				estate = estate_khelorvalshi
+				desc = accepted_cursed_desc
+				influence = 10
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_country_flag = restricted_khelorvalshi
+			}
+			add_estate_loyalty_modifier = {
+				estate = estate_khelorvalshi
+				desc = restricive_regulations_desc
+				loyalty = 10
+				duration = -1
+			}
+			add_estate_influence_modifier = {
+				estate = estate_khelorvalshi
+				desc = restricive_regulations_desc
+				influence = -20
+				duration = -1
+			}
+		}
+	}
+
+	option = {
+		name = flavor_azjakuma.1
+	}
+}
+
 country_event = { #allows Y01_winning_over_birb to be completed
 	id = flavor_azjakuma.103
 	title = flavor_azjakuma.1.t
@@ -1386,10 +1427,14 @@ country_event = { #azjakuma renew truce with command
 	picture = CITY_VIEW_eventPicture
 	
 	is_triggered_only = yes
+
+	trigger = {
+		NOT = { is_year = 1486 }
+	}
 	
 	option = { #renew truce
 		name = flavor_azjakuma.105.a
-		ai_chance = { factor = 90 }	
+		ai_chance = { factor = 1 }	
 
 		add_prestige = -5
 		R62 = {
@@ -1401,7 +1446,7 @@ country_event = { #azjakuma renew truce with command
 
 	option = { #do not renew truce
 		name = flavor_azjakuma.105.b
-		ai_chance = { factor = 10 }	
+		ai_chance = { factor = 0 }	
 
 		add_prestige = 10
 		R62 = {
@@ -1561,7 +1606,7 @@ country_event = {
 		clr_country_flag = khelorvalshi_restored
 	}
 }
-province_event = {
+province_event = { #give aikogeoke to neighbor
 	id = flavor_azjakuma.1101
 	title = flavor_azjakuma.1101.t
 	desc = flavor_azjakuma.1101.d
@@ -1584,10 +1629,11 @@ province_event = {
 		ai_chance = {
 			factor = 50
 		}
-
-		5409 = {
-			add_core = ROOT
-			cede_province = ROOT
+		owner = {
+			5409 = {
+				add_core = PREV
+				cede_province = PREV
+			}
 		}
 	}
 }
@@ -1726,9 +1772,30 @@ country_event = { #Shinukhorchi Menu
 			has_country_flag = korashi_talismans_unlocked
 		}
 
-		add_adm_power = -15
-		add_dip_power = -15
-		add_mil_power = -15
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_adm_power = -20
+			add_dip_power = -20
+			add_mil_power = -20
+		}
+		else = {
+			add_adm_power = -15
+			add_dip_power = -15
+			add_mil_power = -15
+		}
 
 		add_country_modifier = {
 			name = estate_shinukhorchi_korashi_talisman_mod #-15% shock damage recieved
@@ -1748,6 +1815,29 @@ country_event = { #Shinukhorchi Menu
 
 		trigger = {
 			has_country_flag = vassal_acceptance_magic_unlocked
+		}
+		
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -0.75
+			add_dip_power = -30
+		}
+		else = {
+			add_years_of_income = -0.5
+			add_dip_power = -20
 		}
 
 		if = {
@@ -1846,9 +1936,30 @@ country_event = { #Chumijemoya Menu
 			factor = 50
 		}
 
-		add_adm_power = -10
-		add_dip_power = -10
-		add_mil_power = -10
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_adm_power = -15
+			add_dip_power = -15
+			add_mil_power = -15
+		}
+		else = {
+			add_adm_power = -10
+			add_dip_power = -10
+			add_mil_power = -10
+		}
 
 		if = {
 			limit = {
@@ -1921,8 +2032,28 @@ country_event = { #Chumijemoya Menu
 			factor = 50
 		}
 
-		add_years_of_income = -1
-		add_dip_power = -10
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -1.5
+			add_dip_power = -15
+		}
+		else = {
+			add_years_of_income = -1
+			add_dip_power = -10
+		}
 
 		if = {
 			limit = {
@@ -1980,8 +2111,28 @@ country_event = { #Chumijemoya Menu
 			factor = 50
 		}
 
-		add_years_of_income = -0.25
-		add_dip_power = -10
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -0.75
+			add_dip_power = -15
+		}
+		else = {
+			add_years_of_income = -0.5
+			add_dip_power = -10
+		}
 
 		trigger = {
 			has_country_flag = oni_silent_mist_privilege
@@ -2047,9 +2198,30 @@ country_event = { #Chumijemoya Menu
 			is_at_war = yes
 		}
 
-		add_adm_power = -15
-		add_dip_power = -15
-		add_mil_power = -15
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_adm_power = -20
+			add_dip_power = -20
+			add_mil_power = -20
+		}
+		else = {
+			add_adm_power = -15
+			add_dip_power = -15
+			add_mil_power = -15
+		}
 
 		every_country = {
 			limit = {
@@ -2103,7 +2275,28 @@ country_event = { #Ajgriijarul Menu
 				}
 			}
 		}
-		add_mil_power = -30
+		
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_mil_power = -45
+		}
+		else = {
+			add_mil_power = -30
+		}
+
 		if = {
 			limit = {
 				estate_influence = {
@@ -2199,6 +2392,29 @@ country_event = { #Ajgriijarul Menu
 			has_country_flag = unlock_ajgriijarul_rebel_supression
 		}
 
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_dip_power = -15
+			add_mil_power = -45
+		}
+		else = {
+			add_dip_power = -10
+			add_mil_power = -30
+		}
+
 		every_owned_province = {
 			clear_rebels = yes
 		}
@@ -2233,7 +2449,26 @@ country_event = { #Kabiurgarko Menu
 		name = flavor_azjakuma.1254.b
 		ai_chance = { factor = 50 }
 
-		add_years_of_income = -0.5
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -0.75
+		}
+		else = {
+			add_years_of_income = -0.5
+		}
 		if = {
 			limit = {
 				estate_influence = {
@@ -2324,8 +2559,28 @@ country_event = { #Kabiurgarko Menu
 		name = flavor_azjakuma.1254.c
 		ai_chance = { factor = 50 }
 
-		add_years_of_income = -0.5
-		add_adm_power = -20
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -0.75
+			add_adm_power = -30
+		}
+		else = {
+			add_years_of_income = -0.5
+			add_adm_power = -20
+		}
 		if = {
 			limit = {
 				estate_influence = {
@@ -2433,10 +2688,32 @@ country_event = { #Khelorvalshi Menu
 			}
 		}
 
-		add_years_of_income = -0.25
-		add_adm_power = -15
-		add_dip_power = -15
-		add_mil_power = -15
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			add_years_of_income = -0.375
+			add_adm_power = -20
+			add_dip_power = -20
+			add_mil_power = -20
+		}
+		else = {
+			add_years_of_income = -0.25
+			add_adm_power = -15
+			add_dip_power = -15
+			add_mil_power = -15
+		}
 
 		event_target:spell_target_province = { 
 			add_devastation = 70
@@ -2462,6 +2739,71 @@ country_event = { #Khelorvalshi Menu
 					base_production = 2
 					base_manpower = 2
 				}
+			}
+		}
+
+		if = {
+			limit = {
+				has_country_flag = azjakuma_two_magics_allowed
+				NOT = {
+					calc_true_if = {
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_chumijemoya_cast_magic
+						has_estate_privilege = estate_ajgriijarul_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						has_estate_privilege = estate_shinukhorchi_cast_magic
+						amount = 2
+					}
+				}
+			}
+			custom_tooltip = azjakuma_more_expensive_magic_tooltip
+			random_owned_province = {
+				limit = {
+					base_tax = 2
+					base_production = 2
+					base_manpower = 2
+				}
+				add_devastation = 85
+				add_base_tax = -2
+				add_base_production = -1
+				add_base_manpower = -2
+				#add in if statement
+			}
+			random_owned_province = {
+				limit = {
+					base_tax = 2
+					base_production = 2
+					base_manpower = 2
+				}
+				add_devastation = 85
+				add_base_tax = -2
+				add_base_production = -1
+				add_base_manpower = -2
+			}
+		}
+		else = {
+			random_owned_province = {
+				limit = {
+					base_tax = 2
+					base_production = 2
+					base_manpower = 2
+				}
+				add_devastation = 70
+				add_base_tax = -1
+				add_base_production = -1
+				add_base_manpower = -1
+				#add in if statement
+			}
+			random_owned_province = {
+				limit = {
+					base_tax = 2
+					base_production = 2
+					base_manpower = 2
+				}
+				add_devastation = 70
+				add_base_tax = -1
+				add_base_production = -1
+				add_base_manpower = -1
 			}
 		}
 
@@ -3696,7 +4038,7 @@ country_event = {
 		}
 	}
 	option = {
-		name = flavor_azjakuma.2650.b
+		name = flavor_azjakuma.2650.c
 		ai_chance = { factor = 0 }
 
 		add_spy_network_in = {
@@ -3867,21 +4209,23 @@ country_event = {
 
 	is_triggered_only = yes
 	immediate = {
-		set_variable = { which = provinceCountIncrement value = 0 }
-		set_variable = { which = provinceCount value = 0 }
-		every_owned_province = {
-			limit = {
-				is_core = ROOT
-				superregion = yanshen_superregion
-				has_terrain = jungle
-				NOT = { has_province_modifier = temple_complex }
-				NOT = { has_province_modifier = damaged_temple_complex }
-				NOT = { has_province_modifier = derelict_temple_complex }
-				NOT = { has_province_modifier = ruined_temple_complex }
-				NOT = { has_province_modifier = corrupted_temple_complex }
-			}
-			PREV = {
-				change_variable = { which = provinceCount value = 1 }
+		hidden_effect = {
+			set_variable = { which = provinceCountIncrement value = 0 }
+			set_variable = { which = provinceCount value = 0 }
+			every_owned_province = {
+				limit = {
+					is_core = ROOT
+					superregion = yanshen_superregion
+					has_terrain = jungle
+					NOT = { has_province_modifier = temple_complex }
+					NOT = { has_province_modifier = damaged_temple_complex }
+					NOT = { has_province_modifier = derelict_temple_complex }
+					NOT = { has_province_modifier = ruined_temple_complex }
+					NOT = { has_province_modifier = corrupted_temple_complex }
+				}
+				PREV = {
+					change_variable = { which = provinceCount value = 1 }
+				}
 			}
 		}
 	}
@@ -3983,24 +4327,26 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		set_variable = { which = provinceCountIncrementY value = 0 }
-		set_variable = { which = provinceCountY value = 0 }
-		every_owned_province = {
-			limit = {
-				is_core = ROOT
-				OR = {
-					area = anjiang_area
-					area = linyuan_area
-					area = yanzhong_area
+		hidden_effect = {
+			set_variable = { which = provinceCountIncrementY value = 0 }
+			set_variable = { which = provinceCountY value = 0 }
+			every_owned_province = {
+				limit = {
+					is_core = ROOT
+					OR = {
+						area = anjiang_area
+						area = linyuan_area
+						area = yanzhong_area
+					}
+					NOT = { has_province_modifier = temple_complex }
+					NOT = { has_province_modifier = damaged_temple_complex }
+					NOT = { has_province_modifier = derelict_temple_complex }
+					NOT = { has_province_modifier = ruined_temple_complex }
+					NOT = { has_province_modifier = corrupted_temple_complex }
 				}
-				NOT = { has_province_modifier = temple_complex }
-				NOT = { has_province_modifier = damaged_temple_complex }
-				NOT = { has_province_modifier = derelict_temple_complex }
-				NOT = { has_province_modifier = ruined_temple_complex }
-				NOT = { has_province_modifier = corrupted_temple_complex }
-			}
-			PREV = {
-				change_variable = { which = provinceCountY value = 1 }
+				PREV = {
+					change_variable = { which = provinceCountY value = 1 }
+				}
 			}
 		}
 	}
@@ -4119,22 +4465,24 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		set_variable = { which = provinceCountIncrementYu value = 0 }
-		set_variable = { which = provinceCountYu value = 0 }
-		every_owned_province = {
-			limit = {
-				region = xianjie_region
-				is_core = ROOT
-				NOT = { trade_goods = gold }
-				NOT = { trade_goods = damestear }
-				NOT = { has_province_modifier = temple_complex }
-				NOT = { has_province_modifier = damaged_temple_complex }
-				NOT = { has_province_modifier = derelict_temple_complex }
-				NOT = { has_province_modifier = ruined_temple_complex }
-				NOT = { has_province_modifier = corrupted_temple_complex }
-			}
-			PREV = {
-				change_variable = { which = provinceCountYu value = 1 }
+		hidden_effect = {
+			set_variable = { which = provinceCountIncrementYu value = 0 }
+			set_variable = { which = provinceCountYu value = 0 }
+			every_owned_province = {
+				limit = {
+					region = xianjie_region
+					is_core = ROOT
+					NOT = { trade_goods = gold }
+					NOT = { trade_goods = damestear }
+					NOT = { has_province_modifier = temple_complex }
+					NOT = { has_province_modifier = damaged_temple_complex }
+					NOT = { has_province_modifier = derelict_temple_complex }
+					NOT = { has_province_modifier = ruined_temple_complex }
+					NOT = { has_province_modifier = corrupted_temple_complex }
+				}
+				PREV = {
+					change_variable = { which = provinceCountYu value = 1 }
+				}
 			}
 		}
 	}
@@ -4238,20 +4586,22 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		set_variable = { which = provinceCountIncrementS value = 0 }
-		set_variable = { which = provinceCountS value = 0 }
-		every_owned_province = {
-			limit = {
-				is_core = ROOT
-				area = sir_area
-				NOT = { has_province_modifier = temple_complex }
-				NOT = { has_province_modifier = damaged_temple_complex }
-				NOT = { has_province_modifier = derelict_temple_complex }
-				NOT = { has_province_modifier = ruined_temple_complex }
-				NOT = { has_province_modifier = corrupted_temple_complex }
-			}
-			PREV = {
-				change_variable = { which = provinceCountS value = 1 }
+		hidden_effect = {
+			set_variable = { which = provinceCountIncrementS value = 0 }
+			set_variable = { which = provinceCountS value = 0 }
+			every_owned_province = {
+				limit = {
+					is_core = ROOT
+					area = sir_area
+					NOT = { has_province_modifier = temple_complex }
+					NOT = { has_province_modifier = damaged_temple_complex }
+					NOT = { has_province_modifier = derelict_temple_complex }
+					NOT = { has_province_modifier = ruined_temple_complex }
+					NOT = { has_province_modifier = corrupted_temple_complex }
+				}
+				PREV = {
+					change_variable = { which = provinceCountS value = 1 }
+				}
 			}
 		}
 	}
@@ -4299,7 +4649,7 @@ country_event = {
 			add_dip_power = -150
 			every_owned_province = {
 				limit = {
-					region = xianjie_region
+					area = sir_area
 					NOT = { trade_goods = gold }
 					NOT = { trade_goods = damestear }
 					NOT = { has_province_modifier = temple_complex }
@@ -4388,7 +4738,7 @@ country_event = {
 			add_dip_power = -150
 			every_owned_province = {
 				limit = {
-					region = xianjie_region
+					area = sir_area
 					NOT = { trade_goods = gold }
 					NOT = { trade_goods = damestear }
 					NOT = { has_province_modifier = temple_complex }
