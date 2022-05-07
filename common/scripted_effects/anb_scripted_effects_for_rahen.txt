@@ -1427,6 +1427,59 @@ caste_fluidity_decrease_gargantuan = {
 
 
 #------# Blood Lotus #------#
+blood_lotus_hardline_stance_setup = {
+	# 1-33 		==> hardline harimari
+	# 34-66 	==> neutral
+	# 67-100 	==> hardline human
+	set_variable = { which = blHardlineVar value = 15 }
+}
+
+
+#HOW TO USE example: blood_lotus_hardline_stance_change = { humanhardline = 2 }
+blood_lotus_hardline_stance_change = { 
+
+    # Arguments (mandatory):
+    #  - hardline direction = enum( harimarihardline / neutral / humanhardline )
+	#  - an amount to move, must be 0-100
+    #  - example "harimarihardline = 15"
+
+	# small change: "harimarihardline = 3"
+	# normal change: "harimarihardline = 5"
+	# large change: "harimarihardline = 10"
+    
+    [[harimarihardline] 
+        custom_tooltip = blHardlineVarHarimari_tt
+        subtract_variable = { which = blHardlineVar value = $harimarihardline$ } 
+    ]
+
+    # neutral goes to 50. 
+    [[neutral]
+        custom_tooltip = blHardlineVarNeutral_tt
+        if = { 
+            # if above 50, "neutral" means subtract $neutral$ to bring back to middle. 
+            limit = { check_variable = { blHardlineVar = 50 } }                              
+            subtract_variable = { which = blHardlineVar value = $neutral$ } 
+            if = {  # if we overshot the middle, correct back to middle. 
+                limit = { NOT = { check_variable = { blHardlineVar = 50 } } } 
+                set_variable = { which = blHardlineVar value = 50 }
+            }
+        }
+        else = { 
+            # if below 50, "neutral" means add $neutral$ to bring back to middle.                          
+            change_variable = { which = blHardlineVar value = $neutral$ } 
+            if = {  # if we overshot the middle, correct back to middle. 
+                limit = { check_variable = { blHardlineVar = 50 } } 
+                set_variable = { which = blHardlineVar value = 50 }
+            }
+        }
+    ]
+
+    # human hardline always trends to 100
+    [[humanhardline] 
+        custom_tooltip = blHardlineVarHuman_tt
+        change_variable = { which = blHardlineVar value = $humanhardline$ } 
+    ]
+}
 
 blood_lotus_rebellion_spawns_headquarters = {
 	random_owned_province = {
@@ -1742,6 +1795,54 @@ blood_lotus_new_sympathizers = {
 	}
 }
 
+blood_lotus_new_sympathizers_hidden = {
+	random_owned_province = {
+		limit = {
+			OR = {
+				culture_group = upper_raheni
+				culture_group = middle_raheni
+				culture_group = south_raheni
+				has_human_minority_trigger = yes
+			}
+			OR = {
+				AND = {
+					province_with_farm_goods = yes
+					
+				}
+			}
+			NOT = {
+				has_province_modifier = blood_lotus_sympathizers
+				has_province_modifier = blood_lotus_headquarter
+				has_province_modifier = blood_lotus_dissuaded_sympathizers
+			}
+			superregion = rahen_superregion
+			owned_by = ROOT
+		}
+		area = {
+			limit = {
+				OR = {
+					culture_group = upper_raheni
+					culture_group = middle_raheni
+					culture_group = south_raheni
+					has_human_minority_trigger = yes
+				}
+				NOT = {
+					has_province_modifier = blood_lotus_sympathizers
+					has_province_modifier = blood_lotus_headquarter
+					has_province_modifier = blood_lotus_dissuaded_sympathizers
+				}
+				superregion = rahen_superregion
+				owned_by = ROOT
+			}
+			add_province_modifier = {
+				name = blood_lotus_sympathizers
+				duration = -1
+				hidden = yes
+			}
+		}
+	}
+}
+
 command_set_new_campaign_effect = {
 	#first clear all flags
 	clr_country_flag = command_shamakhad_campaign_activated_flag
@@ -1808,8 +1909,11 @@ command_complete_campaign_effect = {
 		}
 	}
 	
-	change_variable = {
-		which = command_completed_campaigns
-		value = 1
+	hidden_effect = {
+		change_variable = {
+			which = command_completed_campaigns
+			value = 1
+		}
 	}
+	add_legitimacy_or_monarch_power = { VAL = 5 }
 }
