@@ -152,6 +152,7 @@ province_event = {
 	
 	trigger = {
 		province_id = 4411
+		NOT = { has_global_flag = destroyed_raj } 
 	}
 	
 
@@ -346,7 +347,7 @@ province_event = {
 						NOT = { overlord = { has_reform = raja_reform } }
 					}
 					grant_independence = yes
-					add_government_reform = indep_daimyo
+					#add_government_reform = indep_daimyo
 				}
 			}
 		}
@@ -379,18 +380,16 @@ province_event = {
 		name = rahenraj.1.b
 		trigger = { owner = { NOT = { has_reform = raja_reform } } }
 		owner = {
-			if = { limit = { NOT = { has_global_flag = destroyed_raj } }
-				add_prestige = 20
-				add_adm_power = 50
-				add_dip_power = 50
-				add_mil_power = 50
-				set_global_flag = destroyed_raj
-				4411 = {
-					remove_province_modifier = rahen_corrupt_ministery_of_agriculture
-					remove_province_modifier = rahen_corrupt_ministery_of_philosophy
-					remove_province_modifier = rahen_corrupt_ministery_of_internal_relations
-					remove_province_modifier = rahen_corrupt_ministery_of_foreign_relations
-				}
+			add_prestige = 20
+			add_adm_power = 50
+			add_dip_power = 50
+			add_mil_power = 50
+			set_global_flag = destroyed_raj
+			4411 = {
+				remove_province_modifier = rahen_corrupt_ministery_of_agriculture
+				remove_province_modifier = rahen_corrupt_ministery_of_philosophy
+				remove_province_modifier = rahen_corrupt_ministery_of_internal_relations
+				remove_province_modifier = rahen_corrupt_ministery_of_foreign_relations
 			}
 		}
 		hidden_effect = { #stip all reformation modifiers from the former Raja
@@ -1465,39 +1464,17 @@ country_event = { #Collapse of the Raj
 	major = yes
 	is_triggered_only = yes
 	
-	trigger = { corruption = 60 }
+	trigger = {
+		NOT = { num_of_subjects = 5 }
+		all_subject_country = { capital_scope = { province_group = harimraj_core_lands } }
+	}
 	
 	option = { #It was inevitable
 		ai_chance = { factor = 1 }
 		name = rahenraj.200.a
 		
-		add_stability = -4
-		every_subject_country = {
-			every_owned_province = {
-				add_claim = ROOT
-				hidden_effect = { rahen_clear_court_disaster_province_modifiers = yes }
-			}
-		}
-		every_subject_country = {
-			limit = {
-				NOT = {
-					AND = {
-						capital_scope = { province_group = harimraj_core_lands }
-						NOT = { liberty_desire = 50 }
-					}
-				}
-			}
-			grant_independence = yes
-			if = {
-				limit = {
-					OR = {
-						has_reform = senapti_reform
-						has_reform = prabhi_reform
-					}
-				}
-				add_government_reform = indep_prabhi_reform
-			}
-		}
+		add_prestige = -50
+		
 		every_subject_country = {
 			overlord = {
 				create_subject = {
@@ -1505,6 +1482,7 @@ country_event = { #Collapse of the Raj
 					subject = PREV
 				}
 			}
+			every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes }
 		}
 		4411 = {
 			remove_province_modifier = rahen_corrupt_ministery_of_agriculture
@@ -1512,7 +1490,7 @@ country_event = { #Collapse of the Raj
 			remove_province_modifier = rahen_corrupt_ministery_of_internal_relations
 			remove_province_modifier = rahen_corrupt_ministery_of_foreign_relations
 		}
-		add_government_reform = autocracy_reform
+		add_government_reform = feudalism_reform
 		
 		hidden_effect = {
 			every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes }
@@ -1520,6 +1498,236 @@ country_event = { #Collapse of the Raj
 			clr_country_flag = reformed_rahen_court
 			remove_country_modifier = raj_opened_senapti_ranks
 			remove_country_modifier = raj_closed_senapti_ranks
+		}
+	}
+}
+country_event = { #A Raj falling apart
+	id = rahenraj.201
+	title = rahenraj.201.t
+	desc = rahenraj.201.d
+	picture = COURT_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			num_of_subjects = 5
+			any_subject_country = { NOT = { capital_scope = { province_group = harimraj_core_lands } } }
+		}
+	}
+	
+	option = {
+		ai_chance = { factor = 4 }
+		
+		if = {
+			limit = {
+				any_subject_country = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+			}
+			random_subject_country = {
+				limit = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		else_if = {
+			limit = { any_subject_country = { NOT = { capital_scope = { province_group = harimraj_core_lands } } } }
+			random_subject_country = {
+				limit = {
+					NOT = { capital_scope = { province_group = harimraj_core_lands } }
+					OR = {
+						any_neighbor_country = {
+							NOT = {
+								has_reform = raja_reform
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+						}
+						any_owned_province = { has_port = yes }
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		else = {
+			random_subject_country = {
+				limit = {
+					OR = { #! Replace with targetting countries the furthest away from the Raja
+						any_neighbor_country = {
+							NOT = {
+								has_reform = raja_reform
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+						}
+						any_owned_province = { has_port = yes }
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+	}
+	option = {
+		ai_chance = { factor = 2 }
+		
+		if = {
+			limit = {
+				any_subject_country = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+			}
+			random_subject_country = {
+				limit = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		else_if = {
+			limit = { any_subject_country = { NOT = { capital_scope = { province_group = harimraj_core_lands } } } }
+			random_subject_country = {
+				limit = {
+					NOT = { capital_scope = { province_group = harimraj_core_lands } }
+					OR = {
+						any_neighbor_country = {
+							NOT = {
+								has_reform = raja_reform
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+						}
+						any_owned_province = { has_port = yes }
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		else = {
+			random_subject_country = {
+				limit = {
+					OR = { #! Replace with targetting countries the furthest away from the Raja
+						any_neighbor_country = {
+							NOT = {
+								has_reform = raja_reform
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+						}
+						any_owned_province = { has_port = yes }
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		
+		country_event = { id = rahenraj.201 days = 10 }
+	}
+	option = {
+		ai_chance = { factor = 1 }
+		trigger = { any_subject_country = { NOT = { capital_scope = { province_group = harimraj_core_lands } } } }
+		
+		if = {
+			limit = {
+				any_subject_country = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+			}
+			random_subject_country = {
+				limit = {
+					all_neighbor_country = {
+						NOT = {
+							has_reform = raja_reform
+							has_reform = prabhi_reform
+							has_reform = senapti_reform
+						}
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+		else = {
+			random_subject_country = {
+				limit = {
+					NOT = { capital_scope = { province_group = harimraj_core_lands } }
+					OR = {
+						any_neighbor_country = {
+							NOT = {
+								has_reform = raja_reform
+								has_reform = prabhi_reform
+								has_reform = senapti_reform
+							}
+						}
+						any_owned_province = { has_port = yes }
+					}
+				}
+				country_event = { id = rahenraj.202 }
+			}
+		}
+	
+		country_event = { id = rahenraj.201 days = 10 }
+		country_event = { id = rahenraj.201 days = 20 }
+	}
+}
+country_event = { #A Raj falling apart
+	id = rahenraj.202
+	title = rahenraj.1100.t
+	desc = rahenraj.1100.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { #! Notify the Raja
+		ai_chance = { factor = 1 }
+		name = rahenraj.1100.a
+		
+		hidden_effect = {
+			overlord = {
+				country_event = { id = rahenraj.1104 }
+			}
+		}
+		raj_cohesion_change = { amount = 100 non_monthly = yes }
+		grant_independence = yes
+		if = {
+			limit = {
+				OR = {
+					has_reform = senapti_reform
+					has_reform = prabhi_reform
+				}
+			}
+			add_government_reform = indep_prabhi_reform
 		}
 	}
 }
@@ -3246,6 +3454,8 @@ country_event = { #A Raj falling apart
 	picture = COURT_eventPicture
 
 	trigger = {
+		always = no
+	
 		OR = {
 			has_reform = prabhi_reform
 			has_reform = senapti_reform
@@ -3330,6 +3540,7 @@ country_event = { #Nigh collapse of the Raj
 	picture = COURT_eventPicture
 	
 	trigger = {
+		always = no
 		has_reform = raja_reform
 		NOT = { num_of_subjects = 6 }
 		NOT = { has_country_modifier = raj_nigh_collapse }
@@ -3383,7 +3594,7 @@ country_event = { #Dissolution of the Raj
 		add_stability = -1
 		add_government_reform = autocracy_reform
 		every_subject_country = {
-			hidden_effect = { every_owned_province = { every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes } } }
+			hidden_effect = { every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes } }
 			overlord = {
 				create_subject = {
 					subject_type = vassal

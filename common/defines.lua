@@ -963,7 +963,7 @@ NCountry = {
 	PERCENTAGE_OF_DEV_FOR_CONVERT_TRIBUTARY_TO_VASSAL = 0.4,
 	MAX_LIBERTY_DESIRE_FOR_CONVERT_TRIBUTARY_TO_VASSAL = 50,
 	CONCENTRATE_DEVELOPMENT_DEVELOPMENT_DECREASE = 0, -- ANBENNAR - disabled concentrate development
-	PILLAGE_CAPITAL_DEVELOPMENT_DECREASE = 0, -- ANBENNAR - disabled concentrate development
+	PILLAGE_CAPITAL_DEVELOPMENT_DECREASE = 0.2,
 	RAZE_UNREST_DURATION = 10,						-- Years of unrest. Also used for duration of neg. opinion modifier for previous owner.
 	RAZE_PROVINCE_DEVELOPMENT_DECREASE = 0.33,
 	RAZE_PROVINCE_POWER_PER_DEVELOPMENT = 25.0,
@@ -1068,10 +1068,10 @@ NCountry = {
 	TRIBE_SETTLE_DIP_COST = 50,	--was 50, btw we have a brute force event to force them to do this as ai refuses to do this naturally
 	TRIBE_SETTLE_MIL_COST = 0,
 
-	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.25,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05, buffed these to compensate for no colonizer bonus, was 0.15 and 0.1
-	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.2,	
-	COHESION_FEDERATION_MEMBER_STRONGER = -0.20,
-	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.2,	--was -0.40
+	COHESION_FEDERATION_MEMBER_WRONG_CULTURE = 0.35,	-- Switched these two in Anbennar, maybe diverse adventurers are better than homogenous?, was 0.05, buffed these to compensate for no colonizer bonus, was 0.15 and 0.1
+	COHESION_FEDERATION_MEMBER_CORRECT_CULTURE = 0.3,	
+	COHESION_FEDERATION_MEMBER_STRONGER = -0.30, -- Anbennar was -0.20
+	COHESION_FEDERATION_MEMBER_STRONGER_WRONG_CULTURE = -0.30,	--was -0.40
 	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_NUMBER = 3,	
 	COHESION_FEDERATION_SAME_CULTURE_MEMBERS_BONUS_MODIFIER = 0.5,	--was 1
 	COHESION_NEIGHBOURING_COLONIZER = 0,	-- Anbennar removed this for adventurers, was 0.5
@@ -2373,7 +2373,7 @@ NReligion = {
 	APPOINT_CARDINAL_COOLDOWN = 4,
 
 	CONSECRATE_PATRIACH_AUTHORITY_BOOST = 0.05, --5% or so
-	CONSECRATE_PATRIARCH_THRESHOLD = 30, --in development
+	CONSECRATE_PATRIARCH_THRESHOLD = 10, --in development | Anbennar - changes for gnolls
 	ORTHODOX_ICON_DURATION_MONTHS = 240,
 	ORTHODOX_ICON_AUTHORITY_COST = 0.1,
 
@@ -2388,8 +2388,8 @@ NReligion = {
 
 	SACRIFICE_LIBERTY_DESIRE = 25,							-- LD added from sacrifice (ruler)
 	SACRIFICE_LIBERTY_DESIRE_HEIR = 20,						-- LD added from sacrifice (heir)
-	AUTHORITY_FROM_DEVELOPMENT = 0.02,							-- Multiplied by development (affected by autonomy)
-	AUTHORITY_FROM_AUTONOMY = 0.2,							-- Authority loss from granting autonomy
+	AUTHORITY_FROM_DEVELOPMENT = -0.01,							-- Multiplied by development (affected by autonomy)
+	AUTHORITY_FROM_AUTONOMY = 0.0,							-- Authority loss from granting autonomy
 
 	RELIGIOUS_LEAGUE_COOLDOWN = 5,								-- Minimum years between joining/leaving religious league
 	RELIGIOUS_LEAGUE_WAR_BONUS_DURATION = 100,					-- How many years the 'Joined League War' bonus lasts
