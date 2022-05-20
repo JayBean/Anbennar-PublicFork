@@ -942,7 +942,7 @@ raj_calc_max_allowed_senaptia = {
 					country_event = { id = rahenraj.7 days = 1 }	#info event "a senapti rank is available"
 				}
 				else = {
-					event_target:next_ai_senapti = {	#The nï¿½1 ai candidate will become senapti in 150 days if the raja is ai
+					event_target:next_ai_senapti = {	#The n°1 ai candidate will become senapti in 150 days if the raja is ai
 						overlord = { country_event = { id = rahenraj.4 days = 150 } }
 					}
 				}
@@ -1316,6 +1316,17 @@ raj_vizier_nomination_effects = {
 			set_country_flag = raj_vizier
 			save_event_target_as = new_vizier
 			country_event = { id = rahenraj.2102 days = 1 }
+		}
+	}
+}
+
+raj_change_setting = {
+	4411 = {
+		if = { limit = { is_variable_equal = { which = raj$mandate$Setting value = 3 } }
+			set_variable = { which = raj$mandate$Setting value = 0 }
+		}
+		else = {
+			change_variable = { which = raj$mandate$Setting value = 1 }
 		}
 	}
 }
@@ -1797,54 +1808,35 @@ blood_lotus_new_sympathizers = {
 	}
 }
 
-blood_lotus_new_sympathizers_hidden = {
+blood_lotus_sympathizers_spreads = {
 	random_owned_province = {
 		limit = {
-			OR = {
-				culture_group = upper_raheni
-				culture_group = middle_raheni
-				culture_group = south_raheni
-				has_human_minority_trigger = yes
-			}
-			OR = {
-				AND = {
-					province_with_farm_goods = yes
-					
-				}
-			}
-			NOT = {
-				has_province_modifier = blood_lotus_sympathizers
-				has_province_modifier = blood_lotus_headquarter
-				has_province_modifier = blood_lotus_dissuaded_sympathizers
-			}
-			superregion = rahen_superregion
-			owned_by = ROOT
-		}
-		area = {
-			limit = {
-				OR = {
-					culture_group = upper_raheni
-					culture_group = middle_raheni
-					culture_group = south_raheni
-					has_human_minority_trigger = yes
-				}
-				NOT = {
-					has_province_modifier = blood_lotus_sympathizers
-					has_province_modifier = blood_lotus_headquarter
-					has_province_modifier = blood_lotus_dissuaded_sympathizers
-				}
+			has_province_modifier = blood_lotus_sympathizers
+			any_neighbor_province = { #To ensure that it can spread to a neighbouring province
+				NOT = { has_province_modifier = blood_lotus_sympathizers }
 				superregion = rahen_superregion
 				owned_by = ROOT
 			}
-			add_province_modifier = {
-				name = blood_lotus_sympathizers
-				duration = -1
-				hidden = yes
+			superregion = rahen_superregion
+		}
+		random_neighbor_province = {
+			limit = {
+				NOT = { has_province_modifier = blood_lotus_sympathizers }
+				superregion = rahen_superregion
+				owned_by = ROOT
+			}
+			area = {
+				add_province_modifier = {
+					name = blood_lotus_sympathizers
+					duration = -1
+				}
 			}
 		}
 	}
 }
 
+
+#------# The Command #------#
 command_set_new_campaign_effect = {
 	#first clear all flags
 	clr_country_flag = command_shamakhad_campaign_activated_flag
@@ -2085,6 +2077,119 @@ command_new_command_sub_effect = {
 			influence = $AMOUNT$
 			duration = 3650
         }
+	}
+}
+
+command_move_orc_slave_state = { #tag = R63 OR R64   target = command_move_target_candidate_NUMBER
+	
+	custom_tooltip = command_moving_slave_states_costs_dip_tt
+	hidden_effect = {
+		export_to_variable = {
+			which = moveTargetDevelopment
+			value = total_development
+			who = $tag$
+		}
+		while = {
+			limit = {
+				check_variable = {
+					which = moveTargetDevelopment
+					value = 1
+				}
+			}
+			#! Perhaps change this based on later bonuses
+			add_dip_power = -5
+			subtract_variable = {
+				which = moveTargetDevelopment
+				value = 1
+			}
+		}
+	}
+	
+	if = {
+		limit = { R63 = { tag = $tag$ } }
+		add_country_modifier = {
+			name = hobgoblin_thunderfist_shamans
+			duration = 3650
+		}
+	}
+	if = {
+		limit = { R64 = { tag = $tag$ } }
+		add_country_modifier = {
+			name = hobgoblin_bloodsong_advance_guard
+			duration = 3650
+		}
+	}
+	
+	event_target:$target$ = {
+		area = {
+			cede_province = $tag$
+			if = {
+				limit = { is_core = R62 }
+				remove_core = R62
+				add_core = $tag$
+			}
+		}
+	}
+	hidden_effect = {
+		$tag$ = {
+			every_owned_province = {
+				limit = {
+					NOT = { has_province_flag = $target$ }
+				}
+				if = {
+					limit = { has_province_flag = command_converted_province_flag }
+					add_base_manpower = -2
+					change_culture = variable:previousCulture
+					change_religion = variable:previousReligion
+					clr_country_flag = command_converted_province_flag
+				}
+				cede_province = R62
+				if = {
+					limit = { is_core = $tag$ }
+					remove_core = $tag$
+					add_core = R62
+				}
+			}
+			random_owned_province = {
+				hidden_effect = {
+					export_to_variable = {
+						variable_name = previousCulture
+						value = culture
+					}
+					export_to_variable = {
+						variable_name = previousReligion
+						value = religion
+					}
+				}
+				add_core = PREV
+				change_culture = PREV
+				change_religion = PREV
+				add_base_manpower = 2
+				move_capital_effect = yes
+				
+				set_province_flag = command_converted_province_flag
+			}
+			every_owned_province = {
+				clr_province_flag = command_move_target_candidate_1
+				clr_province_flag = command_move_target_candidate_2
+				clr_province_flag = command_move_target_candidate_3
+			}
+			
+			change_variable = {
+				which = number_of_times_moved
+				value = 1
+			}
+		}
+	}
+	
+	if = {
+		limit = { has_country_flag = command_obedient_zanyu_kikunin_flag }
+		$tag$ = {
+			add_country_modifier = {
+				name = hobgoblin_zanyu_kikun
+				duration = 3650
+			}
+		}
 	}
 }
 
