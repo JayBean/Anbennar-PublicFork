@@ -176,6 +176,7 @@ artifice_invention_research_privilege = {
 			NOT = { has_estate_privilege = estate_artificers_organization_state }
 			has_estate_privilege = artifice_invention_research_privilege
 		}
+		NOT = { has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre }
 	}
 	can_select = {
 		artifice_has_points_for_basic = yes
@@ -230,7 +231,10 @@ artifice_invention_directed_research = {
 	loyalty = 0.05
 	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
 	is_valid = {
-		has_estate_privilege = estate_artificers_organization_state
+		OR = {
+			has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre
+			has_estate_privilege = estate_artificers_organization_state
+		}
 		NOT = { has_country_flag = remove_artifice_invention_research }
 	}
 	can_select = {
@@ -266,6 +270,315 @@ artifice_invention_directed_research = {
 		#foo
 	}
 	cooldown_years = 10
+	on_cooldown_expires = {
+		country_event = {
+			id = artifice_events.3
+		}
+	}
+	ai_will_do = {
+		factor = 100 #ai shouldn't use this one. Just too much work getting them to understand it and making it not crash for linux. Their research will be done via decision?
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+# Some unique Feiten Shuimu Engineering Cadre privileges
+# Invest in Shuimu stuffs
+	estate_artificers_feiten_invest_engineering_workshop = {
+	icon = privilege_grant_autonomy
+	influence = 0
+	loyalty = 0.05
+	land_share = 5
+	max_absolutism = -5
+	is_valid = {
+		has_country_flag = feiten_shuimu_engineering_workshop_unlocked
+		NOT = { has_country_flag = feiten_able_to_build_shuimu_extension }
+	}
+	can_select = {
+		any_owned_province = {
+			superregion = yanshen_superregion
+			NOT = { has_province_modifier = feiten_shuimu_engineering_workshop }
+			OR = {
+				has_building = university
+				has_production_building_trigger = yes
+			}
+		}
+	}
+	can_revoke = {
+	}
+	on_granted = {
+		add_dip_power = -33
+		if = {
+			limit = { monthly_income = 40 }
+			add_treasury = -500
+		}
+		else = { add_years_of_income = -1 }
+		custom_tooltip = "The following will apply after the privilege expires:"
+		random_owned_province = {
+			limit = {
+				superregion = yanshen_superregion
+				NOT = { has_province_modifier = feiten_shuimu_engineering_workshop }
+				has_production_building_trigger = yes
+			}
+			set_province_flag = shuimu_workshop_build_location
+			if = {
+				limit = {
+					check_variable = {
+						which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+						value = 5
+					}
+				}
+				tooltip = {
+					add_province_modifier = {
+						name = feiten_shuimu_engineering_workshop_no_tech_cost
+						duration = -1
+					}
+				}
+			}
+			else = {
+				tooltip = {
+					add_province_modifier = {
+						name = feiten_shuimu_engineering_workshop
+						duration = -1
+					}
+				}
+			}
+		}
+	}
+	
+	on_invalid = {
+		hidden_effect = { clr_country_flag = feiten_able_to_build_shuimu_extension }
+	}
+	
+	penalties = { }
+	
+	benefits = { }
+	
+	cooldown_years = 5
+	on_cooldown_expires = {
+		set_country_flag = feiten_able_to_build_shuimu_extension
+		random_owned_province = {
+			limit = { has_province_flag = shuimu_workshop_build_location }
+			clr_province_flag = shuimu_workshop_build_location
+			if = {
+				limit = {
+					check_variable = {
+						which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+						value = 5
+					}
+				}
+				add_province_modifier = {
+					name = feiten_shuimu_engineering_workshop_no_tech_cost
+					duration = -1
+				}
+			}
+			else = {
+				add_province_modifier = {
+					name = feiten_shuimu_engineering_workshop
+					duration = -1
+				}
+			}
+		}
+		change_variable = {
+			which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+			value = 1
+		}
+	}
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Promote Starry-Eye scholars
+estate_artificers_feiten_starry_eye_promotion = {
+	icon = privilege_send_emissary_to_pope
+	influence = 0.05
+	loyalty = 0.05
+	land_share = 0
+	max_absolutism = -5
+	is_valid = { mission_completed = feiten_shuimu_engineering_cadre }
+	can_select = { }
+	can_revoke = { }
+	on_granted = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			add_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+
+	on_revoked = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			remove_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+	
+	on_invalid = {
+		every_known_country = {
+			limit = {
+				religious_school = {
+					group = raheni
+					school = starry_eye_school
+				}
+			}
+			remove_opinion = {
+				who = ROOT
+				modifier = increased_religion_opinion
+			}
+		}
+	}
+	
+	penalties = {
+		global_tax_modifier = -0.1
+	}
+	
+	benefits = {
+		institution_spread_from_true_faith = 0.2
+		innovativeness_gain = 0.25
+	}
+	
+	on_cooldown_expires = { }
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Grant Foreign Membership
+estate_artificers_feiten_grant_foreign_membership = {
+	icon = privilege_recruit_inouisitor
+	influence = -0.05
+	loyalty = -0.05
+	land_share = 5
+	max_absolutism = -5
+	is_valid = { mission_completed = feiten_arrival_of_gnomes }
+	can_select = { }
+	can_revoke = { }
+	on_granted = {
+		add_prestige = -10
+		random_owned_province = {
+			limit = { has_any_gnomish_pop_trigger = no }
+			add_unrest = 10
+			add_gnomish_minority_size_effect = yes
+		}
+	}
+
+	on_revoked = { }
+	
+	on_invalid = { }
+	
+	penalties = {
+		global_unrest = 2
+		stability_cost_modifier = 0.2
+	}
+	
+	benefits = {
+		global_institution_spread = 0.25
+		technology_cost = -0.05
+	}
+	
+	cooldown_years = 5
+	on_cooldown_expires = { }
+	ai_will_do = {
+		factor = 1
+	}
+}
+
+# Faster research
+artifice_invention_directed_research_feiten_precursor_secrets = {
+	icon = privilege_Artf_Research
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		OR = {
+			has_estate_privilege = estate_artificers_organization_feiten_shuimu_cadre
+			has_estate_privilege = estate_artificers_organization_state
+		}
+		NOT = { has_country_flag = remove_artifice_invention_research }
+		mission_completed = feiten_secrets_of_the_precursors
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+		is_year = 1445
+		NOT = {
+			has_estate_privilege = artifice_invention_research_privilege
+		}
+		OR = {
+			any_subject_country = { any_owned_province = { trade_goods = precursor_relics } }
+			any_owned_province = { trade_goods = precursor_relics }
+		}
+	}
+	can_revoke = {
+		always = no
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		country_event = {
+			id = artifice_events.4
+		}
+		every_owned_province = {
+			limit = {
+				OR = {
+					trade_goods = precursor_relics
+					trade_goods = damestear
+				}
+			}
+			add_province_modifier = {
+				name = feiten_directed_research
+				duration = 1825
+			}
+		}
+		every_subject_country = {
+			every_owned_province = {
+				limit = {
+					OR = {
+						trade_goods = precursor_relics
+						trade_goods = damestear
+					}
+				}
+				add_province_modifier = {
+					name = feiten_directed_research
+					duration = 1825
+				}
+			}
+		}
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		clr_country_flag = remove_artifice_invention_research
+	}
+	on_revoked = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+		#custom_tooltip = decreases_our_artifice_upkeep_by_10
+	}
+	penalties = {
+		prestige_decay = 0.02
+		global_tax_modifier = -0.5
+		all_power_cost = -0.025
+	}
+	benefits = {
+		#foo
+	}
+	cooldown_years = 5
 	on_cooldown_expires = {
 		country_event = {
 			id = artifice_events.3
@@ -5251,6 +5564,1094 @@ artifice_invention_honsai_instant_messages = {
 	}
 	ai_will_do = {
 		factor = 5
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_nitroglycerin_rockets = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_nitroglycerin_rockets
+		NOT = { has_estate_privilege = artifice_invention_feiten_nitroglycerin_tnt }
+	}
+	can_select = {
+		artifice_has_points_for_expert = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		fire_damage = 0.1
+		artillery_fire = 0.1
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_nitroglycerin_tnt = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_nitroglycerin_rockets
+		NOT = { has_estate_privilege = artifice_invention_feiten_nitroglycerin_rockets }
+	}
+	can_select = {
+		artifice_has_points_for_expert = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		production_efficiency = 0.1
+		development_cost = -0.1
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+# Feiten airfleet inventions
+artifice_invention_feiten_farsight_telescopes = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_farsight_telescopes
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+		NOT = { feiten_has_propulsion_invention = yes }
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		artifice_remove_basic = yes
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = glass
+				value = no
+			}
+		}
+		modifier = {
+			movement_speed = 0.1
+			naval_attrition = -0.1
+			land_attrition = -0.1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = glass
+				value = yes
+			}
+		}
+		modifier = {
+			movement_speed = 0.15
+			naval_attrition = -0.2
+			land_attrition = -0.2
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_porcelain_caged_firebirds = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_porcelain_caged_firebirds
+	}
+	can_select = {
+		NOT = { feiten_has_propulsion_invention = yes }
+		artifice_has_points_for_advanced = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = chinaware
+					value = no
+				}
+			}
+			custom_tooltip = "Gives an extra 5% Skypost duty efficiency"
+		}
+		else = {
+			custom_tooltip = "Gives an extra 10% Skypost duty efficiency"
+		}
+		artifice_granted_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = chinaware
+				value = no
+			}
+		}
+		modifier = {
+			trade_range_modifier = 0.25
+			trade_efficiency = 0.1
+			leader_naval_manuever = 1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = chinaware
+				value = yes
+			}
+		}
+		modifier = {
+			trade_range_modifier = 0.50
+			trade_efficiency = 0.2
+			leader_naval_manuever = 1
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_specialized_construction_arms = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_specialized_construction_arms
+	}
+	can_select = {
+		NOT = { feiten_has_gondola_invention = yes }
+		artifice_has_points_for_basic = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_granted_province = {
+		if = {
+			limit = {
+				OR = {
+					has_terrain = mountain
+					has_terrain = highlands
+					has_terrain = hills
+				}
+			}
+			if = {
+				limit = {
+					Y20 = {
+						trading_bonus = {
+							trade_goods = naval_supplies
+							value = yes
+						}
+					}
+				}
+				add_province_modifier = {
+					name = feiten_specialized_construction_arms_mod_upgraded
+					duration = -1
+				}
+			}
+			else = {
+				add_province_modifier = {
+					name = feiten_specialized_construction_arms_mod
+					duration = -1
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_province_modifier = feiten_specialized_construction_arms_mod
+					has_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+				}
+			}
+			remove_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+			remove_province_modifier = feiten_specialized_construction_arms_mod				
+		}
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked_province = {
+		if = {
+			limit = {
+				OR = {
+					has_province_modifier = feiten_specialized_construction_arms_mod
+					has_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+				}
+			}
+			remove_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+			remove_province_modifier = feiten_specialized_construction_arms_mod				
+		}
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid_province = {
+		if = {
+			limit = {
+				OR = {
+					has_province_modifier = feiten_specialized_construction_arms_mod
+					has_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+				}
+			}
+			remove_province_modifier = feiten_specialized_construction_arms_mod_upgraded
+			remove_province_modifier = feiten_specialized_construction_arms_mod				
+		}
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = naval_supplies
+				value = no
+			}
+		}
+		modifier = {
+			great_project_upgrade_cost = -0.25
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = naval_supplies
+				value = yes
+			}
+		}
+		modifier = {
+			great_project_upgrade_cost = -0.5
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_expanding_storage_holds = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_expanding_storage_holds
+	}
+	can_select = {
+		NOT = { feiten_has_gondola_invention = yes }
+		artifice_has_points_for_expert = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = tropical_wood
+					value = no
+				}
+			}
+			custom_tooltip = "Gives an extra 5% Skypost duty efficiency"
+		}
+		else = {
+			custom_tooltip = "Gives an extra 10% Skypost duty efficiency"
+		}
+		artifice_granted_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = tropical_wood
+				value = no
+			}
+		}
+		modifier = {
+			treasure_fleet_income = 0.25
+			trade_efficiency = 0.1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = tropical_wood
+				value = yes
+			}
+		}
+		modifier = {
+			treasure_fleet_income = 0.5
+			trade_efficiency = 0.2
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_skywriting = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_skywriting
+	}
+	can_select = {
+		NOT = { feiten_has_armaments_invention = yes }
+		artifice_has_points_for_basic = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = dyes
+				value = no
+			}
+		}
+		modifier = {
+			global_unrest = -2
+			diplomatic_reputation = 1
+			prestige = 1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = dyes
+				value = yes
+			}
+		}
+		modifier = {
+			global_unrest = -2
+			diplomatic_reputation = 2
+			prestige = 1
+		}
+	}
+
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_electroplated_armor = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_electroplated_armor
+	}
+	can_select = {
+		NOT = { feiten_has_gondola_invention = yes }
+		artifice_has_points_for_advanced = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_advanced = yes
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = copper
+					value = yes
+				}
+			}
+			add_country_modifier = {
+				name = feiten_electroplated_armor_mod_upgraded
+				duration = -1
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = feiten_electroplated_armor_mod
+				duration = -1
+			}
+		}
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_advanced = yes
+		remove_country_modifier = feiten_electroplated_armor_mod
+		remove_country_modifier = feiten_electroplated_armor_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_advanced = yes
+		remove_country_modifier = feiten_electroplated_armor_mod
+		remove_country_modifier = feiten_electroplated_armor_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_ivory_conduits = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_ivory_conduits
+	}
+	can_select = {
+		NOT = { feiten_has_envelope_invention = yes }
+		artifice_has_points_for_advanced = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_advanced = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+		
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = ivory
+				value = no
+			}
+		}
+		modifier = {
+			all_power_cost = -0.025
+			mages_loyalty_modifier = 0.05
+			artificers_loyalty_modifier = 0.05
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = ivory
+				value = yes
+			}
+		}
+		modifier = {
+			all_power_cost = -0.05
+			mages_loyalty_modifier = 0.1
+			artificers_loyalty_modifier = 0.1
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_silken_cladding = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_silken_cladding
+	}
+	can_select = {
+		artifice_has_points_for_basic = yes
+		NOT = { feiten_has_envelope_invention = yes }
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = tropical_wood
+					value = no
+				}
+			}
+			custom_tooltip = "Gives an extra 5% Skypost duty efficiency"
+		}
+		else = {
+			custom_tooltip = "Gives an extra 10% Skypost duty efficiency"
+		}
+		artifice_granted_basic = yes
+		
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_basic = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = silk
+				value = no
+			}
+		}
+		modifier = {
+			placed_merchant_power = 10
+			global_trade_power = 0.1
+			caravan_power = 0.1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = silk
+				value = yes
+			}
+		}
+		modifier = {
+			placed_merchant_power = 20
+			global_trade_power = 0.15
+			caravan_power = 0.15
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_damestear_ribbing = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_damestear_ribbing
+	}
+	can_select = {
+		NOT = { feiten_has_envelope_invention = yes }
+		artifice_has_points_for_expert = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_expert = yes
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = damestear
+					value = yes
+				}
+			}
+			add_country_modifier = {
+				name = feiten_damestear_ribbing_mod_upgraded
+				duration = -1
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = feiten_damestear_ribbing_mod
+				duration = -1
+			}
+		}
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_expert = yes
+		remove_country_modifier = feiten_damestear_ribbing_mod
+		remove_country_modifier = feiten_damestear_ribbing_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		remove_country_modifier = feiten_damestear_ribbing_mod
+		remove_country_modifier = feiten_damestear_ribbing_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+
+	}
+	benefits = {
+
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_long_rockets = {
+	icon = Artf_MaMi3
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_long_rockets
+	}
+	can_select = {
+		artifice_has_points_for_masterwork = yes
+		NOT = { feiten_has_armaments_invention = yes }
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_masterwork = yes
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = coal
+					value = yes
+				}
+			}
+			add_country_modifier = {
+				name = feiten_long_rockets_mod_upgraded
+				duration = -1
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = feiten_long_rockets_mod
+				duration = -1
+			}
+		}
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_masterwork = yes
+		remove_country_modifier = feiten_long_rockets_mod
+		remove_country_modifier = feiten_long_rockets_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_masterwork = yes
+		remove_country_modifier = feiten_long_rockets_mod
+		remove_country_modifier = feiten_long_rockets_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = coal
+				value = no
+			}
+		}
+		modifier = {
+			leader_naval_fire = 1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = coal
+				value = yes
+			}
+		}
+		modifier = {
+			leader_naval_fire = 2
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_lightning_amplifier = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_lightning_amplifier
+	}
+	can_select = {
+		NOT = { feiten_has_armaments_invention = yes }
+		artifice_has_points_for_expert = yes
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = gems
+				value = no
+			}
+		}
+		modifier = {
+			development_cost = -0.05
+			production_efficiency = 0.1
+		}
+	}
+	conditional_modifier = {
+		trigger = {
+			trading_bonus = {
+				trade_goods = gems
+				value = yes
+			}
+		}
+		modifier = {
+			development_cost = -0.1
+			production_efficiency = 0.2
+		}
+	}
+	ai_will_do = {
+		factor = 50
+		modifier = {
+			factor = 0
+			over_artifice_capacity = yes
+		}
+	}
+}
+
+artifice_invention_feiten_steel_rudders = {
+	icon = Artf_MaMi1
+	max_absolutism = 0
+	loyalty = 0.05
+	influence = 0 #artificer privileges must never affect influence due to the fact influence affects points
+	is_valid = {
+		has_country_flag = feiten_invention_steel_rudders
+	}
+	can_select = {
+		artifice_has_points_for_expert = yes
+		NOT = { feiten_has_propulsion_invention = yes }
+	}
+	can_revoke = {
+		always = yes
+	}
+	on_granted = {
+		artifice_granted_expert = yes
+		if = {
+			limit = {
+				trading_bonus = {
+					trade_goods = iron
+					value = yes
+				}
+			}
+			add_country_modifier = {
+				name = feiten_bluesteel_rudders_mod_upgraded
+				duration = -1
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = feiten_bluesteel_rudders_mod
+				duration = -1
+			}
+		}
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_revoked = {
+		custom_tooltip = "Revoking this privilege will not come with the usual loyalty malus."
+		hidden_effect = {
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = 20
+			}
+		}
+		artifice_remove_expert = yes
+		remove_country_modifier = feiten_bluesteel_rudders_mod
+		remove_country_modifier = feiten_bluesteel_rudders_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	on_invalid = {
+		artifice_remove_expert = yes
+		remove_country_modifier = feiten_bluesteel_rudders_mod
+		remove_country_modifier = feiten_bluesteel_rudders_mod_upgraded
+		#update_artifice_points = yes #is included in the above effect
+	}
+	penalties = {
+		#foo
+	}
+	benefits = {
+
+	}
+	ai_will_do = {
+		factor = 50
 		modifier = {
 			factor = 0
 			over_artifice_capacity = yes
