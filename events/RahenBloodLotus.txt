@@ -639,39 +639,50 @@ country_event = { #The rebellion spreads
 			factor = 1
 		}
 		
-		random_list = {
+		random_list = { # only spread half the time
+			200 = { }
 			50 = { blood_lotus_rebellion_spreads = yes }
 			50 = { blood_lotus_rebellion_spreads_hidden = yes }
-		}
-		every_owned_province = {
-			limit = { has_province_modifier = blood_lotus_headquarter }
-			owner = {
-				if = {
-					limit = { 
-						any_owned_province = {
-							OR = {
-								has_province_modifier = blood_lotus_guerrillas_hidden
+			50 = { #hidden spread from HQ
+				every_owned_province = {
+					limit = { has_province_modifier = blood_lotus_headquarter }
+					every_neighbor_province = {
+						limit = {
+							NOT = {
 								has_province_modifier = blood_lotus_guerrillas
+								has_province_modifier = blood_lotus_guerrillas_hidden
 								has_province_modifier = blood_lotus_headquarter
 							}
-							any_neighbor_province = { #To ensure that it can spread to a neighbouring province
-								NOT = {
-									has_province_modifier = blood_lotus_guerrillas
-									has_province_modifier = blood_lotus_guerrillas_hidden
-									has_province_modifier = blood_lotus_headquarter
-								}
-								superregion = rahen_superregion
-								owned_by = ROOT
-							}
 							superregion = rahen_superregion
+							owned_by = ROOT
+						}
+						add_province_modifier = {
+							name = blood_lotus_guerrillas_hidden
+							duration = -1
+							hidden = yes
 						}
 					}
-					random_list = {
-						60 = { blood_lotus_rebellion_spreads = yes }
-						40 = { blood_lotus_rebellion_spreads_hidden = yes }
+				} 
+			}
+			50 = { #spread forom HQ
+			every_owned_province = {
+				limit = { has_province_modifier = blood_lotus_headquarter }
+				every_neighbor_province = {
+					limit = {
+						NOT = {
+							has_province_modifier = blood_lotus_guerrillas
+							has_province_modifier = blood_lotus_guerrillas_hidden
+							has_province_modifier = blood_lotus_headquarter
+						}
+						superregion = rahen_superregion
+						owned_by = ROOT
+					}
+					add_province_modifier = {
+						name = blood_lotus_guerrillas
+						duration = -1
 					}
 				}
-				else = { blood_lotus_rebellion_spreads = yes }
+			} 
 			}
 		}
 	}
@@ -713,24 +724,21 @@ country_event = { #The rebellion attacks a fortress
 		ai_chance = {
 			factor = 1
 		}
-		random = {
-			chance = 75
-			every_owned_province = {
-				limit = {
-					OR = {
-						has_province_modifier = blood_lotus_guerrillas
-						has_province_modifier = blood_lotus_guerrillas_hidden
-					}
-					fort_level = 2
-					NOT = { controlled_by = REB }
+		random_owned_province = {
+			limit = {
+				OR = {
+					has_province_modifier = blood_lotus_guerrillas
+					has_province_modifier = blood_lotus_guerrillas_hidden
 				}
-				spawn_rebels = {
-					type = blood_lotus_rebel
-					size = 2
-				}
-				remove_province_modifier = blood_lotus_guerrillas
-				remove_province_modifier = blood_lotus_guerrillas_hidden
+				fort_level = 2
+				NOT = { controlled_by = REB }
 			}
+			spawn_rebels = {
+				type = blood_lotus_rebel
+				size = 2
+			}
+			remove_province_modifier = blood_lotus_guerrillas
+			remove_province_modifier = blood_lotus_guerrillas_hidden
 		}
 	}
 }
@@ -832,47 +840,43 @@ country_event = { #The Great Revolt
 					has_province_modifier = blood_lotus_headquarter
 				}
 			}
-			# random_list = {
-				# 40 = { }
-				# 60 = {
-					if = {
-						limit = { has_province_modifier = blood_lotus_headquarter }
-						remove_province_modifier = blood_lotus_headquarter
-						if = {
-							limit = { ROOT = { has_country_modifier = blood_lotus_rebel_negotiation } }
-							spawn_rebels = {
-								type = blood_lotus_rebel
-								size = 4
-							}
-						}
-						else = {
-							spawn_rebels = {
-								type = blood_lotus_rebel
-								size = 6
-							}
-						}
-					}
-					else = {
-						remove_province_modifier = blood_lotus_guerrillas_hidden
-						remove_province_modifier = blood_lotus_guerrillas
-						if = {
-							limit = { ROOT = { has_country_modifier = blood_lotus_rebel_negotiation } }
-							spawn_rebels = {
-								type = blood_lotus_rebel
-								size = 3
-							}
-						}
-						else = {
-							spawn_rebels = {
-								type = blood_lotus_rebel
-								size = 4
-							}
-						}
+			if = {
+				limit = { has_province_modifier = blood_lotus_headquarter }
+				remove_province_modifier = blood_lotus_headquarter
+				if = {
+					limit = { ROOT = { has_country_modifier = blood_lotus_rebel_negotiation } }
+					spawn_rebels = {
+						type = blood_lotus_rebel
+						size = 4
 					}
 				}
-				
-				hidden_effect = { set_country_flag = blood_lotus_the_great_revolt }
+				else = {
+					spawn_rebels = {
+						type = blood_lotus_rebel
+						size = 6
+					}
+				}
+			}
+			else = {
+				remove_province_modifier = blood_lotus_guerrillas_hidden
+				remove_province_modifier = blood_lotus_guerrillas
+				if = {
+					limit = { ROOT = { has_country_modifier = blood_lotus_rebel_negotiation } }
+					spawn_rebels = {
+						type = blood_lotus_rebel
+						size = 3
+					}
+				}
+				else = {
+					spawn_rebels = {
+						type = blood_lotus_rebel
+						size = 4
+					}
+				}
+			}
 		}
+		hidden_effect = { set_country_flag = blood_lotus_the_great_revolt }
+	}
 }
 
 country_event = { #A new center of rebellion
@@ -885,31 +889,38 @@ country_event = { #A new center of rebellion
 	hidden = yes
 	trigger = { NOT = { has_country_flag = blood_lotus_the_great_revolt } }
 	
-	option = {
+	option = { # If 2 HQs or less, spawn HQ
 		name = blood_lotus_rebellion.107.a
 		ai_chance = {
 			factor = 1
-		}
-		if = {
-			limit = { num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter } }
-			if = {
-				limit = {
-					any_owned_province = {
-						has_province_modifier = blood_lotus_sympathizers
-					}
-				}
-				random_list = {
-					60 = { blood_lotus_rebellion_spawns = yes }
-					40 = { blood_lotus_rebellion_spawns_hidden = yes }
-				}
-			}
-			else = {
-				blood_lotus_rebellion_spawns = yes
+			modifier = {
+				factor = 0
+				num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter }
 			}
 		}
-		else = {
-			blood_lotus_rebellion_spawns_headquarters = yes
+		blood_lotus_rebellion_spawns_headquarters = yes
+	}
+	option = { # If 2 HQs or more, spread rebels 50% chance
+		name = blood_lotus_rebellion.107.b
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = { num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter } }
+			}
 		}
+		blood_lotus_rebellion_spawns = yes
+	}
+	option = { # If 2 HQs or more, spread hidden rebels 50% chance
+		name = blood_lotus_rebellion.107.c
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				NOT = { num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter } }
+			}
+		}
+		blood_lotus_rebellion_spawns_hidden = yes
 	}
 }
 
