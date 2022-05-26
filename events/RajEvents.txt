@@ -815,17 +815,21 @@ country_event = {
 	id = rahenraj.7
 	title = rahenraj.7.t
 	picture = COURT_eventPicture
-	desc =  rahenraj.7.d
+	desc = rahenraj.7.d
 
 	is_triggered_only = yes
+	
+	trigger = { NOT = { has_country_modifier = raj_got_senapti_info } }
 
 	option = {
 		name = rahenraj.7.a
 		if = { limit = { has_reform = raja_reform }
 			custom_tooltip = raj_use_diplo_action_to_nominate_senapti_tt
+			add_country_modifier = { name = raj_got_senapti_info duration = -1 hidden = yes }
 		}
 		else = {
 			custom_tooltip = raj_use_raj_menu_to_ask_for_senapti_tt
+			add_country_modifier = { name = raj_got_senapti_info duration = 180 hidden = yes }
 		}
 	}
 }
@@ -983,12 +987,12 @@ country_event = { #The Court is completely out of our control
 				}
 			}
 			hidden_effect = {
-    		add_country_modifier = {
-        name = R51_speedy_recovery_time_limit
-            hidden = yes
-            duration = 7300
-        }
-    	}
+				add_country_modifier = {
+					name = R51_speedy_recovery_time_limit
+					hidden = yes
+					duration = 7300
+				}
+			}
 		}
 	}
 }
@@ -1249,11 +1253,22 @@ country_event = { #Ministers demand more privileges
 			}
 		}
 		name = rahenraj.105.b
-
-		4411 = {
-			spawn_rebels = {
-				type = pretender_rebels
-				size = 1
+		if = { limit = { ai = yes }
+			random = {
+				chance = 20
+				4411 = {
+					spawn_rebels = {
+						type = pretender_rebels
+						size = 1
+					}
+				}
+			}
+		else = {
+			4411 = {
+				spawn_rebels = {
+					type = pretender_rebels
+					size = 1
+				}
 			}
 		}
 		add_corruption = -0.5
@@ -1430,7 +1445,6 @@ country_event = { #Investigation turned up blank
 			estate = estate_raj_ministries
 			loyalty = -2
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
 country_event = { #Investigation meets resistance
@@ -1450,7 +1464,6 @@ country_event = { #Investigation meets resistance
 			estate = estate_raj_ministries
 			loyalty = -2
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 	option = { #Force the matter
 		ai_chance = { factor = 1 }
@@ -1474,7 +1487,6 @@ country_event = { #Investigation meets resistance
 			estate = estate_raj_ministries
 			share = -0.5
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
 country_event = { #Estate investigation found evidence!
@@ -1502,7 +1514,6 @@ country_event = { #Estate investigation found evidence!
 			duration = 3650
 		}
 		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
 
@@ -4256,13 +4267,43 @@ country_event = { #Someone seems to be sabotaging the Raj!
 	picture = COURT_eventPicture
 
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = { raj_cohesion_change_absolute = { amount = -1 } }
+	}
 
 	option = { #Oh no!
-		ai_chance = { factor = 1 }
 		name = rahenraj.1105.a
+		ai_chance = { factor = 1 }
 		tooltip = {
 			raj_cohesion_change_absolute = { amount = -1 }
 		}
+	}
+
+	option = { #Oh no!
+		name = rahenraj.1105.b
+		ai_chance = { factor = 0 }
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = -1 }
+		}
+		set_country_flag = raj_hidden_sabotage_events
+	}
+}
+
+country_event = { #Someone seems to be sabotaging the Raj! hidden version
+	id = rahenraj.1106
+	title = rahenraj.1105.t
+	desc = rahenraj.1105.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	hidden = yes
+
+	option = { #Oh no!
+		name = rahenraj.1105.a
+		ai_chance = { factor = 1 }
+		raj_cohesion_change_absolute = { amount = -1 }
 	}
 }
 
@@ -4421,23 +4462,37 @@ country_event = { #ai raj subjects to get spy network on raja
 	}
 
 	option = {
-		ai_chance = { factor = 20 }
+		ai_chance = {
+			factor = 20
+		}
 		name = rahenraj.1000.a
-
-
 	}
 	option = {
 		name = rahenraj.1000.a
 		ai_chance = {
 			factor = 1
 			modifier = {
+				factor = 0
+				NOT = { liberty_desire = 20 }
+			}
+			modifier = {
 				factor = 2
 				liberty_desire = 40
 			}
+			modifier = {
+				factor = 20
+				liberty_desire = 60
+			}
 		}
 
-		raj_cohesion_change_absolute = { amount = -1 }
-		overlord = { country_event = { id = rahenraj.1105 } }
+		overlord = {
+			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
+				country_event = { id = rahenraj.1106 days = 1 random = 180 }
+			}
+			else = {
+				country_event = { id = rahenraj.1105 days = 1 random = 180 }
+			}
+		}
 	}
 }
 
@@ -5784,10 +5839,15 @@ country_event = {
 			NOT = { has_country_flag = raj_vizier }
 			overlord = { has_spy_network_from = { who = ROOT value = 30 } }
 		}
-		raj_cohesion_change_absolute = { amount = -1 }
+		tooltip = { raj_cohesion_change_absolute = { amount = -1 } }
 		overlord = {
 			add_spy_network_from = { who = ROOT value = -30 }
-			country_event = { id = rahenraj.1105 }
+			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
+				country_event = { id = rahenraj.1106 }
+			}
+			else = {
+				country_event = { id = rahenraj.1105 }
+			}
 		}
 		hidden_effect = { country_event = { id = rahenraj.3001 } }
 	}
@@ -7077,7 +7137,7 @@ country_event = {
 	id = rahenraj.3010
 	title = rahenraj.3010.t
 	desc = rahenraj.3010.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7091,7 +7151,7 @@ country_event = {
 	id = rahenraj.3011
 	title = rahenraj.3011.t
 	desc = rahenraj.3011.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7105,7 +7165,7 @@ country_event = {
 	id = rahenraj.3012
 	title = rahenraj.3012.t
 	desc = rahenraj.3012.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7119,7 +7179,7 @@ country_event = {
 	id = rahenraj.3013
 	title = rahenraj.3013.t
 	desc = rahenraj.3013.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7173,7 +7233,7 @@ country_event = {
 	id = rahenraj.3014
 	title = rahenraj.3014.t
 	desc = rahenraj.3014.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7187,7 +7247,7 @@ country_event = {
 	id = rahenraj.3015
 	title = rahenraj.3015.t
 	desc = rahenraj.3015.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -7202,7 +7262,7 @@ country_event = {
 	id = rahenraj.4000
 	title = rahenraj.4000.t
 	desc = rahenraj.4000.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
