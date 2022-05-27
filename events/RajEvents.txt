@@ -102,7 +102,8 @@ country_event = {
 			rahen_calc_reform_ministry_of_philosophy = yes
 			rahen_calc_reform_ministry_of_internal_relations = yes
 			rahen_calc_reform_ministry_of_foreign_relations = yes
-
+			
+			set_variable = { which = raj_deved_farmlands value = 0 }
 		}
 	}
 
@@ -195,7 +196,7 @@ province_event = {
 			}
 
 			# Handle all Prabhi+Senapti transfers
-			if = { #Case: new owner is the new Raja, previous Raja lives -> all Prahbi+Senapti get transferred to new Raja
+			if = { #Case: new owner is the new Raja, previous Raja lives -> all Prabhi+Senapti get transferred to new Raja
 				limit = {
 					#FROM = Previous Raja
 					FROM = { exists = yes }
@@ -203,7 +204,7 @@ province_event = {
 					#New owner is Raja
 					owner = { has_reform = raja_reform }
 				}
-				#Degrade the previous Raja to Prahbi level, and gives them+their daimyo vassals to new raja
+				#Degrade the previous Raja to Prabhi level, and gives them+their daimyo vassals to new raja
 				FROM = {
 					every_subject_country = {
 						limit = {
@@ -236,7 +237,7 @@ province_event = {
 				}
 				raj_cohesion_calc = yes
 			}
-			if = { #Case: new owner is NOT the new Raja, previous Raja lives -> all Prahbi+Senapti go free
+			if = { #Case: new owner is NOT the new Raja, previous Raja lives -> all Prabhi+Senapti go free
 				limit = {
 					#FROM = Previous Raja
 					FROM = { exists = yes }
@@ -244,7 +245,7 @@ province_event = {
 					#New owner is NOT raja
 					NOT = { owner = { has_reform = raja_reform } }
 				}
-				#Degrade the previous Raja to Prahbi level, release everyone, disband the Raja
+				#Degrade the previous Raja to Prabhi level, release everyone, disband the Raja
 				FROM = {
 					every_subject_country = {
 						limit = {
@@ -272,7 +273,7 @@ province_event = {
 					add_government_reform = indep_prabhi_reform
 				}
 			}
-			if = { #Case: new owner is the new Raja, previous Raja is dead -> all Prahbi+Senapti get transferred to new Raja
+			if = { #Case: new owner is the new Raja, previous Raja is dead -> all Prabhi+Senapti get transferred to new Raja
 				limit = {
 					#FROM = Previous Raja is dead
 					NOT = { FROM = { exists = yes } }
@@ -313,7 +314,7 @@ province_event = {
 				}
 				raj_cohesion_calc = yes
 			}
-			if = { #Case: new owner is NOT the new Raja, previous Raja dead -> all Prahbi+Senapti go free, disband the Raja
+			if = { #Case: new owner is NOT the new Raja, previous Raja dead -> all Prabhi+Senapti go free, disband the Raja
 				limit = {
 					#FROM = Previous Raja is dead
 					NOT = { FROM = { exists = yes } }
@@ -378,7 +379,6 @@ province_event = {
 		}
 		hidden_effect = { #strip all reformation modifiers from the former Raja
 			FROM = {
-				rahen_remove_harimraj_reforms_effect = yes
 				remove_country_modifier = raj_opened_senapti_ranks
 				remove_country_modifier = raj_closed_senapti_ranks
 			}
@@ -406,7 +406,6 @@ province_event = {
 				rahen_clear_court_disaster_province_modifiers = yes
 			}
 			FROM = {
-				rahen_remove_harimraj_reforms_effect = yes
 				remove_country_modifier = raj_opened_senapti_ranks
 				remove_country_modifier = raj_closed_senapti_ranks
 			}
@@ -684,22 +683,22 @@ country_event = { #If a Senapti ruler isn't a harimari
 
 	trigger = {
 		has_reform = senapti_reform
+		overlord = { has_country_modifier = raj_closed_senapti_ranks }
 		OR = {
 			AND = {
 				overlord = {
-					has_country_modifier = raj_closed_senapti_ranks
 					culture_group = harimari
 				}
 				NOT = { ruler_is_harimari = yes }
 			}
 			AND = {
 				overlord = {
-					has_country_modifier = raj_closed_senapti_ranks
 					culture_is_human = yes
 				}
 				NOT = { ruler_is_human = yes }
 			}
 		}
+		NOT = { has_country_modifier = rajiya_senapti }
 	}
 	is_triggered_only = yes
 
@@ -816,17 +815,21 @@ country_event = {
 	id = rahenraj.7
 	title = rahenraj.7.t
 	picture = COURT_eventPicture
-	desc =  rahenraj.7.d
+	desc = rahenraj.7.d
 
 	is_triggered_only = yes
+	
+	trigger = { NOT = { has_country_modifier = raj_got_senapti_info } }
 
 	option = {
 		name = rahenraj.7.a
 		if = { limit = { has_reform = raja_reform }
 			custom_tooltip = raj_use_diplo_action_to_nominate_senapti_tt
+			add_country_modifier = { name = raj_got_senapti_info duration = -1 hidden = yes }
 		}
 		else = {
 			custom_tooltip = raj_use_raj_menu_to_ask_for_senapti_tt
+			add_country_modifier = { name = raj_got_senapti_info duration = 180 hidden = yes }
 		}
 	}
 }
@@ -920,6 +923,11 @@ country_event = { #The Court has finally been reformed
 			name = rahen_curtailed_courts
 			duration = 9125 #25 years
 		}
+		hidden_effect = {
+			rahen_superregion = {
+				rahen_clear_court_disaster_province_modifiers = yes
+			}
+		}
 	}
 }
 country_event = { #The Court is completely out of our control
@@ -979,12 +987,12 @@ country_event = { #The Court is completely out of our control
 				}
 			}
 			hidden_effect = {
-    		add_country_modifier = {
-        name = R51_speedy_recovery_time_limit
-            hidden = yes
-            duration = 7300
-        }
-    	}
+				add_country_modifier = {
+					name = R51_speedy_recovery_time_limit
+					hidden = yes
+					duration = 7300
+				}
+			}
 		}
 	}
 }
@@ -1245,11 +1253,23 @@ country_event = { #Ministers demand more privileges
 			}
 		}
 		name = rahenraj.105.b
-
-		4411 = {
-			spawn_rebels = {
-				type = pretender_rebels
-				size = 1
+		if = { limit = { ai = yes }
+			random = {
+				chance = 10
+				4411 = {
+					spawn_rebels = {
+						type = pretender_rebels
+						size = 1
+					}
+				}
+			}
+		}
+		else = {
+			4411 = {
+				spawn_rebels = {
+					type = pretender_rebels
+					size = 1
+				}
 			}
 		}
 		add_corruption = -0.5
@@ -1323,6 +1343,41 @@ country_event = { #Ministers do good work
 		4411 = { change_variable = { which = rahen_court_case_strength value = -1 } }
 	}
 }
+country_event = { #Farmlands counter
+	id = rahenraj.109
+	title = rahenraj.108.t
+	desc = rahenraj.108.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		4411 = { has_province_modifier = rahen_corrupt_ministery_of_agriculture }
+	}
+	
+	option = { #
+		ai_chance = { factor = 1 }
+		name = rahenraj.108.a
+		set_variable = { which = raj_deved_farmlands value = 0 }
+		every_owned_province = {
+			limit = {
+				has_terrain = farmlands
+				development = 18
+			}
+			ROOT = { change_variable = { which = raj_deved_farmlands value = 1 } }
+		}
+		every_subject_country = {
+			every_owned_province = {
+				limit = {
+					has_terrain = farmlands
+					development = 18
+				}
+				ROOT = { change_variable = { which = raj_deved_farmlands value = 1 } }
+			}
+		}
+	}
+}
 
 
 province_event = { #Estate investigation management event
@@ -1391,7 +1446,6 @@ country_event = { #Investigation turned up blank
 			estate = estate_raj_ministries
 			loyalty = -2
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
 country_event = { #Investigation meets resistance
@@ -1411,7 +1465,6 @@ country_event = { #Investigation meets resistance
 			estate = estate_raj_ministries
 			loyalty = -2
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 	option = { #Force the matter
 		ai_chance = { factor = 1 }
@@ -1435,7 +1488,6 @@ country_event = { #Investigation meets resistance
 			estate = estate_raj_ministries
 			share = -0.5
 		}
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
 	}
 }
 country_event = { #Estate investigation found evidence!
@@ -1463,7 +1515,103 @@ country_event = { #Estate investigation found evidence!
 			duration = 3650
 		}
 		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
-		FROM = { remove_province_modifier = rahen_suspicious_ministry_estate }
+	}
+}
+
+country_event = { #Reformation of the Ministry of Agriculture
+	id = rahenraj.150
+	title = rahenraj.150.t
+	desc = rahenraj.150.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.150.a
+		
+		define_advisor = {
+			type = master_of_mint
+			skill = 3
+			cost_multiplier = 0.25
+			culture = royal_harimari
+			religion = high_philosophy
+		}
+		4411 = {
+			remove_province_modifier = rahen_corrupt_ministery_of_agriculture
+		}
+	}
+}
+country_event = { #Reformation of the Ministry of Foreign Relations
+	id = rahenraj.151
+	title = rahenraj.151.t
+	desc = rahenraj.151.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.151.a
+		
+		define_advisor = {
+			type = diplomat
+			skill = 3
+			cost_multiplier = 0.25
+			culture = royal_harimari
+			religion = high_philosophy
+		}
+		4411 = {
+			remove_province_modifier = rahen_corrupt_ministery_of_foreign_relations
+		}
+	}
+}
+country_event = { #Reformation of the Ministry of Internal Relations
+	id = rahenraj.152
+	title = rahenraj.152.t
+	desc = rahenraj.152.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.152.a
+		
+		define_advisor = {
+			type = statesman
+			skill = 3
+			cost_multiplier = 0.25
+			culture = royal_harimari
+			religion = high_philosophy
+		}
+		4411 = {
+			remove_province_modifier = rahen_corrupt_ministery_of_internal_relations
+		}
+	}
+}
+country_event = { #Reformation of the Ministry of Philosophy
+	id = rahenraj.153
+	title = rahenraj.153.t
+	desc = rahenraj.153.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.153.a
+		
+		define_advisor = {
+			type = philosopher
+			skill = 3
+			cost_multiplier = 0.25
+			culture = royal_harimari
+			religion = high_philosophy
+		}
+		4411 = {
+			remove_province_modifier = rahen_corrupt_ministery_of_philosophy
+		}
 	}
 }
 
@@ -1498,7 +1646,6 @@ country_event = { #Collapse of the Raj
 					subject = PREV
 				}
 			}
-			every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes }
 		}
 		4411 = {
 			remove_province_modifier = rahen_corrupt_ministery_of_agriculture
@@ -1507,11 +1654,13 @@ country_event = { #Collapse of the Raj
 			remove_province_modifier = rahen_corrupt_ministery_of_foreign_relations
 		}
 		add_government_reform = feudalism_reform
-
+		
 		hidden_effect = {
-			every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes }
-			rahen_remove_harimraj_reforms_effect = yes
+			rahen_superregion = {
+				rahen_clear_court_disaster_province_modifiers = yes
+			}
 			clr_country_flag = reformed_rahen_court
+			set_global_flag = destroyed_raj
 			remove_country_modifier = raj_opened_senapti_ranks
 			remove_country_modifier = raj_closed_senapti_ranks
 		}
@@ -1732,6 +1881,9 @@ country_event = { #A Raj falling apart
 		hidden_effect = {
 			overlord = {
 				country_event = { id = rahenraj.1104 }
+			}
+			every_owned_province = {
+				rahen_clear_court_disaster_province_modifiers = yes
 			}
 		}
 		raj_cohesion_change = { amount = 100 non_monthly = yes }
@@ -2139,6 +2291,7 @@ country_event = { #Requesting Raj Mandates
 	option = {
 		name = rahenraj.1002.z
 		ai_chance = { factor = 0 }
+		
 		add_dip_power = 50
 		hidden_effect = {
 			clr_country_flag = raj_requested_mandate
@@ -2185,16 +2338,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_raja_protection
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajProtectionSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajProtectionSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2279,16 +2434,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_right_to_expansion
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajExpansionSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajExpansionSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2364,16 +2521,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_guaranteed_autonomy
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajAutonomySetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajAutonomySetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2440,16 +2599,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_mercantile_preference
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajTradingSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajTradingSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2515,16 +2676,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_sanctioned_armoury
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajArmourySetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajArmourySetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2592,16 +2755,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_ministry_lectures
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajEducationSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajEducationSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2684,16 +2849,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_senapti_primacy
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajSenaptiSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajSenaptiSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -2760,16 +2927,18 @@ country_event = { #Requesting Raj Mandates
 		}
 		hidden_effect = {
 			set_country_flag = requested_raj_mandate_extended_prabhi_privileges
-
-			if = {
-				limit = {
-					ai = no
-					4411 = { is_variable_equal = { which = rajPrabhiSetting value = 0 } }	#Manual response setting
+			
+			overlord = { 
+				if = {
+					limit = {
+						ai = no
+						4411 = { is_variable_equal = { which = rajPrabhiSetting value = 0 } }	#Manual response setting
+					}
+					country_event = { id = rahenraj.1003 days = 1 }
 				}
-				overlord = { country_event = { id = rahenraj.1003 days = 1 } }
-			}
-			else = {
-				overlord = { country_event = { id = rahenraj.1003.hidden days = 1 } }
+				else = {
+					country_event = { id = rahenraj.1009 days = 1 }
+				}
 			}
 
 			clr_country_flag = raj_requested_mandate
@@ -3018,7 +3187,7 @@ country_event = {
 	}
 }
 country_event = {
-	id = rahenraj.1003.hidden
+	id = rahenraj.1009
 	title = rahenraj.1003.t
 	desc = rahenraj.1003.d
 	picture = COURT_eventPicture
@@ -3883,6 +4052,8 @@ country_event = { #The Raja demands we return conquered territory
 	}
 }
 
+#id .1009 already taken
+
 country_event = { #A Raj falling apart
 	id = rahenraj.1100
 	title = rahenraj.1100.t
@@ -4030,7 +4201,6 @@ country_event = { #Dissolution of the Raj
 		add_stability = -1
 		add_government_reform = autocracy_reform
 		every_subject_country = {
-			hidden_effect = { every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes } }
 			overlord = {
 				create_subject = {
 					subject_type = vassal
@@ -4040,8 +4210,9 @@ country_event = { #Dissolution of the Raj
 		}
 
 		hidden_effect = {
-			every_owned_province = { rahen_clear_court_disaster_province_modifiers = yes }
-			rahen_remove_harimraj_reforms_effect = yes
+			rahen_superregion = {
+				rahen_clear_court_disaster_province_modifiers = yes
+			}
 			clr_country_flag = reformed_rahen_court
 			remove_country_modifier = raj_opened_senapti_ranks
 			remove_country_modifier = raj_closed_senapti_ranks
@@ -4097,13 +4268,43 @@ country_event = { #Someone seems to be sabotaging the Raj!
 	picture = COURT_eventPicture
 
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = { raj_cohesion_change_absolute = { amount = -1 } }
+	}
 
 	option = { #Oh no!
-		ai_chance = { factor = 1 }
 		name = rahenraj.1105.a
+		ai_chance = { factor = 1 }
 		tooltip = {
 			raj_cohesion_change_absolute = { amount = -1 }
 		}
+	}
+
+	option = { #Oh no!
+		name = rahenraj.1105.b
+		ai_chance = { factor = 0 }
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = -1 }
+		}
+		set_country_flag = raj_hidden_sabotage_events
+	}
+}
+
+country_event = { #Someone seems to be sabotaging the Raj! hidden version
+	id = rahenraj.1106
+	title = rahenraj.1105.t
+	desc = rahenraj.1105.d
+	picture = COURT_eventPicture
+
+	is_triggered_only = yes
+	
+	hidden = yes
+
+	option = { #Oh no!
+		name = rahenraj.1105.a
+		ai_chance = { factor = 1 }
+		raj_cohesion_change_absolute = { amount = -1 }
 	}
 }
 
@@ -4117,13 +4318,13 @@ country_event = { #To Subject: Visit of the Censors
 	is_triggered_only = yes
 
 	option = { #Grant them full access to our ledgers
-		ai_chance = { factor = 1 }
+		ai_chance = { factor = 2 }
 		name = rahenraj.1200.a
 		add_country_modifier = {
 			name = raj_census_full_access_to_ledgers
 			duration = 3650
 		}
-		raj_cohesion_change = { amount = 25 mandate = yes }
+		raj_cohesion_change = { amount = 25 ministries_events = yes }
 	}
 	option = { #There are some things we would rather they do not see
 		ai_chance = { factor = 1 }
@@ -4132,7 +4333,7 @@ country_event = { #To Subject: Visit of the Censors
 			name = raj_census_limited_access_to_ledgers
 			duration = 3650
 		}
-		raj_cohesion_change = { amount = -25 mandate = yes }
+		raj_cohesion_change = { amount = -25 ministries_events = yes }
 		custom_tooltip = raj_raja_may_intervene_for_ministries_tt
 	}
 
@@ -4262,23 +4463,37 @@ country_event = { #ai raj subjects to get spy network on raja
 	}
 
 	option = {
-		ai_chance = { factor = 20 }
+		ai_chance = {
+			factor = 20
+		}
 		name = rahenraj.1000.a
-
-
 	}
 	option = {
 		name = rahenraj.1000.a
 		ai_chance = {
 			factor = 1
 			modifier = {
+				factor = 0
+				NOT = { liberty_desire = 20 }
+			}
+			modifier = {
 				factor = 2
 				liberty_desire = 40
 			}
+			modifier = {
+				factor = 20
+				liberty_desire = 60
+			}
 		}
 
-		raj_cohesion_change_absolute = { amount = -1 }
-		overlord = { country_event = { id = rahenraj.1105 } }
+		overlord = {
+			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
+				country_event = { id = rahenraj.1106 days = 1 random = 180 }
+			}
+			else = {
+				country_event = { id = rahenraj.1105 days = 1 random = 180 }
+			}
+		}
 	}
 }
 
@@ -5625,10 +5840,15 @@ country_event = {
 			NOT = { has_country_flag = raj_vizier }
 			overlord = { has_spy_network_from = { who = ROOT value = 30 } }
 		}
-		raj_cohesion_change_absolute = { amount = -1 }
+		tooltip = { raj_cohesion_change_absolute = { amount = -1 } }
 		overlord = {
 			add_spy_network_from = { who = ROOT value = -30 }
-			country_event = { id = rahenraj.1105 }
+			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
+				country_event = { id = rahenraj.1106 }
+			}
+			else = {
+				country_event = { id = rahenraj.1105 }
+			}
 		}
 		hidden_effect = { country_event = { id = rahenraj.3001 } }
 	}
@@ -5708,6 +5928,33 @@ country_event = {
 	option = {
 		name = rahenraj.3002.a
 		trigger = { NOT = { has_country_modifier = raj_increased_ministries_controls } }
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 100
+				has_disaster = rahen_corrupt_court
+			}
+			modifier = {
+				factor = 50
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_low_liberty_desire value = -0.25 } } }
+			}
+			modifier = {
+				factor = 2
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_low_liberty_desire value = -0.5 } } }
+			}
+			modifier = {
+				factor = 3
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_low_liberty_desire value = -1 } } }
+			}
+			modifier = {
+				factor = 0.5
+				4411 = { check_variable = { which = rajCohesionMonthy_high_liberty_desire value = 0.5 } }
+			}
+			modifier = {
+				factor = 0.5
+				4411 = { check_variable = { which = rajCohesionMonthy_high_liberty_desire value = 1 } }
+			}
+		}
 		add_country_modifier = { name = raj_increased_ministries_controls duration = 3650 }
 		custom_tooltip = raj_vassals_get_increased_controls_privilege_tt
 		hidden_effect = {
@@ -5727,8 +5974,16 @@ country_event = {
 	#Increase Ministerial controls - not available
 	option = {
 		name = rahenraj.3002.b
-		trigger = { has_country_modifier = raj_increased_ministries_controls }
+		trigger = {
+			ai = no
+			has_country_modifier = raj_increased_ministries_controls
+		}
 		custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			add_country_modifier = { name = raj_increased_ministries_controls duration = 3650 }
+		}
+		custom_tooltip = raj_vassals_get_increased_controls_privilege_tt
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -5736,6 +5991,21 @@ country_event = {
 	option = {
 		name = rahenraj.3002.c
 		trigger = { NOT = { has_country_modifier = raj_demanded_introspection } }
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 50
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_internal_wars value = -0.1 } } }
+			}
+			modifier = {
+				factor = 2
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_internal_wars value = -0.25 } } }
+			}
+			modifier = {
+				factor = 3
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_internal_wars value = -0.5 } } }
+			}
+		}
 		add_country_modifier = { name = raj_raja_introspecting duration = 1095 }
 		custom_tooltip = raj_vassals_get_introspection_privilege_tt
 		hidden_effect = {
@@ -5756,8 +6026,16 @@ country_event = {
 	#Demand introspection - not available
 	option = {
 		name = rahenraj.3002.dd
-		trigger = { has_country_modifier = raj_demanded_introspection }
+		trigger = {
+			ai = no
+			has_country_modifier = raj_demanded_introspection
+		}
 		custom_tooltip = raj_ministries_actions_only_every_10_years_tt
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			add_country_modifier = { name = raj_raja_introspecting duration = 1095 }
+		}
+		custom_tooltip = raj_vassals_get_introspection_privilege_tt
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -5767,6 +6045,18 @@ country_event = {
 		trigger = {
 			NOT = { has_country_modifier = raj_raja_aggressive_policies }
 			4411 = { check_variable = { which = raj_cohesion value = 75 } }
+		}
+		ai_chance = {
+			factor = 25
+			modifier = {
+				factor = 2
+				is_at_war = yes
+			}
+			modifier = {
+				factor = 20
+				is_at_war = yes
+				NOT = { war_score = -10 }
+			}
 		}
 		add_country_modifier = { name = raj_raja_aggressive_policies duration = 3650 }
 		custom_tooltip = raj_vassals_get_aggressive_policies_privilege_tt
@@ -5783,6 +6073,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.f
 		trigger = {
+			ai = no
 			OR = {
 				has_country_modifier = raj_raja_aggressive_policies
 				4411 = { NOT = { check_variable = { which = raj_cohesion value = 75 } } }
@@ -5794,6 +6085,11 @@ country_event = {
 		if = { limit = { 4411 = { NOT = { check_variable = { which = raj_cohesion value = 70 } } } }
 			custom_tooltip = raj_need_cohesion_75_tt
 		}
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			add_country_modifier = { name = raj_raja_aggressive_policies duration = 3650 }
+		}
+		custom_tooltip = raj_vassals_get_aggressive_policies_privilege_tt
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -5808,6 +6104,33 @@ country_event = {
 				has_heir_flag = raj_tutored_adm
 				has_heir_flag = raj_tutored_dip
 				has_heir_flag = raj_tutored_mil
+			}
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 3
+				NOT = { heir_adm = 3 }
+			}
+			modifier = {
+				factor = 3
+				NOT = { heir_dip = 3 }
+			}
+			modifier = {
+				factor = 3
+				NOT = { heir_mil = 3 }
+			}
+			modifier = {
+				factor = 3
+				NOT = { heir_adm = 2 }
+			}
+			modifier = {
+				factor = 3
+				NOT = { heir_dip = 2 }
+			}
+			modifier = {
+				factor = 3
+				NOT = { heir_mil = 2 }
 			}
 		}
 		custom_tooltip = raj_heir_tutoring_effect_in_3_years_tt
@@ -5855,6 +6178,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.h
 		trigger = {
+			ai = no
 			OR = {
 				NOT = { has_heir = yes }
 				heir_age = 15
@@ -5886,6 +6210,41 @@ country_event = {
 			}
 			custom_tooltip = raj_ministries_actions_only_every_3_years_tt
 		}
+		custom_tooltip = raj_separator_tt
+		custom_tooltip = raj_heir_tutoring_effect_in_3_years_tt
+		tooltip = {
+			add_years_of_income = -0.25
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_adm } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+						change_heir_adm = 1
+					}
+					2 = { }
+				}
+			}
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_dip } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_mil }
+						change_heir_dip = 1
+					}
+					2 = { }
+				}
+			}
+			if = { limit = { NOT = { has_heir_flag = raj_tutored_mil } }
+				random_list = {
+					1 = {
+						modifier = { factor = 2 has_heir_flag = raj_tutored_dip }
+						modifier = { factor = 2 has_heir_flag = raj_tutored_adm }
+						change_heir_mil = 1
+					}
+					2 = { }
+				}
+			}
+		}
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -5897,6 +6256,21 @@ country_event = {
 			adm_power = 50
 			dip_power = 50
 			mil_power = 50
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 50
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_ministries_influence value = 0.5 } } }
+			}
+			modifier = {
+				factor = 2
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_ministries_influence value = 0.25 } } }
+			}
+			modifier = {
+				factor = 10
+				NOT = { 4411 = { check_variable = { which = rajCohesionMonthy_ministries_influence value = 0 } } }
+			}
 		}
 		raj_cohesion_change_absolute = { amount = 5 }
 		add_adm_power = -50
@@ -5921,6 +6295,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.j
 		trigger = {
+			ai = no
 			OR = {
 				has_country_modifier = raj_ministerial_census
 				NOT = {
@@ -5942,6 +6317,14 @@ country_event = {
 		if = { limit = { NOT = { mil_power = 50 } }
 			custom_tooltip = raj_need_50_mil_tt
 		}
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = 5 }
+			add_adm_power = -50
+			add_dip_power = -50
+			add_mil_power = -50
+		}
+		custom_tooltip = raj_ministries_ministerial_census_tt
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -5953,6 +6336,9 @@ country_event = {
 			NOT = { has_country_modifier = raj_cracking_on_decadence }
 			dip_power = 50
 			treasury = 350
+		}
+		ai_chance = {
+			factor = 0
 		}
 		raj_cohesion_change_absolute = { amount = 15 }
 		add_dip_power = -50
@@ -5969,7 +6355,7 @@ country_event = {
 				}
 				country_event = { id = rahenraj.3014 }
 				add_liberty_desire = 15
-				set_estate_privilege = estate_raj_cracking_on_decadence
+				set_estate_privilege = estate_raj_ministries_cracking_on_decadence
 			}
 			country_event = { id = rahenraj.3008 }
 		}
@@ -5978,6 +6364,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.l
 		trigger = {
+			ai = no
 			OR = {
 				4411 = { check_variable = { which = raj_cohesion value = 30 } }
 				has_country_modifier = raj_cracking_on_decadence
@@ -5999,6 +6386,13 @@ country_event = {
 		if = { limit = { NOT = { treasury = 350 } }
 			custom_tooltip = raj_need_350_cash_tt
 		}
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = 15 }
+			add_dip_power = -50
+			add_treasury = -350
+		}
+		custom_tooltip = raj_cracking_on_decadence_tt
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -6009,6 +6403,9 @@ country_event = {
 			4411 = { check_variable = { which = raj_cohesion value = 60 } }
 			NOT = { has_country_modifier = raj_regulating_vizier }
 			adm_power = 50
+		}
+		ai_chance = {
+			factor = 0
 		}
 		add_adm_power = -50
 		raj_cohesion_change_absolute = { amount = -10 }
@@ -6027,6 +6424,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.n
 		trigger = {
+			ai = no
 			OR = {
 				has_country_modifier = raj_regulating_vizier
 				4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } }
@@ -6042,6 +6440,16 @@ country_event = {
 		if = { limit = { NOT = { adm_power = 50 } }
 			custom_tooltip = raj_need_50_adm_tt
 		}
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			add_adm_power = -50
+			raj_cohesion_change_absolute = { amount = -10 }
+			raj_vizier_sway_change = { amount = -10 }
+			random_subject_country = {
+				limit = { has_country_flag = raj_vizier }
+				add_opinion = { who = ROOT modifier = raj_regulated_vizier }
+			}
+		}
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
@@ -6052,6 +6460,9 @@ country_event = {
 			4411 = { check_variable = { which = raj_cohesion value = 60 } }
 			NOT = { has_country_modifier = raj_new_tax_policies }
 			dip_power = 50
+		}
+		ai_chance = {
+			factor = 0
 		}
 		raj_cohesion_change_absolute = { amount = -10 }
 		add_dip_power = 50
@@ -6064,6 +6475,7 @@ country_event = {
 	option = {
 		name = rahenraj.3002.p
 		trigger = {
+			ai = no
 			OR = {
 				has_country_modifier = raj_new_tax_policies
 				4411 = { NOT = { check_variable = { which = raj_cohesion value = 60 } } }
@@ -6079,13 +6491,34 @@ country_event = {
 		if = { limit = { NOT = { dip_power = 50 } }
 			custom_tooltip = raj_need_50_dip_tt
 		}
+		custom_tooltip = raj_separator_tt
+		tooltip = {
+			raj_cohesion_change_absolute = { amount = -10 }
+			add_dip_power = 50
+			add_country_modifier = { name = raj_new_tax_policies duration = 3650 }
+		}
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
 	}
 
 	#Close
 	option = {
 		name = rahenraj.1002.z
-		hidden_effect = { country_event = { id = rahenraj.3000 } }
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				NOT = { 4411 = { check_variable = { which = raj_cohesion value = 40 } } }
+			}
+		}
+		if = { limit = { ai = no }
+			hidden_effect = { country_event = { id = rahenraj.3000 } }
+		}
+	}
+	
+	after = {
+		if = { limit = { ai = yes }
+			add_country_modifier = { name = raj_ministries_action_taken duration = 1850 }
+		}
 	}
 }
 
@@ -6676,7 +7109,12 @@ country_event = {
 
 	option = {
 		name = rahenraj.3001.a
-		country_event = { id = rahenraj.3002 }
+		if = { limit = { ai = no }
+			country_event = { id = rahenraj.3002 }
+		}
+		else = {
+			country_event = { id = rahenraj.3002 days = 60 random = 240 }
+		}
 	}
 }
 
@@ -6700,7 +7138,7 @@ country_event = {
 	id = rahenraj.3010
 	title = rahenraj.3010.t
 	desc = rahenraj.3010.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6714,7 +7152,7 @@ country_event = {
 	id = rahenraj.3011
 	title = rahenraj.3011.t
 	desc = rahenraj.3011.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6728,7 +7166,7 @@ country_event = {
 	id = rahenraj.3012
 	title = rahenraj.3012.t
 	desc = rahenraj.3012.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6742,7 +7180,7 @@ country_event = {
 	id = rahenraj.3013
 	title = rahenraj.3013.t
 	desc = rahenraj.3013.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6796,7 +7234,7 @@ country_event = {
 	id = rahenraj.3014
 	title = rahenraj.3014.t
 	desc = rahenraj.3014.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6810,7 +7248,7 @@ country_event = {
 	id = rahenraj.3015
 	title = rahenraj.3015.t
 	desc = rahenraj.3015.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
@@ -6825,7 +7263,7 @@ country_event = {
 	id = rahenraj.4000
 	title = rahenraj.4000.t
 	desc = rahenraj.4000.d
-	picture = EMPTY_eventPicture
+	picture = COURT_eventPicture
 
 	is_triggered_only = yes
 
