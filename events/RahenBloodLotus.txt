@@ -49,6 +49,7 @@ country_event = { #The Blood Lotus Rebellion
 				blood_lotus_new_sympathizers = yes
 				blood_lotus_new_sympathizers = yes
 				blood_lotus_new_sympathizers = yes
+				blood_lotus_rebellion_spawns_headquarters = yes
 			}
 			else_if = {
 				limit = {
@@ -64,6 +65,7 @@ country_event = { #The Blood Lotus Rebellion
 				blood_lotus_new_sympathizers = yes
 				blood_lotus_new_sympathizers = yes
 				blood_lotus_new_sympathizers = yes
+				blood_lotus_rebellion_spawns_headquarters = yes
 			}
 			else = {
 				# 5 areas with sympathizers.
@@ -90,6 +92,7 @@ country_event = { #The Blood Lotus Rebellion
 		ai_chance = {
 			factor = 1
 		}
+		custom_tooltip = blood_lotus_explanation_tt
 		
 		blood_lotus_hardline_stance_change = { neutral = 10 }
 		add_country_modifier = {
@@ -103,13 +106,13 @@ country_event = { #The Blood Lotus Rebellion
 		blood_lotus_rebellion_spawns = yes
 		add_stability = -4
 		
-		custom_tooltip = blood_lotus_explanation_tt
 	}
 	option = { #Hardline Stance
 		name = blood_lotus_rebellion.1.b
 		ai_chance = {
 			factor = 1
 		}
+		custom_tooltip = blood_lotus_explanation_tt
 		
 		blood_lotus_hardline_stance_change = { harimarihardline = 10 }
 		add_country_modifier = {
@@ -132,7 +135,6 @@ country_event = { #The Blood Lotus Rebellion
 			random = 300
 		}
 		
-		custom_tooltip = blood_lotus_explanation_tt
 	}
 }
 
@@ -732,7 +734,6 @@ country_event = { # Sympathizers in [blood_lotus_sympathizers.GetName] want to n
 		random_owned_province = {
 			limit = {
 				has_province_modifier = blood_lotus_sympathizers
-				#NOT = { has_province_modifier = blood_lotus_guerrillas_hidden }
 			}
 			save_event_target_as = negotiating_sympathizers
 		}
@@ -748,22 +749,17 @@ country_event = { # Sympathizers in [blood_lotus_sympathizers.GetName] want to n
 		event_target:negotiating_sympathizers = {
 			add_local_autonomy = 25
 			remove_province_modifier = blood_lotus_sympathizers
+			hidden_effect = {
+				remove_province_modifier = blood_lotus_guerrillas_hidden
+				remove_province_modifier = blood_lotus_guerrillas
+			}
 			add_province_modifier = {
 				name = blood_lotus_dissuaded_sympathizers
 				duration = 730 # two years
 			}
-			
-			#hidden_effect = {
-				if = {
-					limit = { has_province_modifier = blood_lotus_guerrillas_hidden }
-					
-					add_province_modifier = {
-						name = blood_lotus_guerrillas
-						duration = -1
-					}
-				}
-			#}
 		}
+		
+		blood_lotus_hardline_stance_change = { neutral = 3 }
 	}
 	option = { #Refuse
 		name = blood_lotus_rebellion.5.b
@@ -772,6 +768,15 @@ country_event = { # Sympathizers in [blood_lotus_sympathizers.GetName] want to n
 		}
 		
 		increase_legitimacy_small_effect = yes
+			
+		hidden_effect = {
+			add_province_modifier = {
+				name = blood_lotus_guerrillas_hidden
+				duration = -1
+			}
+		}
+		
+		blood_lotus_hardline_stance_change = { harimarihardline = 3 }
 	}
 }
 
@@ -808,6 +813,7 @@ country_event = { # General Salar Black-Claw joins the harimari hardliners.
 
 	trigger = {
 		has_leader = "Salar Black-Claw"
+		blood_lotus_hardline_stance_human = yes
 	}
 	
 	immediate = {
@@ -846,7 +852,7 @@ country_event = { # General Salar Black-Claw joins the harimari hardliners.
 	}
 }
 
-country_event = { # The rebellion spreads
+country_event = { #The rebellion spreads (hidden), attack a fortress or makes an HQ.
 	id = blood_lotus_rebellion.100
 	title = blood_lotus_rebellion.100.t
 	desc = blood_lotus_rebellion.100.d
@@ -862,55 +868,60 @@ country_event = { # The rebellion spreads
 		}
 		
 		random_list = { # only spread half the time
-			200 = { }
-			50 = { blood_lotus_rebellion_spreads = yes }
-			50 = { blood_lotus_rebellion_spreads_hidden = yes }
-			50 = { #hidden spread from HQ
-				every_owned_province = {
-					limit = { has_province_modifier = blood_lotus_headquarter }
-					every_neighbor_province = {
-						limit = {
-							NOT = {
+			30 = { blood_lotus_rebellion_spreads = yes }
+			30 = { blood_lotus_rebellion_spreads_hidden = yes }
+			30 = { #attack a fortress
+				modifier = {
+					factor = 0
+					NOT = {
+						any_owned_province = {
+							OR = {
 								has_province_modifier = blood_lotus_guerrillas
 								has_province_modifier = blood_lotus_guerrillas_hidden
-								has_province_modifier = blood_lotus_headquarter
 							}
-							superregion = rahen_superregion
-							owned_by = ROOT
-						}
-						add_province_modifier = {
-							name = blood_lotus_guerrillas_hidden
-							duration = -1
-							hidden = yes
+							fort_level = 2
+							NOT = { controlled_by = REB }
 						}
 					}
 				}
-			}
-			50 = { #spread forom HQ
-			every_owned_province = {
-				limit = { has_province_modifier = blood_lotus_headquarter }
-				every_neighbor_province = {
+				random_owned_province = {
 					limit = {
-						NOT = {
+						OR = {
 							has_province_modifier = blood_lotus_guerrillas
 							has_province_modifier = blood_lotus_guerrillas_hidden
-							has_province_modifier = blood_lotus_headquarter
 						}
-						superregion = rahen_superregion
-						owned_by = ROOT
+						fort_level = 2
+						NOT = { controlled_by = REB }
 					}
-					add_province_modifier = {
-						name = blood_lotus_guerrillas
-						duration = -1
+					spawn_rebels = {
+						type = blood_lotus_rebel
+						size = 2
 					}
+					remove_province_modifier = blood_lotus_guerrillas
+					remove_province_modifier = blood_lotus_guerrillas_hidden
 				}
 			}
+			10 = { # might fail if HQs already exist, or there aren't enough rebels.
+				modifier = {
+					factor = 0.6 # if attack a fortress can't happen, this needs to scale down to still be max 10% chance to fire.
+					NOT = {
+						any_owned_province = {
+							OR = {
+								has_province_modifier = blood_lotus_guerrillas
+								has_province_modifier = blood_lotus_guerrillas_hidden
+							}
+							fort_level = 2
+							NOT = { controlled_by = REB }
+						}
+					}
+				}
+				blood_lotus_rebellion_spawns_headquarters_on_guerrillas = yes
 			}
 		}
 	}
 }
 
-country_event = { # The rebellion moves
+country_event = { #101 The rebellion moves
 	id = blood_lotus_rebellion.101
 	title = blood_lotus_rebellion.101.t
 	desc = blood_lotus_rebellion.101.d
@@ -932,8 +943,7 @@ country_event = { # The rebellion moves
 		}
 	}
 }
-
-country_event = { # The rebellion attacks a fortress
+country_event = { #102 The rebellion attacks a fortress
 	id = blood_lotus_rebellion.102
 	title = blood_lotus_rebellion.102.t
 	desc = blood_lotus_rebellion.102.d
@@ -941,6 +951,9 @@ country_event = { # The rebellion attacks a fortress
 	
 	is_triggered_only = yes
 	hidden = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 
 	option = {
 		name = blood_lotus_rebellion.102.a
@@ -965,8 +978,7 @@ country_event = { # The rebellion attacks a fortress
 		}
 	}
 }
-
-country_event = { # The rebellion moves openly
+country_event = { #103 The rebellion moves openly
 	id = blood_lotus_rebellion.103
 	title = blood_lotus_rebellion.103.t
 	desc = blood_lotus_rebellion.103.d
@@ -974,6 +986,9 @@ country_event = { # The rebellion moves openly
 	
 	is_triggered_only = yes
 	hidden = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 
 	option = {
 		name = blood_lotus_rebellion.103.a
@@ -998,8 +1013,7 @@ country_event = { # The rebellion moves openly
 		}
 	}
 }
-
-country_event = { # A group of rebels hides
+country_event = { #104 A group of rebels hides
 	id = blood_lotus_rebellion.104
 	title = blood_lotus_rebellion.104.t
 	desc = blood_lotus_rebellion.104.d
@@ -1007,6 +1021,9 @@ country_event = { # A group of rebels hides
 	
 	is_triggered_only = yes
 	hidden = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	option = {
 		name = blood_lotus_rebellion.104.a
@@ -1017,26 +1034,67 @@ country_event = { # A group of rebels hides
 	}
 }
 
-country_event = { # New Sympathisers appear
+country_event = { #105 New Sympathisers appear
 	id = blood_lotus_rebellion.105
 	title = blood_lotus_rebellion.105.t
 	desc = blood_lotus_rebellion.105.d
 	picture = ANGRY_MOB_eventPicture
-	
+
 	is_triggered_only = yes
 	hidden = yes
 	trigger = { NOT = { has_country_flag = blood_lotus_the_great_revolt } }
-	
-	option = {
+
+	option = { 
 		name = blood_lotus_rebellion.105.a
 		ai_chance = {
 			factor = 1
 		}
-		blood_lotus_new_sympathizers = yes
+		random_list = {
+			15 = { blood_lotus_new_sympathizers = yes }
+			35 = { 
+				modifier = {
+					factor = 0
+					all_owned_province = {
+						superregion = rahen_superregion
+						OR = {
+							culture_group = upper_raheni
+							culture_group = middle_raheni
+							culture_group = south_raheni
+							has_human_minority_trigger = yes
+						}
+						NOT = {
+							has_province_modifier = blood_lotus_sympathizers
+							has_province_modifier = blood_lotus_headquarter
+							has_province_modifier = blood_lotus_dissuaded_sympathizers
+						}
+					}
+				}
+				blood_lotus_sympathizers_spreads = yes 
+			}
+			50 = {
+				modifier = {
+					factor = 0
+					all_owned_province = {
+						superregion = rahen_superregion
+						OR = {
+							culture_group = upper_raheni
+							culture_group = middle_raheni
+							culture_group = south_raheni
+							has_human_minority_trigger = yes
+						}
+						NOT = {
+							has_province_modifier = blood_lotus_sympathizers
+							has_province_modifier = blood_lotus_headquarter
+							has_province_modifier = blood_lotus_dissuaded_sympathizers
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
-country_event = { # The Great Revolt
+country_event = { #106 The Great Revolt
 	id = blood_lotus_rebellion.106
 	title = blood_lotus_rebellion.106.t
 	desc = blood_lotus_rebellion.106.d
@@ -1045,6 +1103,9 @@ country_event = { # The Great Revolt
 	is_triggered_only = yes
 	
 	trigger = { has_disaster = blood_lotus_rebellion }
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	option = {
 		name = blood_lotus_rebellion.106.a
@@ -1106,7 +1167,7 @@ country_event = { # The Great Revolt
 	}
 }
 
-country_event = { # A new center of rebellion
+country_event = { #107 A new center of rebellion
 	id = blood_lotus_rebellion.107
 	title = blood_lotus_rebellion.107.t
 	desc = blood_lotus_rebellion.107.d
@@ -1115,51 +1176,127 @@ country_event = { # A new center of rebellion
 	is_triggered_only = yes
 	hidden = yes
 	trigger = { NOT = { has_country_flag = blood_lotus_the_great_revolt } }
-	
-	option = { # If 2 HQs or less, spawn HQ
-		name = blood_lotus_rebellion.107.a
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 0
-				num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter }
-			}
-		}
-		blood_lotus_rebellion_spawns_headquarters = yes
+	mean_time_to_happen = {
+		days = 1
 	}
-	option = { # If 2 HQs or more, spread rebels 50% chance
+	option = {
 		name = blood_lotus_rebellion.107.b
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 0
-				NOT = { num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter } }
+		
+		random_list = { # If 2 HQs or less, spawn HQ
+			50 = {
+				modifier = {
+					factor = 0
+					num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter }
+				}
+				blood_lotus_rebellion_spawns_headquarters = yes
+			}
+			50 = { # If 2 HQs or more, spread rebels 50% chance
+				modifier = {
+					factor = 0
+					NOT = { num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter } }
+				}
+				blood_lotus_rebellion_spawns = yes
+			}
+			50 = { # If 2 HQs or more, spread hidden rebels 50% chance
+				modifier = {
+					factor = 0
+					NOT = { num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter } }
+				}
+				blood_lotus_rebellion_spawns_hidden = yes
 			}
 		}
-		blood_lotus_rebellion_spawns = yes
-	}
-	option = { # If 2 HQs or more, spread hidden rebels 50% chance
-		name = blood_lotus_rebellion.107.c
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 0
-				NOT = { num_of_owned_provinces_with = { value = 3 has_province_modifier = blood_lotus_headquarter } }
-			}
-		}
-		blood_lotus_rebellion_spawns_hidden = yes
 	}
 }
 
-# Random events (which all affect HardlineCounter):
+province_event = { #108 Inquiring about rebels found an HQ!
+	id = blood_lotus_rebellion.108
+	title = blood_lotus_rebellion.108.t
+	desc = blood_lotus_rebellion.108.d
+	picture = ANGRY_MOB_eventPicture
 
-country_event = { # 200 DONE
+	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
+	hidden = yes
+	
+	option = { # If 2 HQs or less, spawn HQ 5%
+		name = blood_lotus_rebellion.108.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter }
+			}
+		}
+		add_province_modifier = {
+			name = blood_lotus_headquarter
+			duration = -1
+		}
+		spawn_rebels = {
+			type = blood_lotus_rebel
+			size = 2
+			win = yes
+		}
+	}
+	option = { # If 2 HQs or less, spawn nothing 95%
+	name = blood_lotus_rebellion.108.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter }
+			}
+		}
+		# do nothing
+	}
+	option = { # If 2 HQs or more, nothing happens
+		name = blood_lotus_rebellion.108.b
+		ai_chance = {
+			factor = 1
+			modifier = {
+					factor = 0
+					NOT = { num_of_owned_provinces_with = { value = 2 has_province_modifier = blood_lotus_headquarter } }
+				}
+			}
+			# do nothing
+		}
+	}
+	
+country_event = { #109 Sympathisers spread
+	id = blood_lotus_rebellion.109
+	title = blood_lotus_rebellion.109.t
+	desc = blood_lotus_rebellion.109.d
+	picture = ANGRY_MOB_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	trigger = { NOT = { has_country_flag = blood_lotus_the_great_revolt } }
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	option = { 
+		name = blood_lotus_rebellion.109.a
+		ai_chance = {
+			factor = 1
+		}
+		blood_lotus_sympathizers_spreads = yes
+	}
+}
+	
+	# Random events (which all affect HardlineCounter):
+	
+country_event = { # 200 DONE - One Time Economy
 	id = blood_lotus_rebellion.200
 	title = blood_lotus_rebellion.200.t
 	desc = blood_lotus_rebellion.200.d
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		NOT = { has_country_flag = blood_lotus_economy }
@@ -1207,6 +1344,9 @@ country_event = { # 201 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		NOT = { has_country_flag = blood_lotus_military }
@@ -1254,6 +1394,9 @@ country_event = { # 202 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1314,6 +1457,9 @@ country_event = { # 203 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1369,6 +1515,9 @@ country_event = { # 204 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1406,11 +1555,11 @@ country_event = { # 204 DONE
 		
 		event_target:target_province = {
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 		}
@@ -1424,6 +1573,9 @@ country_event = { # 205 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1478,6 +1630,9 @@ country_event = { # 206 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1541,6 +1696,9 @@ country_event = { # 207 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		any_owned_province = {
@@ -1600,6 +1758,9 @@ country_event = { # 208 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1663,6 +1824,9 @@ country_event = { # 209 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		caste_fluidity_is_fluid = yes
@@ -1699,21 +1863,21 @@ country_event = { # 209 DONE
 		add_stability = -1
 		random_owned_province = {
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 		}
 		random_owned_province = {
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 			spawn_rebels = {
-				type = blood_lotus_rebel # THIS SHOULD BE HARIMARI HARDLINE REBELS ?
+				type = harimari_hardliners
 				size = 2
 			}
 		}
@@ -1727,6 +1891,9 @@ country_event = { # 210 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1755,6 +1922,9 @@ country_event = { # 211 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1783,6 +1953,9 @@ country_event = { # 212 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1846,6 +2019,9 @@ country_event = { # 213 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1898,6 +2074,9 @@ country_event = { # 214 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1926,6 +2105,9 @@ country_event = { # 215 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1954,6 +2136,9 @@ country_event = { # 216 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -1982,6 +2167,9 @@ country_event = { # 217 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2010,6 +2198,9 @@ country_event = { # 218 DENIED
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2047,6 +2238,9 @@ country_event = { # 219 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2111,6 +2305,9 @@ country_event = { # 220 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2154,6 +2351,9 @@ country_event = { # 221 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2231,6 +2431,9 @@ country_event = { # 223 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		any_neighbor_country = {
@@ -2303,6 +2506,9 @@ country_event = { # 224 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2410,6 +2616,9 @@ country_event = { # 225 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2487,6 +2696,9 @@ country_event = { # 226 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		NOT = { has_country_flag = blood_lotus_pessimism }
@@ -2531,6 +2743,9 @@ country_event = { # 227 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		any_owned_province = {
@@ -2597,6 +2812,9 @@ country_event = { # 228 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	hidden = yes
 	
@@ -2622,6 +2840,9 @@ country_event = { # 229 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2718,6 +2939,9 @@ country_event = { # 230 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2939,6 +3163,9 @@ country_event = { # 234 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
@@ -2993,6 +3220,9 @@ country_event = { # 235 DONE
 	picture = EMPTY_eventPicture
 	
 	is_triggered_only = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	trigger = {
 		always = yes
