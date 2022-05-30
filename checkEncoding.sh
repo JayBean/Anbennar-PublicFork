@@ -3,6 +3,8 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 set -o noclobber
 
@@ -113,22 +115,66 @@ function validate_decisions(){
 	fi
 }
 
+function validate_indentation(){
+	echo "--------------------------------------------------------------------------------------------------------------------------------"
+	
+	declare -i GOOD=0
+	declare -i BAD=0
+	declare -i TOTAL=0
+	
+	for f in ./*/*.txt
+	do
+		LEFT=$(grep -o '{' "$f" | wc -l)
+		RIGHT=$(grep -o '}' "$f" | wc -l)
+		TOTAL+=1
+		
+		if [ $LEFT != $RIGHT ]; then
+			echo "${f}"
+			echo -e "${BLUE}${LEFT}${NC}/${CYAN}${RIGHT}${NC} ${RED}Broken syntax, inequal number of brackets.${NC}\n"
+			BAD+=1
+		else
+			GOOD+=1
+		fi
+	done
+	for f in ./common/*/*.txt
+	do
+		LEFT=$(grep -o '{' "$f" | wc -l)
+		RIGHT=$(grep -o '}' "$f" | wc -l)
+		TOTAL+=1
+		
+		if [ $LEFT != $RIGHT ]; then
+			echo "${f}"
+			echo -e "${BLUE}${LEFT}${NC}/${CYAN}${RIGHT}${NC} ${RED}Broken syntax, inequal number of brackets.${NC}\n"
+			BAD+=1
+		else
+			GOOD+=1
+		fi
+	done
+	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN} files syntax validated.${NC}\n"
+	if [[ $BAD > 0 ]]; then
+		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED} files syntax are wrong!${NC}\n"
+		exit 1
+	fi
+}
+
 function help_function()
 {
    echo ""
-   echo "Usage: $0 -e -l -d"
+   echo "Usage: $0 -e -l -d -u"
    echo -e "\t-e Check events folder files encoding"
    echo -e "\t-l Check localization folder files encoding"
    echo -e "\t-d Check decisions folder files encoding"
+   echo -e "\t-i Check text file for broken indentation"
    exit 1
 }
 
-while getopts "eld" opt
+while getopts "eldi" opt
 do
 	case "$opt" in
 		e ) validate_events ;;
 		l ) validate_localization ;;
 		d ) validate_decisions ;;
+		i ) validate_indentation ;;
 		: ) help_function ;;
 		\? ) help_function ;;
 	esac
