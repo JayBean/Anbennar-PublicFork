@@ -49,6 +49,11 @@ function validate_events(){
 			# echo -e "${YELLOW}{$f} encoding is in european ascii!${NC}"
 			GOOD+=1
 			NEUTRAL+=1
+		elif [ "$(file -b --mime-encoding "$f")" = unknown-8bit ]; then
+			echo -e "${YELLOW}{$f} encoding is unknown!${NC}"
+			file -i $f
+			GOOD+=1
+			NEUTRAL+=1
 		else
 			echo -e "${RED}{$f} encoding is wrong!${NC}"
 			file -i $f
@@ -59,10 +64,10 @@ function validate_events(){
 	
 	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}event files encoding validated.${NC}\n"
 	if [[ $NEUTRAL > 0 ]]; then
-		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}event files encoding are in european ascii.${NC}\n"
+		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}event files encoding are in european ascii or unknown.${NC}\n"
 	fi
 	if [[ $BAD > 0 ]]; then
-		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}event files have a wrong or unknown encoding!${NC}\n"
+		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}event files have a wrong encoding!${NC}\n"
 		exit 1
 	fi
 }
@@ -81,7 +86,13 @@ function validate_decisions(){
 			# echo -e "${GREEN}{$f} encoding is good.${NC}"
 			GOOD+=1
 		elif [ "$(file -b --mime-encoding "$f")" = iso-8859-1 ]; then
-			# echo -e "${YELLOW}{$f} encoding is in european ascii!${NC}"
+			echo -e "${YELLOW}{$f} encoding is in european ascii!${NC}"
+			file -i $f
+			GOOD+=1
+			NEUTRAL+=1
+		elif [ "$(file -b --mime-encoding "$f")" = unknown-8bit ]; then
+			echo -e "${YELLOW}{$f} encoding is unknown!${NC}"
+			file -i $f
 			GOOD+=1
 			NEUTRAL+=1
 		else
@@ -94,10 +105,10 @@ function validate_decisions(){
 	
 	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}decision files encoding validated.${NC}\n"
 	if [[ $NEUTRAL > 0 ]]; then
-		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}decision files encoding are in european ascii.${NC}\n"
+		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}decision files encoding are in european ascii or unknown.${NC}\n"
 	fi
 	if [[ $BAD > 0 ]]; then
-		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}decision files have a wrong or unknown encoding!${NC}\n"
+		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}decision files have a wrong encoding!${NC}\n"
 		exit 1
 	fi
 }
