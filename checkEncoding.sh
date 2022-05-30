@@ -25,7 +25,7 @@ function validate_localization(){
 		fi
 		  TOTAL+=1
 	done
-	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} localization files encoding validated.\n"
+	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}localization files encoding validated.${NC}\n"
 	if [[ $BAD > 0 ]]; then
 		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}decicion files have a wrong or unknown encoding!${NC}\n"
 		exit 1
@@ -86,8 +86,8 @@ function validate_decisions(){
 			# echo -e "${GREEN}{$f} encoding is good.${NC}"
 			GOOD+=1
 		elif [ "$(file -b --mime-encoding "$f")" = iso-8859-1 ]; then
-			echo -e "${YELLOW}{$f} encoding is in european ascii!${NC}"
-			file -i $f
+			# echo -e "${YELLOW}{$f} encoding is in european ascii!${NC}"
+			# file -i $f
 			GOOD+=1
 			NEUTRAL+=1
 		elif [ "$(file -b --mime-encoding "$f")" = unknown-8bit ]; then
