@@ -104,6 +104,15 @@ country_event = {
 			rahen_calc_reform_ministry_of_foreign_relations = yes
 			
 			set_variable = { which = raj_deved_farmlands value = 0 }
+			
+			if = { limit = { ai = yes }
+				if = { limit = { any_subject_country = { ai = no } }
+					add_country_modifier = { name = raj_manavas_influence duration = 9125 }
+				}
+				else = {
+					add_country_modifier = { name = raj_manavas_influence duration = 5475 }
+				}
+			}
 		}
 	}
 
@@ -1087,12 +1096,8 @@ country_event = { #New suspicious ministry estate
 	picture = KING_SICK_IN_BED_eventPicture
 
 	is_triggered_only = yes
-
-	option = {
-		ai_chance = { factor = 1 }
-		name = rahenraj.102.a
-
-		custom_tooltip = rahen_new_suspicious_ministry_estate_tt
+	
+	immediate = {
 		hidden_effect = {
 			random_list = {
 				1 = {
@@ -1102,6 +1107,7 @@ country_event = { #New suspicious ministry estate
 							name = rahen_suspicious_ministry_estate
 							duration = -1
 						}
+						save_event_target_as = target_province
 					}
 				}
 				4 = {
@@ -1113,11 +1119,20 @@ country_event = { #New suspicious ministry estate
 								name = rahen_suspicious_ministry_estate
 								duration = -1
 							}
+							save_event_target_as = target_province
 						}
 					}
 				}
 			}
 		}
+	}
+
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.102.a
+		goto = target_province
+		custom_tooltip = rahen_new_suspicious_ministry_estate_tt
+
 	}
 }
 country_event = { #Crumbling Infrastructure
@@ -1125,17 +1140,14 @@ country_event = { #Crumbling Infrastructure
 	title = rahenraj.103.t
 	desc = rahenraj.103.d
 	picture = KING_SICK_IN_BED_eventPicture
+	goto = target_province
 
 	is_triggered_only = yes
 	trigger = {
 		4411 = { has_province_modifier = rahen_corrupt_ministery_of_agriculture }
 	}
-
-	option = {
-		ai_chance = { factor = 1 }
-		name = rahenraj.103.a
-
-		custom_tooltip = rahen_crumbling_infastructure_tt
+	
+	immediate = {
 		hidden_effect = {
 			random_list = {
 				1 = {
@@ -1162,6 +1174,7 @@ country_event = { #Crumbling Infrastructure
 								duration = -1
 							}
 						}
+						save_event_target_as = target_province
 					}
 				}
 				4 = {
@@ -1189,9 +1202,42 @@ country_event = { #Crumbling Infrastructure
 									duration = -1
 								}
 							}
+							save_event_target_as = target_province
 						}
 					}
 				}
+			}
+		}
+	}
+
+	option = {
+		ai_chance = { factor = 1 }
+		name = rahenraj.103.a
+		tooltip = {
+			event_target:target_province = {
+				if = {
+					limit = { has_province_modifier = rahen_severely_neglected_infrastructure }
+					random_list = {
+						1 = { add_base_tax = -1 }
+						1 = { add_base_production = -1 }
+						1 = { add_base_manpower = -1 }
+					}
+				}
+				else_if = {
+					limit = { has_province_modifier = rahen_neglected_infrastructure }
+					remove_province_modifier = rahen_neglected_infrastructure
+					add_permanent_province_modifier = {
+						name = rahen_severely_neglected_infrastructure
+						duration = -1
+					}
+				}
+				else = {
+					add_permanent_province_modifier = {
+						name = rahen_neglected_infrastructure
+						duration = -1
+					}
+				}
+				save_event_target_as = target_province
 			}
 		}
 	}
@@ -1480,7 +1526,7 @@ country_event = { #Investigation meets resistance
 		add_estate_influence_modifier = {
 			estate = estate_raj_ministries
 			desc = EST_VAL_PERSONAL_ESTATES_INVESTIGATED
-			influence = -2
+			influence = -3
 			duration = 3650
 		}
 		4411 = { change_variable = { which = rahen_court_case_strength value = 1 } }
@@ -3000,8 +3046,13 @@ country_event = {
 	title = rahenraj.1003.t
 	desc = rahenraj.1003.d
 	picture = COURT_eventPicture
+	goto = target_province
 
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = { FROM = { capital_scope = { save_event_target_as = target_province } } }
+	}
 
 	option = {
 		name = rahenraj.1003.a
@@ -4268,10 +4319,6 @@ country_event = { #Someone seems to be sabotaging the Raj!
 	picture = COURT_eventPicture
 
 	is_triggered_only = yes
-	
-	immediate = {
-		hidden_effect = { raj_cohesion_change_absolute = { amount = -1 } }
-	}
 
 	option = { #Oh no!
 		name = rahenraj.1105.a
@@ -4301,10 +4348,13 @@ country_event = { #Someone seems to be sabotaging the Raj! hidden version
 	
 	hidden = yes
 
-	option = { #Oh no!
+	option = {
 		name = rahenraj.1105.a
 		ai_chance = { factor = 1 }
 		raj_cohesion_change_absolute = { amount = -1 }
+		if = { limit = { NOT = { has_country_flag = raj_hidden_sabotage_events } }
+			country_event = { id = rahenraj.1105 }
+		}
 	}
 }
 
@@ -4486,14 +4536,7 @@ country_event = { #ai raj subjects to get spy network on raja
 			}
 		}
 
-		overlord = {
-			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
-				country_event = { id = rahenraj.1106 days = 1 random = 180 }
-			}
-			else = {
-				country_event = { id = rahenraj.1105 days = 1 random = 180 }
-			}
-		}
+		overlord = { country_event = { id = rahenraj.1106 days = 1 random = 180 } }
 	}
 }
 
@@ -4711,6 +4754,15 @@ country_event = {
 
 	major_trigger = {
 		overlord = { has_reform = raja_reform }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_subject_country = {
+				limit = { has_country_flag = raj_vizier }
+				save_event_target_as = new_vizier
+			}
+		}
 	}
 
 	option = {
@@ -5843,12 +5895,7 @@ country_event = {
 		tooltip = { raj_cohesion_change_absolute = { amount = -1 } }
 		overlord = {
 			add_spy_network_from = { who = ROOT value = -30 }
-			if = { limit = { has_country_flag = raj_hidden_sabotage_events }
-				country_event = { id = rahenraj.1106 }
-			}
-			else = {
-				country_event = { id = rahenraj.1105 }
-			}
+			country_event = { id = rahenraj.1106 }
 		}
 		hidden_effect = { country_event = { id = rahenraj.3001 } }
 	}
@@ -6494,7 +6541,7 @@ country_event = {
 		custom_tooltip = raj_separator_tt
 		tooltip = {
 			raj_cohesion_change_absolute = { amount = -10 }
-			add_dip_power = 50
+			add_dip_power = -50
 			add_country_modifier = { name = raj_new_tax_policies duration = 3650 }
 		}
 		hidden_effect = { country_event = { id = rahenraj.3008 } }
