@@ -1852,6 +1852,7 @@ begin_temple_restoration = {	#The province event removes temple_restoration_effo
 			else = {
 				add_treasury = -100
 			}
+			set_country_flag = currently_restoring_temple
 		}
 	}
 	if = {
@@ -1890,6 +1891,7 @@ begin_temple_restoration = {	#The province event removes temple_restoration_effo
 			else = {
 				add_treasury = -500
 			}
+			set_country_flag = currently_restoring_temple
 		}
 	}
 }
@@ -1905,7 +1907,6 @@ end_temple_quest = {
 	clr_country_flag = party_leader_is_diviner
 	clr_country_flag = party_leader_is_necromancer
 	clr_country_flag = temple_quest_ongoing
-	event_target:temple_quest_target = { remove_province_triggered_modifier = spirits_quest_day_counter }
 	event_target:temple_quest_target = { clr_province_flag = temple_being_quested }
 	add_country_modifier = {
 		name = temple_quest_cooldown
@@ -2108,17 +2109,24 @@ define_temple_to_summon = {
 				has_active_triggered_province_modifier = corrupted_temple_complex
 				has_province_modifier = lhp_summon_same_temple
 			}
-			random_owned_province = {
-				limit = { has_active_triggered_province_modifier = corrupted_temple_complex has_province_modifier = lhp_summon_same_temple }
-				set_province_flag = option_summon_1_@ROOT
-				set_province_flag = summon_@ROOT
-				save_event_target_as = summon1
+		}
+		random_owned_province = {
+			limit = {
+				has_active_triggered_province_modifier = corrupted_temple_complex
+				has_province_modifier = lhp_summon_same_temple
 			}
+			set_province_flag = option_summon_1_@ROOT
+			set_province_flag = summon_@ROOT
+			save_event_target_as = summon1
 		}
 	}
 	else = {
 		random_owned_province = {
-			limit = { OR = { has_active_triggered_province_modifier = corrupted_temple_complex } NOT = { has_province_flag = summon_@ROOT } is_core = ROOT }
+			limit = {
+				has_active_triggered_province_modifier = corrupted_temple_complex
+				NOT = { has_province_flag = summon_@ROOT }
+				is_core = ROOT
+			}
 			set_province_flag = option_summon_1_@ROOT
 			set_province_flag = summon_@ROOT
 			save_event_target_as = summon1
@@ -2175,6 +2183,61 @@ begin_temple_corruption = { # province scope
 		}
 		add_province_modifier = { name = azjakuma_rite_of_corruption duration = 1825 }
 	}
+	if = {
+		limit = {
+			owner = {
+				num_of_owned_provinces_with = {
+					value = 25
+					has_province_modifier = corrupted_temple_complex
+				}
+			}
+		}
+		custom_tooltip = spirits_temple_corrupted_40_ae_warning_tooltip
+	}
+	else_if = {
+		limit = {
+			owner = {
+				num_of_owned_provinces_with = {
+					value = 20
+					has_province_modifier = corrupted_temple_complex
+				}
+			}
+		}
+		custom_tooltip = spirits_temple_corrupted_30_ae_warning_tooltip
+	}
+	else_if = {
+		limit = {
+			owner = {
+				num_of_owned_provinces_with = {
+					value = 10
+					has_province_modifier = corrupted_temple_complex
+				}
+			}
+		}
+		custom_tooltip = spirits_temple_corrupted_20_ae_warning_tooltip
+	}
+	else_if = {
+		limit = {
+			owner = {
+				num_of_owned_provinces_with = {
+					value = 5
+					has_province_modifier = corrupted_temple_complex
+				}
+			}
+		}
+		custom_tooltip = spirits_temple_corrupted_15_ae_warning_tooltip
+	}
+	else_if = {
+		limit = {
+			owner = {
+				num_of_owned_provinces_with = {
+					value = 0
+					has_province_modifier = corrupted_temple_complex
+				}
+			}
+		}
+		custom_tooltip = spirits_temple_corrupted_10_ae_warning_tooltip
+	}
 	hidden_effect = { province_event = { id = spirits.603 days = 1824 } } # Completion of temple corruption
 }
 
@@ -2203,8 +2266,8 @@ lefthand_spirit_bind_effect = {	#Province scope
 					owner = { has_country_modifier = corrupted_heart_drain_cooldown }
 				}
 			}
-			save_event_target_as = corrupted_temple_drain_target
-			owner = { country_event = { id = spirits.606 } }	#Drain Menu
+			# save_event_target_as = corrupted_temple_drain_target
+			owner = { country_event = { id = spirits.607 } }	#Drain Menu
 		}
 	}
 }
@@ -2337,35 +2400,7 @@ start_plundering_temple = {	#Sets to Derelict if not already Derelict/Ruined, ch
 	}
 }
 
-lhp_heart_drain_choose_option_shallower = {
-	hidden_effect = {
-		clr_country_flag = in_heart_drain_menu
-		event_target:corrupted_temple_drain_target = {
-			set_variable = { which = CorruptedHeartMana value = 0 }
-		}
-		if = {
-			limit = {
-				NOT = { has_country_flag = remove_temple_corruption_cooldown }
-			}
-			add_country_modifier = { #Cooldown for balance concerns
-				name = corrupted_heart_drain_cooldown
-				duration = 1825
-				hidden = yes
-			}
-			country_event = { id = spirits.607 days = 1826 } 	#Check if you have any full Hearts after cooldown is up
-		}
-		else_if = {
-			limit = {
-				limit = {
-					has_country_flag = remove_temple_corruption_cooldown
-				}
-			}
-			country_event = { id = spirits.607 days = 30 } 	#Check if you have any full Hearts in a month
-		}
-	}
-}
-
-lhp_heart_drain_choose_option_deeper = {
+lhp_heart_drain_choose_option = {
 	hidden_effect = {
 		clr_country_flag = in_heart_drain_menu
 		clr_country_flag = in_deeper_heart_drain_menu
@@ -2385,9 +2420,7 @@ lhp_heart_drain_choose_option_deeper = {
 		}
 		else_if = {
 			limit = {
-				limit = {
-					has_country_flag = remove_temple_corruption_cooldown
-				}
+				has_country_flag = remove_temple_corruption_cooldown
 			}
 			country_event = { id = spirits.607 days = 30 } 	#Check if you have any full Hearts in a month
 		}
