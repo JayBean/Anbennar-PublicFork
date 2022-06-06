@@ -123,17 +123,15 @@ command_xiadao_3 = {
 		provinces_to_highlight = {
 			NOT = { controlled_by = ROOT }
 			region = xianjie_region
-			fort_level = 1
 		}
 		
 		trigger = {
 			calc_true_if = {
 				xianjie_region = {
 					type = all
-					fort_level = 1
 					controlled_by = ROOT
 				}
-				amount = 8
+				amount = 20
 			}
 		}
 		
@@ -1917,7 +1915,6 @@ command_telebei_4 = {
 			}
 			add_treasury = 250
 			add_mil_power = 50
-			#! ?
 		}
 	}
 }
@@ -2244,8 +2241,8 @@ command_baihon_xinh_3 = {
 				5429 = { war_with = ROOT }
 				controls = 4701 #Cây Cam Sinh
 				4701 = { war_with = ROOT }
-				controls = 4679 #Pralung
-				4679 = { war_with = ROOT }
+				controls = 4697 #Pralung
+				4697 = { war_with = ROOT }
 			}
 			
 		}
@@ -2256,7 +2253,7 @@ command_baihon_xinh_3 = {
 				province_id = 4764 #Ma Hoang
 				province_id = 5429 #Kheanupho
 				province_id = 4701 #Cây Cam Sinh
-				province_id = 4679 #Pralung
+				province_id = 4697 #Pralung
 			}
 		}
 		
@@ -2279,7 +2276,7 @@ command_baihon_xinh_3 = {
 				owns_or_subject_of = 4764 #Ma Hoang
 				owns_or_subject_of = 5429 #Kheanupho
 				owns_or_subject_of = 4701 #Cây Cam Sinh
-				owns_or_subject_of = 4679 #Pralung
+				owns_or_subject_of = 4697 #Pralung
 			}
 		}
 		
@@ -2300,7 +2297,7 @@ command_baihon_xinh_3 = {
 			owns_or_subject_of = 4764 #Ma Hoang
 			owns_or_subject_of = 5429 #Kheanupho
 			owns_or_subject_of = 4701 #Cây Cam Sinh
-			owns_or_subject_of = 4679 #Pralung
+			owns_or_subject_of = 4697 #Pralung
 		}
 		
 		effect = {
@@ -4028,7 +4025,7 @@ command_jiantsiang_2 = {
 				change_religion = ROOT
 			}
 			add_estate_loyalty = {
-				estate = dragon_command
+				estate = estate_dragon_command
 				loyalty = 5
 			}
 		}
@@ -4894,11 +4891,30 @@ command_1 = {
 		}
 		
 		trigger = {
-			#! Have the "Laws of Ninun" edict in a province with large half-orc minorities
+			any_owned_province = {
+				has_state_edict = laws_of_ninun_edict
+				OR = {
+					has_human_majority_trigger = yes
+					has_orcish_majority_trigger = yes
+				}
+				has_large_half_orcish_minority_trigger = yes
+			}
 		}
 		
 		effect = {
-			#! One applicable province switches to Wuhyun Half-Orc. Wuhyun Half-Orc culture can now appear
+			random_owned_province = {
+				limit = {
+					has_state_edict = laws_of_ninun_edict
+					OR = {
+						has_human_majority_trigger = yes
+						has_orcish_majority_trigger = yes
+					}
+					has_large_half_orcish_minority_trigger = yes
+				}
+				change_culture = wuhyun_half_orc
+			}
+			custom_tooltip = R62_honourable_half_orcs_effect_tt
+			set_country_flag = R62_honourable_half_orcs_flag
 		}
 	}
 	
@@ -5107,7 +5123,12 @@ command_2 = {
 		}
 		
 		effect = {
-			add_yearly_manpower = 1
+			# add_yearly_manpower = 1
+			custom_tooltip = R62_supply_the_kikunin_effect_tt
+			set_country_flag = R62_supply_the_kikunin_flag
+			4630 = { add_province_triggered_modifier = command_wolf_army_maintenance }
+			4538 = { add_province_triggered_modifier = command_boar_army_maintenance }
+			4635 = { add_province_triggered_modifier = command_lion_army_maintenance }
 		}
 	}
 	
@@ -5352,7 +5373,7 @@ command_2 = {
 		}
 		
 		trigger = {
-			army_tradition = 100
+			army_tradition = 90
 			army_professionalism = 1
 			has_global_modifier_value = {
                 which = discipline
@@ -5990,14 +6011,17 @@ command_3 = {
 		
 		trigger = {
 			owns_core_province = 4504 #Rayavhatimana
-			crown_land_share = 50
-			#! TODO check if you can complete all three command missions at the same time
+			# crown_land_share = 50
 			OR = {
 				has_estate_privilege = estate_wolf_command_act_of_division
 				has_estate_privilege = estate_lion_command_act_of_division
 				has_estate_privilege = estate_boar_command_act_of_division
 				has_estate_privilege = estate_dragon_command_act_of_division
 				has_estate_privilege = estate_elephant_command_act_of_division
+			}
+			custom_trigger_tooltip = {
+				tooltip = command_founding_new_command_trigger_tt
+				has_country_flag = command_founding_new_command_flag
 			}
 		}
 		
@@ -6013,6 +6037,7 @@ command_3 = {
 					}
 					hidden_effect = { add_province_triggered_modifier = command_tiger_management }
 				}
+				add_province_triggered_modifier = command_tiger_army_maintenance
 			}
 			custom_tooltip = "All provinces in Rahen, outside Shamakhad, gain the following:"
 			tooltip = {
@@ -6117,7 +6142,10 @@ command_3 = {
 		}
 		
 		provinces_to_highlight = {
-			NOT = { country_or_subject_holds = ROOT }
+			NOT = {
+				country_or_subject_holds = ROOT
+				province_is_on_an_island = yes
+			}
 			OR = {
 				superregion = rahen_superregion
 				superregion = yanshen_superregion
@@ -6128,15 +6156,24 @@ command_3 = {
 		trigger = {
 			rahen_superregion = {
 				type = all
-				country_or_subject_holds = ROOT
+				OR = {
+					province_is_on_an_island = yes
+					country_or_subject_holds = ROOT
+				}
 			}
 			yanshen_superregion = {
 				type = all
-				country_or_subject_holds = ROOT
+				OR = {
+					province_is_on_an_island = yes
+					country_or_subject_holds = ROOT
+				}
 			}
 			south_haless_superregion = {
 				type = all
-				country_or_subject_holds = ROOT
+				OR = {
+					province_is_on_an_island = yes
+					country_or_subject_holds = ROOT
+				}
 			}
 		}
 		
@@ -6170,6 +6207,7 @@ command_3 = {
 				yanshen_superregion = {
 					type = all
 					OR = {
+						province_is_on_an_island = yes
 						culture_is_human = no
 						culture_group = wuhyun
 					}
@@ -6177,6 +6215,7 @@ command_3 = {
 				rahen_superregion = {
 					type = all
 					OR = {
+						province_is_on_an_island = yes
 						culture_is_human = no
 						culture_group = wuhyun
 					}
@@ -6184,6 +6223,7 @@ command_3 = {
 				south_haless_superregion = {
 					type = all
 					OR = {
+						province_is_on_an_island = yes
 						culture_is_human = no
 						culture_group = wuhyun
 					}
@@ -6656,13 +6696,17 @@ command_4 = {
 		
 		trigger = {
 			owns_core_province = 4613 #Zhaoyun
-			crown_land_share = 50
+			# crown_land_share = 50
 			OR = {
 				has_estate_privilege = estate_wolf_command_act_of_division
 				has_estate_privilege = estate_lion_command_act_of_division
 				has_estate_privilege = estate_boar_command_act_of_division
 				has_estate_privilege = estate_dragon_command_act_of_division
 				has_estate_privilege = estate_tiger_command_act_of_division
+			}
+			custom_trigger_tooltip = {
+				tooltip = command_founding_new_command_trigger_tt
+				has_country_flag = command_founding_new_command_flag
 			}
 		}
 		
@@ -6678,6 +6722,7 @@ command_4 = {
 					}
 					hidden_effect = { add_province_triggered_modifier = command_elephant_management }
 				}
+				add_province_triggered_modifier = command_elephant_army_maintenance
 			}
 			custom_tooltip = "\nAll provinces in South Haless gain the following:"
 			tooltip = {
@@ -6957,7 +7002,7 @@ command_5 = {
 		}
 		
 		trigger = {
-			num_of_owned_provinces_with = {
+			num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
 				value = 20
 				OR = {
 					region = demon_hills_region
@@ -7125,13 +7170,17 @@ command_5 = {
 		
 		trigger = {
 			owns_core_province = 4952 #Chatzin
-			crown_land_share = 50
+			# crown_land_share = 50
 			OR = {
 				has_estate_privilege = estate_wolf_command_act_of_division
 				has_estate_privilege = estate_lion_command_act_of_division
 				has_estate_privilege = estate_boar_command_act_of_division
 				has_estate_privilege = estate_tiger_command_act_of_division
 				has_estate_privilege = estate_elephant_command_act_of_division
+			}
+			custom_trigger_tooltip = {
+				tooltip = command_founding_new_command_trigger_tt
+				has_country_flag = command_founding_new_command_flag
 			}
 		}
 		
@@ -7147,6 +7196,7 @@ command_5 = {
 					}
 					hidden_effect = { add_province_triggered_modifier = command_dragon_management }
 				}
+				add_province_triggered_modifier = command_dragon_army_maintenance
 			}
 			custom_tooltip = "\nAll provinces in Yanshen gain the following:"
 			tooltip = {
