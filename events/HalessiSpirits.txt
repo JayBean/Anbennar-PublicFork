@@ -145,6 +145,10 @@ province_event = {	#Handler event, determines which spirit event the country get
 				trigger = { owner = { NOT = { has_country_modifier = spirits_jade_rabbit_miracles } } }
 				owner = { country_event = { id = spirits.105 } } #Jade Rabbit Miracles
 			}
+			10 = {
+				trigger = { owner = { manpower_percentage = 0.33 } }
+				province_event = { id = spirits.106 } #Divine Abduction
+			}
 		}
 
 		ai_chance = {
@@ -225,15 +229,19 @@ province_event = {	#Handler event, determines which spirit event the country get
 		
 		random_list = {
 			10 = {
-				modifier = {
-					factor = 3
-					has_province_flag = pristine_wards
-				}
-				modifier = {
-					factor = 2
-					has_province_flag = damaged_wards
-				}
+				# modifier = { #what were these for? just because of the ancestor stuff?
+				# 	factor = 3
+				# 	has_province_flag = pristine_wards
+				# }
+				# modifier = {
+				# 	factor = 2
+				# 	has_province_flag = damaged_wards
+				# }
 				ROOT = { province_event = { id = spirits.201 } } #Soulswarm
+			}
+			10 = {
+				trigger = { garrison = 100 fort_level = 2 }
+				province_event = { id = spirits.230 }	#Walkers in the Mist
 			}
 			# 3 = { owner = { country_event = { id = spirits.202 } } } #Ancestor gives adm advice
 			# 3 = { owner = { country_event = { id = spirits.203 } } } #Ancestor gives dip advice
@@ -287,7 +295,8 @@ province_event = {	#Handler event, determines which spirit event the country get
 			factor = 100
 		}
 	}
-	
+	## Do not remove or use, these events were not made
+	#for use in the AW system
 	# option = { #Spirit Beasts - Spirits which typically take the form of abnormally large animals or mythical creatures, can communicate, cultivate chi, and interact with the real world to a greater degree than other spirits due to their power
 		# name = spirits.000.a
 		# trigger = { always = no }
@@ -346,7 +355,7 @@ province_event = {	#Handler event, determines which spirit event the country get
 				}
 				province_event = { id = spirits.403 } #Temple Falls into Disrepair
 			}
-			5 = {
+			1 = {
 				trigger = {
 					OR = {
 						has_province_modifier = temple_complex
@@ -358,7 +367,7 @@ province_event = {	#Handler event, determines which spirit event the country get
 		}
 
 		ai_chance = {
-			factor = 500	#We want the pulse to fire a temple event if it hits a temple complex
+			factor = 400	#We want the pulse to fire a temple event if it hits a temple complex
 		}
 	}
 }
@@ -1342,7 +1351,7 @@ province_event = { #Heart Discovery
 	
 	option = {	#Mine and sell it
         name = spirits.012.c
-		add_treasury = 5000
+		owner = { add_treasury = 5000 }
 		ruin_temple = yes
         ai_chance = {
 			factor = 10
@@ -1386,7 +1395,7 @@ province_event = { #Heart Discovery
 	
 	after = {	#Rumors Spread
 		hidden_effect = {
-			ROOT = {
+			owner = {
 				random_known_country = {
 					limit = {
 						NOT = {
@@ -1904,11 +1913,30 @@ country_event = { #Jade Rabbit Miracles
 	}
 	
 	option = { #Zamn
-		name = spirits.104.a
+		name = spirits.105.a
 		add_country_modifier = {
 			name = spirits_jade_rabbit_miracles #+10% manpower and morale recovery
 			duration = 7300
 		}
+	}
+}
+
+province_event = { #Divine Abduction
+	id = spirits.106
+	title = spirits.106.t
+	desc = spirits.106.d
+	picture = FOUNTAIN_OF_YOUTH_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = { #Zamn
+		name = spirits.106.a
+		owner = { add_yearly_manpower = -0.25 }
+		owner = { add_years_of_income = 0.05 }
 	}
 }
 
@@ -2414,6 +2442,27 @@ country_event = { #Ancestor badly tutors ruler - mil
 	}
 }
 
+province_event = { #Walkers in the Mist
+	id = spirits.230
+	title = spirits.230.t
+	desc = spirits.230.d
+	picture = PLAGUE_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	option = { #In death, they serve.
+		name = spirits.230.a
+		add_province_modifier = {
+			name = spirits_walkers_in_the_mist
+			duration = 3650
+		}
+	}
+}
 
 province_event = { #Philosophers Demand Restoration
 	id = spirits.401
@@ -2562,21 +2611,23 @@ province_event = { #Earthquake Strikes Temple
 	}
 	
 	immediate = {
-		if = {
-			limit = { has_province_modifier = temple_complex }
-			remove_province_modifier = temple_complex
+		hidden_effect = {
+			if = {
+				limit = { has_province_modifier = temple_complex }
+				remove_province_modifier = temple_complex
+			}
+			else = {
+				limit = { has_province_modifier = damaged_temple_complex }
+				remove_province_modifier = damaged_temple_complex
+			}
+			add_permanent_province_modifier = {
+				name = derelict_temple_complex
+				duration = -1
+			}
+			downgrade_temple_wards = yes
+			setup_temple_restoration_speed = yes
+			add_devastation = 40
 		}
-		else = {
-			limit = { has_province_modifier = damaged_temple_complex }
-			remove_province_modifier = damaged_temple_complex
-		}
-		add_permanent_province_modifier = {
-			name = derelict_temple_complex
-			duration = -1
-		}
-		downgrade_temple_wards = yes
-		setup_temple_restoration_speed = yes
-		add_devastation = 40
 	}
 	
 	option = { #Fund immediate restoration efforts
@@ -2585,6 +2636,23 @@ province_event = { #Earthquake Strikes Temple
 			owner = { NOT = { has_country_flag = currently_restoring_temple } }
 		}
 		begin_temple_restoration = yes
+		tooltip = {
+			if = {
+				limit = { has_province_modifier = temple_complex }
+				remove_province_modifier = temple_complex
+			}
+			else = {
+				limit = { has_province_modifier = damaged_temple_complex }
+				remove_province_modifier = damaged_temple_complex
+			}
+			add_permanent_province_modifier = {
+				name = derelict_temple_complex
+				duration = -1
+			}
+			downgrade_temple_wards = yes
+			setup_temple_restoration_speed = yes
+			add_devastation = 40
+		}
 		ai_chance = {
 			factor = 10
 			modifier = {
@@ -2600,7 +2668,26 @@ province_event = { #Earthquake Strikes Temple
 			add_treasury = -50
 			add_adm_power = -25
 		}
-		add_devastation = -25
+		hidden_effect = {
+			add_devastation = -25
+		}
+		tooltip = {
+			if = {
+				limit = { has_province_modifier = temple_complex }
+				remove_province_modifier = temple_complex
+			}
+			else = {
+				limit = { has_province_modifier = damaged_temple_complex }
+				remove_province_modifier = damaged_temple_complex
+			}
+			add_permanent_province_modifier = {
+				name = derelict_temple_complex
+				duration = -1
+			}
+			downgrade_temple_wards = yes
+			setup_temple_restoration_speed = yes
+			add_devastation = 15
+		}
 		ai_chance = {
 			factor = 10
 			modifier = {
@@ -2676,10 +2763,6 @@ country_event = { #Temple Quest Pulse
 					which = DaysSinceTempleEntryVar
 					value = 1
 				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
-				}
 			}
 		}
 		else_if = { limit = { any_owned_province = { has_province_modifier = temple_heart_trail } }
@@ -2692,10 +2775,6 @@ country_event = { #Temple Quest Pulse
 				set_variable = {
 					which = DaysSinceTempleEntryVar
 					value = 1
-				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
 				}
 			}
 		}
@@ -2714,10 +2793,6 @@ country_event = { #Temple Quest Pulse
 				set_variable = {
 					which = DaysSinceTempleEntryVar
 					value = 1
-				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
 				}
 			}
 		}
@@ -2743,10 +2818,6 @@ country_event = { #Temple Quest Pulse
 					which = DaysSinceTempleEntryVar
 					value = 1
 				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
-				}
 			}
 		}
 		else_if = { limit = { any_owned_province = { has_province_modifier = temple_heart_trail } }
@@ -2759,10 +2830,6 @@ country_event = { #Temple Quest Pulse
 				set_variable = {
 					which = DaysSinceTempleEntryVar
 					value = 1
-				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
 				}
 			}
 		}
@@ -2781,10 +2848,6 @@ country_event = { #Temple Quest Pulse
 				set_variable = {
 					which = DaysSinceTempleEntryVar
 					value = 1
-				}
-				if = {
-					limit = { owner = { ai = no } }
-					add_province_triggered_modifier = spirits_quest_day_counter
 				}
 			}
 		}
@@ -6722,8 +6785,17 @@ country_event = {	#Draining the Heart
 	
 	option = {	#Empower a War Wizard
 		name = spirits.606.c
+		trigger = { NOT = { has_country_modifier = spirits_war_wizard_cooldown } }
 		create_war_wizard_effect = yes
 		lhp_heart_drain_choose_option = yes
+		custom_tooltip = spirits_war_wizard_cooldown_tooltip
+		hidden_effect = {
+			add_country_modifier = {
+				name = spirits_war_wizard_cooldown
+				duration = 18250 #50 years
+				hidden = yes
+			}
+		}
 	}
 	
 	option = {	#Empower Prominent Court Sorcerer
@@ -6872,7 +6944,7 @@ country_event = {	#Check to see if any corrupted hearts are ready to drain
 			}
 			save_event_target_as = corrupted_temple_drain_target
 		}
-		country_event = { id = spirits.606 }
+		country_event = { id = spirits.606 days = 1 }
 	}
 }
 	
@@ -7681,7 +7753,7 @@ province_event = { #spirit summoning
 
 	option = {
 		name = spirits.626.b
-		custom_tooltip = spirits_summon_minor
+		custom_tooltip = spirits_summon_minor_tooltip
 		owner = { add_church_power = -5 }
 		hidden_effect = {
 			event_target:summonTarget = {
@@ -7754,21 +7826,21 @@ province_event = { #spirit summoning
 
 	desc = {
 		trigger = {
-			owner = { has_country_flag = minor_spirit_bound }
+			event_target:summonTarget = { has_province_flag = minor_spirit_bound }
 		}
 		desc = spirits.627.da
 	}
 	
 	desc = {
 		trigger = {
-			owner = { has_country_flag = spirit_bound }
+			event_target:summonTarget = { has_province_flag = spirit_bound }
 		}
 		desc = spirits.627.db
 	}
 	
 	desc = {
 		trigger = {
-			owner = { has_country_flag = powerful_spirit_bound }
+			event_target:summonTarget = { has_province_flag = powerful_spirit_bound }
 		}
 		desc = spirits.627.dc
 	}
