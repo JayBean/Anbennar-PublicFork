@@ -1,0 +1,426 @@
+namespace = nativebuyout
+
+#Buy your capital province from the natives
+country_event = {
+	id = nativebuyout.1
+	title = nativebuyout.1.t
+	desc = {
+		trigger = {
+			NOT = {
+				event_target:nativebuy_prov = { province_id = 1036 }
+			}
+		}
+	   desc = nativebuyout.1.desc1
+	}
+	desc = {
+		trigger = {
+			event_target:nativebuy_prov = { province_id = 1036 }
+		}
+	   desc = nativebuyout.1.desc2
+	}
+	picture = COLONIZATION_eventPicture
+	goto = nativebuy_prov2
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		event_target:nativebuy_prov = {
+			is_empty = no
+			owner = { culture_is_ruinborn = yes }
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:nativebuy_prov = { discover_country = ROOT }
+			event_target:nativebuy_prov = { save_event_target_as = nativebuy_prov2 } #amazingly this needs to be done for the goto to work, also this way other guys spawning don't switch the target around causing mass shenanigans
+			event_target:nativebuy_prov = { owner = { save_event_target_as = nativebuy_owner } }
+		}
+	}
+	
+	#A note on AI behaviour: the purpose of this event is to ensure the spawnable gets its province, so it will either pick one of the two buy options or the seize-by-force one (the latter is barred if the target prov is owned by a human player). The buy option will always be accepted by AI.
+	#Send them a generous offer
+	option = {
+		name = "nativebuyout.1.a"
+		ai_chance = {
+			factor = 100
+			
+			modifier = {
+				factor = 5
+				wants_to_increase_tolerance_ruinborn = yes
+			}
+		}
+		
+		add_treasury = -200
+		event_target:nativebuy_owner = { country_event = { id = nativebuyout.2 days = 1 } }
+		small_increase_of_ruinborn_tolerance_effect = yes
+	}
+	
+	#Scam them
+	option = {
+		name = "nativebuyout.1.b"
+		ai_chance = {
+			factor = 30
+			
+			modifier = {
+				factor = 5
+				wants_to_decrease_tolerance_ruinborn = yes
+			}
+			modifier = {
+				factor = 10
+				ruler_has_personality = greedy_personality
+			}
+		}
+		
+		set_country_flag = nativebuy_greedy
+		add_treasury = -20
+		event_target:nativebuy_owner = { country_event = { id = nativebuyout.2 days = 1 } }
+		small_decrease_of_ruinborn_tolerance_effect = yes
+	}
+	
+	#Just conquer it
+	option = {
+		name = "nativebuyout.1.c"
+		ai_chance = {
+			factor = 10
+			
+			modifier = {
+				factor = 5
+				wants_to_decrease_tolerance_ruinborn = yes
+			}
+			modifier = {
+				factor = 5
+				is_enemy = event_target:nativebuy_owner
+			}
+			modifier = {
+				factor = 10
+				ruler_has_personality = conqueror_personality
+			}
+		}
+		
+		hidden_effect = {
+			set_ai_personality = {
+				personality = ai_militarist
+				locked = no
+			}
+			if = {		#this IF bracket exists as a fallback if they're an OPM so they move away
+				limit = {
+					event_target:nativebuy_owner = {
+						ai = yes
+						NOT = { num_of_cities = 2 }
+						capital_scope = { has_empty_adjacent_province = yes }
+					}
+				}
+				event_target:nativebuy_owner = {
+					capital_scope = {
+						random_empty_neighbor_province = {
+							cede_province = event_target:nativebuy_owner
+							add_core = event_target:nativebuy_owner
+							change_culture = event_target:nativebuy_owner
+							change_religion = event_target:nativebuy_owner
+						}
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				event_target:nativebuy_owner = {	#if player-controlled, or if trapped, you simply get a core on them
+					ai = yes
+					OR = {
+						num_of_cities = 2
+						capital_scope = { has_empty_adjacent_province = yes }
+					}
+				}
+			}
+			event_target:nativebuy_prov2 = {
+				cede_province = ROOT
+				add_core = ROOT
+				change_culture = ROOT
+				change_religion = ROOT
+				add_devastation = 5
+			}
+			set_capital = event_target:nativebuy_prov2
+			hidden_effect = { event_target:nativebuy_owner = { country_event = { id = nativebuyout.5 days = 1 } } }
+		}
+		else = { event_target:nativebuy_prov2 = { add_core = ROOT } }
+		
+		large_decrease_of_ruinborn_tolerance_effect = yes
+	}
+	
+	#Leave it be
+	option = {
+		name = "nativebuyout.1.d"
+		ai_chance = { factor = 0 }
+	}
+}
+
+#Sell your land?
+country_event = {
+	id = nativebuyout.2
+	title = nativebuyout.2.t	
+	desc = {
+		trigger = {
+			NOT = {
+				FROM = { has_country_flag = nativebuy_greedy }
+			}
+		}
+	   desc = nativebuyout.2.d1
+	}
+	desc = {
+	   trigger = {
+			FROM = { has_country_flag = nativebuy_greedy }
+			NOT = { FROM = { tag = G96 } }
+		}
+	   desc = nativebuyout.2.d2
+	}
+	desc = {
+	   trigger = {
+			FROM = { has_country_flag = nativebuy_greedy }
+			FROM = { tag = G96 }
+		}
+	   desc = nativebuyout.2.d3
+	}
+	picture = COLONIZATION_eventPicture
+	goto = nativebuy_prov3
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		event_target:nativebuy_prov2 = { owned_by = ROOT }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:nativebuy_prov2 = { save_event_target_as = nativebuy_prov3 }
+			capital_scope = { random_empty_neighbor_province = { save_event_target_as = nativebuy_migration } }
+		}
+	}
+	
+	#Accept
+	option = {
+		name = "nativebuyout.2.a"
+		ai_chance = { factor = 100 }
+		
+		trigger = {
+			OR = {	#so you don't die
+				num_of_cities = 2
+				capital_scope = { has_empty_adjacent_province = yes }
+			}
+		}
+		
+		if = {
+			limit = {
+				NOT = { num_of_cities = 2 }
+			}
+			custom_tooltip = nativebuy_migrate_tt
+			hidden_effect = {
+				event_target:nativebuy_migration = {
+					cede_province = ROOT
+					add_core = ROOT
+					change_culture = ROOT
+					change_religion = ROOT
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				FROM = { has_country_flag = nativebuy_greedy }
+			}
+			add_treasury = 20
+		}
+		else = {
+			add_treasury = 200
+		}
+		add_adm_power = 15
+		add_dip_power = 15
+		add_mil_power = 15
+		event_target:nativebuy_prov3 = {
+			cede_province = FROM
+			remove_core = ROOT
+		}
+		
+		FROM = { country_event = { id = nativebuyout.3 days = 1 } }
+		
+		add_truce_with = FROM
+		
+		FROM = { clr_country_flag = nativebuy_greedy }
+	}
+	
+	#Refuse
+	option = {
+		name = "nativebuyout.2.b"
+		ai_chance = {
+			factor = 10
+			
+			modifier = { #ensures AI gets the province
+				factor = 0
+				FROM = { ai = yes }
+			}
+			modifier = { #halflings are good hagglers
+				factor = 0.1
+				FROM = {
+					ai = no
+					tag = G96
+				}
+			}
+			modifier = {
+				factor = 10
+				FROM = { ai = no }
+				FROM = { has_country_flag = nativebuy_greedy }
+			}
+			modifier = { #see through the ruse
+				factor = 100
+				FROM = { ai = no }
+				FROM = { has_country_flag = nativebuy_greedy }
+				ruler_has_personality = well_advised_personality
+			}
+			modifier = {
+				factor = 100
+				FROM = { ai = no }
+				ruler_has_personality = incorruptible_personality
+			}
+			modifier = {
+				factor = 100
+				FROM = { ai = no }
+				is_enemy = FROM
+			}
+		}
+		
+		hidden_effect = {
+			if = {
+				limit = { FROM = { has_country_flag = nativebuy_greedy } }
+				FROM = { add_treasury = 20 }
+			}
+			else = {
+				FROM = { add_treasury = 200 }
+			}
+		}
+		
+		FROM = { country_event = { id = nativebuyout.4 days = 1 } }
+		
+		FROM = { clr_country_flag = nativebuy_greedy }
+	}
+}
+
+#They accepted the buyout
+country_event = {
+	id = nativebuyout.3
+	title = nativebuyout.3.t
+	desc = {
+		trigger = {
+			NOT = {
+				event_target:nativebuy_prov3 = { province_id = 1036 }
+			}
+		}
+	   desc = nativebuyout.3.d1
+	}
+	desc = {
+		trigger = {
+			event_target:nativebuy_prov3 = { province_id = 1036 }
+		}
+	   desc = nativebuyout.3.d2
+	}
+	desc = nativebuyout.3.d
+	picture = COLONIZATION_eventPicture
+	goto = nativebuy_prov4
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { tag = FROM }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:nativebuy_prov3 = { save_event_target_as = nativebuy_prov4 }
+		}
+	}
+	
+	option = {
+		name = "nativebuyout.3.a"
+		ai_chance = { factor = 1 }
+		
+		event_target:nativebuy_prov4 = { add_core = ROOT }
+		if = {
+			limit = {
+				NOT = { event_target:nativebuy_prov4 = { province_id = 1036 } }
+			}
+			set_capital = event_target:nativebuy_prov4
+		}
+		event_target:nativebuy_prov4 = { change_culture = ROOT change_religion = ROOT }
+		add_truce_with = FROM
+	}
+}
+
+#They refused (human-only unless the rare case where a native is a trapped opm)
+country_event = {
+	id = nativebuyout.4
+	title = nativebuyout.4.t
+	desc = nativebuyout.4.d
+	picture = NATIVES_eventPicture
+	goto = nativebuy_prov4
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { tag = FROM }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:nativebuy_prov3 = { save_event_target_as = nativebuy_prov4 }
+		}
+	}
+	
+	#Oh well
+	option = {
+		name = "nativebuyout.4.a"
+		ai_chance = { factor = 0 }
+		
+		add_prestige = -10
+	}
+	
+	#We'll get it by force
+	option = {
+		name = "nativebuyout.4.b"
+		ai_chance = { factor = 1 }
+		
+		event_target:nativebuy_prov4 = { add_core = ROOT }
+		medium_decrease_of_ruinborn_tolerance_effect = yes
+	}
+}
+
+#The land was seized by force (ai only)
+country_event = {
+	id = nativebuyout.5
+	title = nativebuyout.5.t
+	desc = nativebuyout.5.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+	goto = nativebuy_prov3
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { tag = FROM }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			event_target:nativebuy_prov2 = { save_event_target_as = nativebuy_prov3 }
+		}
+	}
+	
+	option = {
+		name = "nativebuyout.5.a"
+		ai_chance = { factor = 100 }
+		
+		add_trust = {
+			who = FROM
+			value = -25
+			mutual = no
+		}
+	}
+}

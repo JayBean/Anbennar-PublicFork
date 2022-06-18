@@ -1,41 +1,33 @@
+
 update_artifice_points = {
 	if = {
-		limit = { has_estate = estate_artificers }
+		limit = {
+			OR = {
+				has_estate = estate_artificers
+				AND = {
+					# has_estate = estate_dragon_command
+					has_institution = manufactories
+				}
+			}
+		}
 		hidden_effect = {
 			set_variable = {
 				which = MaxArtificePoints
 				value = 0
 			}
-			#all of this doesn't need to be calcualted every time. If we ensured that everything that can effect artifice ponts adds or subtracts from the max when it happens, then I could make this much less performance intensive.
-			#that isn't set up currently, but I'll work on it in a seperate fork
-			#once it's done, we only need to to calculate province resources, innovativeness, estates, buildings, tech and institutions (thanks paradox for not including shit in on_actions). 
-			#So that at least removes racial admin/mils and religions
-			#man I'm gonna have to figure out how to optimize this shit
+			# If you're adding a modifier here make sure to also add it to the artifice localization (in artifice_l_english and anb_custom_artifice_localization) otherwise it will not show up in game
 
-			#some of these should be placed in the static variable
-		
-			#gov reforms
-			#gov reforms can be made to count as a technocracy by adding count_gov_as_technocracy to their effect and reset_gov_is_technocracy to their removed_effect
-			#magocracy is the same
+			#5 points for having a university, nothing more from universities please.
 			if = {
 				limit = {
-					has_government_attribute = is_technocracy
+					university = 1
 				}
 				change_variable = {
 					which = MaxArtificePoints
-					value = 10
+					value = 5
 				}
 			}
-			if = {
-				limit = {
-					has_government_attribute = is_magocracy
-				}
-				subtract_variable = {
-					which = MaxArtificePoints
-					value = 10
-				}
-			}
-		
+
 			#artificer admin/mil/religion
 			if = {
 				limit = {
@@ -52,9 +44,7 @@ update_artifice_points = {
 			}
 			else_if = {
 				limit = {
-					OR = {
-						has_country_modifier = dwarven_administration
-					}
+					has_country_modifier = dwarven_administration
 				}
 				change_variable = {
 					which = MaxArtificePoints
@@ -86,7 +76,7 @@ update_artifice_points = {
 					value = 3
 				}
 			}
-		
+
 			#trolls get a penalty because they are stupid. elves, harimari get a penalty because they are traditionalist. Emerald orcs because they hate technology
 			if = {
 				limit = {
@@ -102,7 +92,7 @@ update_artifice_points = {
 					value = 2
 				}
 			}
-		
+
 			if = {
 				limit = {
 					OR = {
@@ -117,7 +107,7 @@ update_artifice_points = {
 					value = 2
 				}
 			}
-		
+
 			#deepwoods fey hate tech
 			if = {
 				limit = {
@@ -131,7 +121,21 @@ update_artifice_points = {
 					value = 2
 				}
 			}
-		
+
+			# School of Starry Eye somewhat more supportive of artificery
+			if = {
+				limit = {
+					religious_school = {
+						group = raheni
+						school = starry_eye_school
+					}
+				}
+				change_variable = {
+					which = MaxArtificePoints
+					value = 1
+				}
+			}
+
 			#liches and witch kings have no need for artifice and are distrustful of the threat it represents to them
 			if = {
 				limit = {
@@ -154,7 +158,7 @@ update_artifice_points = {
 					value = 5
 				}
 			}
-		
+
 			#institutions
 			if = {
 				limit = {
@@ -180,11 +184,11 @@ update_artifice_points = {
 					value = 5
 				}
 			}
-		
+
 			#buildings
-		
+
 			#a gnome/goblin/kobold technocracy with industrialization embraced that follows the thought would have 16 points before anything else. Enough for a full set of basic inventions
-		
+
 			#estates
 			#+4 for every tier of artificer influence, -4 for every tier of mage influence.
 			# mages influence will reduce artificers influence and vice versa
@@ -227,17 +231,14 @@ update_artifice_points = {
 			}
 			else_if = {
 				limit = {
-					estate_influence = {
-						estate = estate_mages
-						influence = 0
-					}
+					has_estate = estate_mages
 				}
 				subtract_variable = {
 					which = MaxArtificePoints
 					value = 2
 				}
 			}
-		
+
 			if = {
 				limit = {
 					estate_influence = {
@@ -283,7 +284,7 @@ update_artifice_points = {
 					value = 2
 				}
 			}
-		
+
 			#innovativeness
 			if = {
 				limit = {
@@ -330,7 +331,7 @@ update_artifice_points = {
 					value = 1
 				}
 			}
-		
+
 			#damestear/coal/precursor relics. CNs don't get points from resources they own
 			set_variable = {
 				which = CoalArtificePoints
@@ -413,7 +414,7 @@ update_artifice_points = {
 					}
 				}
 			}
-		
+
 			#resources owned by CNs
 			if = {
 				limit = {
@@ -433,11 +434,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 5
+									value = 3
 								}
 								change_variable = {
 									which = DamestearArtificePoints
-									value = 5
+									value = 3
 								}
 							}
 						}
@@ -462,11 +463,11 @@ update_artifice_points = {
 							overlord = {
 								change_variable = {
 									which = MaxArtificePoints
-									value = 3
+									value = 5
 								}
 								change_variable = {
 									which = RelicsArtificePoints
-									value = 3
+									value = 5
 								}
 							}
 						}
@@ -502,13 +503,133 @@ update_artifice_points = {
 					}
 				}
 			}
-			
+
 			#static sources from things like missions and upkeep
 			change_variable = {
 				which = MaxArtificePoints
 				which = StaticArtificePoints
 			}
+
+
+			# Feiten's mercs cost artificer cap
+			if = {
+				limit = { any_hired_mercenary_company = { template = merc_feiten_lightning_jellyfish } }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -5
+				}
+			}
+			if = {
+				limit = { any_hired_mercenary_company = { template = merc_feiten_stasis } }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -5
+				}
+			}
+			if = {
+				limit = { any_hired_mercenary_company = { template = merc_feiten_firestorm } }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -5
+				}
+			}
+			if = {
+				limit = { any_hired_mercenary_company = { template = merc_feiten_sky_factory } }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -5
+				}
+			}
+			if = {
+				limit = { has_country_flag = feiten_firestorm_active }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -25
+				}
+			}
+			if = {
+				limit = { has_country_flag = feiten_stasis_field_active }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -50
+				}
+			}
+			if = {
+				limit = { has_country_flag = feiten_skyfactory_active }
+				change_variable = {
+					which = MaxArtificePoints
+					value = -10
+				}
+			}
+			# Investments done as Feiten
+			if = {
+				limit = { OR = { tag = Y20 was_tag = Y20 } }
+				change_variable = {
+					which = MaxArtificePoints
+					which = feiten_number_of_shuimu_engineering_cadre_facilities_investments
+				}
+			}
+
 			
+			# Points Multiplier
+			set_variable = {
+				which = ArtificePointsMultiplier
+				value = 1
+			}
+
+			#IF YOU WANT TO ADD MORE MULTIPLIERS MAKE SURE TO add to getArtificeHasMultipliers in anb_custom_artifice_localization or the multipliers may not show up correctly
+
+			#Multipliers from government
+			if = {
+				limit = {
+					has_government_attribute = is_technocracy
+				}
+				change_variable = {
+					which = ArtificePointsMultiplier
+					value = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					has_government_attribute = is_magocracy
+				}
+				subtract_variable = {
+					which = ArtificePointsMultiplier
+					value = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					has_government_attribute = is_feiten_keju
+				}
+				change_variable = {
+					which = ArtificePointsMultiplier
+					value = 0.25
+				}
+			}
+			
+			# Floor at 0
+			if = {
+				limit = {
+					NOT = {
+						check_variable = {
+							which = ArtificePointsMultiplier
+							value = 0
+						}
+					}
+				}
+				set_variable = {
+					which = MaxArtificePoints
+					value = 0
+				}
+			}
+			else = {
+				multiply_variable = {
+					which = MaxArtificePoints
+					which = ArtificePointsMultiplier
+				}
+			}
+
 			# Floor at 0
 			if = {
 				limit = {
@@ -524,22 +645,22 @@ update_artifice_points = {
 					value = 0
 				}
 			}
-			
+
 			set_variable = {
 				which = RemainingArtificePoints
 				value = 0
 			}
-			
+
 			change_variable = {
 				which = RemainingArtificePoints
 				which = MaxArtificePoints
 			}
-			
+
 			subtract_variable = {
 				which = RemainingArtificePoints
 				which = ArtificeUpkeep
 			}
-		
+
 			# If over capacity
 			if = {
 				limit = {
@@ -550,7 +671,7 @@ update_artifice_points = {
 						}
 					}
 				}
-				add_country_modifier = artificers_over_artifice_capacity
+				add_country_modifier = { name =  artificers_over_artifice_capacity duration = -1 }
 			}
 			else = {
 				remove_country_modifier = artificers_over_artifice_capacity
@@ -735,6 +856,27 @@ mission_reward_artifice_points_5 = {
 	update_artifice_points = yes
 }
 
+debuff_artifice_points_2 = {
+	custom_tooltip = permanently_decreases_our_artifice_points_by_2_tt
+	hidden_effect = {
+		change_variable = {
+			which = StaticArtificePoints
+			value = -2
+		}
+	}
+	update_artifice_points = yes
+}
+
+debuff_artifice_points_5 = {
+	custom_tooltip = permanently_decreases_our_artifice_points_by_5_tt
+	hidden_effect = {
+		change_variable = {
+			which = StaticArtificePoints
+			value = -5
+		}
+	}
+	update_artifice_points = yes
+}
 
 #research rewards
 
@@ -831,6 +973,12 @@ artifice_research_rewards = {
 			modifier = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_conversation_calibrator
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					culture_group = gnomish
+				}
 			}
 		}
 		10 = {
@@ -950,7 +1098,7 @@ artifice_research_rewards = {
 			}
 		}
 
-		
+
 		# Brilliance - industry & state
 		10 = {
 			set_country_flag = unlocked_artifice_invention_brass_prosthesis
@@ -1229,6 +1377,10 @@ artifice_research_rewards = {
 				factor = 0
 				NOT = { religion = ancestor_worship }
 			}
+			modifier = {
+				factor = 0
+				has_country_flag = asra_model_golems_unlocked
+			}
 		}
 		10 = {
 			set_country_flag = unlocked_artifice_invention_artifice_hunting_masks
@@ -1440,7 +1592,6 @@ artifice_research_rewards = {
 			modifier = {
 				factor = 0
 				NOT = { religion = righteous_path }
-				NOT = { religion = lefthand_path }
 			}
 		}
 		10 = {
@@ -1585,7 +1736,7 @@ artifice_research_rewards = {
 			}
 		}
 
-		# Technomany - Industry & State 
+		# Technomany - Industry & State
 		10 = {
 			set_country_flag = unlocked_artifice_invention_vendorless_stall
 			# custom_tooltip = invention_vendorless_stall_tt
@@ -1643,7 +1794,6 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { religion = righteous_path }
 				NOT = { religion = lefthand_path }
 			}
 		}
@@ -1664,7 +1814,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = eordellon_ruinborn_elf }
+				NOT = { culture_group = eordan_ruinborn_elf }
 			}
 		}
 
@@ -1701,6 +1851,10 @@ artifice_research_rewards = {
 			modifier = {
 				factor = 0
 				has_country_flag = unlocked_artifice_invention_war_golems
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = asra_model_golems_unlocked
 			}
 		}
 		10 = {
@@ -1875,6 +2029,27 @@ artifice_research_rewards = {
 				has_country_flag = artifice_research_technomancy
 			}
 			modifier = {
+				factor = 10
+				tag = Y65
+				any_owned_province = {
+					has_province_modifier = arawkelin_soil_erosion
+				}
+			}
+			modifier = {
+				factor = 20
+				num_of_owned_provinces_with = {
+					value = 10
+					has_province_modifier = arawkelin_soil_erosion
+				}
+			}
+			modifier = {
+				factor = 50
+				num_of_owned_provinces_with = {
+					value = 20
+					has_province_modifier = arawkelin_soil_erosion
+				}
+			}
+			modifier = {
 				factor = 0
 				NOT = { has_country_flag = artifice_research_society }
 			}
@@ -1915,7 +2090,7 @@ artifice_research_rewards = {
 				has_country_flag = unlocked_artifice_invention_naval_mageshields
 			}
 		}
-			
+
 
 
 		# Mechanists - Society & Trade
@@ -2021,7 +2196,7 @@ artifice_research_rewards = {
 				factor = 0
 				NOT = { culture_group = gnollish }
 			}
-		}	
+		}
 
 
 		# Mechanists - Industry & State
@@ -2070,7 +2245,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = triunic } 
+				NOT = { culture_group = triunic }
 			}
 		}
 		10 = {
@@ -2091,8 +2266,8 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { primary_culture = crownsman } 
-				NOT = { primary_culture = aramaic } 
+				NOT = { primary_culture = crownsman }
+				NOT = { primary_culture = ionnic }
 			}
 		}
 		10 = {
@@ -2113,7 +2288,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = gnomish } 
+				NOT = { culture_group = gnomish }
 			}
 		}
 		10 = {
@@ -2134,10 +2309,10 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { 
+				NOT = {
 					primary_culture = pearlsedger
 					#culture_group = baashiwati
-				} 
+				}
 			}
 		}
 		10 = {
@@ -2158,7 +2333,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = dwarven } 
+				NOT = { culture_group = dwarven }
 			}
 		}
 		10 = {
@@ -2179,8 +2354,8 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = lencori } 
-				NOT = { primary_culture = rosanda } 
+				NOT = { culture_group = lencori }
+				NOT = { primary_culture = rosanda }
 			}
 		}
 		10 = {
@@ -2241,7 +2416,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				NOT = { culture_group = bulwari } 
+				NOT = { culture_group = bulwari }
 			}
 		}
 		10 = {
@@ -2598,7 +2773,7 @@ artifice_research_rewards = {
 			}
 			modifier = {
 				factor = 0
-				has_country_flag = unlocked_artifice_invention_military_sky_galleons 
+				has_country_flag = unlocked_artifice_invention_military_sky_galleons
 			}
 			modifier = {
 				factor = 0
@@ -2606,6 +2781,225 @@ artifice_research_rewards = {
 					has_institution = industrialization
 				}
 			}
+		}
+		10 = {
+			set_country_flag = unlocked_artifice_invention_spirit_proof_exoskeleton
+			# custom_tooltip = invention_spirit_proof_exoskeleton
+			ROOT = { country_event = { id = artifice_inventions.916 }}
+			modifier = {
+				factor = 2
+				tag = Y65
+			}
+			modifier = {
+				factor = 0
+				NOT = { tag = Y65 }
+			}
+		}
+
+		# Feiten stuff
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_farsight_telescopes
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_industry }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_farsight_telescopes
+			ROOT = { country_event = { id = flavor_feiten.250 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_porcelain_caged_firebirds
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_society }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_porcelain_caged_firebirds
+			ROOT = { country_event = { id = flavor_feiten.251 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_specialized_construction_arms
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_industry }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_specialized_construction_arms
+			ROOT = { country_event = { id = flavor_feiten.252 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_expanding_storage_holds
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_society }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_expanding_storage_holds
+			ROOT = { country_event = { id = flavor_feiten.253 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_skywriting
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_society }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_skywriting
+			ROOT = { country_event = { id = flavor_feiten.254 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_electroplated_armor
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_military }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_electroplated_armor
+			ROOT = { country_event = { id = flavor_feiten.255 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_ivory_conduits
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_industry }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_ivory_conduits
+			ROOT = { country_event = { id = flavor_feiten.256 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_silken_cladding
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_society }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_silken_cladding
+			ROOT = { country_event = { id = flavor_feiten.257 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_damestear_ribbing
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_military }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_damestear_ribbing
+			ROOT = { country_event = { id = flavor_feiten.258 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_long_rockets
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_military }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_long_rockets
+			ROOT = { country_event = { id = flavor_feiten.259 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_lightning_amplifier
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_industry }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_lightning_amplifier
+			ROOT = { country_event = { id = flavor_feiten.260 } }
+		}
+		50 = {
+			trigger = { OR = { tag = Y20 was_tag = Y20 } }
+			modifier = {
+				factor = 0
+				has_country_flag = feiten_invention_steel_rudders
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = artifice_research_military }
+			}
+			modifier = {
+				factor = 10000
+				has_country_flag = feiten_directed_airfleet_research
+			}
+			set_country_flag = feiten_invention_steel_rudders
+			ROOT = { country_event = { id = flavor_feiten.261 } }
 		}
 
 		#bonuses as fallback
@@ -2751,13 +3145,14 @@ artifice_research_rewards = {
 			}
 		}
 	}
-	
+
 	#cleanup
 	clr_country_flag = artifice_research_brilliance
 	clr_country_flag = artifice_research_technomancy
 	clr_country_flag = artifice_research_machinery
-	
+
 	clr_country_flag = artifice_research_society
 	clr_country_flag = artifice_research_industry
 	clr_country_flag = artifice_research_military
+	clr_country_flag = feiten_directed_airfleet_research
 }
