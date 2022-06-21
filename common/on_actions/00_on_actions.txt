@@ -16,6 +16,15 @@ on_startup = {
 		}
 		save_global_event_target_as = EmperorOfChina
 	}
+	if = {
+		limit = {
+			OR = {
+				was_tag = Y20
+				tag = Y20
+			}
+		}
+		save_global_event_target_as = feiten_or_was_feiten_target
+	}
 
 	#institution spread help
 
@@ -44,6 +53,7 @@ on_startup = {
 		#kobold_events.1 		#Sets up for kobolds
 		diggy.108				#Dwarovar Claimer event
 		diggy.110				#Hold and Colonial nerf setup event
+		diggy.106				#special caverns
 		#deepwoods.100			#Deepwoods setup - this caused black screen crash and is redundant as other anbennar_setup.3 does it
 		verkalgulan_events.1		#Verkal Gulan setup
 		#vegan.101				#Setup abundant wood in deepwoods
@@ -66,12 +76,14 @@ on_startup = {
 		bulwar_flavour.28		#Sets up Surani Refugees in Bulwar
 		azka_evran.1			#Azka-Evran intro event
 		one_xia.9				#Setup for the Xia
-		jiantsiang_events.1		#jiantsiang setup
+		flavor_jiantsiang.1		#jiantsiang setup
 		flavor_nuugdan_tsarai.1					#Faceless Queen
 		flavour_balrijin.29	#Balrijin-Lanjinhui favor/trust setup
 		the_command.0			#The Great Command
 		spirits.001				#Sets up temple coverage
 		treasurefleet.0			#Treasure Fleet Begin Cycle
+		guhe.100 				#Guhe Setup Event
+		
 
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -109,6 +121,12 @@ on_startup = {
 	country_event = {
 		id = anbennar_setup.20
 		days = 32
+	}
+	
+	#Introduction to the castes
+	country_event = {
+		id = estate_castes_events.0
+		days = 15
 	}
 
 	# Add wine to Wine Lords
@@ -387,7 +405,23 @@ on_startup = {
 	F21 = {
 		country_event = { id = flavour_birsartanses.0 }
 	}
-
+	
+	if = {
+		limit = { tag = R51 NOT = { check_variable = { diplomaticAnnexations = 1 } } }
+		set_variable = { diplomaticAnnexations = 0 }
+	}
+	
+	if = {
+		limit = {
+			NOT = { has_dlc = "El Dorado" }
+			religion = ynn_river_worship
+		}
+		add_country_modifier = {
+			name = ynn_dark_ages
+			duration = -1
+			hidden = yes
+		}
+	}
 	#Ynn Worship event cycle start
 	if = {
 		limit = {
@@ -409,7 +443,7 @@ on_startup = {
 	update_magic_study_experience_modifier = {}
 
 	# Expedition
-	REB = { country_event = { id = diggy_expedition.0 } }
+	#REB = { country_event = { id = diggy_expedition.0 } }
 
 	if = { #Starts Azjakuma - Command Truce | sets event to give aikogeoke to owner of akhortosal 70 years after start
 		limit = {
@@ -433,6 +467,7 @@ on_startup = {
 		}
 		add_country_modifier = { name = remnant_legacy duration = 31 hidden = yes }
 	}
+	
 
 	#Command Management Privileges Warcamp
 	if = {
@@ -969,8 +1004,12 @@ on_religion_change = {
 	if = {
 		limit = {
 			religion = ynn_river_worship
-			primitives = yes
-			NOT = { tag = G32 }
+			#primitives = yes
+			NOT = {
+				has_reform = malacnar_monarchy
+				has_reform = malacnar_monarchy_reformed
+				has_reform = malacnar_republic_reform
+			}
 		}
 		add_country_modifier = {
 			name = ynn_diplo
@@ -1059,6 +1098,7 @@ on_religion_change = {
 				religion = ynn_river_reformed
 			}
 		}
+		remove_country_modifier = ynn_dark_ages
 		clr_country_flag = ynn_river_worship_flag
 		clear_ynn_zodiacs_effect = yes
 		clear_ynn_debate_flags_effect = yes
@@ -1317,7 +1357,7 @@ on_war_won = {
 	# Adenica wars won counter
 	if = {
 		limit = {
-			TAG = B58
+			tag = B58
 		}
 		change_variable = { adenicaWarsWon = 1 }
 		if = {
@@ -1362,7 +1402,7 @@ on_war_won = {
 	# Castanor wars won against beasts & evil counter
 	if = {
 		limit = {
-			TAG = B32
+			tag = B32
 		}
 		if = {
 			limit = {
@@ -1595,13 +1635,16 @@ on_war_won = {
 	# Its a Feiten war counter cause why not
 	if = {
 		limit = {
-			TAG = Y20
+			if = {
+				limit = { exists = event_target:feiten_or_was_feiten_target }
+				tag = event_target:feiten_or_was_feiten_target
+			}
 			mission_completed = feiten_developing_an_air_doctrine
 		}
 		change_variable = { which = feiten_wars_won value = 1 }
 	}
 
-	
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -1773,6 +1816,70 @@ on_war_lost = {
 		}
 	}
 
+	if = { #The Command is Losing Ground I
+		limit = {
+			tag = R62 #The Command
+			NOT = {
+				num_of_owned_provinces_with = {
+					OR = {
+						superregion = rahen_superregion
+						superregion = yanshen_superregion
+						superregion = south_haless_superregion
+					}
+					value = 36
+				}
+			}
+		}
+		R08 = { country_event = { id = flavor_tiltaghar.11 days = 1 } }
+	}
+
+	if = { #The Command is Losing Ground II
+		limit = {
+			tag = R62 #The Command
+			NOT = {
+				num_of_owned_provinces_with = {
+					OR = {
+						superregion = rahen_superregion
+						superregion = yanshen_superregion
+						superregion = south_haless_superregion
+					}
+					value = 24
+				}
+			}
+		}
+		R08 = { country_event = { id = flavor_tiltaghar.12 days = 1 } } #Tiltaghar
+	}
+
+	if = { #The Command is Losing Ground III
+		limit = {
+			tag = R62 #The Command
+			NOT = {
+				num_of_owned_provinces_with = {
+					OR = {
+						superregion = rahen_superregion
+						superregion = yanshen_superregion
+						superregion = south_haless_superregion
+					}
+					value = 13
+				}
+			}
+		}
+		R08 = { country_event = { id = flavor_tiltaghar.13 days = 1 } } #Tiltaghar
+	}
+
+	if = { #Aftermath of the War
+		limit = {
+			tag = R62 #The Command
+			NOT = {
+				num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+					value = 1
+					region = shamakhad_region
+				}
+			}
+		}
+		R08 = { country_event = { id = flavor_tiltaghar.14 days = 1 } } #Tiltaghar
+	}
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -1900,6 +2007,11 @@ on_battle_won_unit = {
         limit = {
             unit_owner = {
                 tag = G32
+				OR = {
+					has_reform = malacnar_monarchy
+					has_reform = malacnar_monarchy_reformed
+					has_reform = malacnar_republic_reform
+				}
             }
             is_ruler_commanding_unit = yes
 			enemy_unit = {
@@ -2131,6 +2243,22 @@ on_battle_won_country = {
 			}
 		}
 	}
+	if = {
+		limit = {
+			tag = R08
+			FROM = {
+				OR = {
+					tag = R07 #Rajnadhaga
+					tag = R11 #Khadisrapur
+					tag = R09 #Parraj
+					tag = R34 #Kamapar
+					tag = R10 #Sarnavan
+					tag = R12 #Tilathi
+				}
+			}
+		}
+		change_variable = { which = tiltaghar_battles_ruin_kingdoms value = 1 }
+	}
 
 	random_events = {
 		1000 = 0
@@ -2211,6 +2339,11 @@ on_battle_lost_unit = {
         limit = {
             unit_owner = {
                 tag = G32
+				OR = {
+					has_reform = malacnar_monarchy
+					has_reform = malacnar_monarchy_reformed
+					has_reform = malacnar_republic_reform	
+				}
             }
             is_ruler_commanding_unit = yes
         }
@@ -2570,6 +2703,11 @@ on_new_monarch = {
 	if = {
 		limit = {
 			tag = G32
+			OR = {
+				has_reform = malacnar_monarchy
+				has_reform = malacnar_monarchy_reformed
+				has_reform = malacnar_republic_reform
+			}
 		}
 		add_ruler_modifier = {	#Two years and a half
 			name = g32_battleking_grace_period
@@ -2690,7 +2828,12 @@ on_new_monarch = {
 			}
 		}
 		country_event = { id = ynn_zodiac.3 }
-		ruler_ynn_zodiac = yes
+		if = {
+			limit = {
+				has_regency = no
+			}
+			ruler_ynn_zodiac = yes
+		}
 	}
 
 	#Raj Vizier
@@ -3043,7 +3186,7 @@ on_death_election = {
 		jiangshi.2			#Jiangshi election
 		sunrise.2			#Sunrise election
 		azkare.221			#Hiderion's death election
-		yingshi.46			#Yingshi Sinistral Republic Election
+		yingzhen.46			#Yingshi Sinistral Republic Election
 		flavour_bulwar_tag.1	#Bulwar twelve families
 	}
 }
@@ -3841,7 +3984,7 @@ on_adm_development = {
 	}
 	# Castanor stuff
 	if = {
-		limit = { owner = { TAG = B32 } }
+		limit = { owner = { tag = B32 } }
 		if = {
 			limit = {
 				OR = {
@@ -3916,7 +4059,7 @@ on_dip_development = {
 	}
 	# Castanor stuff
 	if = {
-		limit = { owner = { TAG = B32 } }
+		limit = { owner = { tag = B32 } }
 		if = {
 			limit = {
 				OR = {
@@ -3991,7 +4134,7 @@ on_mil_development = {
 	}
 	# Castanor stuff
 	if = {
-		limit = { owner = { TAG = B32 } }
+		limit = { owner = { tag = B32 } }
 		if = {
 			limit = {
 				OR = {
@@ -4691,7 +4834,7 @@ on_bi_yearly_pulse_3 = {
 		100 = cavegoblinflavor.100 #venombrew and other events
 		100 = cavegoblinflavor.10
 		100 = cavegoblinflavor.4
-		
+
 		150 = ghavaanaj.3 # +Herd Growth
 		120 = ghavaanaj.4 # +Herd Growth
 		120 = ghavaanaj.5 # +Herd Growth
@@ -6130,7 +6273,6 @@ on_four_year_pulse_4 = {
 		1000 = bulwar_flavour.31
 		30 = bulwar_flavour.32
 		# 30 = bulwar_flavour.33	#will be uncommented when it has loc
-		30 = bulwar_flavour.34
 		20 = bulwar_flavour.37
 		100 = bulwar_flavour.40
 		200 = bulwar_flavour.41
@@ -6918,13 +7060,13 @@ on_five_year_pulse_3 = {
 		ynn_events.17 #Drozma Tur abandon the Iosahar system to centralize
 		flavor_ravenmarch.15
     }
-	if = {
-		limit = { ynnic_iosahar = 1 }
-		random = {
-			chance = 25
-			country_event = { id = ynn_events.6 }	#Distant Iosahar slips away from your control
-		}
-	}
+	# if = {
+		# limit = { ynnic_iosahar = 1 }
+		# random = {
+			# chance = 25
+			# country_event = { id = ynn_events.6 }	#Distant Iosahar slips away from your control
+		# }
+	# }
 }
 
 on_five_year_pulse_4 = {
@@ -7726,9 +7868,9 @@ on_province_owner_change = {
 	}
 	if = {
 		limit = {
+			has_owner_accepted_culture = no
 			owner = {
 				NOT = { culture_group = ROOT }
-				has_owner_accepted_culture = no
 				has_estate_privilege = estate_church_one_faith_one_culture
 			}
 			NOT = { has_province_modifier = estate_church_false_culture }
@@ -8190,64 +8332,119 @@ on_province_owner_change = {
 		}
 	}
 
-	if = { #Handle Dwarovkron province-wise
+	# if = { #Handle Dwarovkron province-wise
+	# 	limit = {
+	# 		province_has_dwarovkron_fragment = yes
+	# 		NOT = {
+	# 			AND = { #any previously owned gems might get stuck if migrate off of a gem expedition
+	# 				has_province_modifier = expedition_target
+	# 				has_province_flag = seeded
+	# 			}
+	# 		}
+	# 	}
+	# 	while = {
+	# 		limit = { province_has_dwarovkron_fragment = yes }
+	# 		if = { #Handle migration
+	# 			limit = { owner = { tag = REB } }
+	# 			trigger_switch = {
+	# 				on_trigger = has_province_flag
+	# 				dwarovkron_full = { clr_province_flag = dwarovkron_full FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_crown = { clr_province_flag = dwarovkron_crown FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_jade = { clr_province_flag = dwarovkron_jade FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_agate = { clr_province_flag = dwarovkron_agate FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 			}
+	# 		}
+	# 		else_if = {
+	# 			limit = { FROM = { exists = yes } }
+	# 			trigger_switch = {
+	# 				on_trigger = has_province_flag
+	# 				dwarovkron_full = { clr_province_flag = dwarovkron_full FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_crown = { clr_province_flag = dwarovkron_crown FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_jade = { clr_province_flag = dwarovkron_jade FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 				dwarovkron_agate = { clr_province_flag = dwarovkron_agate FROM = { country_event = { id = diggy.200 days = 2 } } }
+	# 			}
+	# 		}
+	# 		else = {
+	# 			trigger_switch = {
+	# 				on_trigger = has_province_flag
+	# 				dwarovkron_full = { clr_province_flag = dwarovkron_full owner = { capital_scope = { set_province_flag = dwarovkron_full }  add_country_modifier = { name = dwarovkron_full duration = -1 } country_event = { id = diggy.78 } } }
+	# 				dwarovkron_crown = { clr_province_flag = dwarovkron_crown owner = { capital_scope = { set_province_flag = dwarovkron_crown }  add_country_modifier = { name = dwarovkron_crown duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.70 } } }
+	# 				dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst owner = { capital_scope = { set_province_flag = dwarovkron_amethyst } add_country_modifier = { name = dwarovkron_amethyst duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.71 } } }
+	# 				dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond owner = { capital_scope = { set_province_flag = dwarovkron_diamond } add_country_modifier = { name = dwarovkron_diamond duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.72 } } }
+	# 				dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine owner = { capital_scope = { set_province_flag = dwarovkron_citrine } add_country_modifier = { name = dwarovkron_citrine duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.73 } } }
+	# 				dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby owner = { capital_scope = { set_province_flag = dwarovkron_ruby } add_country_modifier = { name = dwarovkron_ruby duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.74 } } }
+	# 				dwarovkron_jade = { clr_province_flag = dwarovkron_jade owner = { capital_scope = { set_province_flag = dwarovkron_jade } add_country_modifier = { name = dwarovkron_jade duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.75 } } }
+	# 				dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire owner = { capital_scope = { set_province_flag = dwarovkron_sapphire } add_country_modifier = { name = dwarovkron_sapphire duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.76 } } }
+	# 				dwarovkron_agate = { clr_province_flag = dwarovkron_agate owner = { capital_scope = { set_province_flag = dwarovkron_agate } add_country_modifier = { name = dwarovkron_agate duration = -1 } country_event = { id = diggy.77 } } }
+	# 			}
+	# 		}
+	# 	}
+	# }
+	
+	#hold migration digging/repairing exploits
+	if = {
 		limit = {
-			province_has_dwarovkron_fragment = yes
-			NOT = {
-				AND = { #any previously owned gems might get stuck if migrate off of a gem expedition
-					has_province_modifier = expedition_target
-					has_province_flag = seeded
-				}
-			}
+			province_group = hold_province 
+			is_city = no
 		}
-		while = {
-			limit = { province_has_dwarovkron_fragment = yes }
-			if = { #Handle migration
-				limit = { owner = { tag = REB } }
-				trigger_switch = {
-					on_trigger = has_province_flag
-					dwarovkron_full = { clr_province_flag = dwarovkron_full FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_crown = { clr_province_flag = dwarovkron_crown FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_jade = { clr_province_flag = dwarovkron_jade FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_agate = { clr_province_flag = dwarovkron_agate FROM = { country_event = { id = diggy.200 days = 2 } } }
+		if = {
+			limit = {
+				OR = {
+					has_province_modifier = hold_foundry
+					has_province_modifier = hold_foundry_2
+					has_province_modifier = hold_city
+					has_province_modifier = hold_city_2
+					has_province_modifier = hold_artisan
+					has_province_modifier = hold_artisan_2
+					has_province_modifier = hold_farm
+					has_province_modifier = hold_farm_2
+					has_province_modifier = hold_military
+					has_province_modifier = hold_military_2
 				}
 			}
-			else_if = {
-				limit = { FROM = { exists = yes } }
-				trigger_switch = {
-					on_trigger = has_province_flag
-					dwarovkron_full = { clr_province_flag = dwarovkron_full FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_crown = { clr_province_flag = dwarovkron_crown FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_jade = { clr_province_flag = dwarovkron_jade FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire FROM = { country_event = { id = diggy.200 days = 2 } } }
-					dwarovkron_agate = { clr_province_flag = dwarovkron_agate FROM = { country_event = { id = diggy.200 days = 2 } } }
+			set_province_flag = specialized_hold
+		}
+		if = {
+			limit = { 
+				FROM = {
+					capital_scope = {
+						OR = {
+							has_construction = digging_deeper 
+							has_construction = restoring_hold
+						}
+					}
+					NOT = { num_of_cities = 2 } #abandoned colony
 				}
 			}
-			else = {
-				trigger_switch = {
-					on_trigger = has_province_flag
-					dwarovkron_full = { clr_province_flag = dwarovkron_full owner = { capital_scope = { set_province_flag = dwarovkron_full }  add_country_modifier = { name = dwarovkron_full duration = -1 } country_event = { id = diggy.78 } } }
-					dwarovkron_crown = { clr_province_flag = dwarovkron_crown owner = { capital_scope = { set_province_flag = dwarovkron_crown }  add_country_modifier = { name = dwarovkron_crown duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.70 } } }
-					dwarovkron_amethyst = { clr_province_flag = dwarovkron_amethyst owner = { capital_scope = { set_province_flag = dwarovkron_amethyst } add_country_modifier = { name = dwarovkron_amethyst duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.71 } } }
-					dwarovkron_diamond = { clr_province_flag = dwarovkron_diamond owner = { capital_scope = { set_province_flag = dwarovkron_diamond } add_country_modifier = { name = dwarovkron_diamond duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.72 } } }
-					dwarovkron_citrine = { clr_province_flag = dwarovkron_citrine owner = { capital_scope = { set_province_flag = dwarovkron_citrine } add_country_modifier = { name = dwarovkron_citrine duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.73 } } }
-					dwarovkron_ruby = { clr_province_flag = dwarovkron_ruby owner = { capital_scope = { set_province_flag = dwarovkron_ruby } add_country_modifier = { name = dwarovkron_ruby duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.74 } } }
-					dwarovkron_jade = { clr_province_flag = dwarovkron_jade owner = { capital_scope = { set_province_flag = dwarovkron_jade } add_country_modifier = { name = dwarovkron_jade duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.75 } } }
-					dwarovkron_sapphire = { clr_province_flag = dwarovkron_sapphire owner = { capital_scope = { set_province_flag = dwarovkron_sapphire } add_country_modifier = { name = dwarovkron_sapphire duration = -1 } set_country_flag = flag_dwarovkron_stolen_parts country_event = { id = diggy.76 } } }
-					dwarovkron_agate = { clr_province_flag = dwarovkron_agate owner = { capital_scope = { set_province_flag = dwarovkron_agate } add_country_modifier = { name = dwarovkron_agate duration = -1 } country_event = { id = diggy.77 } } }
+			FROM = { 
+				capital_scope = { cancel_construction = yes } 
+				if = {
+					limit = { has_country_flag = is_digging }
+					FROM = {
+						clr_country_flag = is_digging
+						clr_country_flag = dig_prod
+						clr_country_flag = dig_manpower
+						clr_country_flag = dig_culture
+						clr_country_flag = dig_explosive
+						remove_country_modifier = dig_prod
+						remove_country_modifier = dig_manpower
+						remove_country_modifier = dig_explosive
+					}
 				}
 			}
 		}
 	}
+
 	#seghdihr military modifiers
 	if = {
 		limit = {
@@ -8278,6 +8475,16 @@ on_province_owner_change = {
 		province_event = {
 			id = flavor_azjakuma.2500
 		}
+	}
+	
+	#Dhenijanrai events
+	if = {
+		limit = { 
+			province_id = 4265 # Grozumdihr 
+			owner = { mission_completed = R51_peridot_king }
+			NOT = { exists = I18 }
+		}
+		owner = { country_event = { id = flavor_dhenijanraj.300 } }
 	}
 }
 
@@ -8480,14 +8687,17 @@ on_mercenary_recruited = {
 				ROOT = { NOT = { mercenary_company = merc_cannorian_veterans } }
 				ROOT = { NOT = { mercenary_company = merc_convocationary_guard } }
 				ROOT = { NOT = { mercenary_company = merc_blue_viziers } }
+				ROOT = { NOT = { mercenary_company = merc_shuvuush_auxillaries } }
 				ROOT = { NOT = { mercenary_company = merc_kenmanshir } }
 				ROOT = { NOT = { mercenary_company = merc_dhenijanraj_sramaya_pearlglaives } }
-		    ROOT = { NOT = { mercenary_company = merc_dhenijanraj_tiger_command } }
+				ROOT = { NOT = { mercenary_company = merc_dhenijanraj_tiger_command } }
 				ROOT = { NOT = { mercenary_company = merc_feiten_jellyfish_scouts } }
-				ROOT = { NOT = { mercenary_company = merc_feiten_box_jellyfish } }
 				ROOT = { NOT = { mercenary_company = merc_feiten_lightning_jellyfish } }
 				ROOT = { NOT = { mercenary_company = merc_feiten_stasis } }
 				ROOT = { NOT = { mercenary_company = merc_feiten_firestorm } }
+				ROOT = { NOT = { mercenary_company = merc_jiantsiang_blazing_claws } }
+				ROOT = { NOT = { mercenary_company = merc_jiantsiang_shuvuush_auxilaries } }
+				ROOT = { NOT = { mercenary_company = merc_northern_legion } }
 				### add elite mercs here.
 			}
 		}
@@ -8559,7 +8769,7 @@ on_reform_enacted = {
 		}
 		if = {
 			limit = { has_country_flag = raging_blizzard_flag }
-			add_faction = raging_blizzardc
+			add_faction = raging_blizzard
 		}
 		if = {
 			limit = { has_country_flag = vine_tearer_flag }
@@ -8764,6 +8974,23 @@ on_dependency_gained = {
 		add_country_modifier = {
 			name = ghavaanaj_lord_of_the_nadimraj
 			duration = -1
+		}
+	}
+
+	#Dhenijanrai events
+	if = {
+		limit = { 
+			ROOT = { mission_completed = R51_peridot_king }
+			FROM = { tag = I18 }
+		}
+		ROOT = { country_event = { id = flavor_dhenijanraj.300 } }
+		add_opinion = {
+			who = FROM
+			modifier = dhenijanraj_peridot_opinion_modifier
+		}
+		reverse_add_opinion = {
+			who = FROM
+			modifier = dhenijanraj_peridot_opinion_modifier
 		}
 	}
 
@@ -9047,6 +9274,32 @@ on_country_released = {
 			}
 		}
 	}
+	
+	if = {
+		limit = {
+			religion = ynn_river_worship
+			#primitives = yes
+			NOT = { 
+				has_reform = malacnar_monarchy
+				has_reform = malacnar_monarchy_reformed
+				has_reform = malacnar_republic_reform
+			}
+		}
+		add_country_modifier = {
+			name = ynn_diplo
+			duration = -1
+		}
+		if = {
+			limit = {
+				NOT = { has_dlc = "El Dorado" }
+			}
+			add_country_modifier = {
+				name = ynn_dark_ages
+				duration = -1
+				hidden = yes
+			}
+		}
+	}
 
 	country_event = { id = new_sun_cult.11 days = 1 }
 
@@ -9304,7 +9557,7 @@ on_conquest = {
 						influence = 80
 					}
 				}
-				NOT = { owner = { TAG = B61 } }
+				NOT = { owner = { tag = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_full
@@ -9319,7 +9572,7 @@ on_conquest = {
 						influence = 60
 					}
 				}
-				NOT = { owner = { TAG = B61 } }
+				NOT = { owner = { tag = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_significant
@@ -9334,7 +9587,7 @@ on_conquest = {
 						influence = 40
 					}
 				}
-				NOT = { owner = { TAG = B61 } }
+				NOT = { owner = { tag = B61 } }
 			}
 			add_permanent_province_modifier = {
 				name = castonath_patrician_influence_considerable
@@ -9343,7 +9596,7 @@ on_conquest = {
 		}
 		else = {
 			if = {
-				limit = { owner = { NOT = { TAG = B61 } } }
+				limit = { owner = { NOT = { tag = B61 } } }
 				add_permanent_province_modifier = {
 					name = castonath_patrician_influence_some
 					duration = -1
