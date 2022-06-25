@@ -60,7 +60,7 @@ country_event = {
 		#aristocracy upgrade notification for the leader of the blood court
 		event_target:blood_court_founder = {
 			country_event = {
-				id = asheniande.9
+				id = flavor_asheniande.9
 				days = 10
 			}
 		}
@@ -198,6 +198,7 @@ country_event = {
 			influence = 75
 		}
 		NOT = { has_estate_privilege = estate_vampires_organization_vampiric_emigres }
+		NOT = { has_estate_privilege = estate_vampires_neratic_inquisition }
 		#Hopefully this is easily achievable
 		estate_loyalty = {
 			estate = estate_vampires
@@ -279,7 +280,13 @@ country_event = {
 			
 			modifier = {
 				factor = 1000
-				want_to_reduce_vampire_influence = yes
+				#want_to_reduce_vampire_influence = yes
+				estate_influence = {
+					estate = estate_vampires
+					influence = 90
+				}
+				has_estate_privilege = estate_vampires_organization_vampires_lord
+				NOT = { has_ruler_flag = is_a_vampire }
 			}
 		}
 		add_estate_loyalty_modifier = {
@@ -603,19 +610,16 @@ country_event = {
 		hidden_effect = {
 			ROOT = { save_event_target_as = emigres_landing }
 
-			#  random_neighbor_country = {		#used to be a thing so it goes on infinitely until it finds someone, not anymore due to Adventurers Wanted -Jay.
-			# 	limit = {
-			# 		NOT = {
-			# 			has_country_flag = has_vampires_estate
-			# 		}
-			# 	}
-			# 	country_event = { id = vampires_estate_events.11 days = 7 random = 5 } 
-
-				#fail notification
+			# random_neighbor_country = {		#used to be a thing so it goes on infinitely until it finds someone, not anymore due to Adventurers Wanted -Jay.
+				# limit = { NOT = { has_country_flag = has_vampires_estate } }
+				# country_event = { id = vampires_estate_events.11 days = 7 random = 5 }
+			# }
+			
+			#fail notification
 
 			event_target:vampire_origin = {
 				country_event = {
-					id = asheniande.10 #emigres landing notification for spreader
+					id = flavor_asheniande.10 #emigres landing notification for spreader
 					days = 7
 				}
 				#uncomment to make failure reset the cooldown
@@ -669,7 +673,7 @@ country_event = {
 			country_event = { id = vampires_estate_events.12 days = 2 }
 			event_target:vampire_origin = {
 				country_event = {
-					id = asheniande.8 #emigres landing notification for spreader
+					id = flavor_asheniande.8 #emigres landing notification for spreader
 					days = 7
 				}
 				#clr_country_flag = currently_spreading_vampires
@@ -1176,11 +1180,502 @@ country_event = {
 		else = {
 			set_estate_privilege = estate_vampires_organization_bloody_aristocracy
 			set_estate_privilege = estate_vampires_law_traditional_masquerade
-			country_event = { id = vampires_estate_events.3 days = 30 days = 30 }
+			country_event = { id = vampires_estate_events.3 days = 30 }
 		}
 		set_country_flag = recent_masquerade_disaster
 		ai_chance = {
 			factor = 1
+		}
+	}
+}
+
+#Lady's Birds spying yields information
+country_event = {
+	id = vampires_estate_events.500
+	title = vampires_estate_events.500.t
+	desc = vampires_estate_events.500.d
+	picture = NOBLE_ESTATE_eventPicture
+	
+	trigger = {
+		has_estate_privilege = estate_vampires_organization_ladys_birds
+		calc_true_if = {
+			any_known_country = {
+				has_spy_network_from = {
+					who = ROOT
+					value = 65
+				}
+			}
+			amount = 2
+		}
+	}
+	mean_time_to_happen = {
+		years = 15
+		
+		modifier = {
+			factor = 0.6
+			estate_loyalty = {
+				estate = estate_vampires
+				loyalty = 50
+			}
+		}
+		modifier = {
+			factor = 0.6
+			estate_loyalty = {
+				estate = estate_vampires
+				loyalty = 70
+			}
+		}
+		modifier = {
+			factor = 2
+			NOT = {
+				estate_loyalty = {
+					estate = estate_vampires
+					loyalty = 40
+				}
+			}
+		}
+		modifier = {
+			factor = 2
+			NOT = {
+				estate_loyalty = {
+					estate = estate_vampires
+					loyalty = 20
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		add_estate_loyalty = {
+			estate = estate_vampires
+			loyalty = 5
+		}
+	}
+	
+	option = { #steal crowns
+        name = vampires_estate_events.500.a
+        
+        every_known_country = {
+            limit = {
+                has_spy_network_from = {
+                    who = ROOT
+                    value = 65
+                }
+            }
+            add_spy_network_from = {
+                who = ROOT
+                value = -30
+            }
+            add_years_of_income = -1
+        }
+        add_years_of_income = 1
+        add_estate_influence_modifier = {
+            estate = estate_vampires
+            desc = "Minor Operations: "
+            influence = 5
+            duration = 1825
+        }
+    }
+	option = { #steal crowns
+		name = vampires_estate_events.500.a
+			
+		every_known_country = {
+			limit = {
+				has_spy_network_from = {
+					who = ROOT
+					value = 65
+				}
+			}
+			add_spy_network_from = {
+				who = ROOT
+				value = -30
+			}
+			export_to_variable = {
+				which = yearly_income
+				value = monthly_income
+			}
+			multiply_variable = {
+				which = yearly_trade_income
+				value = 12
+			}
+			while = {
+				limit = {
+					check_variable = {
+						which = yearly_income
+						value = 1
+					}
+				}
+				add_treasury = -1
+				ROOT = { add_treasury = 1 }
+				subtract_variable = {
+					which = yearly_income
+					value = 1
+				}
+			}
+		}
+		add_estate_influence_modifier = {
+			estate = estate_vampires
+			desc = "Minor Operations: "
+			influence = 5
+			duration = 1825
+		}
+	}
+	option = { #steal mana
+		name = vampires_estate_events.500.b
+		
+		every_known_country = {
+			limit = {
+				has_spy_network_from = {
+					who = ROOT
+					value = 65
+				}
+			}
+			add_spy_network_from = {
+				who = ROOT
+				value = -40
+			}
+			add_adm_power = -30
+			add_dip_power = -30
+			add_mil_power = -30
+		}
+		add_adm_power = 30
+		add_dip_power = 30
+		add_mil_power = 30
+		add_estate_influence_modifier = {
+			estate = estate_vampires
+			desc = "Minor Operations: "
+			influence = 5
+			duration = 2555
+		}
+	}
+	option = { #spread corruption
+		name = vampires_estate_events.500.c
+		
+		every_known_country = {
+			limit = {
+				has_spy_network_from = {
+					who = ROOT
+					value = 65
+				}
+			}
+			add_spy_network_from = {
+				who = ROOT
+				value = -50
+			}
+			add_corruption = 3
+			add_country_modifier = { name = ravenmarch_ladysbirds_corrupt duration = 3650 }
+		}
+		
+	}
+	option = { #assasinate advisor
+		name = vampires_estate_events.500.dd
+		
+		every_known_country = {
+			limit = {
+				has_spy_network_from = {
+					who = ROOT
+					value = 65
+				}
+			}
+			add_spy_network_from = {
+				who = ROOT
+				value = -65
+			}
+			kill_advisor = random
+			reduce_stability_or_adm_power = yes
+		}
+	}
+}
+
+#Neratic Inquisition - Inquisition prosecutes scapegoat vampire for infestation
+country_event = {
+	id = vampires_estate_events.501
+	title = vampires_estate_events.501.t
+	desc = vampires_estate_events.501.d
+	picture = NOBLE_ESTATE_eventPicture
+	
+	trigger = {
+		has_estate_privilege = estate_vampires_neratic_inquisition
+		any_owned_province = {
+			OR = {
+                has_province_modifier = aw_vampires_1
+                has_province_modifier = aw_vampires_2
+                has_province_modifier = aw_vampires_3
+            }
+		}
+		NOT = { 
+			has_estate_influence_modifier = {
+				estate = estate_church
+				modifier = "Purging the Shadows: "
+			} 
+		}
+		NOT = { 
+			has_estate_influence_modifier = {
+				estate = estate_church
+				modifier = "Denied Oversight: "
+			}		
+		}
+		NOT = { 
+			has_estate_loyalty_modifier = {
+				estate = estate_vampires
+				modifier = "Fair Inquisitorial Oversight: "
+			}
+		}
+	}
+	mean_time_to_happen = {
+		years = 20
+		
+		modifier = {
+			factor = 0.75
+			NOT = {
+				estate_loyalty = {
+					estate = estate_church
+					loyalty = 30
+				}
+			}
+		}
+		modifier = {
+			factor = 0.5
+			NOT = {
+				estate_loyalty = {
+					estate = estate_church
+					loyalty = 20
+				}
+			}
+		}
+		modifier = {
+			factor = 0.75
+			any_owned_province = {
+				has_province_modifier = aw_vampires_1
+			}
+		}
+		modifier = {
+			factor = 0.5
+			any_owned_province = {
+				has_province_modifier = aw_vampires_2
+			}
+		}
+		modifier = {
+			factor = 0.25
+			any_owned_province = {
+				has_province_modifier = aw_vampires_3
+			}
+		}
+		modifier = {
+			factor = 2
+			estate_loyalty = {
+				estate = estate_church
+				loyalty = 60
+			}
+		}
+		modifier = {
+			factor = 4
+			estate_loyalty = {
+				estate = estate_church
+				loyalty = 80
+			}
+		}
+	}
+	
+	option = { #allow 
+		name = vampires_estate_events.501.a
+		add_estate_loyalty = {
+			estate = estate_vampires
+			loyalty = -10
+		}
+		add_estate_influence_modifier = {
+			estate = estate_church
+			influence = 5
+			desc = "Purging the Shadows: "
+			duration = 3650
+		}
+	}
+	option = { #pardon the vampire
+		name = vampires_estate_events.501.b
+		add_estate_loyalty = {
+			estate = estate_church
+			loyalty = -10
+		}
+		add_estate_influence_modifier = {
+			estate = estate_church
+			influence = -5
+			desc = "Denied Oversight: "
+			duration = 3650
+		}
+	}
+	option = { #have the trial under royal authority
+		name = vampires_estate_events.501.c
+		highlight = yes
+		trigger = {
+			OR = {
+				ruler_has_personality = just_personality
+				ruler_has_personality = lawgiver_personality
+				ruler_has_personality = incorruptible_personality
+			}
+		}
+		random_list = {
+			50 = { #found guilty, is guilty
+				custom_tooltip = ravenmarch_inquisition_trial_guilty
+				hidden_effect = {
+					add_estate_loyalty = {
+						estate = estate_vampires
+						loyalty = 5
+					}
+					add_estate_loyalty = {
+						estate = estate_church
+						loyalty = 5
+					}
+					add_estate_influence_modifier = {
+						estate = estate_church
+						influence = 5
+						desc = "Purging the Shadows: "
+						duration = 3650
+					}
+				}
+			}
+			25 = { #found not guilty, is not guilty
+				custom_tooltip = ravenmarch_inquisition_found_not_guilty
+				hidden_effect = {
+					add_estate_loyalty = {
+						estate = estate_vampires
+						loyalty = 5
+					}
+					add_estate_influence_modifier = {
+						estate = estate_church
+						influence = 5
+						desc = "Purging the Shadows: "
+						duration = 3650
+					}
+				}
+			}
+			13 = { #found guilty, is not guilty
+				custom_tooltip = ravenmarch_inquisition_found_guilty_is_not_guilty
+				hidden_effect = {
+					add_estate_loyalty = {
+						estate = estate_vampires
+						loyalty = -5
+					}
+					add_estate_influence_modifier = {
+						estate = estate_church
+						influence = 5
+						desc = "Purging the Shadows: "
+						duration = 3650
+					}
+				}
+			}
+			12 ={ #found not guilty, is guilty
+				custom_tooltip = ravenmarch_inquisition_found_not_guilty_is_guilty
+				hidden_effect = {
+					add_estate_loyalty = {
+						estate = estate_church
+						loyalty = -5
+					}
+					add_estate_influence_modifier = {
+						estate = estate_church
+						influence = -5
+						desc = "Denied Oversight: "
+						duration = 3650
+					}
+				}
+			}
+		}
+	}
+}
+
+#Neratic Inquisition - Fair Leadership
+country_event = {
+	id = vampires_estate_events.502
+	title = vampires_estate_events.502.t
+	desc = vampires_estate_events.502.d
+	picture = NOBLE_ESTATE_eventPicture
+	
+	trigger = {
+		has_estate_privilege = estate_vampires_neratic_inquisition
+		NOT = { 
+			has_estate_influence_modifier = {
+				estate = estate_church
+				modifier = "Denied Oversight: "
+			}		
+		}
+		NOT = { 
+			has_estate_loyalty_modifier = {
+				estate = estate_vampires
+				modifier = "Fair Inquisitorial Oversight: "
+			}
+		}
+		estate_loyalty = {
+			estate = estate_vampires
+			loyalty = 60
+		}
+		estate_loyalty = {
+			estate = estate_church
+			loyalty = 60
+		}
+	}
+	
+	mean_time_to_happen = {
+		years = 50
+		
+		modifier = {
+			factor = 0.75
+			estate_loyalty = {
+				estate = estate_vampires
+				loyalty = 70
+			}
+			estate_loyalty = {
+				estate = estate_church
+				loyalty = 70
+			}
+		}
+		modifier = {
+			factor = 0.9
+			NOT = {
+				any_owned_province = {
+					has_province_modifier = aw_vampires_1
+				}
+			}
+		}
+		modifier = {
+			factor = 0.9
+			NOT = {
+				any_owned_province = {
+					has_province_modifier = aw_vampires_2
+				}
+			}
+		}
+		modifier = {
+			NOT = {
+				any_owned_province = {
+					has_province_modifier = aw_vampires_3
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = vampires_estate_events.502.a
+		add_estate_loyalty_modifier = {
+			estate = estate_vampires
+			desc = "Fair Inquisitorial Oversight: "
+			loyalty = 5
+			duration = 5475
+		}
+	}
+	option = {
+		name = vampires_estate_events.502.b
+		trigger = {
+			OR = {
+				ruler_has_personality = well_connected_personality
+				ruler_has_personality = secretive_personality
+				ruler_has_personality = well_advised_personality
+			}
+		}
+		highlight = yes
+		add_estate_loyalty_modifier = {
+			estate = estate_vampires
+			desc = "Fair Inquisitorial Oversight: "
+			loyalty = 5
+			duration = 7300
 		}
 	}
 }
