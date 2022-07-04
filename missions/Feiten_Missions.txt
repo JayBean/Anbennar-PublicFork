@@ -66,6 +66,7 @@ feiten_missions_1_early = {
 		trigger = {
 			4884 = {
 				has_trade_building_trigger = yes
+				country_or_non_sovereign_subject_holds = ROOT
 				OR = {
 					has_fort_building_trigger = yes
 					any_neighbor_province = { has_fort_building_trigger = yes }
@@ -73,6 +74,7 @@ feiten_missions_1_early = {
 			}
 			4879 = {
 				has_trade_building_trigger = yes
+				country_or_non_sovereign_subject_holds = ROOT
 				OR = {
 					has_fort_building_trigger = yes
 					any_neighbor_province = { has_fort_building_trigger = yes }
@@ -347,7 +349,15 @@ feiten_missions_1_established = {
 				has_shipyard_building_trigger = yes
 				province_trade_power = 30
 			}
-			has_institution = new_world_i
+			OR = {
+				any_owned_province = {
+					OR = {
+						continent = north_america
+						continent = south_america
+					}
+				}
+				has_institution = new_world_i
+			}
 		}
 		
 		effect = {
@@ -438,8 +448,6 @@ feiten_missions_1_world = {
 		required_missions = {
 			feiten_of_guano_and_whale_oil
 		}
-		
-		provinces_to_highlight = { }
 		
 		trigger = {
 			OR = {
@@ -1295,8 +1303,6 @@ feiten_missions_2_world = {
 			feiten_age_of_silk
 		}
 		
-		provinces_to_highlight = { }
-		
 		trigger = {
 			has_reached_government_reform_tier = { tier_7 = yes }
 			government_reform_progress = 100
@@ -1426,20 +1432,23 @@ feiten_missions_2_world = {
 				estate = estate_church
 				loyalty = 65
 			}
-			any_country = {
+			OR = {
 				is_papal_controller = yes
-				OR = {
-					alliance_with = ROOT
-					has_opinion = {
-						who = ROOT
-						value = 150
+				any_country = {
+					is_papal_controller = yes
+					OR = {
+						alliance_with = ROOT
+						has_opinion = {
+							who = ROOT
+							value = 150
+						}
 					}
 				}
 			}
 		}
 		
 		effect = {
-			country_event = { id = flavor_feiten.113 }
+			# country_event = { id = flavor_feiten.113 }
 			add_country_modifier = {
 				name = feiten_eastern_school_of_thought
 				duration = -1
@@ -1470,9 +1479,14 @@ feiten_missions_3_early = {
 		trigger = {
 			if = {
 				limit = {
-					4888 = { country_or_non_sovereign_subject_holds = ROOT }
-					4889 = { country_or_non_sovereign_subject_holds = ROOT }
-					4893 = { country_or_non_sovereign_subject_holds = ROOT }
+					OR = {
+						AND = {
+							4888 = { country_or_non_sovereign_subject_holds = ROOT }
+							4889 = { country_or_non_sovereign_subject_holds = ROOT }
+							4893 = { country_or_non_sovereign_subject_holds = ROOT }
+						}
+						NOT = { exists = Y21 }
+					}
 				}
 			}
 			else = {
@@ -1488,24 +1502,38 @@ feiten_missions_3_early = {
 		}
 		
 		effect = {
-			every_province = {
+			if = {
 				limit = {
-					owned_by = Y21
-					NOT = { province_id = 4888 }
-					NOT = { province_id = 4889 }
-					NOT = { province_id = 4893 }
+					OR = {
+						AND = {
+							4888 = { country_or_non_sovereign_subject_holds = ROOT }
+							4889 = { country_or_non_sovereign_subject_holds = ROOT }
+							4893 = { country_or_non_sovereign_subject_holds = ROOT }
+						}
+						NOT = { exists = Y21 }
+					}
 				}
-				add_permanent_claim = Y24
 			}
-			4888 = { add_core = Y24 }
-			4889 = { add_core = Y24 }
-			4893 = { add_core = Y24 }
-			declare_war_with_cb = {
-				who = Y21
-				casus_belli = cb_annex
+			else = {
+				every_province = {
+					limit = {
+						owned_by = Y21
+						NOT = { province_id = 4888 }
+						NOT = { province_id = 4889 }
+						NOT = { province_id = 4893 }
+					}
+					add_permanent_claim = Y24
+				}
+				4888 = { add_core = Y24 }
+				4889 = { add_core = Y24 }
+				4893 = { add_core = Y24 }
+				declare_war_with_cb = {
+					who = Y21
+					casus_belli = cb_annex
+				}
+				Y24 = { join_all_offensive_wars_of = ROOT }
+				add_favors = { who = Y24 amount = 20 }
 			}
-			Y24 = { join_all_offensive_wars_of = ROOT }
-			add_favors = { who = Y24 amount = 20 }
 		}
 	}
 	
@@ -1517,20 +1545,26 @@ feiten_missions_3_early = {
 		}
 		
 		provinces_to_highlight = {
-			if = {
-				limit = { exists = Y21 }
-				OR = {
-					owned_by = Y24
-					owned_by = Y21
+			OR = {
+				AND = {
+					exists = Y21
+					NOT = { Y24 = { is_subject_of = ROOT } }
+					OR = {
+						province_id = 4888
+						province_id = 4889
+						province_id = 4893
+					}
+					NOT = { is_core = Y24 }
 				}
-			}
-			else = {
-				OR = {
-					province_id = 4888
-					province_id = 4889
-					province_id = 4893
+				AND = {
+					NOT = { exists = Y21 }
+					OR = {
+						province_id = 4888
+						province_id = 4889
+						province_id = 4893
+					}
+					NOT = { country_or_non_sovereign_subject_holds = ROOT }
 				}
-				NOT = { is_core = Y24 }
 			}
 		}
 		
@@ -1540,9 +1574,9 @@ feiten_missions_3_early = {
 				if = {
 					limit = { NOT = { Y24 = { is_subject_of = ROOT } } }
 					Y24 = { trust = { who = ROOT value = 60 } }
-					4888 = { is_core = Y24 }
-					4889 = { is_core = Y24 }
-					4893 = { is_core = Y24 }
+					4888 = { owned_by = Y24 is_core = Y24 }
+					4889 = { owned_by = Y24 is_core = Y24 }
+					4893 = { owned_by = Y24 is_core = Y24 }
 					Y24 = { alliance_with = ROOT }
 					dip_power = 150
 				}
@@ -1624,13 +1658,11 @@ feiten_missions_3_early = {
 		}
 
 		provinces_to_highlight = {
-			province_id = 1372 # Tianlou Bay
+			province_id = 4871
 			NOT = {
-				4871 = { # Tianlou
-					trade_share = {
-						country = ROOT
-						share = 20
-					}
+				trade_share = {
+					country = ROOT
+					share = 20
 				}
 			}
 		}
@@ -1748,6 +1780,7 @@ feiten_missions_3_established = {
 		
 		provinces_to_highlight = {
 			province_id = 4871
+			NOT = { owned_by = ROOT }
 		}
 		
 		trigger = {
@@ -1790,13 +1823,9 @@ feiten_missions_3_established = {
 		}
 		
 		provinces_to_highlight = {
-			if = {
-				limit = {
-					ROOT = { has_country_flag = feiten_shift_savior_of_yanshen }
-				}
-				owned_by = R62
-				region = upper_yanshen_region
-			}
+			ROOT = { has_country_flag = feiten_shift_savior_of_yanshen }
+			region = upper_yanshen_region
+			owned_by = R62
 		}
 		
 		trigger = {
@@ -1864,7 +1893,11 @@ feiten_missions_3_established = {
 			add_dip_power = -50
 			add_adm_power = -50
 			add_mil_power = -50
-			4879 = { set_province_flag = feiten_aerodrome add_great_project = { type = feiten_aerodrome } }
+			4879 = {
+				set_province_flag = feiten_aerodrome
+				custom_tooltip = "We will be able to start building the Grand Skyport here"
+				hidden_effect = { add_great_project = { type = feiten_aerodrome } }
+			}
 		}
 	}
 	
@@ -2088,6 +2121,17 @@ feiten_missions_3_world = {
 				province_id = 4701
 				area = amkamsek_area
 			}
+			if = {
+				limit = { province_id = 4701 }
+				NOT = {
+					event_target:feiten_or_was_feiten_target = {
+						has_won_war_against = {
+							who = owner
+							max_years_since = 50
+						}
+					}
+				}
+			}
 			NOT = { country_or_non_sovereign_subject_holds = ROOT }
 		}
 		
@@ -2305,9 +2349,14 @@ feiten_missions_3_world = {
 		}
 		
 		trigger = {
-			has_institution = manufactories
+			OR = {
+				calc_true_if = {
+					amount = 10
+					all_province = { has_province_modifier = feiten_skyport_handler_mod }
+				}
+				has_institution = manufactories
+			}
 			1371 = { trade_node_value = 50 }
-			# Have unlocked X airship inventions
 			estate_loyalty = {
 				estate = estate_artificers
 				loyalty = 80
@@ -2500,7 +2549,7 @@ feiten_missions_3_world = {
 					add_gnomish_minority_size_effect = yes
 				}
 			}
-			mission_reward_artifice_points_2 = yes
+			mission_reward_artifice_points_3 = yes
 		}
 	}
 	
@@ -2518,7 +2567,7 @@ feiten_missions_3_world = {
 		provinces_to_highlight = {
 			province_group = jellyfish_coast_provinces
 			OR = {
-				NOT = { development = 25 }
+				NOT = { development = 35 }
 				is_prosperous = no
 				NOT = { num_of_buildings_in_province = 6 }
 				has_no_manufactory_trigger = yes
@@ -2533,8 +2582,7 @@ feiten_missions_3_world = {
 					tooltip = province_is_prosperous
 					is_prosperous = yes
 				}
-				development = 25
-				is_prosperous = yes
+				development = 35
 				custom_trigger_tooltip = {
 					tooltip = feiten_luminescent_coast_trigger_tt
 					num_of_buildings_in_province = 6
@@ -2653,6 +2701,7 @@ feiten_missions_3_world = {
 			if = {
 				limit = { NOT = { has_country_flag = unlocked_artifice_invention_commercial_sky_galleons } }
 				country_event = { id = artifice_inventions.808 }
+				set_country_flag = unlocked_artifice_invention_commercial_sky_galleons
 			}
 			else = {
 				add_dip_power = 200
@@ -2660,6 +2709,7 @@ feiten_missions_3_world = {
 			if = {
 				limit = { NOT = { has_country_flag = unlocked_artifice_invention_military_sky_galleons } }
 				country_event = { id = artifice_inventions.913 }
+				set_country_flag = unlocked_artifice_invention_military_sky_galleons
 			}
 			else = {
 				add_mil_power = 200
@@ -2679,12 +2729,10 @@ feiten_missions_3_world = {
 		provinces_to_highlight = {
 			province_id = 4879
 			NOT = {
-				OR = {
-					has_province_modifier = feiten_grand_skyport_level_3
-					has_great_project = {
-						type = feiten_aerodrome
-						tier = 3
-					}
+				has_province_modifier = feiten_grand_skyport_level_3
+				has_great_project = {
+					type = feiten_aerodrome
+					tier = 3
 				}
 			}
 		}
@@ -2732,7 +2780,6 @@ feiten_missions_4_early = {
 		required_missions = { }
 		
 		provinces_to_highlight = {
-			owned_by = Y27
 			OR = {
 				AND = {
 					exists = Y27
@@ -2740,6 +2787,7 @@ feiten_missions_4_early = {
 				}
 				AND = {
 					NOT = { exists = Y27 }
+					province_id = 4896
 					NOT = { country_or_non_sovereign_subject_holds = ROOT }
 				}
 			}
@@ -2987,13 +3035,16 @@ feiten_missions_4_established = {
 		}
 		
 		provinces_to_highlight = {
-			if = {
-				limit = { Y24 = { is_subject_of = event_target:feiten_or_was_feiten_target } }
-				owned_by = Y24
-			}
-			else = {
-				area = luoyip_area
-				NOT = { is_core = ROOT }
+			NOT = { Y24 = { is_subject_of = event_target:feiten_or_was_feiten_target } }
+			OR = {
+				AND = {
+					area = luoyip_area
+					NOT = { is_core = ROOT }
+				}
+				AND = {
+					province_id = 4949
+					NOT = { has_tax_building_trigger = yes }
+				}
 			}
 		}
 		
@@ -3264,6 +3315,7 @@ feiten_missions_4_world = {
 				province_id = 5356
 				province_id = 5202
 			}
+			NOT = { is_strongest_trade_power = ROOT }
 		}
 		
 		trigger = {
@@ -3316,7 +3368,11 @@ feiten_missions_4_world = {
 			feiten_riches_of_rahen
 		}
 		
-		provinces_to_highlight = { }
+		provinces_to_highlight = {
+			has_terrain = dwarven_hold_surface
+			has_discovered = ROOT
+			NOT = { province_id = 5424 }
+		}
 		
 		trigger = {
 			check_variable = {
@@ -3509,21 +3565,8 @@ feiten_missions_4_world = {
 		}
 		
 		provinces_to_highlight = {
-			OR = {
-				AND = {
-					province_id = 4881
-					NOT = {
-						has_local_modifier_value = {
-							which = trade_goods_size
-							value = 5
-						}
-					}
-				}
-				AND = {
-					province_group = jellyfish_coast_provinces
-					NOT = { industrialization = 100 }
-				}
-			}
+			province_group = jellyfish_coast_provinces
+			NOT = { industrialization = 100 }
 		}
 		
 		trigger = {
@@ -3534,13 +3577,23 @@ feiten_missions_4_world = {
 				has_country_flag = feiten_invention_porcelain_caged_firebirds
 				has_country_flag = feiten_invention_steel_rudders
 			}
-			trade_goods_produced_amount = {
-				trade_goods = coal
-				amount = 5
+			custom_trigger_tooltip = {
+				# Both the vanilla/default and the one I made sucks
+				tooltip = feiten_coal_production
+				trade_goods_produced_amount = {
+					trade_goods = coal
+					amount = 5
+				}
 			}
 			jellyfish_coast_provinces = {
 				type = all
-				industrialization = 100
+				OR = {
+					AND = {
+						base_production = 20
+						has_manufactory_trigger = yes
+					}
+					industrialization = 100
+				}
 			}
 		}
 		
@@ -3838,6 +3891,18 @@ feiten_missions_5_world = {
 				name = feiten_arrival_of_gnomes
 				duration = 7300
 			}
+			if = {
+				limit = {
+					4879 = {
+						NOT = { has_province_modifier = gnomish_institute_gommo }
+						NOT = { has_province_modifier = feiten_gnome_quarter }
+					}
+				}
+				4879 = {
+					add_gnomish_minority_size_effect = yes
+					province_event = { id = gommo_expansion_events.3 }
+				}
+			}
 			custom_tooltip = feiten_arrival_of_gnomes_effect_tt
 			discover_province = 8
 			discover_province = 112
@@ -3854,8 +3919,6 @@ feiten_missions_5_world = {
 		required_missions = {
 			feiten_arrival_of_gnomes
 		}
-
-		provinces_to_highlight = { }
 		
 		trigger = {
 			calc_true_if = {
@@ -4144,7 +4207,13 @@ feiten_missions_5_world = {
 			jellyfish_coast_provinces = {
 				type = all
 				has_building = university
-				enlightenment = 100
+				OR = {
+					has_local_modifier_value = {
+						which = local_institution_spread
+						value = 0.5
+					}
+					enlightenment = 100
+				}
 			}
 			OR = {
 				has_idea_group = innovativeness_ideas
