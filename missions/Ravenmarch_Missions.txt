@@ -370,7 +370,6 @@ ravenmarch_1_missions = {
 					}
 					province_event = { id = flavor_ravenmarch.20 days = 1 random = 7 }
 				}
-				country_event = { id = flavor_ravenmarch.20 days = 1 random = 7 }
 			}
 			add_country_modifier = {
 				name = ravenmarch_undoing_folly_mages
@@ -798,9 +797,24 @@ ravenmarch_2_missions = {
 			owns_all_provinces = {
 				region = daravans_folly_region
 			}
-			development_in_provinces = {
-				region = daravans_folly_region
-				value = 50
+			if = {
+				limit = { 
+					A59 = {
+						is_subject_of = ROOT
+					}
+				}
+				A59 = {
+					development_in_provinces = {
+						region = daravans_folly_region
+						value = 50
+					}
+				}
+			}
+			else = {
+				development_in_provinces = {
+					region = daravans_folly_region
+					value = 50
+				}
 			}
 		}
 		
@@ -1449,10 +1463,14 @@ ravenmarch_3_missions = {
 		required_missions = { ravenmarch_light_in_darkness ravenmarch_last_korbarids ravenmarch_a_fresh_start }
 		
 		trigger = {
+			is_religion_enabled = corinite
 			OR = {
 				AND = {
 					religion = regent_court
-					has_personal_deity = corin
+					OR = {
+						has_personal_deity = ryala
+						has_personal_deity = nerat
+					}
 				}
 				religion = corinite
 			}
@@ -1533,10 +1551,25 @@ ravenmarch_3_missions = {
 		
 		trigger = {
 			manpower_percentage = 0.75
-			emperor = {
-				has_opinion = {
-					who = ROOT
-					value = 100
+			if = {
+				limit = { 
+					any_rival_country = {
+						is_emperor = yes
+					}
+				}
+				emperor = {
+					has_spy_network_from = {
+						who = ROOT
+						value = 50
+					}
+				}
+			}
+			else = {
+				emperor = {
+					has_opinion = {
+						who = ROOT
+						value = 100
+					}
 				}
 			}
 			any_neighbor_country = {
@@ -1546,10 +1579,24 @@ ravenmarch_3_missions = {
 					}
 					owns = 447
 				}
-				NOT = { truce_with = ROOT }
+				OR = {
+					NOT = { truce_with = ROOT }
+					is_subject_of = ROOT
+				}
 			}
 		}
 		effect = {
+			if = {
+				limit = {
+					any_rival_country = { is_emperor = yes }
+				}
+				emperor = {
+					add_spy_network_from = {
+						who = ROOT
+						value = -50
+					}
+				}
+			}
 			440 = {
 				add_permanent_claim = ROOT
 			}
@@ -1580,29 +1627,29 @@ ravenmarch_3_missions = {
 				province_id = 445
 				province_id = 449
 			}
-			NOT = { owned_by = ROOT }
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
 		}
 		
 		trigger = {
 			north_dreadmire_area = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 				type = all
 			}
 			central_dreadmire_area = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 				type = all
 			}
 			447 = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			448 = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			445 = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			449 = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 		}
 		
@@ -1680,22 +1727,61 @@ ravenmarch_3_missions = {
 				}
 			}
 			if = {
-				limit = { exists = A59 }
+				limit = { 
+					exists = A59
+					NOT = { A59 = { is_subject_of = ROOT } }
+				}
+				
 				has_spy_network_in = {
 					who = A59
 					value = 50
 				}
 			}
+			else_if = {
+				limit = {
+					A59 = {
+						is_subject_of = ROOT
+					}
+				}
+				reverse_has_opinion = {
+					who = A59
+					value = 100
+				}
+				A59 = {
+					NOT = { liberty_desire = 45 }
+				}
+			}
 			else = {
-				
+				441 = {
+					country_or_non_sovereign_subject_holds = ROOT
+				}
 			}
 		}
 		
 		effect = {
-			add_casus_belli = {
-				target = A59
-				type = cb_annex
-				months = 24
+			if = {
+				limit = {
+					exists = A59
+					NOT = { A59 = { is_subject_of = ROOT } }
+				}
+				add_casus_belli = {
+					target = A59
+					type = cb_annex
+					months = 24
+				}
+			}
+			else_if = {
+				limit = {	A59 = { is_subject_of = ROOT } }
+				add_liberty_desire = -10
+			}
+			else_if = {
+				limit = { NOT = { exists = A59 } }
+				
+				add_stability_or_adm_power = yes
+				add_estate_loyalty = {
+					estate = estate_church
+					loyalty = 5
+				}
 			}
 		}
 	}
@@ -1731,19 +1817,8 @@ ravenmarch_3_missions = {
 		}
 		
 		effect = {
-			change_tag = Z07
-			country_event = { id = flavor_ravenmarch.21 days = 1 }
+			country_event = { id = flavor_ravenmarch.21 }
 			add_prestige = 25
-			hidden_effect = {
-				every_owned_province = {
-					limit = { culture = corvurian }
-					change_culture = dostanorian
-				}
-				every_owned_province = {
-					limit = { culture = ravenmarcher }
-					change_culture = ravenmarcher_d
-				}
-			}
 			dostanor_region = {
 				add_core = ROOT
 			}
@@ -2188,6 +2263,7 @@ ravenmarch_4_missions = {
 						OR = {
 							area = medirleigh_area
 							area = escerfork_area
+							area = humacvord_area
 						}
 					}
 					add_base_tax = 1
@@ -2329,7 +2405,7 @@ ravenmarch_4_missions = {
 		
 		provinces_to_highlight = {
 			OR = {
-				area = reuyel_area
+				area = south_overmarch_area
 				area = crathanor_area
 			}
 		}
@@ -2369,9 +2445,7 @@ ravenmarch_4_missions = {
 		effect = {
 			if = {
 				limit = {
-					425 = {
-						NOT = { has_building = mills }
-					}
+					has_manufactory_trigger = no
 				}
 				452 = {
 					add_building_construction = {
@@ -2385,7 +2459,9 @@ ravenmarch_4_missions = {
 				add_years_of_owned_provinces_production_income = {
 					years = 5
 					trigger = {
-						province_id = 425
+						trade_goods = gems
+						province_is_on_an_island = yes
+						region = bahar_region
 					}
 				}
 			}
@@ -2471,7 +2547,7 @@ ravenmarch_4_missions = {
 			lower_brasan_area = {
 				add_permanent_claim = ROOT
 			}
-			outer_brasan_area = {
+			medurubar_area = {
 				add_permanent_claim = ROOT
 			}
 			upper_brasan_area = {
@@ -2488,7 +2564,7 @@ ravenmarch_4_missions = {
 		provinces_to_highlight = {
 			OR = {
 				area = lower_brasan_area
-				area = outer_brasan_area
+				area = medurubar_area
 				area = upper_brasan_area
 			}
 		}
@@ -2499,7 +2575,7 @@ ravenmarch_4_missions = {
 			num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
 				OR = {
 					area = lower_brasan_area
-					area = outer_brasan_area
+					area = medurubar_area
 					area = upper_brasan_area
 				}
 				value = 5
@@ -2512,7 +2588,7 @@ ravenmarch_4_missions = {
 			ibtat_axast_area = {
 				add_permanent_claim = ROOT
 			}
-			salahad_gate_area = {
+			sur_mountains_area = {
 				add_permanent_claim = ROOT
 			}
 			if = {
@@ -2554,7 +2630,7 @@ ravenmarch_4_missions = {
 					limit = {
 						OR = {
 							area = lower_brasan_area
-							area = outer_brasan_area
+							area = medurubar_area
 							area = upper_brasan_area
 						}
 					}
@@ -2582,7 +2658,7 @@ ravenmarch_4_missions = {
 					limit = {
 						OR = {
 							area = lower_brasan_area
-							area = outer_brasan_area
+							area = medurubar_area
 							area = upper_brasan_area
 						}
 					}
@@ -2735,12 +2811,29 @@ ravenmarch_5_missions = {
 		required_missions = { ravenmarch_forests_edge }
 		
 		trigger = {
-			num_of_owned_provinces_with = {
-				value = 4
-				trade_goods = fur
-				OR = {
-					has_production_building_trigger = yes
+			if = {
+				limit = {
+					south_castanor_region = {
+						fur = 5
+					}
+				}
+				num_of_owned_provinces_with = {
+					value = 3
+					trade_goods = fur
+					OR = {
+						has_production_building_trigger = yes
+						base_production = 5
+					}
+				}
+			}
+			else = {
+				num_of_owned_provinces_with = {
+					value = 3
 					base_production = 5
+					OR = {
+						has_terrain = forest
+						has_terrain = woods
+					}
 				}
 			}
 		}
@@ -2979,6 +3072,9 @@ ravenmarch_5_missions = {
 				add_permanent_claim = ROOT
 			}
 			aqatbahar_area = {
+				add_permanent_claim = ROOT
+			}
+			fajabahar_area = {
 				add_permanent_claim = ROOT
 			}
 		}
