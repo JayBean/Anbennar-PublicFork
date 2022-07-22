@@ -571,7 +571,25 @@ clear_racial_military = {
 	remove_country_modifier = ogre_military
 	remove_country_modifier = hobgoblin_military
 	
-	remove_country_modifier = undead_military
+	# Disband your undead army
+	if = {
+		limit = { has_country_modifier = undead_military }
+		custom_tooltip = tooltip_undead_army_destroy_all_armies
+			
+		hidden_effect = {
+			every_owned_province = {
+				kill_units = {
+					who = owner
+					type = infantry
+				}
+				kill_units = {
+					who = owner
+					type = cavalry
+				}
+			}
+		}
+		remove_country_modifier = undead_military
+	}
 }
 
 clear_racial_pop_migration_flags = {
@@ -1236,7 +1254,7 @@ remove_gnomish_minority_size_effect = {
 			remove_province_modifier = port_jaher_gnome_quarter
 			remove_province_modifier = feiten_gnome_quarter
 			remove_province_modifier = kherka_gnome_quarter
-			remove_province_modifier = CamSinh_gnome_quarter
+			remove_province_modifier = camsinh_gnome_quarter
 			remove_province_modifier = arawkelin_gnome_quarter
 			remove_province_modifier = tianlou_gnome_quarter
 			remove_province_modifier = sarisung_gnome_quarter
@@ -1268,7 +1286,7 @@ remove_gnomish_minority_size_effect = {
 			remove_province_modifier = port_jaher_gnome_quarter
 			remove_province_modifier = feiten_gnome_quarter
 			remove_province_modifier = kherka_gnome_quarter
-			remove_province_modifier = CamSinh_gnome_quarter
+			remove_province_modifier = camsinh_gnome_quarter
 			remove_province_modifier = arawkelin_gnome_quarter
 			remove_province_modifier = tianlou_gnome_quarter
 			remove_province_modifier = sarisung_gnome_quarter
@@ -1300,7 +1318,7 @@ remove_gnomish_minority_size_effect = {
 			remove_province_modifier = port_jaher_gnome_quarter
 			remove_province_modifier = feiten_gnome_quarter
 			remove_province_modifier = kherka_gnome_quarter
-			remove_province_modifier = CamSinh_gnome_quarter
+			remove_province_modifier = camsinh_gnome_quarter
 			remove_province_modifier = arawkelin_gnome_quarter
 			remove_province_modifier = tianlou_gnome_quarter
 			remove_province_modifier = sarisung_gnome_quarter
@@ -10854,42 +10872,54 @@ pop_menu_military_change_mil_effects = {
 }
 
 pop_menu_military_change_mil_race = {
-	if = { limit = { is_variable_equal = { which = $RACE$Ranking value = $ORDER$ } }
-		if = { limit = { is_variable_equal = { which = $RACE$Ranking value = 1 } }
-			custom_tooltip = pop_military_current_tt
-			tooltip = { add_country_modifier = { name = $RACE$_military duration = -1 desc = pop_military_modifier_duration_hidden } }
-		}
-		else_if = {
-			limit = {
-				mil_power = 200
-				high_tolerance_$RACE$_race_trigger = yes
-				OR = {
-					check_variable = { which = nb$RACE$Dev value = 30 }
-					has_country_modifier = $RACE$_administration
-				}
-			}
-			add_mil_power = -200
-			clear_racial_military = yes
-			
-			add_country_modifier = { name = restructuring_military duration = 3650 }
-			add_country_modifier = { name = $RACE$_military duration = -1 }
-			pop_menu_military_change_tech = { RACE = $RACE$ ORDER = $ORDER$ }
-		}
-		else = {
-			custom_tooltip = pop_military_change_not_possible_tt
-			if = { limit = { NOT = { mil_power = 200 } }
-				custom_tooltip = pop_military_not_enough_milpower_tt
-			}
-			if = { limit = { NOT = { high_tolerance_$RACE$_race_trigger = yes } }
-				custom_tooltip = pop_military_tolerance_too_low_tt
-			}
-			if = { limit = { NOT = { check_variable = { which = nb$RACE$Dev value = 30 } } }
-				custom_tooltip = pop_military_dev_too_low_tt
-			}
-			custom_tooltip = pop_military_separator_tt
-			tooltip = { add_country_modifier = { name = $RACE$_military duration = -1 desc = pop_military_modifier_duration_hidden } }
-		}
-	}
+    if = { limit = { is_variable_equal = { which = $RACE$Ranking value = $ORDER$ } }
+        if = { limit = { is_variable_equal = { which = $RACE$Ranking value = 1 } }
+            custom_tooltip = pop_military_current_tt
+            tooltip = { add_country_modifier = { name = $RACE$_military duration = -1 desc = pop_military_modifier_duration_hidden } }
+        }
+        else_if = {
+            limit = {
+                mil_power = 200
+                high_tolerance_$RACE$_race_trigger = yes
+                OR = {
+                    check_variable = { which = nb$RACE$Dev value = 30 }
+                    AND = {
+                        has_country_modifier = $RACE$_administration
+                        NOT = { primary_culture = sunrise_elf }
+                    }
+                }
+            }
+            add_mil_power = -200
+            clear_racial_military = yes
+            
+            add_country_modifier = { name = restructuring_military duration = 3650 }
+            add_country_modifier = { name = $RACE$_military duration = -1 }
+            pop_menu_military_change_tech = { RACE = $RACE$ ORDER = $ORDER$ }
+        }
+        else = {
+            custom_tooltip = pop_military_change_not_possible_tt
+            if = { limit = { NOT = { mil_power = 200 } }
+                custom_tooltip = pop_military_not_enough_milpower_tt
+            }
+            if = { limit = { NOT = { high_tolerance_$RACE$_race_trigger = yes } }
+                custom_tooltip = pop_military_tolerance_too_low_tt
+            }
+            if = { limit = { NOT = { check_variable = { which = nb$RACE$Dev value = 30 } } }
+                custom_tooltip = pop_military_dev_too_low_tt
+            }
+            if = {
+                limit = {
+                    AND = {
+                        has_country_modifier = $RACE$_administration
+                        primary_culture = sunrise_elf
+                    }
+                }
+                custom_tooltip = pop_military_primary_is_sunrise_elf_tt
+            }
+            custom_tooltip = pop_military_separator_tt
+            tooltip = { add_country_modifier = { name = $RACE$_military duration = -1 desc = pop_military_modifier_duration_hidden } }
+        }
+    }
 }
 
 pop_menu_military_change_tech = {
