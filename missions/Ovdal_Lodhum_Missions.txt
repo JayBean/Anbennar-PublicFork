@@ -687,7 +687,13 @@ lodhum_start_4b = {
 		effect = {
 			add_prestige = 10
 			add_legitimacy = 25
-			add_accepted_culture = diamond_dwarf
+			if = {
+				limit = {
+					NOT = { serpentreach_region = { culture = diamond_dwarf } }
+				}
+				add_dip_power = 100
+			}
+			else = { add_accepted_culture = diamond_dwarf }
 		}
 	}
 
@@ -714,11 +720,20 @@ lodhum_start_4b = {
 		}
 		
 		effect = {
-			custom_tooltip = lodhum_what_connects_tooltip
-			hidden_effect = { 
-				every_owned_province = {
-					limit = { culture = diamond_dwarf }
-					add_province_modifier = { name = lodhum_arg_love duration = 10950 }
+			if = {
+				limit = {
+					NOT = { serpentreach_region = { culture = diamond_dwarf } }
+				}
+				add_stability_or_adm_power = yes
+				4093 = { add_base_tax = 1 add_base_production = 1 add_base_manpower = 1 }
+			}
+			else = {
+				custom_tooltip = lodhum_what_connects_tooltip
+				hidden_effect = { 
+					every_owned_province = {
+						limit = { culture = diamond_dwarf }
+						add_province_modifier = { name = lodhum_arg_love duration = 10950 }
+					}
 				}
 			}
 		}
@@ -1203,6 +1218,7 @@ lodhum_feywoods_branch_1 = {
 					add_country_modifier = { name = lodhum_greentide_modifier duration = 7300 }
 				}
 			}
+			custom_tooltip = lodhum_united_greentide_tooltip2
 		}
 	}
 
@@ -1673,7 +1689,8 @@ lodhum_bulwar_branch_5 = {
 					}
 					if = {
 						limit = { is_subject = yes }
-						add_liberty_desire = 75
+						add_liberty_desire = 100
+						create_alliance = H77
 						#needs to be 3 or less
 						if = {
 							limit = {
@@ -1683,11 +1700,21 @@ lodhum_bulwar_branch_5 = {
 							}
 							decrease_nsc_isolation_level = yes
 							decrease_nsc_isolation_level = yes
+							decrease_nsc_isolation_level = yes
 						}
 						else_if = {
 							limit = { 
 								religion = bulwari_sun_cult
 								isolationism = 4
+								overlord = { is_chosen_country = yes }
+							}
+							decrease_nsc_isolation_level = yes
+							decrease_nsc_isolation_level = yes
+						}
+						else_if = {
+							limit = { 
+								religion = bulwari_sun_cult
+								isolationism = 3
 								overlord = { is_chosen_country = yes }
 							}
 							decrease_nsc_isolation_level = yes
@@ -1734,6 +1761,7 @@ lodhum_bulwar_branch_5 = {
 					}
 				}
 			}
+			custom_tooltip = lodhum_slaves_tooltip3
 		}
 	}
 
@@ -2214,6 +2242,7 @@ lodhum_part2_1b = {
 		}
 		
 		effect = {
+			add_treasury = -1000
 			4100 = {
 				change_trade_goods = tropical_wood
 				add_permanent_province_modifier = { name = lodhum_skomdihr_wood duration = -1 }
@@ -2700,10 +2729,8 @@ lodhum_part2_5 = {
 				AND = {
 					NOT = { exists = F27 }
 					area = harpylen_area
-					AND = {
-						NOT = { owned_by = ROOT }
-						NOT = { owned_by = F26 }
-					}
+					NOT = { owned_by = ROOT }
+					NOT = { owned_by = F26 }
 				}
 			}
 		}
@@ -2841,15 +2868,7 @@ lodhum_part2_5 = {
 					F27 = {
 						custom_tooltip = lodhum_monsters_tooltip
 						hidden_effect = {
-							#these make AI more willing to pick good options in events
-							if = {
-								limit = { ai = yes }
-								add_ruler_personality = free_thinker_personality
-								if = {
-									limit = { has_heir = yes }
-									add_heir_personality = free_thinker_personality
-								}
-							}
+							country_event = { id = flavor_lodhum.152 }
 							#set up from the decision, 50 instead of 100 because boost
 							if = {
 								limit = { NOT = { has_country_flag = removing_monstrous } }
@@ -2892,15 +2911,7 @@ lodhum_part2_5 = {
 					F27 = {
 						custom_tooltip = lodhum_monsters_tooltip
 						hidden_effect = {
-							#these make AI more willing to pick good options in events
-							if = {
-								limit = { ai = yes }
-								add_ruler_personality = free_thinker_personality
-								if = {
-									limit = { has_heir = yes }
-									add_heir_personality = free_thinker_personality
-								}
-							}
+							country_event = { id = flavor_lodhum.152 }
 							#set up from the decision, 50 instead of 100 because boost
 							if = {
 								limit = { NOT = { has_country_flag = removing_monstrous } }
@@ -3123,6 +3134,9 @@ lodhum_part3_1 = {
 		}
 		
 		effect = {
+			add_treasury = -500
+			add_adm_power = -100
+			add_dip_power = -100
 			534 = { add_province_modifier = { name = lodhum_road_building duration = 3650 } }
 			531 = { add_province_modifier = { name = lodhum_road_building duration = 3650 } }
 			530 = { add_province_modifier = { name = lodhum_road_building duration = 3650 } }
@@ -3180,8 +3194,13 @@ lodhum_part3_2 = {
 		trigger = {
 			if = {
 				limit = { exists = F23 }
-				alliance_with = F23
-				reverse_has_opinion = { who = F23 value = 125 }
+				OR = {
+					AND = {
+						alliance_with = F23
+						reverse_has_opinion = { who = F23 value = 125 }
+					}
+					F23 = { is_rival = ROOT }
+				}
 			}
 			else = {
 				tungr_mountains_area = { type = all owned_by = ROOT }
@@ -3191,7 +3210,10 @@ lodhum_part3_2 = {
 		effect = {
 			if = {
 				limit = { exists = F23 }
-				create_alliance = F23
+				if = {
+					limit = { NOT = { alliance_with = F23 } }
+					create_alliance = F23
+				}
 				add_dip_power = 50
 				F23 = { 
 					add_favors = { who = H77 amount = 20 } 
@@ -3243,6 +3265,7 @@ lodhum_part3_2 = {
 				528 = { add_permanent_claim = F23 }
 				magairous_area = { add_permanent_claim = F23 }
 			}
+			custom_tooltip = lodhum_copper_dwarves_tooltip2
 		}
 	}
 
@@ -3256,22 +3279,16 @@ lodhum_part3_2 = {
 		provinces_to_highlight = {
 			OR = {
 				province_id = 528
-				AND = {
-					area = magairous_area
-					NOT = { province_id = 533 }
-				}
+				area = magairous_area
 			}
-			NOT = { owned_by = F23 }
+			NOT = { country_or_subject_holds = F23 }
 		}
 
 		trigger = {
-			528 = { owned_by = F23 }
+			528 = { country_or_subject_holds = F23 }
 			magairous_area = { 
 				type = all 
-				OR = {
-					province_id = 533
-					owned_by = F23
-				} 
+				country_or_subject_holds = F23
 			}
 		}
 		
@@ -3657,8 +3674,8 @@ lodhum_part3_3 = {
 				province_id = 511 #zelenlasa
 				province_id = 510 #bal ourd
 			}
-			NOT = { owned_by = F23 }
-			NOT = { owned_by = I45 }
+			NOT = { country_or_subject_holds = F23 }
+			NOT = { country_or_subject_holds = I45 }
 		}
 
 		trigger = {
@@ -3666,32 +3683,32 @@ lodhum_part3_3 = {
 			#incase cyranavar spills out
 			520 = { 
 				OR = {
-					owned_by = F23 
-					owned_by = I45
+					country_or_subject_holds = F23 
+					country_or_subject_holds = I45
 				} 	
 			}
 			513 = { 
 				OR = {
-					owned_by = F23 
-					owned_by = I45
+					country_or_subject_holds = F23 
+					country_or_subject_holds = I45
 				} 
 			}
 			512 = { 
 				OR = {
-					owned_by = F23 
-					owned_by = I45
+					country_or_subject_holds = F23 
+					country_or_subject_holds = I45
 				} 
 			}
 			511 = {
 				OR = {
-					owned_by = F23 
-					owned_by = I45
+					country_or_subject_holds = F23 
+					country_or_subject_holds = I45
 				}
 			}
 			510 = { 
 				OR = {
-					owned_by = F23 
-					owned_by = I45
+					country_or_subject_holds = F23 
+					country_or_subject_holds = I45
 				}
 			}
 		}
@@ -3701,55 +3718,55 @@ lodhum_part3_3 = {
 			#transfer control if cyranavar owns
 			if = {
 				limit = { 
-					520 = { owned_by = I45 }
+					520 = { country_or_subject_holds = I45 }
 					I45 = { ai = yes }
 				}
 				520 = {
-					remove_core = I45
+					remove_core = owner
 					add_core = F23
 					cede_province = F23
 				}
 			}
 			if = {
 				limit = { 
-					513 = { owned_by = I45 }
+					513 = { country_or_subject_holds = I45 }
 					I45 = { ai = yes }
 				}
 				513 = {
-					remove_core = I45
+					remove_core = owner
 					add_core = F23
 					cede_province = F23
 				}
 			}
 			if = {
 				limit = { 
-					512 = { owned_by = I45 }
+					512 = { country_or_subject_holds = I45 }
 					I45 = { ai = yes }
 				}
 				512 = {
-					remove_core = I45
+					remove_core = owner
 					add_core = F23
 					cede_province = F23
 				}
 			}
 			if = {
 				limit = { 
-					511 = { owned_by = I45 }
+					511 = { country_or_subject_holds = I45 }
 					I45 = { ai = yes }
 				}
 				511 = {
-					remove_core = I45
+					remove_core = owner
 					add_core = F23
 					cede_province = F23
 				}
 			}
 			if = {
 				limit = { 
-					510 = { owned_by = I45 }
+					510 = { country_or_subject_holds = I45 }
 					I45 = { ai = yes }
 				}
 				510 = {
-					remove_core = I45
+					remove_core = owner
 					add_core = F23
 					cede_province = F23
 				}
@@ -3795,7 +3812,10 @@ lodhum_part3_3 = {
 
 		trigger = {
 			NOT = { has_country_modifier = lodhum_making_pamphlets }
-			NOT = { great_power_rank = 6 }
+			custom_trigger_tooltip = { #pdx tooltip sucks for this
+				tooltip = lodhum_across_sea_tooltip
+				NOT = { great_power_rank = 7 }
+			}
 			OR = {
 				full_idea_group = diplomatic_ideas
 				dip = 6
@@ -5284,11 +5304,17 @@ lodhum_part4_4 = {
 				}
 				has_trade_building_trigger = yes
 			}
-			904 = { 
-				owner = { 
-					OR = {
-						guaranteed_by = ROOT
-						is_rival = ROOT
+			904 = {
+				owner = {
+					if = {
+						limit = { is_subject = yes }
+						has_opinion = { who = ROOT value = 100 }
+					}
+					else = {
+						OR = {
+							guaranteed_by = ROOT
+							is_rival = ROOT
+						}
 					} 
 				} 
 			}

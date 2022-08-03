@@ -1,0 +1,424 @@
+# Triggers and effects will be given the Actor's scope, with the Recipient's as FROM
+feiten_buy_skyport_rights = {
+	category = economy
+	require_acceptance = yes
+	
+	is_visible = {
+		tag = event_target:feiten_or_was_feiten_target
+		4879 = {
+			OR = {
+				has_great_project = { type = feiten_aerodrome }
+				has_province_modifier = feiten_grand_skyport_level_1
+				has_province_modifier = feiten_grand_skyport_level_2
+				has_province_modifier = feiten_grand_skyport_level_3
+			}
+		}
+		has_country_flag = feiten_skyposts_unlocked
+    }
+	
+	is_allowed = {
+		hidden_trigger = {
+			tag = event_target:feiten_or_was_feiten_target
+			4879 = {
+				OR = {
+					has_great_project = { type = feiten_aerodrome }
+					has_province_modifier = feiten_grand_skyport_level_1
+					has_province_modifier = feiten_grand_skyport_level_2
+					has_province_modifier = feiten_grand_skyport_level_3
+				}
+			}
+		}
+		home_trade_node = { trade_range = event_target:feiten_or_was_feiten_target }
+		custom_trigger_tooltip = {
+			tooltip = peaceHomeNodeSkyportAllowed
+			FROM = {
+				home_trade_node = {
+					all_trade_node_member_province = {
+						NOT = { has_province_modifier = feiten_skyport_handler_mod }
+					}
+				}
+			}
+		}
+		custom_trigger_tooltip = {
+			tooltip = peaceCoTSkyportAllowed
+			FROM = {
+				home_trade_node = {
+					any_trade_node_member_province = {
+						owned_by = FROM
+						province_has_center_of_trade_of_level = 1
+					}
+				}
+			}
+		}
+		check_variable = {
+			which = feitenSkyportBalance
+			value = 1
+		}
+	}
+
+    on_accept = {
+		custom_tooltip = feitenConstructSkypostInfoShortTT
+		add_treasury = -1000
+		add_dip_power = -50
+		FROM = {
+			home_trade_node_effect_scope = {
+				random_trade_node_member_province = {
+					limit = {
+						owned_by = FROM
+						province_has_center_of_trade_of_level = 1
+					}
+					add_province_triggered_modifier = feiten_skyport_handler_mod
+				}
+			}
+		}
+	}
+
+    ai_acceptance = {
+        add_entry = {
+            name = "Is our subject"
+            limit = { FROM = { is_subject_of = ROOT } }
+            export_to_variable = {
+                variable_name = ai_value
+                value = 25
+                who = FROM
+                with = THIS
+            }
+        }
+		
+		add_entry = {
+			name = "Base"
+			export_to_variable = {
+				variable_name = ai_value
+				value = -20
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Neutral attitude toward Feiten"
+			limit = { 
+				FROM = {
+					ai_attitude = {
+						who = ROOT
+						attitude = attitude_neutral
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = -10
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Negative attitude toward Feiten (Hostile, Rivalry, Outraged, Disloyal, Rebellious, Threatened, or Domineering)"
+			limit = {
+				FROM = {
+					OR = {
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_hostile
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_rivalry
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_outraged
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_disloyal
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_rebellious
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_threatened
+						}
+						ai_attitude = {
+							who = ROOT
+							attitude = attitude_domineering
+						}
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = -1000
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Is a Republic"
+			limit = { FROM = { government = republic } }
+			export_to_variable = {
+				variable_name = ai_value
+				value = 5
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Not the same religion"
+			limit = { FROM = { NOT = { religion_group = ROOT } } }
+			export_to_variable = {
+				variable_name = ai_value
+				value = -5
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "They dominate their home trade node"
+			limit = {
+				FROM = { home_trade_node = { has_most_province_trade_power = FROM } }
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = -10
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Their mercantilism"
+			export_to_variable = {
+				variable_name = ai_value
+				value = trigger_value:mercantilism
+				who = FROM
+				with = THIS
+			}
+			multiply_variable = { which = ai_value value = -0.5 }
+		}
+
+		add_entry = {
+			name = ">199 opinion"
+			limit = {
+				FROM = {
+					has_opinion = {
+						who = ROOT
+						value = 199
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 50
+				who = FROM
+				with = THIS
+			}
+		}
+		add_entry = {
+			name = ">150 opinion"
+			limit = {
+				FROM = {
+					NOT = {
+						has_opinion = {
+							who = ROOT
+							value = 199
+						}
+					}
+					has_opinion = {
+						who = ROOT
+						value = 150
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 40
+				who = FROM
+				with = THIS
+			}
+		}
+		add_entry = {
+			name = ">100 opinion"
+			limit = {
+				FROM = {
+					NOT = {
+						has_opinion = {
+							who = ROOT
+							value = 150
+						}
+					}
+					has_opinion = {
+						who = ROOT
+						value = 100
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 25
+				who = FROM
+				with = THIS
+			}
+		}
+		add_entry = {
+			name = ">50 opinion"
+			limit = {
+				FROM = {
+					NOT = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+					has_opinion = {
+						who = ROOT
+						value = 50
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 10
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "100 trust"
+			limit = {
+				FROM = {
+					trust = {
+						who = ROOT
+						value = 100
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 25
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "90 trust"
+			limit = {
+				FROM = {
+					NOT = {
+						trust = {
+							who = ROOT
+							value = 100
+						}
+					}
+					trust = {
+						who = ROOT
+						value = 90
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 20
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "80 trust"
+			limit = {
+				FROM = {
+					NOT = {
+						trust = {
+							who = ROOT
+							value = 90
+						}
+					}
+					trust = {
+						who = ROOT
+						value = 80
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 15
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "70 trust"
+			limit = {
+				FROM = {
+					NOT = {
+						trust = {
+							who = ROOT
+							value = 80
+						}
+					}
+					trust = {
+						who = ROOT
+						value = 70
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 10
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "60 trust"
+			limit = {
+				FROM = {
+					NOT = {
+						trust = {
+							who = ROOT
+							value = 70
+						}
+					}
+					trust = {
+						who = ROOT
+						value = 60
+					}
+				}
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 5
+				who = FROM
+				with = THIS
+			}
+		}
+
+		add_entry = {
+			name = "Has an alliance with us"
+			limit = {
+				FROM = { alliance_with = ROOT }
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = 10
+				who = FROM
+				with = THIS
+			}
+		}
+    }
+
+	ai_will_do = {
+		always = no
+	}
+}
