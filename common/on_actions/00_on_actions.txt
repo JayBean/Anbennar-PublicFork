@@ -459,6 +459,22 @@ on_startup = {
 		}
 		add_country_modifier = { name = remnant_legacy duration = 31 hidden = yes }
 	}
+
+	if = { #sets dev cost reduction in capital area on game start, might move to history files once all governments are in
+		limit = {
+			has_government_attribute = lower_dev_cost_in_capital_state
+			NOT = { capital_scope = { has_province_modifier = tengalam_capital_area_dev_cost } }
+		}
+		capital_scope = {
+			area = {
+				add_province_modifier = {
+					name = tengalam_capital_area_dev_cost
+					duration = -1
+					hidden = yes
+				}
+			}
+		}
+	}
 	
 
 	# #Command Management Privileges Warcamp
@@ -8565,6 +8581,26 @@ on_province_owner_change = {
 		}
 		owner = { country_event = { id = flavor_dhenijanraj.300 } }
 	}
+	
+	#reduced dev cost in capital state, adds modifier when gaining provinces in capital state
+	if = {
+		limit = {
+			owner = {
+				has_government_attribute = lower_dev_cost_in_capital_state
+				ROOT = {
+					area_for_scope_province = {
+						is_capital_of = PREV
+					}
+					NOT = { has_province_modifier = tengalam_capital_area_dev_cost }
+				}
+			}
+		}
+		add_province_modifier = {
+			name = tengalam_capital_area_dev_cost
+			duration = -1
+			hidden = yes
+		}
+	}
 }
 
 # country
@@ -10045,7 +10081,38 @@ on_force_conversion = {
 	#}
 }
 
+on_institution_embracement = {}
+on_national_focus_change = {}
+
+#ROOT = new capital province, FROM = old capital province
+on_capital_moved = {
+	if = { #removes/sets dev cost bonus on capital state for government reforms
+		limit = {
+			owner = {
+				has_government_attribute = lower_dev_cost_in_capital_state
+			}
+			NOT = { has_province_modifier = tengalam_capital_area_dev_cost }
+		}
+		FROM = { 
+			area = { 
+				remove_province_modifier = tengalam_capital_area_dev_cost 
+			} 
+		}
+		area = { 
+			add_province_modifier = { 
+				name = tengalam_capital_area_dev_cost 
+				duration = -1 
+				hidden = yes 
+			} 
+		}
+	}
+}
+
 #ROOT = province that was expanded in, FROM = country that did it
 on_expanded_infrastructure = {
 	change_variable = { infrastructure_level = 1 }
+}
+
+#ROOT = province that was centralized in
+on_centralized_state = {
 }
