@@ -2062,6 +2062,7 @@ country_event = {	#The Fate of Malacnar
 				core_claim = G32
 				exists = yes
 				NOT = { tag = ROOT }
+				NOT = { tag = FROM }
 			}
 			country_event = { id = flavor_malacnar.202 days = 3 }
 			add_opinion = {
@@ -2135,6 +2136,15 @@ country_event = {	#The Fate of Malacnar
 		name = flavor_malacnar.200.d	#Let us annex Malacnar's lands into our demesne
 		trigger = { G32 = { ai = yes } }	#Would be too punishing for a player
 		ai_chance = { factor = 0 }
+		if = {		#you get back any core Malacnar had taken from you
+			limit = { core_claim = FROM }
+			FROM = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
 		if = { 		#Transfer Stantirshalas
 			limit = {
 				G25 = {
@@ -2146,16 +2156,100 @@ country_event = {	#The Fate of Malacnar
 				subject = G25
 			}
 		}
-		FROM = {
+		FROM = {	#you annex the Malacnar area
 			every_owned_province = {
+				limit = {
+					area = malacnar_area
+				}
 				cede_province = ROOT
 			}
+			every_subject_country = {
+				limit = {
+					NOT = { tag = G25 }
+				}
+				grant_independence = yes
+			}
 		}
-		every_known_country = {		#Upset claimants to Malacnar's territory
+		custom_tooltip = malacnar_annex_and_restore_tooltip
+		hidden_effect = {	#Release annexed countries...
+			FROM = {
+				every_owned_province = {
+					limit = {
+						NOT = { area = malacnar_area }
+					}
+					random_core_country = {
+						limit = {
+							exists = no
+						}
+						FROM = {
+							release = PREV
+						}
+						hidden_effect = {
+							change_government = monarchy
+							add_government_reform = feudalism_reform
+							change_religion = ynn_river_worship
+								
+							define_ruler = {
+								dynasty = original_dynasty
+								religion = ynn_river_worship
+							}
+							add_opinion = {
+								who = ROOT
+								modifier = saved_us_from_warlord
+							}
+						}
+						#ROOT = {
+						#	create_subject = {
+						#		subject_type = ynnic_iosahar
+						#		subject = PREV
+						#	}
+						#}
+					}
+				}
+			}
+		}
+		hidden_effect = {	#...And let neighbours partition the rest
+			G32 = {
+				random_neighbor_country = {
+					limit = {
+						NOT = { tag = ROOT }
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			G32 = {
+				random_neighbor_country = {	#Prioritizes Ynn River Worshipers
+					limit = {
+						NOT = { tag = ROOT }
+						religion_group = ynnic
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			G32 = {
+				random_known_country = {	#Prioritizes claimants
+					limit = {
+						NOT = { tag = ROOT }
+						core_claim = FROM
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			event_target:malacnar_partitioner = { 
+				country_event = { id = flavor_malacnar.201 }
+				set_country_flag = malacnar_partitioner_flag
+			}
+		}
+		every_known_country = {		#Upset claimants to Malacnar area
 			limit = {
-				core_claim = G32
+				OR = {
+					is_core = 1168
+					is_core = 1169
+					is_core = 2808
+				}
 				exists = yes
 				NOT = { tag = ROOT }
+				NOT = { tag = FROM }
 			}
 			country_event = { id = flavor_malacnar.202 days = 3 }
 			add_opinion = {
@@ -2185,6 +2279,10 @@ country_event = {
 	picture = LAND_MILITARY_eventPicture
 	
 	is_triggered_only = yes
+	
+	trigger = {
+		G32 = { exists = yes }
+	}
 	
 	immediate = {
 	}
