@@ -81,8 +81,8 @@ veykoda_vareynn_branch = {
 				NOT = {
 					province_id = 1139
 					province_id = 1140
+					has_province_modifier = ynn_pomentere_estates
 				}
-				NOT = { has_province_modifier = ynn_pomentere_estates }
 			}
 			num_of_subjects = 5
 			any_hired_mercenary_company = {
@@ -91,17 +91,28 @@ veykoda_vareynn_branch = {
 			}
 		}
 		effect = {
-			every_owned_province = {
-				limit = {
-					NOT = {
-						province_id = 1139 #They don't settle as Pomentere in Arverynn
-						province_id = 1140 #Thromshana isn't new conquest
-					}
+			if = {
+				limit = { 
+					any_owned_province = {	#Says every owned province will be awarded to Veykodans
+						NOT = {
+							province_id = 1139
+							province_id = 1140
+							has_province_modifier = ynn_pomentere_estates
+						}
+					} 
 				}
-				change_culture = veykodan
-				add_province_modifier = {
-					name = ynn_pomentere_estates
-					duration = -1
+				every_owned_province = {
+					limit = {
+						NOT = {
+							province_id = 1139 #They don't settle as Pomentere in Arverynn
+							province_id = 1140 #Thromshana isn't new conquest
+						}
+					}
+					change_culture = veykodan
+					add_province_modifier = {
+						name = ynn_pomentere_estates
+						duration = -1
+					}
 				}
 			}
 			country_event = { id = flavor_arverynn.1 } #Path of the Veykoda
@@ -571,16 +582,26 @@ conquest_sarda_middle = {
 						}
 					}
 				}
+				if = {
+					limit = { dynasty = "Vyrekynn" }
+					add_country_modifier = {
+						name = G35_the_redemption_of_house_vyrekynn
+						duration = -1
+					}
+				}
 			}
 			else_if = {
 				limit = {
 					yrw_has_settled_second_debate_blame_subjects = yes
 				}
 				set_government_rank = 3
-				#add_country_modifier = {
-				#	name = G35_power_to_the_emperors
-				#	duration = -1
-				#}
+				if = {
+					limit = { dynasty = "Vyrekynn" }
+					add_country_modifier = {
+						name = G35_the_miracle_of_house_vyrekynn
+						duration = -1
+					}
+				}
 			}
 			remove_country_modifier = G35_blunder_of_calrodiy_iv
 		}
@@ -1907,15 +1928,26 @@ reform_branch = {
 		position = 9
 		provinces_to_highlight = {
 			province_id = 1139
-			NOT = {	has_trade_building_trigger = yes }	#Tweak later
+			OR = {
+				NOT = { has_trade_building_trigger = yes }
+				NOT = {	province_has_center_of_trade_of_level = 3 }	#Tweak later
+			}
 		}
 		trigger = {
+			yrw_has_settled_cannorian_debates = yes
+			owns_core_province = 1139 
 			1139 = { #Lower Ynn tradenode
 				trade_share = {
 					country = ROOT
 					share = 80
 				}
-				has_trade_building_trigger = yes
+				if = {
+					limit = { has_dlc = "Dharma" }
+					province_has_center_of_trade_of_level = 3
+				}
+				else = {
+					has_trade_building_trigger = yes
+				}
 			}
 			num_of_subjects = 8
 			num_of_owned_provinces_with = {
@@ -1925,9 +1957,59 @@ reform_branch = {
 		}
 		effect = {
 			add_mercantilism = 5
-			add_country_modifier = {
-				name = G35_veykodan_tributaries
-				duration = 18250 #50 Years
+			custom_tooltip = yrw_cannorian_different_rewards
+			if = {
+				limit = {
+					yrw_has_settled_third_debate_guns = yes
+					yrw_has_settled_fourth_debate_cannorization = yes
+				}
+				if = {
+					limit = {
+						any_subject_country = {
+							institution_difference = {
+								who = ROOT
+								value = 1
+							}
+						}	
+					}
+					1139 = {
+						add_next_institution_embracement = 100
+					}
+				}
+				add_country_modifier = {
+					name = G35_wonders_of_the_east
+					duration = 18250 #50 Years
+				}
+			}
+			else_if = {
+				limit = {
+					yrw_has_settled_third_debate_no_guns = yes
+					yrw_has_settled_fourth_debate_conservative = yes
+				}
+				add_stability_or_adm_power = yes
+				add_country_modifier = {
+					name = G35_primacy_over_the_tributaries
+					duration = 18250 #50 Years
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						AND = {
+							yrw_has_settled_third_debate_guns = yes
+							yrw_has_settled_fourth_debate_conservative = yes
+						}
+						AND = {
+							yrw_has_settled_third_debate_no_guns = yes
+							yrw_has_settled_fourth_debate_cannorization = yes
+						}
+					}
+				}
+				add_stability_or_adm_power = yes
+				add_country_modifier = {
+					name = G35_a_compromise_reached
+					duration = 18250 #50 Years
+				}
 			}
 		}
 	}
@@ -2271,6 +2353,7 @@ economy_branch = {
 			NOT = { owned_by = ROOT }
 		}
 		trigger = {
+			yrw_has_settled_first_debate = yes
 			adm_power = 100
 			treasury = 50
 			custom_trigger_tooltip = {
@@ -2343,15 +2426,29 @@ economy_branch = {
 				}
 				every_owned_province = {
 					limit = {
-						region = sarda_region
-						AND = {
-							culture = veykodan
-							has_province_modifier = ynn_pomentere_estates
-						}
+						culture = veykodan
+						has_province_modifier = ynn_pomentere_estates
 					}
 					add_base_tax = -1
 					add_base_manpower = -1
-					change_culture = sarda
+					if = {
+						limit = {
+							region = sarda_region
+						}
+						change_culture = sarda
+					}
+					else_if = {
+						limit = {
+							region = dolindha_region
+						}
+						change_culture = dolindhan
+					}
+					else_if = {
+						limit = {
+							region = rzenta_region
+						}
+						change_culture = rzentur
+					}
 					remove_province_modifier = ynn_pomentere_estates
 				}
 			}
@@ -2426,7 +2523,6 @@ economy_branch = {
 					country_event = { id = flavor_arverynn.48 }	#Veykodan Client setup, gets extra dev and buildings depending on your number of Pomentere
 				}
 			}
-			custom_tooltip = G35_veykodan_migration_2_tt
 		}
 	}
 	##Mission End
@@ -2452,10 +2548,27 @@ economy_branch = {
 			}
 		}
 		effect = {
-			U21 = {
-				add_country_modifier = {
-					name = G35_protected_by_arverynn
-					duration = -1
+			custom_tooltip = yrw1_different_rewards
+			if = {
+				limit = {
+					yrw_has_settled_first_debate_we_embrace = yes
+				}
+				U21 = {
+					add_country_modifier = {
+						name = G35_fighting_alongside_arverynn
+						duration = -1
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					yrw_has_settled_first_debate_we_alone = yes
+				}
+				U21 = {
+					add_country_modifier = {
+						name = G35_protected_by_arverynn
+						duration = -1
+					}
 				}
 			}
 			set_country_flag = G35_improved_guard_flag
