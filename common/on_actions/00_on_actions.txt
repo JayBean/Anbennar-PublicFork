@@ -1342,13 +1342,45 @@ on_war_won = {
 	}
 	xia_won_war_count = yes
 
-	if = { #Turning prabhis into xiakens after vassalizing a country
+	if = { #Turning prabhia/senaptia into xiakens after vassalizing a country
         limit = { ROOT = { has_reform = wulin } }
         ROOT = {
             every_subject_country = {
-                limit = { is_subject_of_type = daimyo_vassal }
+                limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal 
+						is_subject_of_type = great_daimyo_vassal 
+					}
+				}
 				grant_independence = yes
                 ROOT = { create_subject = { subject_type = daimyo_xiaken_vassal subject = PREV } }
+            }
+        }
+    }
+
+	if = { #Turning prabhia/senaptia into regular vassal after transfer vassal
+        limit = { 
+			ROOT = { 
+				NOT = { has_reform = wulin } 
+				NOT = { has_reform = raja_reform} 
+				any_subject_country = {
+					OR = {
+						is_subject_of_type = daimyo_vassal 
+						is_subject_of_type = great_daimyo_vassal 
+					}					
+				}
+			} 
+		}
+        ROOT = {
+            every_subject_country = {
+                limit = {
+					OR = {
+						is_subject_of_type = daimyo_vassal 
+						is_subject_of_type = great_daimyo_vassal 
+					}
+				}
+				grant_independence = yes
+                ROOT = { create_subject = { subject_type = vassal subject = PREV } }
             }
         }
     }
@@ -3130,6 +3162,9 @@ on_monarch_death = {
 			regency = yes
 		}
 	}
+	if = { limit = { tag = R51 }
+		country_event = { id = rahenraj.90 }
+	}
 }
 
 # country
@@ -4867,14 +4902,14 @@ on_bi_yearly_pulse_3 = {
 		100 = cavegoblinflavor.10
 		100 = cavegoblinflavor.4
 
-		150 = ghavaanaj.3 # +Herd Growth
-		120 = ghavaanaj.4 # +Herd Growth
-		120 = ghavaanaj.5 # +Herd Growth
-		120 = ghavaanaj.6 # +Herd Growth
-		100 = ghavaanaj.7 # -Herd Growth
-		100 = ghavaanaj.8 # -Herd Growth
-		100 = ghavaanaj.9 # -Herd Growth
-		100 = ghavaanaj.10 # -Herd Growth
+		250 = ghavaanaj.3 # +Herd Growth
+		200 = ghavaanaj.4 # +Herd Growth
+		200 = ghavaanaj.5 # +Herd Growth
+		200 = ghavaanaj.6 # +Herd Growth
+		150 = ghavaanaj.7 # -Herd Growth
+		150 = ghavaanaj.8 # -Herd Growth
+		150 = ghavaanaj.9 # -Herd Growth
+		150 = ghavaanaj.10 # -Herd Growth
 		
 		200 = the_command.11
 		50 = the_command.12
@@ -4893,8 +4928,8 @@ on_bi_yearly_pulse_3 = {
 		#Bianfang
 		
 		250 = bianfang.300
-		250 = bianfang.305
-		250 = bianfang.306
+		# 250 = bianfang.305
+		# 250 = bianfang.306
 		250 = bianfang.307
 		250 = bianfang.308
 
@@ -8497,6 +8532,7 @@ on_province_owner_change = {
 			id = flavor_azjakuma.2500
 		}
 	}
+	owner = { country_event = { id = flavor_azjakuma.2801 days = 5 } }
 	
 	#Dhenijanrai events
 	if = {
@@ -8977,10 +9013,29 @@ on_dependency_gained = {
 	# 		}# States General falls under a PU
 	# 	}
 	# }
+	if = { #Turning new subjects into Prabhia for the Raja
+		limit = {
+			ROOT = { has_reform = raja_reform }						# Overlord must be the Raja
+			FROM = {
+				NOT = { has_reform = oracular_order_reform } 		# Tughayasa has their own thing.
+				NOT = { is_subject_of_type = great_daimyo_vassal }	# Do nothing if already correct type.
+				NOT = { is_subject_of_type = daimyo_vassal }		# Do nothing if already correct type.
+			}
+		}
+        create_subject = { subject_type = daimyo_vassal subject = FROM }
+		FROM = {
+			if = {
+				limit = { NOT = { government = monarchy } }
+				change_government = monarchy
+			}
+			add_government_reform = prabhi_reform
+			country_event = { id = rahenraj.10 days = 35 }	#adds the raj cohesion privilege
+		}
+	}
 
 	FROM = { update_nsc_level_secondary_effects = yes }
 
-	if = { #Turning prabhis into Xiakens when you release vassals
+	if = { #Turning Prabhia into Xiakens when you release vassals
         limit = {
             ROOT = { has_reform = wulin }
             FROM = { is_subject_of_type = daimyo_vassal }
@@ -8990,8 +9045,8 @@ on_dependency_gained = {
 
 	if = {
 		limit = {
-			ROOT = { tag = R73 }
-			FROM = { tag = R72 }
+			ROOT = { tag = R73 } # Nadimraj
+			FROM = { tag = R72 } # Dhugajir
 		}
 		add_country_modifier = {
 			name = ghavaanaj_lord_of_the_nadimraj
