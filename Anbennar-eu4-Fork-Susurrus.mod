@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="Anbennar-eu4-Fork-Susurrus"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -22,4 +22,4 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.33.*"
-path="mod/Anbennar-PublicFork"
+path="mod/Anbennar-eu4-Fork-Susurrus"
