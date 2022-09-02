@@ -1935,6 +1935,12 @@ country_event = {	#The Fate of Malacnar
 	option = {
 		name = flavor_malacnar.200.a	#Let us appoint a loyal elf to rule the reformed Lordship of Malacnar
 		ai_chance = { factor = 1 }
+		trigger = { 
+			NOT = {
+				tag = G26
+				was_tag = G26
+			}
+		}
 		if = {		#you get back any core Malacnar had taken from you
 			limit = { core_claim = FROM }
 			FROM = {
@@ -1990,6 +1996,10 @@ country_event = {	#The Fate of Malacnar
 					}
 				}
 			}
+			NOT = {
+				tag = G26
+				was_tag = G26
+			}
 		}
 		ai_chance = { factor = 10 }
 		if = {		#you get back any core Malacnar had taken from you
@@ -2026,11 +2036,11 @@ country_event = {	#The Fate of Malacnar
 						hidden_effect = {
 							change_government = monarchy
 							add_government_reform = feudalism_reform
-							change_religion = ynn_river_worship
+							change_religion = ROOT
 								
 							define_ruler = {
 								dynasty = original_dynasty
-								religion = ynn_river_worship
+								religion = ROOT
 							}
 							add_opinion = {
 								who = ROOT
@@ -2074,7 +2084,13 @@ country_event = {	#The Fate of Malacnar
 	
 	option = {
 		name = flavor_malacnar.200.c	#Let us partition Malacnar between its neighbors
-		trigger = { G32 = { ai = yes } }	#Would be too punishing for a player
+		trigger = { 
+			G32 = { ai = yes } #Would be too punishing for a player
+			NOT = {
+				tag = G26
+				was_tag = G26
+			}
+		}
 		ai_chance = { factor = 2 }
 		if = {		#you get back any core Malacnar had taken from you
 			limit = { core_claim = FROM }
@@ -2134,7 +2150,13 @@ country_event = {	#The Fate of Malacnar
 	
 	option = {
 		name = flavor_malacnar.200.d	#Let us annex Malacnar's lands into our demesne
-		trigger = { G32 = { ai = yes } }	#Would be too punishing for a player
+		trigger = { 
+			G32 = { ai = yes } #Would be too punishing for a player
+			NOT = {
+				tag = G26
+				was_tag = G26
+			}
+		}	
 		ai_chance = { factor = 0 }
 		if = {		#you get back any core Malacnar had taken from you
 			limit = { core_claim = FROM }
@@ -2258,6 +2280,229 @@ country_event = {	#The Fate of Malacnar
 			}
 		}
 	}
+	
+	option = {
+		name = flavor_malacnar.200.e	#Let's put the Battleguards in charge, same as option A but removes Battleguards Mercs and makes Malacnar a march
+		highlight = yes
+		trigger = {
+			any_hired_mercenary_company	= {
+				template = merc_malacnar_battleguards
+			}			
+		}
+		ai_chance = { factor = 1 }
+		if = {		#you get back any core Malacnar had taken from you
+			limit = { core_claim = FROM }
+			FROM = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
+		if = { 		#Transfer Stantirshalas
+			limit = {
+				G25 = {
+					is_subject_of = FROM
+				}
+			}
+			create_subject = {
+				subject_type = ynnic_iosahar
+				subject = G25
+			}
+		}
+		FROM = {
+			kill_ruler = yes
+			add_prestige = -25
+			change_government = theocracy	#Reform Malacnar
+			add_government_reform = secular_order_reform
+			add_country_modifier = {
+				name = ynn_diplo
+				duration = -1
+			}
+			add_country_modifier = { #10% Morale, same as merc bonus
+				name = G32_ruled_by_battleguards
+				duration = -1
+			}
+		}
+		create_subject = { #Make them a March
+			subject_type = march
+			subject = G32
+		}
+		random_hired_mercenary_company = { #Disband Battleguards as they take over Malacnar
+			limit = {
+				template = merc_malacnar_battleguards
+			}
+			disband_mercenary_company = THIS
+		}
+		custom_tooltip = ynn_malacnar_battleguards_lose_tt
+		every_known_country = {		#Upset claimants to Malacnar's territory
+			limit = {
+				core_claim = G32
+				exists = yes
+				NOT = { tag = ROOT }
+			}
+			country_event = { id = flavor_malacnar.202 days = 3 }
+			add_opinion = {
+				who = ROOT
+				modifier = opinion_disappointed
+			}
+		}
+	}
+	
+	option = {
+		name = flavor_malacnar.200.f	#Amacimst special option. Divide Malacnar, Let them keep Malacnar + Drevonbost, seize Amaceped.
+		trigger = {
+			OR = {
+				tag = G26
+				was_tag = G26
+			}
+		}	
+		ai_chance = { factor = 0 }
+		if = {		#you get back any core Malacnar had taken from you
+			limit = { core_claim = FROM }
+			FROM = {
+				every_owned_province = {
+					limit = { is_core = ROOT }
+					cede_province = ROOT
+				}
+			}
+		}
+		if = { 		#Transfer Stantirshalas
+			limit = {
+				G25 = {
+					is_subject_of = FROM
+				}
+			}
+			create_subject = {
+				subject_type = ynnic_iosahar
+				subject = G25
+			}
+		}
+		FROM = {	#you annex Amaceped, they keep the Malacnar area
+			every_owned_province = {
+				limit = {
+					province_id = 1168
+				}
+				cede_province = ROOT
+			}
+			every_subject_country = {
+				limit = {
+					NOT = { tag = G25 }
+				}
+				grant_independence = yes
+			}
+		}
+		FROM = { #And become a proper Ynnic lordship again
+			kill_ruler = yes
+			add_prestige = -25
+			change_government = monarchy	#Reform Malacnar
+			add_government_reform = feudalism_reform
+			add_country_modifier = {
+				name = ynn_diplo
+				duration = -1
+			}
+			set_country_flag = G32_amacimst_partition_keep_malacnar_flag
+		}
+		custom_tooltip = malacnar_restore_tooltip
+		hidden_effect = {	#Release annexed countries...
+			FROM = {
+				every_owned_province = {
+					limit = {
+						NOT = { area = malacnar_area }
+					}
+					random_core_country = {
+						limit = {
+							exists = no
+						}
+						FROM = {
+							release = PREV
+						}
+						hidden_effect = {
+							change_government = monarchy
+							add_government_reform = feudalism_reform
+							change_religion = ynn_river_worship
+								
+							define_ruler = {
+								dynasty = original_dynasty
+								religion = ynn_river_worship
+							}
+							add_opinion = {
+								who = ROOT
+								modifier = saved_us_from_warlord
+							}
+						}
+						#ROOT = {
+						#	create_subject = {
+						#		subject_type = ynnic_iosahar
+						#		subject = PREV
+						#	}
+						#}
+					}
+				}
+			}
+		}
+		hidden_effect = {	#...And let neighbours partition the rest
+			G32 = {
+				random_neighbor_country = {
+					limit = {
+						NOT = { tag = ROOT }
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			G32 = {
+				random_neighbor_country = {	#Prioritizes Ynn River Worshipers
+					limit = {
+						NOT = { tag = ROOT }
+						religion_group = ynnic
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			G32 = {
+				random_known_country = {	#Prioritizes claimants
+					limit = {
+						NOT = { tag = ROOT }
+						core_claim = FROM
+					}
+					save_event_target_as = malacnar_partitioner
+				}
+			}
+			event_target:malacnar_partitioner = { 
+				country_event = { id = flavor_malacnar.201 }
+				set_country_flag = malacnar_partitioner_flag
+			}
+		}
+		every_known_country = {		#Upset claimants to Malacnar area
+			limit = {
+				OR = {
+					is_core = 1169
+					is_core = 2808
+				}
+				exists = yes
+				NOT = { tag = ROOT }
+				NOT = { tag = FROM }
+			}
+			country_event = { id = flavor_malacnar.202 days = 3 }
+			add_opinion = {
+				who = ROOT
+				modifier = opinion_disappointed
+			}
+		}
+		if = {
+			limit = {
+				1168 = {
+					country_or_subject_holds = ROOT
+				}
+			}
+			G30 = {
+				country_event = { #Amacimst Seizes Amaceped!
+					id = flavor_mocvare.1
+					days = 3
+				}
+			}
+		}
+	}
 }
 
 #Partitioning Malacnar
@@ -2312,6 +2557,18 @@ country_event = {
 				}
 				random_owned_province = {	#Allows for an extra prov where it doesn't create conflict
 					limit = {
+						NOT = {
+							AND = {
+								province_id = 1169
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
+						NOT = {
+							AND = {
+								province_id = 2808
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
 						all_neighbor_province = { 
 							OR = {
 								is_core = ROOT
@@ -2332,6 +2589,18 @@ country_event = {
 			random_owned_province = {
 				limit = {
 					any_neighbor_province = {
+						NOT = {
+							AND = {
+								province_id = 1169
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
+						NOT = {
+							AND = {
+								province_id = 2808
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
 						owned_by = G32
 						all_core_country = {
 							OR = {
@@ -2343,6 +2612,18 @@ country_event = {
 				}
 				random_neighbor_province = {
 					limit = {
+						NOT = {
+							AND = {
+								province_id = 1169
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
+						NOT = {
+							AND = {
+								province_id = 2808
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
 						owned_by = G32
 						all_core_country = {
 							OR = {
@@ -2354,6 +2635,18 @@ country_event = {
 					cede_province = ROOT
 					random_neighbor_province = {	#Allows for an extra prov where it doesn't create conflict
 						limit = {
+							NOT = {
+								AND = {
+									province_id = 1169
+									owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+								}
+							}
+							NOT = {
+								AND = {
+									province_id = 2808
+									owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+								}
+							}
 							owned_by = G32
 							all_neighbor_province = { 
 								OR = {
@@ -2372,6 +2665,20 @@ country_event = {
 		else = {
 			G32 = {
 				every_owned_province = {
+					limit = {
+						NOT = {
+							AND = {
+								province_id = 1169
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
+						NOT = {
+							AND = {
+								province_id = 2808
+								owner = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }
+							}
+						}
+					}
 					cede_province = ROOT
 				}
 			}
@@ -2426,6 +2733,12 @@ country_event = {
 	trigger = {
 		G32 = {
 			exists = yes
+			OR = {
+				NOT = { has_country_flag = G32_amacimst_partition_keep_malacnar_flag }	#Partitioning spares Malacnar area in Amacimst's version
+				any_owned_province = {
+					NOT = { area = malacnar_area }
+				}
+			}
 		}
 	}
 	
