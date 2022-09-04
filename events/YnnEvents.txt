@@ -1282,6 +1282,10 @@ country_event = {	#The Dragon Cult's Last Stand
 	
 	is_triggered_only = yes
 	
+	trigger = {
+		has_country_flag = drozma_fighting_last_stand
+	}
+	
 	immediate = {
 		hidden_effect = {
 			random_province = {
@@ -1328,7 +1332,6 @@ country_event = {	#The Dragon Cult's Last Stand
 				set_province_flag = drozma_last_stand_prov_flag
 			}
 		}
-		set_country_flag = drozma_fighting_last_stand
 	}
 }
 
@@ -1373,8 +1376,27 @@ country_event = {	#You beat the Dragon Cult's last stand
 	   desc = ynn_events.26.d1
 	}
 	desc = {
-	   trigger = { has_country_flag = drozma_grown_prince }
+	   trigger = { 
+			has_country_flag = drozma_grown_prince
+			NOT = { has_country_flag = drozma_leader_v_dragon }
+		}
 	   desc = ynn_events.26.d2
+	}
+	desc = {
+	   trigger = { 
+			has_country_flag = drozma_grown_prince 
+			has_country_flag = drozma_leader_v_dragon
+			has_country_flag = drozma_die_to_dragon
+	   }
+	   desc = ynn_events.26.d3	#Leader fights dragon and dies
+	}
+	desc = {
+	   trigger = { 
+			has_country_flag = drozma_grown_prince 
+			has_country_flag = drozma_leader_v_dragon
+			has_country_flag = drozma_slay_dragon
+	   }
+	   desc = ynn_events.26.d4	#Leader fights dragon and wins
 	}
 	picture = IMPALED_SOLDIERS_eventPicture
 	
@@ -1388,6 +1410,41 @@ country_event = {	#You beat the Dragon Cult's last stand
 	immediate = {
 		hidden_effect = {
 			if = {
+				limit = {
+					has_country_flag = drozma_grown_prince
+					has_country_flag = drozma_leader_v_dragon
+					calc_true_if = {
+						mil = 6
+						mil = 5
+						ruler_has_mage_personality = yes
+						ruler_has_personality = tactical_genius_personality
+						ruler_has_personality = bold_fighter_personality
+						ruler_has_personality = strict_fighter_personality
+						ruler_has_personality = inspiring_leader_personality
+						ruler_has_personality = martial_educator_personality
+						has_ruler_modifier = g32_legendary_battleking
+						has_ruler_modifier = g32_veteran_battleking
+						tag = G34	 #Arganjuzorn
+						amount = 3
+					}
+				}
+				set_country_flag = drozma_slay_dragon
+			}
+			else_if = {
+				limit = {
+					has_country_flag = drozma_grown_prince
+					has_country_flag = drozma_leader_v_dragon
+				}
+				set_country_flag = drozma_die_to_dragon
+			}
+			random_province = {
+				limit = {
+					has_province_flag = drozma_last_stand_prov_flag
+				}
+				save_event_target_as = drozma_last_stand_prov
+				clr_province_flag = drozma_last_stand_prov_flag
+			}
+			if = {
 				limit = { has_country_flag = drozma_grown_prince }
 				event_target:drozma_last_stand_prov = {
 					kill_units = {
@@ -1397,26 +1454,42 @@ country_event = {	#You beat the Dragon Cult's last stand
 					}
 				}
 			}
-			clr_country_flag = drozma_fighting_last_stand
-			random_province = {
-				limit = {
-					has_province_flag = drozma_last_stand_prov_flag
-				}
-				save_event_target_as = drozma_last_stand_prov
-				clr_province_flag = drozma_last_stand_prov_flag
-			}
 		}
 	}
 	
 	option = {
         name = ynn_events.26.a
-				
-		add_prestige = 50
-		add_splendor = 200
 		
-		add_ruler_modifier = {
-			name = ynn_dragonslayer
-			duration = -1
+		if = {
+			limit = {
+				has_country_flag = drozma_slay_dragon
+			}
+			add_stability_or_adm_power = yes
+			add_prestige = 50
+			add_splendor = 200
+			malacnar_battleking_rankup = yes
+			add_ruler_modifier = {
+				name = ynn_dragonslayer
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_country_flag = drozma_die_to_dragon
+			}
+			hidden_effect = {		#Monarch barge flows down from Rzenta instead of your capital as usual
+				set_country_flag = buried_at_drozma_last_stand	
+				event_target:drozma_last_stand_prov = { set_province_flag = buried_at_drozma_last_stand_prov }
+			}
+			kill_ruler = yes
+			add_prestige = 40
+			add_splendor = 150
+			add_authority = 20
+		}
+		else = {
+			add_prestige = 30
+			add_splendor = 100
+			add_authority = 10
 		}
 		
 		if = {
@@ -1466,6 +1539,10 @@ country_event = {	#You beat the Dragon Cult's last stand
 					heretic_rebels = 1
 				}
 			}
+			clr_country_flag = drozma_fighting_last_stand
+			clr_country_flag = drozma_leader_v_dragon
+			clr_country_flag = drozma_die_to_dragon
+			clr_country_flag = drozma_slay_dragon
 		}
 	}
 }
@@ -1582,6 +1659,27 @@ country_event = {	#Dragon Cult's last stand beats you
 				owner = {
 					grant_independence = yes
 					add_truce_with = ROOT
+				}
+			}
+			kill_units = {
+				who = REB
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			event_target:drozma_last_stand_prov = {
+				owner = {
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					infantry = PREV
+					cavalry = PREV
 				}
 			}
 		}
