@@ -2421,7 +2421,7 @@ NFrontend = {
 },
 
 NReligion = {
-	COUNCIL_BASE_COST = 10000,								-- (Anbennar) pdx: 1000 (changes for ravelian)
+	COUNCIL_BASE_COST = 100000,								-- (Anbennar) pdx: 1000 (changes for ravelian)
 	COUNCIL_CARDINAL_SPREAD = 1000,							-- (Anbennar) pdx: 500 (changes for ravelian)
 	
 	PIETY_CORRUPTION = -2,
