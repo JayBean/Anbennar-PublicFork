@@ -1695,8 +1695,34 @@ country_event = {
 			}
 			10 = {
 				modifier = {
+					factor = 1.5
+					corruption = 1
+				}
+				modifier = {
+					factor = 1.5
+					calc_true_if = {
+						all_subject_country = {
+							is_subject_of_type = ynnic_iosahar
+							corruption = 0.5
+						}
+						amount = 3
+					}
+				}
+				modifier = {
 					factor = 0
 					has_country_flag = yrw_debate_bribe_cooldown
+				}
+				modifier = {
+					factor = 0
+					all_subject_country = {
+						OR = {
+							NOT = { is_subject_of_type = ynnic_iosahar }
+							AND = {
+								NOT = { liberty_desire = 50 }
+								NOT = { corruption = 0.2 }
+							}
+						}
+					}
 				}
 				set_country_flag = yrw_debate_bribe_cooldown
 				country_event = { id = ynn_debate.24 }
@@ -2133,7 +2159,10 @@ country_event = {
 	is_triggered_only = yes
 	trigger = {
 		any_subject_country = {
-			liberty_desire = 50
+			OR = {
+				corruption = 0.2
+				liberty_desire = 50
+			}
 			is_subject_of_type = ynnic_iosahar
 		}
 	}
@@ -2142,8 +2171,24 @@ country_event = {
 		hidden_effect = {
 			random_subject_country = {
 				limit = {
-					liberty_desire = 50
 					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+					liberty_desire = 50
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {	#Prioritizes unruly corrupt vassals
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.6
+					liberty_desire = 50
 				}
 				save_event_target_as = iosahar_bribe
 			}
@@ -2154,39 +2199,10 @@ country_event = {
 		name = ynn_debate.24.a
 		ai_chance = { factor = 100 }
 		add_corruption = 0.5
-		if = {
-			limit = { has_country_flag = yrw_1a }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_1b
-					}
-					yrw_iosahar_liberty_opposition_1 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_1a
-					}
-					yrw_iosahar_liberty_ally_1 = yes
-				}
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = yrw_1b }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_1a
-					}
-					yrw_iosahar_liberty_opposition_1 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_1b
-					}
-					yrw_iosahar_liberty_ally_1 = yes
-				}
-			}
+		add_treasury = -50
+		event_target:iosahar_bribe = { 
+			add_liberty_desire = -10
+			country_event = { id = ynn_debate.251 } 
 		}
 	}
 
@@ -2720,16 +2736,85 @@ country_event = {
 	}
 }
 
-#volunteers from the natives
+#volunteers from the buycev
 country_event = {
 	id = ynn_debate.36
 	title = ynn_debate.36.t
 	desc = ynn_debate.36.d
-	picture = EP_SAMOAN_WARRIORS_eventPicture
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_epednar }
+		picture = HORDE_ON_HORSEBACK_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_veykodans }
+		picture = EP_SAMOAN_WARRIORS_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_old_rzentur }
+		picture = NATIVES_eventPicture
+	}
 	
 	is_triggered_only = yes
 	trigger = {
 		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = ynn_western_lands
+							region = epednan_expanse_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_epednar
+				random_province = {
+					limit = {
+						culture = epednar
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = sarda_eastern_lands
+							province_group = east_dolindha
+							region = veykoda_region
+							region = forest_of_the_cursed_ones_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_veykodans
+				random_province = {
+					limit = {
+						culture = veykodan
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = west_dolindha
+							region = rzenta_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_old_rzentur
+				random_province = {
+					limit = {
+						culture = old_rzentur
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+		}
 	}
 	
 	option = {					
@@ -2746,6 +2831,9 @@ country_event = {
 			}
 			country_event = { id = ynn_debate.205 }
 		}
+		clr_country_flag = yrw_debate_near_epednar
+		clr_country_flag = yrw_debate_near_veykodans
+		clr_country_flag = yrw_debate_near_old_rzentur
 	}
 }
 
@@ -2759,6 +2847,64 @@ country_event = {
 	is_triggered_only = yes
 	trigger = {
 		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = ynn_western_lands
+							region = epednan_expanse_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_epednar
+				random_province = {
+					limit = {
+						culture = epednar
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = sarda_eastern_lands
+							province_group = east_dolindha
+							region = veykoda_region
+							region = forest_of_the_cursed_ones_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_veykodans
+				random_province = {
+					limit = {
+						culture = veykodan
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = west_dolindha
+							region = rzenta_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_old_rzentur
+				random_province = {
+					limit = {
+						culture = old_rzentur
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+		}
 	}
 	
 	option = {					
@@ -2775,6 +2921,9 @@ country_event = {
 			name = native_chief_happy
 			duration = 1825
 		}
+		clr_country_flag = yrw_debate_near_epednar
+		clr_country_flag = yrw_debate_near_veykodans
+		clr_country_flag = yrw_debate_near_old_rzentur
 	}
 
 	option = {					
@@ -2791,6 +2940,9 @@ country_event = {
 			name = native_chief_unhappy
 			duration = 1825
 		}
+		clr_country_flag = yrw_debate_near_epednar
+		clr_country_flag = yrw_debate_near_veykodans
+		clr_country_flag = yrw_debate_near_old_rzentur
 	}
 }
 
@@ -2844,7 +2996,18 @@ country_event = {
 	id = ynn_debate.39
 	title = ynn_debate.39.t
 	desc = ynn_debate.39.d
-	picture = EP_MAORI_HAKA_eventPicture
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_epednar }
+		picture = HORDE_ON_HORSEBACK_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_veykodans }
+		picture = EP_MAORI_HAKA_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_old_rzentur }
+		picture = NATIVES_eventPicture
+	}
 	
 	is_triggered_only = yes
 	trigger = {
@@ -2858,17 +3021,70 @@ country_event = {
 		}
 	}
 	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = ynn_western_lands
+							region = epednan_expanse_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_epednar
+				random_province = {
+					limit = {
+						culture = epednar
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = sarda_eastern_lands
+							province_group = east_dolindha
+							region = veykoda_region
+							region = forest_of_the_cursed_ones_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_veykodans
+				random_province = {
+					limit = {
+						culture = veykodan
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = west_dolindha
+							region = rzenta_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_old_rzentur
+				random_province = {
+					limit = {
+						culture = old_rzentur
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+		}
+	}
+	
 	option = {					
 		name = ynn_debate.39.a
 		ai_chance = { factor = 100 }
 		if = {
 			limit = {
-				capital_scope = {
-					OR = {
-						province_group = ynn_western_lands
-						region = epednan_expanse_region
-					}
-				}
+				has_country_flag = yrw_debate_near_epednar
 			}
 			create_general = {
 				name = "Haatorina Hendago"
@@ -2878,14 +3094,7 @@ country_event = {
 		}
 		else_if = {
 			limit = {
-				capital_scope = {
-					OR = {
-						province_group = sarda_eastern_lands
-						province_group = east_dolindha
-						region = veykoda_region
-						region = forest_of_the_cursed_ones_region
-					}
-				}
+				has_country_flag = yrw_debate_near_veykodans
 			}
 			create_general = {
 				name = "Dharo Huladya"
@@ -2895,12 +3104,7 @@ country_event = {
 		}
 		else_if = {
 			limit = {
-				capital_scope = {
-					OR = {
-						province_group = west_dolindha
-						region = rzenta_region
-					}
-				}
+				has_country_flag = yrw_debate_near_old_rzentur
 			}
 			create_general = {
 				name = "Ivandej yod Stairdremov"
@@ -2908,6 +3112,9 @@ country_event = {
 				culture = old_rzentur
 			}
 		}
+		clr_country_flag = yrw_debate_near_epednar
+		clr_country_flag = yrw_debate_near_veykodans
+		clr_country_flag = yrw_debate_near_old_rzentur
 	}
 }
 
@@ -2989,8 +3196,34 @@ country_event = {
 			}
 			10 = {
 				modifier = {
+					factor = 1.5
+					corruption = 1
+				}
+				modifier = {
+					factor = 1.5
+					calc_true_if = {
+						all_subject_country = {
+							is_subject_of_type = ynnic_iosahar
+							corruption = 0.5
+						}
+						amount = 3
+					}
+				}
+				modifier = {
 					factor = 0
 					has_country_flag = yrw_debate_bribe_cooldown
+				}
+				modifier = {
+					factor = 0
+					all_subject_country = {
+						OR = {
+							NOT = { is_subject_of_type = ynnic_iosahar }
+							AND = {
+								NOT = { liberty_desire = 50 }
+								NOT = { corruption = 0.2 }
+							}
+						}
+					}
 				}
 				set_country_flag = yrw_debate_bribe_cooldown
 				country_event = { id = ynn_debate.44 }
@@ -3348,7 +3581,14 @@ country_event = {
 country_event = {
 	id = ynn_debate.43
 	title = ynn_debate.43.t
-	desc = ynn_debate.43.d
+	desc = {
+		trigger = { has_country_flag = yrw_2a }
+		desc = ynn_debate.43.da
+	}
+	desc = {
+		trigger = { NOT = { has_country_flag = yrw_2a } }
+		desc = ynn_debate.43.db
+	}
 	picture = DIPLOMACY_eventPicture
 	
 	is_triggered_only = yes
@@ -3387,7 +3627,10 @@ country_event = {
 	is_triggered_only = yes
 	trigger = {
 		any_subject_country = {
-			liberty_desire = 50
+			OR = {
+				corruption = 0.2
+				liberty_desire = 50
+			}
 			is_subject_of_type = ynnic_iosahar
 		}
 	}
@@ -3396,8 +3639,24 @@ country_event = {
 		hidden_effect = {
 			random_subject_country = {
 				limit = {
-					liberty_desire = 50
 					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+					liberty_desire = 50
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {	#Prioritizes unruly corrupt vassals
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.6
+					liberty_desire = 50
 				}
 				save_event_target_as = iosahar_bribe
 			}
@@ -3408,39 +3667,10 @@ country_event = {
 		name = ynn_debate.44.a
 		ai_chance = { factor = 100 }
 		add_corruption = 0.5
-		if = {
-			limit = { has_country_flag = yrw_2a }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_2b
-					}
-					yrw_iosahar_liberty_opposition_2 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_2a
-					}
-					yrw_iosahar_liberty_ally_2 = yes
-				}
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = yrw_2b }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_2a
-					}
-					yrw_iosahar_liberty_opposition_2 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_2b
-					}
-					yrw_iosahar_liberty_ally_2 = yes
-				}
-			}
+		add_treasury = -50
+		event_target:iosahar_bribe = { 
+			add_liberty_desire = -10
+			country_event = { id = ynn_debate.251 } 
 		}
 	}
 
@@ -4282,8 +4512,34 @@ country_event = {
 			}
 			10 = {
 				modifier = {
+					factor = 1.5
+					corruption = 1
+				}
+				modifier = {
+					factor = 1.5
+					calc_true_if = {
+						all_subject_country = {
+							is_subject_of_type = ynnic_iosahar
+							corruption = 0.5
+						}
+						amount = 3
+					}
+				}
+				modifier = {
 					factor = 0
 					has_country_flag = yrw_debate_bribe_cooldown
+				}
+				modifier = {
+					factor = 0
+					all_subject_country = {
+						OR = {
+							NOT = { is_subject_of_type = ynnic_iosahar }
+							AND = {
+								NOT = { liberty_desire = 50 }
+								NOT = { corruption = 0.2 }
+							}
+						}
+					}
 				}
 				set_country_flag = yrw_debate_bribe_cooldown
 				country_event = { id = ynn_debate.64 }
@@ -4677,7 +4933,14 @@ country_event = {
 country_event = {
 	id = ynn_debate.63
 	title = ynn_debate.63.t
-	desc = ynn_debate.63.d
+	desc = {
+		trigger = { has_country_flag = yrw_3a }
+		desc = ynn_debate.63.da
+	}
+	desc = {
+		trigger = { NOT = { has_country_flag = yrw_3a } }
+		desc = ynn_debate.63.db
+	}
 	picture = DIPLOMACY_eventPicture
 	
 	is_triggered_only = yes
@@ -4716,7 +4979,10 @@ country_event = {
 	is_triggered_only = yes
 	trigger = {
 		any_subject_country = {
-			liberty_desire = 50
+			OR = {
+				corruption = 0.2
+				liberty_desire = 50
+			}
 			is_subject_of_type = ynnic_iosahar
 		}
 	}
@@ -4725,8 +4991,24 @@ country_event = {
 		hidden_effect = {
 			random_subject_country = {
 				limit = {
-					liberty_desire = 50
 					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+					liberty_desire = 50
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {	#Prioritizes unruly corrupt vassals
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.6
+					liberty_desire = 50
 				}
 				save_event_target_as = iosahar_bribe
 			}
@@ -4737,39 +5019,10 @@ country_event = {
 		name = ynn_debate.64.a
 		ai_chance = { factor = 100 }
 		add_corruption = 0.5
-		if = {
-			limit = { has_country_flag = yrw_3a }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_3b
-					}
-					yrw_iosahar_liberty_opposition_3 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_3a
-					}
-					yrw_iosahar_liberty_ally_3 = yes
-				}
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = yrw_3b }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_3a
-					}
-					yrw_iosahar_liberty_opposition_3 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_3b
-					}
-					yrw_iosahar_liberty_ally_3 = yes
-				}
-			}
+		add_treasury = -50
+		event_target:iosahar_bribe = { 
+			add_liberty_desire = -10
+			country_event = { id = ynn_debate.251 } 
 		}
 	}
 
@@ -5476,8 +5729,34 @@ country_event = {
 			}
 			10 = {
 				modifier = {
+					factor = 1.5
+					corruption = 1
+				}
+				modifier = {
+					factor = 1.5
+					calc_true_if = {
+						all_subject_country = {
+							is_subject_of_type = ynnic_iosahar
+							corruption = 0.5
+						}
+						amount = 3
+					}
+				}
+				modifier = {
 					factor = 0
 					has_country_flag = yrw_debate_bribe_cooldown
+				}
+				modifier = {
+					factor = 0
+					all_subject_country = {
+						OR = {
+							NOT = { is_subject_of_type = ynnic_iosahar }
+							AND = {
+								NOT = { liberty_desire = 50 }
+								NOT = { corruption = 0.2 }
+							}
+						}
+					}
 				}
 				set_country_flag = yrw_debate_bribe_cooldown
 				country_event = { id = ynn_debate.84 }
@@ -5867,7 +6146,14 @@ country_event = {
 country_event = {
 	id = ynn_debate.83
 	title = ynn_debate.83.t
-	desc = ynn_debate.83.d
+	desc = {
+		trigger = { has_country_flag = yrw_4a }
+		desc = ynn_debate.83.da
+	}
+	desc = {
+		trigger = { NOT = { has_country_flag = yrw_4a } }
+		desc = ynn_debate.83.db
+	}
 	picture = DIPLOMACY_eventPicture
 	
 	is_triggered_only = yes
@@ -5906,7 +6192,10 @@ country_event = {
 	is_triggered_only = yes
 	trigger = {
 		any_subject_country = {
-			liberty_desire = 50
+			OR = {
+				corruption = 0.2
+				liberty_desire = 50
+			}
 			is_subject_of_type = ynnic_iosahar
 		}
 	}
@@ -5915,8 +6204,24 @@ country_event = {
 		hidden_effect = {
 			random_subject_country = {
 				limit = {
-					liberty_desire = 50
 					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.2
+					liberty_desire = 50
+				}
+				save_event_target_as = iosahar_bribe
+			}
+			random_subject_country = {	#Prioritizes unruly corrupt vassals
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+					corruption = 0.6
+					liberty_desire = 50
 				}
 				save_event_target_as = iosahar_bribe
 			}
@@ -5927,39 +6232,10 @@ country_event = {
 		name = ynn_debate.84.a
 		ai_chance = { factor = 100 }
 		add_corruption = 0.5
-		if = {
-			limit = { has_country_flag = yrw_4a }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_4b
-					}
-					yrw_iosahar_liberty_opposition_4 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_4a
-					}
-					yrw_iosahar_liberty_ally_4 = yes
-				}
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = yrw_4b }
-			event_target:iosahar_bribe = {
-				if = {
-					limit = {
-						has_country_flag = yrw_4a
-					}
-					yrw_iosahar_liberty_opposition_4 = yes
-				}
-				else_if = {
-					limit = {
-						has_country_flag = yrw_4b
-					}
-					yrw_iosahar_liberty_ally_4 = yes
-				}
-			}
+		add_treasury = -50
+		event_target:iosahar_bribe = { 
+			add_liberty_desire = -10
+			country_event = { id = ynn_debate.251 } 
 		}
 	}
 
@@ -6535,7 +6811,7 @@ country_event = {
 	}
 }
 
-#subject shares cannorian organizational weakness
+#subject shares cannorian scandal
 country_event = {
 	id = ynn_debate.98
 	title = ynn_debate.98.t
@@ -8246,17 +8522,89 @@ country_event = {
 	id = ynn_debate.205
 	title = ynn_debate.205.t
 	desc = ynn_debate.205.d
-	picture = EP_SAMOAN_WARRIORS_eventPicture
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_epednar }
+		picture = HORDE_ON_HORSEBACK_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_veykodans }
+		picture = EP_SAMOAN_WARRIORS_eventPicture
+	}
+	picture = {
+		trigger = { has_country_flag = yrw_debate_near_old_rzentur }
+		picture = NATIVES_eventPicture
+	}
 	
 	is_triggered_only = yes
 	trigger = {
 		always = yes
 	}
 	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = ynn_western_lands
+							region = epednan_expanse_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_epednar
+				random_province = {
+					limit = {
+						culture = epednar
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = sarda_eastern_lands
+							province_group = east_dolindha
+							region = veykoda_region
+							region = forest_of_the_cursed_ones_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_veykodans
+				random_province = {
+					limit = {
+						culture = veykodan
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+			else_if = {
+				limit = {
+					capital_scope = {
+						OR = {
+							province_group = west_dolindha
+							region = rzenta_region
+						}
+					}
+				}
+				set_country_flag = yrw_debate_near_old_rzentur
+				random_province = {
+					limit = {
+						culture = old_rzentur
+					}
+					save_event_target_as = yrw_natives_origin
+				}
+			}
+		}
+	}
+	
 	option = {					
 		name = ynn_debate.205.a
 		ai_chance = { factor = 100 }
 		add_manpower = 1
+		clr_country_flag = yrw_debate_near_epednar
+		clr_country_flag = yrw_debate_near_veykodans
+		clr_country_flag = yrw_debate_near_old_rzentur
 	}
 }
 
@@ -8583,7 +8931,7 @@ country_event = {
 	}
 }
 
-#subject shares cannorian organizational weakness
+#subject shares cannorian scandal
 #from ynn_debate.98
 country_event = {
 	id = ynn_debate.240
@@ -8596,20 +8944,22 @@ country_event = {
 		always = yes
 	}
 	
-	option = {			#share the information		
+	option = {			#Iosahar rejecting Cannorian thought are pleased with your stance
 		name = ynn_debate.240.a
+		trigger = { has_country_flag = yrw_4b }
 		ai_chance = { factor = 100 }
 		every_subject_country = {
 			limit = { 
 				is_subject_of_type = ynnic_iosahar
-				has_country_flag = yrw_4a
+				has_country_flag = yrw_4b
 			}
-			add_liberty_desire = 5
+			add_liberty_desire = -5
 		}
 	}
 
-	option = {			#withhold the information			
+	option = {			#Iosahar rejecting Cannorian thought are unhappy with your stance
 		name = ynn_debate.240.b
+		trigger = { has_country_flag = yrw_4a }
 		ai_chance = { factor = 100 }
 		every_subject_country = {
 			limit = { 
@@ -8655,7 +9005,10 @@ country_event = {
 	option = {		#blackmail the overlord		
 		name = ynn_debate.245.b
 		ai_chance = { factor = 50 }
-		add_treasury = 50
+		tooltip = {
+			add_treasury = 100
+			add_corruption = 1
+		}
 		FROM = {
 			country_event = { id = ynn_debate.248 }
 		}
@@ -8718,7 +9071,11 @@ country_event = {
 	option = {		#fine	
 		name = ynn_debate.248.a
 		ai_chance = { factor = 100 }
-		add_corruption = 1
+		add_treasury = -100
+		FROM = {
+			add_treasury = 100
+			add_corruption = 1
+		}
 	}
 }
 
@@ -8813,6 +9170,29 @@ country_event = {
 			who = FROM
 			modifier = opinion_insulted_by_accusation
 		}
+	}
+}
+
+#overlord bribes you
+country_event = {
+	id = ynn_debate.251
+	title = ynn_debate.251.t
+	desc = ynn_debate.251.d
+	picture = CORRUPTION_eventPicture
+	
+	is_triggered_only = yes
+	trigger = {
+		always = yes
+	}
+	
+	option = {	
+		name = ynn_debate.251.a
+		ai_chance = { factor = 100 }
+		tooltip = {
+			add_liberty_desire = -10
+		}
+		add_corruption = 0.5
+		add_treasury = -50
 	}
 }
 
