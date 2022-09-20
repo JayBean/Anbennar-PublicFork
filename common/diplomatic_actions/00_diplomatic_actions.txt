@@ -163,7 +163,36 @@ transfer_trade_power = {
 	}
 }
 
+#Cut because the Grand Crusade war doesn't really have any place in the current content, but it could be very useful for the future.
+#Also modders should have the chance to just uncomment it all so they can experience the great 30 Years War like Crusade.
 declarewar = {
+#	condition = {
+#		tooltip = GRAND_CRUSADE_NO_OTHER_WAR
+#		potential = { }
+#		allow = {
+#			NOT = {
+#				is_in_war = {
+#					attacker_leader = ROOT
+#					casus_belli = cb_grand_crusade
+#				}
+#			}
+#		}
+#	}
+#	effect = {
+#		if = {
+#			limit = {
+#				has_global_flag = grand_crusades_enabled
+#				has_country_flag = grand_crusader_war_monger_flag
+#				is_in_war = {
+#					attacker_leader = ROOT
+#					casus_belli = cb_grand_crusade
+#				}
+#			}
+#			FROM = {
+#				save_global_event_target_as = grand_crusade_target
+#			}
+#		}
+#	}
 	condition = {
 		tooltip = FEDERATION_MILITARY
 		potential = {
@@ -691,6 +720,98 @@ declarewar = {
 
 allianceaction = {
 	condition = {
+		tooltip = PIRATE_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_pirates
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_pirates }
+				FROM = { has_government_attribute = is_pirate_republic_reform }
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_PIRATE_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_pirates
+			}
+			NOT = { has_government_attribute = is_pirate_republic_reform }
+		}
+		allow = {
+			OR = {
+				has_government_attribute = is_pirate_republic_reform
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_pirates } }
+			}
+		}
+	}
+	condition = {
+		tooltip = REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_republics
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_republics }
+				FROM = { government = republic }
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_republics
+			}
+			NOT = { government = republic }
+		}
+		allow = {
+			OR = {
+				government = republic
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics } }
+			}
+		}
+	}
+	condition = {
+		tooltip = REV_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_republics_or_non_rev
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_republics_or_non_rev }
+				FROM = { 
+					OR = {
+						government = republic 
+						is_revolutionary = yes
+					}
+				}
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_REV_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_republics_or_non_rev
+			}
+			NOT = { government = republic }
+			is_revolutionary = no
+		}
+		allow = {
+			OR = {
+				OR = {
+					government = republic 
+					is_revolutionary = yes
+				}
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics_or_non_rev } }
+			}
+		}
+	}
+	
+	# Anbennar
+	condition = {
 		tooltip = ONLY_ADV_ESCANN
 		potential = {
 			has_reform = adventurer_reform
@@ -865,6 +986,27 @@ allianceaction = {
 					}
 				}
 			}
+		}
+	}
+}
+
+enforce_peace = {
+	#do this before the peace is enforced, or there is no war enemy country
+	pre_effect = {
+		if = {
+			limit = {
+				has_country_modifier = liv_protector_of_the_catholics
+				FROM = {
+					any_war_enemy_country = {
+						religion = catholic
+						is_in_war = {
+							defender_leader = THIS
+							attacker_leader = FROM
+						}
+					}
+				}
+			}
+			add_papal_influence = 25
 		}
 	}
 }
@@ -1473,20 +1615,15 @@ integrationaction = {
 			}
 		}
 	}
-	#condition = {
-	#	tooltip = INTEGRATEINVALID
-	#	potential = {
-	#		senior_union_with = FROM
-	#	}
-	#	allow = {
-	#		FROM = {
-	#			years_in_union_under = {
-	#				who = ROOT
-	#				years = 50
-	#			}
-	#		}
-	#	}
-	#}
+	condition = {
+		tooltip = PUINTEGRATIONIMPOSSIBLE
+		potential = {
+			has_government_attribute = cannot_integrate_personal_unions
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_integrate_personal_unions }
+		}
+	}
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
 		potential = {
@@ -1542,6 +1679,15 @@ abandon_union_action = {
 				senior_union_with = FROM
 				is_at_war = no
 			}
+		}
+	}
+	condition = {
+		tooltip = PUABANDONINGIMPOSSIBLE
+		potential = {
+			has_government_attribute = cannot_abandon_personal_unions
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_abandon_personal_unions }
 		}
 	}
 }
@@ -1631,27 +1777,27 @@ invite_to_trade_league = {
 }
 
 tributary_state_action = {
-	condition = {
-		potential = {
-			ai = yes
-		}
-		allow = {
-			OR = {
-				NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
-				AND = {
-					ROOT = { capital_scope = { superregion = china_superregion } }
-					NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
-				}
-			}
-			OR = {
-				NOT = { ROOT = { capital_scope = { region = japan_region } } }
-				AND = {
-					ROOT = { capital_scope = { region = japan_region } }
-					NOT = { FROM = { capital_scope = { region = japan_region } } }
-				}
-			}
-		}
-	}
+	# condition = {
+		# potential = {
+			# ai = yes
+		# }
+		# allow = {
+			# OR = {
+				# NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
+				# AND = {
+					# ROOT = { capital_scope = { superregion = china_superregion } }
+					# NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
+				# }
+			# }
+			# OR = {
+				# NOT = { ROOT = { capital_scope = { region = japan_region } } }
+				# AND = {
+					# ROOT = { capital_scope = { region = japan_region } }
+					# NOT = { FROM = { capital_scope = { region = japan_region } } }
+				# }
+			# }
+		# }
+	# }
 	condition = {
 		tooltip = YNN_TRIBUTARY_YNNICS
 		potential = {
@@ -1663,27 +1809,27 @@ tributary_state_action = {
 	}
 }
 ask_for_tributary_state_action = {
-	condition = {
-		potential = {
-			ai = yes
-		}
-		allow = {
-			OR = {
-				NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
-				AND = {
-					FROM = { capital_scope = { superregion = china_superregion } }
-					NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
-				}
-			}
-			OR = {
-				NOT = { FROM = { capital_scope = { region = japan_region } } }
-				AND = {
-					FROM = { capital_scope = { region = japan_region } }
-					NOT = { ROOT = { capital_scope = { region = japan_region } } }
-				}
-			}
-		}
-	}
+	# condition = {
+		# potential = {
+			# ai = yes
+		# }
+		# allow = {
+			# OR = {
+				# NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
+				# AND = {
+					# FROM = { capital_scope = { superregion = china_superregion } }
+					# NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
+				# }
+			# }
+			# OR = {
+				# NOT = { FROM = { capital_scope = { region = japan_region } } }
+				# AND = {
+					# FROM = { capital_scope = { region = japan_region } }
+					# NOT = { ROOT = { capital_scope = { region = japan_region } } }
+				# }
+			# }
+		# }
+	# }
 }
 
 # Anbennar
@@ -1837,6 +1983,20 @@ milaccess = {
 				limit = { tag = event_target:feiten_or_was_feiten_target }
 				FROM = { set_country_flag = mil_access_to_feiten }
 			}
+		}
+	}
+}
+insultaction = {
+	condition = {}
+	effect = {
+		#hul-az-krakazol drunk insults
+		if = {
+			limit = {
+				tag = I20
+				krakazol_is_drunk = { Drunk = yes }
+				FROM = { has_opinion_modifier = { who = ROOT modifier = scornfully_insulted } }
+			}
+			FROM = { add_opinion = { who = I20 modifier = opinion_krakazol_drunk_insult } }
 		}
 	}
 }
