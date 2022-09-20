@@ -428,13 +428,22 @@ country_event = { #End the Temple's Curse
 	trigger = {
 		tag = R62
 	}
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { OR = { has_province_modifier = damaged_temple_complex has_province_modifier = derelict_temple_complex } NOT = { has_province_flag = temple_being_plundered } is_city = yes is_core = ROOT }
+				setup_temple_restoration_speed = yes
+				save_event_target_as = temple_to_restore
+			}
+		}
+	}
 
 	option = {
 		name = the_command.4.a
 		ai_chance = {
 			factor = 1
 		}
-		#! TODO: Repair owned temples
 		custom_tooltip = command_the_temples_curse_tt
 		hidden_effect = {
 			every_owned_province = {
@@ -442,6 +451,7 @@ country_event = { #End the Temple's Curse
 				add_ogre_minority_size_effect = yes
 			}
 		}
+		event_target:temple_to_restore = { begin_temple_restoration = yes }
 	}
 }
 
@@ -1055,16 +1065,9 @@ country_event = { #Human Proves Honour
 	title = the_command.31.t
 	desc = the_command.31.desc
 	picture = LAND_MILITARY_eventPicture
-
+	
+	is_triggered_only = yes
 	fire_only_once = yes
-	
-	trigger = {
-		mission_completed = R62_strange_yet_familiar
-	}
-	
-	mean_time_to_happen = {
-		months = 240
-	}
 
 	option = {
 		name = the_command.31.a
@@ -1187,7 +1190,7 @@ country_event = { #The Legality of Chi
 		ai_chance = {
 			factor = 1
 		}
-		add_stability_or_adm_power = yes
+		add_stability = -1
 		add_country_modifier = {
 			name = command_learning_from_chi_practises
 			duration = 18250
@@ -1207,6 +1210,7 @@ province_event = { #The Laws of Ninun
 		has_state_edict = laws_of_ninun_edict
 		OR = {
 			has_human_majority_trigger = yes
+			has_half_orcish_majority_trigger = yes
 			has_orcish_majority_trigger = yes
 		}
 		OR = {
@@ -1216,7 +1220,7 @@ province_event = { #The Laws of Ninun
 	}
 	
 	mean_time_to_happen = {
-		months = 24
+		months = 18
 		modifier = {
 			factor = 0.5
 			culture_group = wuhyun
@@ -1252,10 +1256,10 @@ province_event = { #The Laws of Ninun
 			}
 			2 = {
 				trigger = {
-					has_country_flag = R62_honourable_half_orcs_flag
+					owner = { has_country_flag = R62_honourable_half_orcs_flag }
 					OR = {
 						has_orcish_majority_trigger = yes
-						has_half_orcish_minority_trigger = yes
+						has_any_half_orcish_pop_trigger = yes
 					}
 				}
 				change_culture = wuhyun_half_orc
@@ -1371,7 +1375,7 @@ country_event = { #Clan Adoption
 		ai_chance = {
 			factor = 1
 		}
-		add_legitimacy = 5
+		add_legitimacy_or_monarch_power = { VAL = 5 }
 	}
 }
 
@@ -2045,8 +2049,29 @@ country_event = { #The Tughayasa Petition
 	fire_only_once = yes
 	is_triggered_only = yes
 
-	option = { #Reinstate all 3 commands back in the war room
+	option = { #Their war was lost for a reason, they have no rights.
 		name = the_command.44.a
+		ai_chance = {
+			factor = 1
+		}
+		#! TODO
+	}
+	option = { #Reinstate all 3 commands back in the war room
+		name = the_command.44.b
+		ai_chance = {
+			factor = 1
+		}
+		#! TODO
+	}
+	option = { #Reinstate all 3 commands back in the war room
+		name = the_command.44.c
+		ai_chance = {
+			factor = 1
+		}
+		#! TODO
+	}
+	option = { #Reinstate all 3 commands back in the war room
+		name = the_command.44.d
 		ai_chance = {
 			factor = 1
 		}
@@ -2113,19 +2138,26 @@ country_event = { #The Fate of the Oracle
 	fire_only_once = yes
 	is_triggered_only = yes
 
-	option = { #
+	option = { # Kill the oracle
 		name = the_command.46.a
 		ai_chance = {
 			factor = 1
 		}
-		#! TODO
+		#! TODO upset all of Haless a lot, gain 10 legitimacy
 	}
-	option = { #
+	option = { # Chain the oracle
 		name = the_command.46.b
 		ai_chance = {
 			factor = 1
 		}
-		#! TODO
+		#! TODO upset all of Haless just a little, gain some monarch power
+	}
+	option = { # leave the oracle free
+		name = the_command.46.b
+		ai_chance = {
+			factor = 1
+		}
+		#! TODO lose 5 legitimacy, gain some prestige
 	}
 }
 
@@ -2410,12 +2442,15 @@ province_event = { #Wuhyunification of slave-state land
 	trigger = {
 		owner = { 
 			is_subject_of_type_with_overlord = { 
-				who = R62 
+				who = R62
 				type = slave_state 
 			}
 		}
 		has_global_flag = R62_slave_state_wuhyunification_flag
-		has_human_majority_trigger = yes
+		OR = {
+			has_human_majority_trigger = yes
+			has_half_orcish_majority_trigger = yes
+		}
 		OR = {
 			NOT = { culture_group = wuhyun }
 			NOT = { religion = godlost }
@@ -2423,7 +2458,7 @@ province_event = { #Wuhyunification of slave-state land
 	}
 	
 	mean_time_to_happen = {
-		months = 120
+		months = 60
 		modifier = {
 			factor = 0.5
 			culture_group = wuhyun
@@ -2974,6 +3009,16 @@ country_event = { #Reform 7
 				clr_country_flag = laws_of_ninun_upgrade_1
 				set_country_flag = laws_of_ninun_upgrade_2
 			}
+			else_if = {
+				limit = { has_country_flag = laws_of_ninun_upgrade_2 }
+				clr_country_flag = laws_of_ninun_upgrade_2
+				set_country_flag = laws_of_ninun_upgrade_3
+			}
+			else_if = {
+				limit = { has_country_flag = laws_of_ninun_upgrade_3 }
+				clr_country_flag = laws_of_ninun_upgrade_3
+				set_country_flag = laws_of_ninun_upgrade_4
+			}
 			else = {
 				set_country_flag = laws_of_ninun_upgrade_1
 			}
@@ -3248,14 +3293,18 @@ country_event = { #Rise of the Shamans Start
 	
 	immediate = {
 		hidden_effect = {
-			add_stability = -4
-			country_event = {
-				id = the_command.82
-				days = 31
-			}
-			country_event = {
-				id = the_command.83
-				days = 88
+			add_stability = -3
+			if = {
+				limit = { NOT = { has_country_flag = command_first_rise_of_shamans } }
+				country_event = {
+					id = the_command.82
+					days = 31
+				}
+				country_event = {
+					id = the_command.83
+					days = 88
+				}
+				set_country_flag = command_first_rise_of_shamans
 			}
 		
 			random_owned_province = {
@@ -3273,7 +3322,7 @@ country_event = { #Rise of the Shamans Start
 			factor = 1
 		}
 		tooltip = {
-			add_stability = -4
+			add_stability = -3
 		}
 	}
 }
@@ -5295,6 +5344,14 @@ country_event = {
 			share = 12
 		}
 		set_estate_privilege = estate_dragon_command_land_rights
+		hidden_effect = {
+			has_estate_privilege = estate_wolf_command_act_of_division
+			has_estate_privilege = estate_lion_command_act_of_division
+			has_estate_privilege = estate_boar_command_act_of_division
+			has_estate_privilege = estate_dragon_command_act_of_division
+			has_estate_privilege = estate_elephant_command_act_of_division
+			has_estate_privilege = estate_tiger_command_act_of_division
+		}
 	}
 }
 
@@ -5317,6 +5374,14 @@ country_event = {
 			share = 12
 		}
 		set_estate_privilege = estate_elephant_command_land_rights
+		hidden_effect = {
+			has_estate_privilege = estate_wolf_command_act_of_division
+			has_estate_privilege = estate_lion_command_act_of_division
+			has_estate_privilege = estate_boar_command_act_of_division
+			has_estate_privilege = estate_dragon_command_act_of_division
+			has_estate_privilege = estate_elephant_command_act_of_division
+			has_estate_privilege = estate_tiger_command_act_of_division
+		}
 	}
 }
 
@@ -5339,6 +5404,14 @@ country_event = {
 			share = 12
 		}
 		set_estate_privilege = estate_tiger_command_land_rights
+		hidden_effect = {
+			has_estate_privilege = estate_wolf_command_act_of_division
+			has_estate_privilege = estate_lion_command_act_of_division
+			has_estate_privilege = estate_boar_command_act_of_division
+			has_estate_privilege = estate_dragon_command_act_of_division
+			has_estate_privilege = estate_elephant_command_act_of_division
+			has_estate_privilege = estate_tiger_command_act_of_division
+		}
 	}
 }
 
@@ -6980,7 +7053,7 @@ country_event = { #request war room support
 			}
 		}
 		
-		add_legitimacy = -10
+		add_legitimacy = -5
 		add_dip_power = -50
 	}
 	option = { 
@@ -7064,7 +7137,7 @@ country_event = { #request war room support
 				duration = 3650
 			}
 		}
-		add_legitimacy = 5
+		add_legitimacy_or_monarch_power = { VAL = 5 }
 	}
 }
 
@@ -7145,42 +7218,42 @@ country_event = { #Mediate in marriage negotiations
 			#effects for estate_wolf_command
 			add_estate_loyalty = {
 				estate = estate_wolf_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 2 } }
 			#effects for estate_boar_command
 			add_estate_loyalty = {
 				estate = estate_boar_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 3 } }
 			#effects for estate_lion_command
 			add_estate_loyalty = {
 				estate = estate_lion_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 4 } }
 			#effects for estate_dragon_command
 			add_estate_loyalty = {
 				estate = estate_dragon_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 5 } }
 			#effects for estate_tiger_command
 			add_estate_loyalty = {
 				estate = estate_tiger_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 6 } }
 			#effects for estate_elephant_command
 			add_estate_loyalty = {
 				estate = estate_elephant_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 	}
@@ -7191,42 +7264,42 @@ country_event = { #Mediate in marriage negotiations
 			#effects for estate_wolf_command
 			add_estate_loyalty = {
 				estate = estate_wolf_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 2 } }
 			#effects for estate_boar_command
 			add_estate_loyalty = {
 				estate = estate_boar_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 3 } }
 			#effects for estate_lion_command
 			add_estate_loyalty = {
 				estate = estate_lion_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 4 } }
 			#effects for estate_dragon_command
 			add_estate_loyalty = {
 				estate = estate_dragon_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 5 } }
 			#effects for estate_tiger_command
 			add_estate_loyalty = {
 				estate = estate_tiger_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 6 } }
 			#effects for estate_elephant_command
 			add_estate_loyalty = {
 				estate = estate_elephant_command
-				loyalty = 5
+				loyalty = 10
 			}
 		}
 	}
@@ -7245,42 +7318,42 @@ country_event = { #Mediate in marriage negotiations
 			#effects for estate_wolf_command
 			add_estate_loyalty = {
 				estate = estate_wolf_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 2 } }
 			#effects for estate_boar_command
 			add_estate_loyalty = {
 				estate = estate_boar_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 3 } }
 			#effects for estate_lion_command
 			add_estate_loyalty = {
 				estate = estate_lion_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 4 } }
 			#effects for estate_dragon_command
 			add_estate_loyalty = {
 				estate = estate_dragon_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 5 } }
 			#effects for estate_tiger_command
 			add_estate_loyalty = {
 				estate = estate_tiger_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 6 } }
 			#effects for estate_elephant_command
 			add_estate_loyalty = {
 				estate = estate_elephant_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		
@@ -7288,46 +7361,45 @@ country_event = { #Mediate in marriage negotiations
 			#effects for estate_wolf_command
 			add_estate_loyalty = {
 				estate = estate_wolf_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 2 } }
 			#effects for estate_boar_command
 			add_estate_loyalty = {
 				estate = estate_boar_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 3 } }
 			#effects for estate_lion_command
 			add_estate_loyalty = {
 				estate = estate_lion_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 4 } }
 			#effects for estate_dragon_command
 			add_estate_loyalty = {
 				estate = estate_dragon_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 5 } }
 			#effects for estate_tiger_command
 			add_estate_loyalty = {
 				estate = estate_tiger_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 6 } }
 			#effects for estate_elephant_command
 			add_estate_loyalty = {
 				estate = estate_elephant_command
-				loyalty = 10
+				loyalty = 5
 			}
 		}
 		
-		add_years_of_income = -0.1
 		add_dip_power = -50
 		add_legitimacy_or_monarch_power = { VAL = 5 }
 	}
@@ -7515,8 +7587,6 @@ country_event = { #Settle a rivalry
 				loyalty = -10
 			}
 		}
-		
-		add_army_tradition = 5
 	}
 	option = { 
 		name = the_command.1005.b
@@ -7630,11 +7700,100 @@ country_event = { #Settle a rivalry
 				loyalty = -10
 			}
 		}
-		
-		add_army_tradition = 5
 	}
 	option = { 
 		name = the_command.1005.c
+		
+		if = { limit = { event_target:command_war_room_estate_1 = { province_id = 1 } }
+			#effects for estate_wolf_command
+			add_estate_loyalty = {
+				estate = estate_wolf_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 2 } }
+			#effects for estate_boar_command
+			add_estate_loyalty = {
+				estate = estate_boar_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 3 } }
+			#effects for estate_lion_command
+			add_estate_loyalty = {
+				estate = estate_lion_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 4 } }
+			#effects for estate_dragon_command
+			add_estate_loyalty = {
+				estate = estate_dragon_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 5 } }
+			#effects for estate_tiger_command
+			add_estate_loyalty = {
+				estate = estate_tiger_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_1 = { province_id = 6 } }
+			#effects for estate_elephant_command
+			add_estate_loyalty = {
+				estate = estate_elephant_command
+				loyalty = 5
+			}
+		}
+		
+		if = { limit = { event_target:command_war_room_estate_2 = { province_id = 1 } }
+			#effects for estate_wolf_command
+			add_estate_loyalty = {
+				estate = estate_wolf_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 2 } }
+			#effects for estate_boar_command
+			add_estate_loyalty = {
+				estate = estate_boar_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 3 } }
+			#effects for estate_lion_command
+			add_estate_loyalty = {
+				estate = estate_lion_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 4 } }
+			#effects for estate_dragon_command
+			add_estate_loyalty = {
+				estate = estate_dragon_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 5 } }
+			#effects for estate_tiger_command
+			add_estate_loyalty = {
+				estate = estate_tiger_command
+				loyalty = 5
+			}
+		}
+		else_if = { limit = { event_target:command_war_room_estate_2 = { province_id = 6 } }
+			#effects for estate_elephant_command
+			add_estate_loyalty = {
+				estate = estate_elephant_command
+				loyalty = 5
+			}
+		}
+		
+		add_army_tradition = -5
+	}
+	option = {
+		name = the_command.1005.d
 		
 		if = { limit = { event_target:command_war_room_estate_1 = { province_id = 1 } }
 			#effects for estate_wolf_command
@@ -7722,19 +7881,33 @@ country_event = { #Settle a rivalry
 			}
 		}
 		
-		add_army_tradition = -10
-		add_yearly_manpower = -0.5
+		add_mil_power = -50
 		add_legitimacy_or_monarch_power = { VAL = 5 }
 	}
 	option = { 
-		name = the_command.1005.d
+		name = the_command.1005.e
 		highlight = yes
 		trigger = { mil = 5 }
 		
-		add_army_tradition = -10
-		add_yearly_manpower = -0.5
-		add_legitimacy_or_monarch_power = { VAL = 5 }
-		add_absolutism = 5
+		if = {
+			limit = { mil = 6 }
+			random_list = {
+				1 = { kill_ruler = yes }
+				19 = { 
+					add_legitimacy_or_monarch_power = { VAL = 5 }
+					add_absolutism = 5
+				}
+			}
+		}
+		else = {
+			random_list = {
+				1 = { kill_ruler = yes }
+				9 = { 
+					add_legitimacy_or_monarch_power = { VAL = 5 }
+					add_absolutism = 5
+				}
+			}
+		}
 	}
 }
 
@@ -8627,18 +8800,27 @@ country_event = {
 
 	fire_only_once = yes
 	
-	trigger = {		
+	trigger = {	
 		mission_completed = R62_the_tiger_command
 		mission_completed = R62_the_dragon_command
 		mission_completed = R62_the_elephant_command
 		has_estate = estate_tiger_command
 		has_estate = estate_dragon_command
 		has_estate = estate_elephant_command
-		ai = no
 		# Requires each subcontinent to have 400 dev owned + over 2k dev outside of Shamakhad.
-		development_in_provinces = {
-			value = 400
-			superregion = yanshen_superregion
+		OR = {
+			development_in_provinces = {
+				value = 400
+				superregion = yanshen_superregion
+			}
+			AND = {
+				development_in_provinces = {
+					value = 200
+					superregion = yanshen_superregion
+				}
+				development_in_provinces = { value = 2000 NOT = { region = shamakhad_region } }
+			}
+			ai = yes
 		}
 		development_in_provinces = {
 			value = 400
@@ -8649,7 +8831,7 @@ country_event = {
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
 		}
-		development_in_provinces = { value = 1600 NOT = { region = shamakhad_region } owned_by = R62 }
+		development_in_provinces = { value = 1600 NOT = { region = shamakhad_region } }
 		any_owned_province = {
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
@@ -8922,6 +9104,17 @@ country_event = {		# oni revolt
 	trigger = {
 		Y01 = { is_subject_of_type = slave_state }
 		has_country_flag = insubordination_active_flag
+		ai = no
+	}
+
+	immediate = {
+		hidden_effect = {
+			Y01 = {
+				white_peace = R67
+				white_peace = R68
+				white_peace = R69
+			}
+		}
 	}
 
 	option = {
@@ -8959,13 +9152,13 @@ country_event = {		# oni ultimatum post-war
 
 	fire_only_once = yes
 
-	mean_time_to_happen = {
-		months = 12
-	}
-
 	trigger = {
 		NOT = { Y01 = { is_subject_of_type = slave_state } }
 		has_country_flag = insubordination_complete
+		had_country_flag = {
+			flag = insubordination_complete
+			days = 240
+		}
 	}
 
 	option = {		# RATTLE HIM BOYS
@@ -9028,6 +9221,7 @@ country_event = { # Tiger Command War Room Input
 			days = 60
 		}
 		NOT = { has_country_flag = insubordination_active_flag exists = R67}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	option = {		# Fund only important schools
@@ -9067,6 +9261,7 @@ country_event = { # Elephant Command War Room Input
 			days = 195
 		}
 		NOT = { has_country_flag = insubordination_active_flag exists = R68}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	option = {		# Fund only vital fortifications and manufacturing
@@ -9105,6 +9300,7 @@ country_event = { # Dragon Command War Room Input
 		}
 		NOT = { has_country_flag = insubordination_active_flag exists = R69}
 		any_owned_province = { has_terrain = city_terrain superregion = yanshen_superregion }
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	option = {		# Fund only vital research
@@ -9140,7 +9336,13 @@ country_event = { # boar command vs dragon command
 			flag = insubordination_start_flag
 			days = 480
 		}
-		NOT = { OR = { has_country_flag = insubordination_active_flag exists = R69 } }
+		NOT = { 
+			OR = { 
+				has_country_flag = insubordination_active_flag
+				exists = R69
+				NOT = { has_country_flag = insubordination_complete }
+			}
+		}
 	}
 
 	option = {		# favor boar
@@ -9195,6 +9397,7 @@ country_event = { # wolf command vs elephant command
 			days = 610
 		}
 		NOT = { OR = { has_country_flag = insubordination_active_flag exists = R68 } }
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	option = {		# favor wolf
@@ -9249,6 +9452,7 @@ country_event = { # lion command vs tiger command
 			days = 750
 		}
 		NOT = { OR = { has_country_flag = insubordination_active_flag exists = R67 } }
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	option = {		# favor lion
@@ -9310,6 +9514,7 @@ country_event = { # spawning the tiger command
 				value = 80
 			}
 		}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	immediate = {
@@ -9324,27 +9529,40 @@ country_event = { # spawning the tiger command
 			}
 			release = R67			# release the tiger!
 			create_subject = { subject_type = subsidiary_command  subject = R67 }
+			if = {
+				limit = {
+					any_hired_mercenary_company = {
+						template = merc_command_tiger_army
+					}
+				}
+				random_hired_mercenary_company = {
+					limit = {
+						template = merc_command_tiger_army
+					}
+					disband_mercenary_company = THIS
+				}
+			}
 			R67 = {
 				add_country_modifier = {
 					name = command_tiger_buff
 					duration = -1
 				}
 				if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.25 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.25 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_max
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.50 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.50 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_mid
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.75 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.75 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_min
 						duration = -1
@@ -9470,17 +9688,18 @@ country_event = { # spawning the tiger command
 					limit = { is_subject_of_type = slave_state NOT = { primary_culture = wuhyun_half_orc } }
 					R67 = { create_subject = { subject = PREV subject_type = slave_state } }
 				}
+				else_if = {
+					limit = { primary_culture = wuhyun_half_orc }
+					add_prestige = 10
+				}
 				else = {
 					R67 = { vassalize = PREV }
 				}
 			}
 			R67 = {
-				capital_scope = {
-					build_to_forcelimit = {
-						infantry = 0.65
-						cavalry = 0.05
-						artillery = 0.3
-					}
+				country_event = {
+					id = the_command.2002
+					days = 31
 				}
 				every_owned_province = { # delete the forts
 					limit = { fort_level = 2 }
@@ -9518,7 +9737,23 @@ country_event = { # spawning the tiger command
 					}
 					add_latest_building = { builder = R67 fort = yes }
 				}
-				capital_scope = { add_building = fort_18th }
+				capital_scope = {
+					add_province_modifier = {
+						name = command_capital_stronghold_t1
+						duration = -1
+					}
+					set_province_flag = command_tiger_capital_flag
+					random_neighbor_province = {
+						limit = {
+							has_terrain = farmlands
+							owned_by = R67
+						}
+						add_province_modifier = {
+							name = command_tiger_warcamp
+							duration = -1
+						}
+					}
+				}
 			}
 		}
 	}
@@ -9549,6 +9784,7 @@ country_event = { # spawning the elephant command
 				value = 85
 			}
 		}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	immediate = {
@@ -9560,27 +9796,40 @@ country_event = { # spawning the elephant command
 			}
 			release = R68			# release the elephant!
 			create_subject = { subject_type = subsidiary_command  subject = R68 }
+			if = {
+				limit = {
+					any_hired_mercenary_company = {
+						template = merc_command_elephant_army
+					}
+				}
+				random_hired_mercenary_company = {
+					limit = {
+						template = merc_command_elephant_army
+					}
+					disband_mercenary_company = THIS
+				}
+			}
 			R68 = {
 				add_country_modifier = {
 					name = command_elephant_buff
 					duration = -1
 				}
 				if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.25 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.25 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_max
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.50 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.50 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_mid
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.75 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.75 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_min
 						duration = -1
@@ -9715,17 +9964,18 @@ country_event = { # spawning the elephant command
 					limit = { is_subject_of_type = slave_state NOT = { primary_culture = wuhyun_half_orc } }
 					R68 = { create_subject = { subject = PREV subject_type = slave_state } }
 				}
+				else_if = {
+					limit = { primary_culture = wuhyun_half_orc }
+					add_prestige = 10
+				}
 				else = {
 					R68 = { vassalize = PREV }
 				}
 			}
 			R68 = {
-				capital_scope = {
-					build_to_forcelimit = {
-						infantry = 0.65
-						cavalry = 0.05
-						artillery = 0.3
-					}
+				country_event = {
+					id = the_command.2002
+					days = 31
 				}
 				every_owned_province = { # delete the forts
 					limit = { fort_level = 2 }
@@ -9780,7 +10030,23 @@ country_event = { # spawning the elephant command
 					}
 					add_latest_building = { builder = R68 fort = yes }
 				}
-				capital_scope = { add_building = fort_18th }
+				capital_scope = {
+					add_province_modifier = {
+						name = command_capital_stronghold_t1
+						duration = -1
+					}
+					set_province_flag = command_elephant_capital_flag
+					random_neighbor_province = {
+						limit = {
+							has_terrain = farmlands
+							owned_by = R68
+						}
+						add_province_modifier = {
+							name = command_elephant_warcamp
+							duration = -1
+						}
+					}
+				}
 			}
 		}
 	}
@@ -9811,6 +10077,7 @@ country_event = { # spawning the dragon command
 				value = 90
 			}
 		}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	immediate = {
@@ -9822,27 +10089,40 @@ country_event = { # spawning the dragon command
 			}
 			release = R69			# unleash the dragon!
 			create_subject = { subject_type = subsidiary_command  subject = R69 }
+			if = {
+				limit = {
+					any_hired_mercenary_company = {
+						template = merc_command_dragon_army
+					}
+				}
+				random_hired_mercenary_company = {
+					limit = {
+						template = merc_command_dragon_army
+					}
+					disband_mercenary_company = THIS
+				}
+			}
 			R69 = {
 				add_country_modifier = {
 					name = command_dragon_buff
 					duration = -1
 				}
 				if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.25 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.25 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_max
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.50 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.50 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_mid
 						duration = -1
 					}
 				}
 				else_if = {
-					limit = { NOT = { development_of_overlord_fraction = 0.75 } }
+					limit = { NOT = { development_of_overlord_fraction = 0.75 } R62 = { ai = no } }
 					add_country_modifier = {
 						name = command_fl_min
 						duration = -1
@@ -9984,17 +10264,18 @@ country_event = { # spawning the dragon command
 					limit = { is_subject_of_type = slave_state NOT = { primary_culture = wuhyun_half_orc } }
 					R69 = { create_subject = { subject = PREV subject_type = slave_state } }
 				}
+				else_if = {
+					limit = { primary_culture = wuhyun_half_orc }
+					add_prestige = 10
+				}
 				else = {
 					R69 = { vassalize = PREV }
 				}
 			}
 			R69 = {
-				capital_scope = {
-					build_to_forcelimit = {
-						infantry = 0.55
-						cavalry = 0.05
-						artillery = 0.4
-					}
+				country_event = {
+					id = the_command.2002
+					days = 31
 				}
 				every_owned_province = { # delete the forts
 					limit = { fort_level = 2 }
@@ -10032,7 +10313,23 @@ country_event = { # spawning the dragon command
 					}
 					add_latest_building = { builder = R69 fort = yes }
 				}
-				capital_scope = { add_building = fort_18th }
+				capital_scope = {
+					add_province_modifier = {
+						name = command_capital_stronghold_t1
+						duration = -1
+					}
+					set_province_flag = command_dragon_capital_flag
+					random_neighbor_province = {
+						limit = {
+							has_terrain = farmlands
+							owned_by = R69
+						}
+						add_province_modifier = {
+							name = command_dragon_warcamp
+							duration = -1
+						}
+					}
+				}
 			}
 		}
 	}
@@ -10042,7 +10339,7 @@ country_event = { # spawning the dragon command
 	}
 }
 
-country_event = { # disaster kicks off. Capital mechanics prepared
+country_event = { # disaster kicks off.
 	id = the_command.1990
 	title = the_command.1990.t
 	desc = the_command.1990.d
@@ -10063,43 +10360,13 @@ country_event = { # disaster kicks off. Capital mechanics prepared
 				}
 			}
 			if = {
-				limit = { ai = no } 	# AI command cannot deal with capital mechanics
-				R67 = {
-					capital_scope = {
-						add_province_modifier = {
-							name = command_capital_stronghold_t1
-							duration = -1
-						}
-						set_province_flag = command_tiger_capital_flag
-					}
-				}
-				R68 = {
-					capital_scope = {
-						add_province_modifier = {
-							name = command_capital_stronghold_t1
-							duration = -1
-						}
-						set_province_flag = command_elephant_capital_flag
-					}
-				}
-				R69 = {
-					capital_scope = {
-						add_province_modifier = {
-							name = command_capital_stronghold_t1
-							duration = -1
-						}
-						set_province_flag = command_dragon_capital_flag
-					}
-				}
-			}
-			if = {
 				limit = { 6424 = { NOT = { owned_by = R68 } } }
 				6424 = {
 					owner = {
 						reverse_add_casus_belli  = {
 						    target = R62
 						    type = cb_trade_conflict
-						    months = 48
+						    months = 240
 						}
 					}
 				}
@@ -10267,6 +10534,7 @@ country_event = {	# jade march demands autonomy
 			is_subject_of = R62
 			is_subject_of_type = slave_state
 		}
+		NOT = { has_country_flag = insubordination_complete }
 	}
 
 	mean_time_to_happen = {
@@ -10288,12 +10556,127 @@ country_event = {	# jade march demands autonomy
 	option = {		# come at me bro
 		name = the_command.1997.b
 		ai_chance = { factor = 0 }
-		R81 = {
-			declare_war_with_cb = {
-				who = R62
-				casus_belli = cb_independence_war
+		R81 = { add_liberty_desire = 40 }
+		set_country_flag = gobbos_will_remember_this_flag
+	}
+}
+
+country_event = {	# Unmet Quotas
+	id = the_command.2020
+	title = the_command.2020.t
+	desc = the_command.2020.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 0
+			OR = {
+				NOT = { has_country_flag = insubordination_active_flag }
+				has_country_modifier = command_unmet_quotas
+				NOT = { has_country_flag = gobbos_will_remember_this_flag }
 			}
-			hidden_effect = { add_stability = 3 }
+		}
+	}
+
+	option = {		# oh heck
+		name = the_command.2020.a
+		ai_chance = { factor = 1 }
+		add_country_modifier = {
+			name = command_unmet_quotas
+			duration = 1825
+		}
+	}
+}
+
+country_event = {	# Mithril Shortage
+	id = the_command.2021
+	title = the_command.2021.t
+	desc = the_command.2021.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 0
+			OR = {
+				NOT = { has_country_flag = insubordination_active_flag }
+				has_country_modifier = command_mithril_shortage
+				NOT = { has_country_flag = gobbos_will_remember_this_flag }
+			}
+		}
+	}
+
+	option = {		# oh heck
+		name = the_command.2021.a
+		ai_chance = { factor = 1 }
+		add_country_modifier = {
+			name = command_mithril_shortage
+			duration = 1825
+		}
+	}
+}
+
+country_event = {	# Quality Armaments
+	id = the_command.2022
+	title = the_command.2022.t
+	desc = the_command.2022.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 0
+			OR = {
+				NOT = { has_country_flag = insubordination_active_flag }
+				has_country_modifier = command_quality_armaments
+				NOT = { has_country_flag = command_will_remember_this_flag }
+			}
+		}
+	}
+
+	option = {		# oh heck
+		name = the_command.2022.a
+		ai_chance = { factor = 1 }
+		add_country_modifier = {
+			name = command_quality_armaments
+			duration = 1825
+		}
+	}
+}
+
+country_event = {	# Mithril Surplus
+	id = the_command.2023
+	title = the_command.2023.t
+	desc = the_command.2023.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 0
+			OR = {
+				NOT = { has_country_flag = insubordination_active_flag }
+				has_country_modifier = command_mithril_surplus
+				NOT = { has_country_flag = command_will_remember_this_flag }
+			}
+		}
+	}
+
+	option = {		# oh heck
+		name = the_command.2023.a
+		ai_chance = { factor = 1 }
+		add_country_modifier = {
+			name = command_mithril_surplus
+			duration = 1825
 		}
 	}
 }
@@ -10383,6 +10766,10 @@ country_event = {	# oni spies
 	picture = COUNTRY_COLLAPSE_eventPicture
 
 	fire_only_once = yes
+
+	mean_time_to_happen = {
+		months = 24
+	}
 
 	trigger = {
 		has_country_flag = insubordination_active_flag
@@ -10483,10 +10870,154 @@ country_event = {	# encirclement breaks if you stop controlling all neighbor pro
 	}
 }
 
+country_event = { # makes troops because AI is stupid
+	id = the_command.2002
+	title = the_command.2002.t
+	desc = the_command.2002.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = the_command.2009.a
+		ai_chance = { factor = 1 }
+		capital_scope = {
+			build_to_forcelimit = {
+				infantry = 0.55
+				cavalry = 0.05
+				artillery = 0.4
+			}
+		}
+	}
+}
+
+country_event = { # fall of sir
+	id = the_command.2003
+	title = the_command.2003.t
+	desc = the_command.2003.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	fire_only_once = yes
+
+	trigger = {
+		has_country_flag = insubordination_active_flag
+		4633 = { # Sir
+			owned_by = R62
+			NOT = { controlled_by = R62 }
+		}
+	}
+
+	option = {
+		name = the_command.2003.a
+		ai_chance = { factor = 1 }
+		
+		add_prestige = -20
+		add_country_modifier = {
+			name = command_fall_of_sir		# harsh treatment cost
+			duration = 1825
+		}
+	}
+}
+
+country_event = { # fall of Sarilavhan
+	id = the_command.2004
+	title = the_command.2004.t
+	desc = the_command.2004.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	fire_only_once = yes
+
+	trigger = {
+		has_country_flag = insubordination_active_flag
+		4630 = { # Sir
+			owned_by = R62
+			NOT = { controlled_by = R62 }
+		}
+	}
+
+	option = {
+		name = the_command.2004.a
+		ai_chance = { factor = 1 }
+		
+		add_prestige = -20
+		add_country_modifier = {
+			name = command_fall_of_sarilavhan		# harsh treatment cost
+			duration = 1825
+		}
+	}
+}
+
+country_event = { # wuhyun half-orc mercenaries
+	id = the_command.2005
+	title = the_command.2005.t
+	desc = the_command.2005.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	fire_only_once = yes
+
+	mean_time_to_happen = {
+		months = 36
+	}
+
+	trigger = {
+		has_country_flag = insubordination_active_flag
+		any_owned_province = {
+			culture = wuhyun_half_orc
+		}
+	}
+
+	option = { # sounds legit
+		name = the_command.2005.a
+		ai_chance = { factor = 1 }
+		
+		add_yearly_manpower = 0.5
+		add_legitimacy = -5
+	}
+	option = { # wtf no
+		name = the_command.2005.b
+		ai_chance = { factor = 0 }
+		
+		small_decrease_of_half_orcish_tolerance_effect = yes
+		add_legitimacy = 5
+	}
+}
+
+country_event = { # you lost, dang I was rooting for you
+	id = the_command.2009
+	title = the_command.2009.t
+	desc = the_command.2009.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	hidden = yes
+
+	trigger = {
+		has_country_flag = insubordination_active_flag
+		capital_scope = {
+			NOT = {
+				controlled_by = R62
+				war_score = -90
+			}
+		}
+	}
+
+	option = {
+		name = the_command.2009.a
+		ai_chance = { factor = 1 }
+		set_country_flag = insubordination_bad
+	}
+}
+
 country_event = { # disaster ends
 	id = the_command.2010
 	title = the_command.2010.t
-	desc = the_command.2010.d
+	desc = {
+		trigger = { NOT = { has_country_flag = insubordination_bad } }
+		desc = the_command.2010.d
+	}
+	desc = {
+		trigger = { has_country_flag = insubordination_bad }
+		desc = the_command.2010.d.2
+	}
 	picture = COUNTRY_COLLAPSE_eventPicture
 
 	is_triggered_only = yes
@@ -10495,6 +11026,7 @@ country_event = { # disaster ends
 		hidden_effect = {
 			set_country_flag = insubordination_complete
 			clr_country_flag = insubordination_active_flag
+			clr_country_flag = gobbos_will_remember_this_flag
 			remove_country_modifier = command_estate_pain
 			remove_country_modifier = command_oni_infiltrators
 			event_target:dragon_command_capital = {
@@ -10539,18 +11071,78 @@ country_event = { # disaster ends
 				remove_country_modifier = command_fl_mid
 				remove_country_modifier = command_fl_min
 			}
+			if = {
+				limit = { owns = 4504 }
+				4504 = {
+					add_province_modifier = {
+						name = command_tiger_warcamp
+						duration = -1
+					}
+				}
+			}
+			if = {
+				limit = { owns = 4613 }
+				4613 = {
+					add_province_modifier = {
+						name = command_elephant_warcamp
+						duration = -1
+					}
+				}
+			}
+			if = {
+				limit = { owns = 4952 }
+				4952 = {
+					add_province_modifier = {
+						name = command_dragon_warcamp
+						duration = -1
+					}
+				}
+				
+			}
 		}
 	}
 
-	option = {
+	option = { # good ending
 		name = the_command.2010.a
 		ai_chance = { factor = 1 }
+		trigger = { NOT = { has_country_flag = insubordination_bad } }
 		add_legitimacy = 100
 		add_army_professionalism = 0.25
 		add_war_exhaustion = -10
 		add_country_modifier = {
 			name = command_jingo_fervor
 			duration = 5475
+		}
+	}
+	option = { # bad ending
+		name = the_command.2010.b
+		ai_chance = { factor = 1 }
+		trigger = { has_country_flag = insubordination_bad }
+		add_stability = -2
+		kill_ruler = yes
+		if = {
+			limit = { exists = R67 }
+			custom_tooltip = command_2010_tt_b
+			hidden_effect = {
+				west_rajnadhaga_area = {
+					limit = { owned_by = ROOT }
+					cede_province = R67
+					add_core = R67
+				}
+				tiltaghar_area = {
+					limit = { owned_by = ROOT }
+					cede_province = R67
+					add_core = R67
+				}
+			}
+		}
+		hidden_effect = {
+			white_peace = R67
+			white_peace = R68
+			white_peace = R69
+			R67 = { grant_independence = yes }
+			R68 = { grant_independence = yes }
+			R69 = { grant_independence = yes }
 		}
 	}
 }
