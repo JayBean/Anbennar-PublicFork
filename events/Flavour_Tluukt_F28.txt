@@ -1102,11 +1102,8 @@ country_event = { #The Sun in Chains
 		hidden_effect = {
 			capital_scope = { remove_province_triggered_modifier = tluukt_sun_chains_rng }
 			set_variable = { which = nTotalSlaves value = 0 }
-			every_province = {
-				limit = {
-					country_or_non_sovereign_subject_holds = ROOT
-					culture_is_elven = yes
-				}
+			every_owned_province = {
+				limit = { culture_is_elven = yes }
 				remove_province_modifier = elven_majority_oppressed
 				remove_province_modifier = elven_majority_integrated
 				remove_province_modifier = elven_majority_coexisting
@@ -1221,6 +1218,59 @@ country_event = { #The Sun in Chains
 					limit = { base_production = 5 }
 					add_base_production = -2
 					ROOT = { change_variable = { which = nTotalSlaves value = 2 } }
+				}
+			}
+			every_subject_country = {
+				limit = { NOT = { is_subject_of_type = tributary_state } }
+				every_owned_province = {
+					limit = { culture_is_elven = yes }
+					remove_province_modifier = elven_majority_oppressed
+					remove_province_modifier = elven_majority_integrated
+					remove_province_modifier = elven_majority_coexisting
+					change_culture = owner
+					change_religion = owner
+					if = {
+						limit = { superregion = bulwar_superregion }
+						if = {
+							limit = {
+								base_manpower = 4
+								NOT = { base_manpower = 5 }
+							}
+							add_base_manpower = -1
+							ROOT = { change_variable = { which = nTotalSlaves value = 1 } }
+						}
+						else_if = {
+							limit = { base_manpower = 5 }
+							add_base_manpower = -2
+							ROOT = { change_variable = { which = nTotalSlaves value = 2 } }
+						}
+						if = {
+							limit = {
+								base_tax = 4
+								NOT = { base_tax = 5 }
+							}
+							add_base_tax = -1
+							ROOT = { change_variable = { which = nTotalSlaves value = 1 } }
+						}
+						else_if = {
+							limit = { base_tax = 5 }
+							add_base_tax = -2
+							ROOT = { change_variable = { which = nTotalSlaves value = 2 } }
+						}
+						if = {
+							limit = {
+								base_production = 4
+								NOT = { base_production = 5 }
+							}
+							add_base_production = -1
+							ROOT = { change_variable = { which = nTotalSlaves value = 1 } }
+						}
+						else_if = {
+							limit = { base_production = 5 }
+							add_base_production = -2
+							ROOT = { change_variable = { which = nTotalSlaves value = 2 } }
+						}
+					}
 				}
 			}
 			multiply_variable = { which = nTotalSlaves value = 0.66 }
@@ -1497,9 +1547,12 @@ country_event = { #Treaty of Grumar (Tluukt)
 	option = {
 		name = flavour_tluukt.39.a #Try and end the war
 		ai_chance = { factor = 100 }
-		add_treasury = -200
-		add_dip_power = -200
-		F25 = { country_event = { id = flavour_tluukt.40 days = 3} }
+		if = {
+			limit = { war_with = F25 }
+			add_treasury = -200
+			add_dip_power = -200
+			F25 = { country_event = { id = flavour_tluukt.40 days = 3} }
+		}
 	}
 
 	option = {
@@ -1521,16 +1574,19 @@ country_event = { #Treaty of Grumar (Sareyand)
 	option = {
 		name = flavour_tluukt.40.a #Accept peace
 		ai_chance = { factor = 100 }
+		if = {
+			limit = { war_with = FROM }
+			white_peace = FROM
+			604 = {
+				cede_province = FROM
+				add_claim = ROOT
+			}
+			611 = {
+				cede_province = FROM
+				add_claim = ROOT
+			}
+		}
 		add_treasury = 200
-		white_peace = FROM
-		604 = {
-			cede_province = FROM
-			add_claim = ROOT
-		}
-		611 = {
-			cede_province = FROM
-			add_claim = ROOT
-		}
 	}
 
 	option = {
@@ -1697,6 +1753,8 @@ country_event = { #The Legion Falls
 	desc = flavour_tluukt.44.desc
 	picture = SIEGE_PRAGUE_CASTLE_eventPicture
 	is_triggered_only = yes
+	
+	immediate = { white_peace = F46 }
 	
 	option = {
 		name = flavour_tluukt.44.a #Cool!
@@ -2167,24 +2225,7 @@ country_event = { #The Legion Falls (Jaddar)
 		}
 	}
 	
-	option = {
-		name = flavour_tluukt.53.a #What can men do against such reckless hate?
-		tooltip = {
-			FROM = {
-				add_manpower = -0.073
-				add_power_projection = {
-					type = mission_rewards_power_projection
-					amount = 10
-				}
-				if = {
-					limit = { has_ruler_modifier = tluukt_the_rule_of_tluukt }
-					add_ruler_modifier = { name = tluukt_phoenix_breaker duration = -1 }
-				}
-			}
-		}
-		white_peace = FROM
-		kill_heir = {}
-		kill_ruler = yes
+	immediate = {
 		every_owned_province = {
 			limit = {
 				OR = {
@@ -2201,6 +2242,26 @@ country_event = { #The Legion Falls (Jaddar)
 				add_province_modifier = { name = tluukt_jaddarin_unrest duration = 7300 }
 			}
 		}
+	}
+	
+	option = {
+		name = flavour_tluukt.53.a #What can men do against such reckless hate?
+		tooltip = {
+			FROM = {
+				add_manpower = -0.073
+				add_power_projection = {
+					type = mission_rewards_power_projection
+					amount = 10
+				}
+				if = {
+					limit = { has_ruler_modifier = tluukt_the_rule_of_tluukt }
+					add_ruler_modifier = { name = tluukt_phoenix_breaker duration = -1 }
+				}
+			}
+		}
+		tooltip = { white_peace = FROM }
+		kill_heir = {}
+		kill_ruler = yes
 	}
 }
 
@@ -2611,6 +2672,133 @@ country_event = { #The Rule of Tluukt startup event
 		name = flavour_tluukt.64.a
 		add_ruler_modifier = { name = tluukt_the_rule_of_tluukt duration = -1 }
 		add_country_modifier = { name = tluukt_decentralized_tribes duration = -1 }
+		hidden_effect = { country_event = { id = flavour_tluukt.69 days = 1825 random = 7300 } }
+	}
+}
+
+country_event = { #The Final Days (Zokka)
+	id = flavour_tluukt.65
+	title = flavour_tluukt.65.title
+	desc = flavour_tluukt.65.desc
+	picture = SIEGE_PRAGUE_CASTLE_eventPicture
+	is_triggered_only = yes
+	major = yes
+	major_trigger = {
+		OR = {
+			is_subject_of = F29
+			alliance_with = F29
+			war_with = F29
+		}
+	}
+	
+	option = {
+		name = flavour_tluukt.65.a #So falls the final curtain upon our pack
+		tooltip = {
+			white_peace = FROM
+			every_owned_province = {
+				limit = { superregion = bulwar_superregion }
+				cede_province = FROM
+			}
+		}
+	}
+}
+
+country_event = { #The Sihrusam in Tatters (Jaddari/Elayenna)
+	id = flavour_tluukt.66
+	title = flavour_tluukt.66.title
+	desc = flavour_tluukt.66.desc
+	picture = SIEGE_PRAGUE_CASTLE_eventPicture
+	is_triggered_only = yes
+	
+	option = {
+		name = flavour_tluukt.66.a #We cannot allow such noble souls to suffer so!
+		add_manpower = 5
+		add_treasury = 30
+		add_casus_belli = {
+			target = F79
+			type = cb_vassalize_mission
+			months = 240
+		}
+	}
+}
+
+country_event = { #The Zanbar Ultimatum (Bulwar)
+	id = flavour_tluukt.67
+	title = flavour_tluukt.67.title
+	desc = flavour_tluukt.67.desc
+	picture = SIEGE_PRAGUE_CASTLE_eventPicture
+	is_triggered_only = yes
+	major_trigger = {
+		OR = {
+			alliance_with = F39
+			war_with = F39
+		}
+	}
+	
+	option = {
+		name = flavour_tluukt.67.a #We submit			
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				total_development = 101
+			}
+		}
+		custom_tooltip = tluukt_zunbar_ultimatum_tt
+		F28 = { country_event = { id = flavour_tluukt.68 days = 3 } }
+	}
+
+	option = {
+		name = flavour_tluukt.67.b #We will never submit!
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				NOT = { total_development = 101 }
+			}
+		}
+		add_prestige = 5
+	}
+}
+
+country_event = { #The Zanbar Ultimatum (Tluukt)
+	id = flavour_tluukt.68
+	title = flavour_tluukt.68.title
+	desc = flavour_tluukt.68.desc
+	picture = SIEGE_PRAGUE_CASTLE_eventPicture
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { tag = F39 }
+	
+	option = {
+		name = flavour_tluukt.68.a #They are wise to submit themselves so!
+		vassalize = F39
+		F39 = { add_country_modifier = { name = tluukt_begrudging_vassal duration = 3650 } }
+	}
+
+	option = {
+		name = flavour_tluukt.68.b #They are fools to think themselves worthy of a second chance!
+		add_prestige = 10
+		F39 = { add_country_modifier = { name = tluukt_humiliated_bulwar duration = 3650 } }
+	}
+}
+
+country_event = { #The Matriarchies of Eld
+	id = flavour_tluukt.69
+	title = flavour_tluukt.69.title
+	desc = flavour_tluukt.69.desc
+	picture = COMET_SIGHTED_eventPicture
+	is_triggered_only = yes
+	trigger = { has_ruler_modifier = tluukt_the_rule_of_tluukt }
+	
+	option = {
+		name = flavour_tluukt.69.a #Behold, a matriarch of eld!
+		add_ruler_modifier = { name = tluukt_the_wise duration = -1 }
+	}
+
+	option = {
+		name = flavour_tluukt.69.b #Might makes right, loser.
+		add_ruler_modifier = { name = tluukt_the_strong duration = -1 }
 	}
 }
 
