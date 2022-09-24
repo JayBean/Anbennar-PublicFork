@@ -1,14 +1,14 @@
-
 namespace = diggy_dungeons
 
 # Create dungeons or not
+# Launch by the immediate effect of diggy_expedition.12 at the end of a succesfull expedition
 province_event = {
 	id = diggy_dungeons.0
 	title = diggy_dungeons.0.t
 	desc = diggy_dungeons.0.d
 	picture = CAVE_eventPicture
 	
-	# hidden = yes
+	# hidden = yes #Must be hidden, not hidden for test purposes
 	is_triggered_only = yes
 	
 	trigger = {
@@ -23,7 +23,7 @@ province_event = {
 	after = {
 	}
 	
-	#Let them go
+	# Does the dungeon spawn or not
 	option = {
         name = diggy_dungeons.0.a
         ai_chance = { factor = 100 }
@@ -47,7 +47,7 @@ province_event = {
 	desc = diggy_dungeons.1.d
 	picture = CAVE_eventPicture
 	
-	# hidden = yes
+	# hidden = yes #Must be hidden, not hidden for test purposes
 	is_triggered_only = yes
 	
 	trigger = {
@@ -66,16 +66,2167 @@ province_event = {
         ai_chance = { factor = 1 }
 	}
 	
-	# Grumhardhûm, the Hammer Place
+	# Leforn Vâmbrèthar, the Abandoned Workshop
 	option = {
-        name = diggy_dungeons.1.a
-        ai_chance = { factor = 100 }
-		trigger = {
-			NOT = { has_global_flag = dd_grumhardhum }
+        name = diggy_dungeons.1.b
+        ai_chance = { 
+			factor = 100 #Higher for test purposes, should be much lower
+			modifier = {
+				factor = 1.5
+				OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface }
+			}
 		}
-		set_global_flag = dd_grumhardhum
-		REB = { change_variable = { dwarovarDungeon = 1 } }
-		spawn_dungeon_effect = { origin = 8 type = dd_grumhardhum instant = yes  }
+		trigger = { NOT = { has_global_flag = dd_leforn_vambrethar } }
+		set_global_flag = dd_leforn_vambrethar
+		set_province_flag = dd_leforn_vambrethar_flag
+		set_province_flag = explorable_dungeon
+		REB = { change_variable = { dwarovarDungeon = 1 } }		#Global Indicator of how many Dungeons have spawned
+		province_event = { id = diggy_dungeons.100 }			#Dungeon description event
+		add_great_project = {
+			type = dd_leforn_vambrethar
+			instant = yes
+		}
 	}
 }
+
+# Start the Dungeon Event Chain
+province_event = {
+	id = diggy_dungeons.2
+	title = diggy_dungeons.2.t
+	desc = diggy_dungeons.2.d
+	picture = CAVE_eventPicture
+	
+	# hidden = yes	#Must be hidden, not hidden for test purposes
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	# Select which dungeon to launch depending on the province flag set on diggy_dungeons.1
+	option = {
+        name = diggy_dungeons.2.a
+        ai_chance = { factor = 100 }
+		trigger_switch = {
+			on_trigger = has_province_flag
+			
+			dd_leforn_vambrethar_flag = { province_event = { id = diggy_dungeons.101 } } # Leforn Vâmbrèthar, the Abandoned Workshop
+		}
+		province_event = { id = diggy_dungeons.2000 }
+	}
+}
+
+# Progress Loop
+province_event = {
+	id = diggy_dungeons.2000
+	title = diggy_dungeons.2000.t
+	desc = diggy_dungeons.2000.d
+	picture = CAVE_eventPicture
+	
+	# hidden = yes	#Must be hidden, not hidden for test purposes
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	# Select which dungeon to launch depending on the province flag set on diggy_dungeons.1
+	option = {
+        name = diggy_dungeons.2000.a
+        ai_chance = { factor = 100 }
+		dungeon_progress = yes
+		
+		if = {
+			limit = { NOT = { check_variable = { partyManpower = 1 } } } #No more soldiers, you ded
+			province_event = { id = diggy_dungeons.2001 }
+		}
+		else = {
+			province_event = { id = diggy_dungeons.2000 days = 30 }
+		}
+	}
+}
+
+#Expedition Dead
+province_event = {
+	id = diggy_dungeons.2001
+	title = diggy_dungeons.2001.t
+	desc = diggy_dungeons.2001.d
+	picture = LOOMING_DEATH_eventPicture
+	goto = ROOT
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		hidden_effect = { clr_province_flag = sent_expedition_@owner }
+	}
+	
+	after = {
+	}
+	
+	#Damnation
+	option = {
+        name = diggy_dungeons.2001.a
+        ai_chance = { factor = 100 }
+		add_prestige = -20
+		owner = {
+			random = {
+				chance = 50
+				add_stability = -1
+			}
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+
+
+###############################
+###### Leforn Vâmbrèthar ######
+###############################
+
+# Misc event presenting what the dungeons is
+province_event = {
+	id = diggy_dungeons.100
+	title = diggy_dungeons.100.t
+	desc = diggy_dungeons.100.d
+	picture = CAVE_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+	}
+	
+	after = {
+	}
+	
+	# Nice
+	option = {
+        name = diggy_dungeons.100.a
+        ai_chance = { factor = 100 }
+	}
+}
+
+# Floor1
+# Beginning Floor 1
+province_event = {
+	id = diggy_dungeons.101
+	title = diggy_dungeons.101.t
+	desc = diggy_dungeons.101.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.101.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 102
+			
+			base_failure = 20
+			failure_id = 103
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.101.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 104 }
+	}
+}
+
+# Beginning Floor 1: Clear the webs (E) - Success
+province_event = {
+	id = diggy_dungeons.102
+	title = diggy_dungeons.102.t
+	desc = diggy_dungeons.102.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.102.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_loot = { add_tooltip = yes add = 100 }
+		
+		dungeon_progress_advancement = { id = 104 } 
+	}
+}
+
+# Beginning Floor 1: Clear the webs (E) - Failure
+province_event = {
+	id = diggy_dungeons.103
+	title = diggy_dungeons.103.t
+	desc = diggy_dungeons.103.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.103.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 104 } 
+	}
+}
+
+# Reading Hall
+province_event = {
+	id = diggy_dungeons.104
+	title = diggy_dungeons.104.t
+	desc = diggy_dungeons.104.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.104.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 105
+			
+			base_failure = 20
+			failure_id = 106
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.104.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 105
+			
+			base_failure = 40
+			failure_id = 106
+		}
+	}
+}
+
+# Reading Hall: Destroy the statue (E) - Success
+province_event = {
+	id = diggy_dungeons.105
+	title = diggy_dungeons.105.t
+	desc = {
+		trigger = { always = yes }
+		desc = diggy_dungeons.105.d.1
+	}
+	desc = {
+		trigger = { always = no }
+		desc = diggy_dungeons.105.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.105.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_loot = { add_tooltip = yes add = 100 }
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 107 } 
+	}
+}
+
+# Reading Hall: Destroy the statue (E) - Failure
+province_event = {
+	id = diggy_dungeons.106
+	title = diggy_dungeons.106.t
+	desc = {
+		trigger = { always = yes }
+		desc = diggy_dungeons.106.d.1
+	}
+	desc = {
+		trigger = { always = no }
+		desc = diggy_dungeons.106.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.106.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 107 } 
+	}
+}
+
+# Main Library
+province_event = {
+	id = diggy_dungeons.107
+	title = diggy_dungeons.107.t
+	desc = diggy_dungeons.107.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.107.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 108 } 
+	}
+		
+	option = {
+		name = diggy_dungeons.107.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 109 } 
+	}
+}
+
+# Bookbinder
+province_event = {
+	id = diggy_dungeons.108
+	title = diggy_dungeons.108.t
+	desc = diggy_dungeons.108.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.108.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 110
+			
+			base_failure = 40
+			failure_id = 111
+		}
+	}
+}
+
+# Papermill
+province_event = {
+	id = diggy_dungeons.109
+	title = diggy_dungeons.109.t
+	desc = diggy_dungeons.109.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.109.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 113
+			
+			base_failure = 20
+			failure_id = 112
+		}
+	}
+}
+
+# Bookbinder: Fight (M) - Success
+province_event = {
+	id = diggy_dungeons.110
+	title = diggy_dungeons.110.t
+	desc = {
+		trigger = { always = yes}
+		desc = diggy_dungeons.110.d.1
+	}
+	desc = {
+		trigger = { always = no}
+		desc = diggy_dungeons.110.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.110.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 114 } 
+	}
+}
+
+# Bookbinder: Fight (M) - Failure
+province_event = {
+	id = diggy_dungeons.111
+	title = diggy_dungeons.111.t
+	desc = {
+		trigger = { always = yes}
+		desc = diggy_dungeons.111.d.1
+	}
+	desc = {
+		trigger = { always = no}
+		desc = diggy_dungeons.111.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.111.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 115 } 
+	}
+}
+
+# Papermill: Fight (E) - Failure
+province_event = {
+	id = diggy_dungeons.112
+	title = diggy_dungeons.112.t
+	desc = {
+		trigger = { always = yes}
+		desc = diggy_dungeons.112.d.1
+	}
+	desc = {
+		trigger = { always = no}
+		desc = diggy_dungeons.112.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.112.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 115 } 
+	}
+}
+
+# Papermill: Fight (E) - Success
+province_event = {
+	id = diggy_dungeons.113
+	title = diggy_dungeons.113.t
+	desc = {
+		trigger = { always = yes}
+		desc = diggy_dungeons.113.d.1
+	}
+	desc = {
+		trigger = { always = no}
+		desc = diggy_dungeons.113.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.113.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 114 } 
+	}
+}
+
+# Main Library
+province_event = {
+	id = diggy_dungeons.114
+	title = diggy_dungeons.114.t
+	desc = diggy_dungeons.114.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.114.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			has_province_flag = sent_expedition_@owner
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 116
+			
+			base_failure = 60
+			failure_id = 117
+		}
+	}
+}
+
+# Emergency System
+province_event = {
+	id = diggy_dungeons.115
+	title = diggy_dungeons.115.t
+	desc = diggy_dungeons.115.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.115.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 118
+			
+			base_failure = 20
+			failure_id = 119
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.115.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 120 } 
+	}
+}
+
+# Main Library: Fight (H) - Success
+province_event = {
+	id = diggy_dungeons.116
+	title = diggy_dungeons.116.t
+	desc = diggy_dungeons.116.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.116.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 121 } 
+	}
+}
+
+# Game Over
+province_event = {
+	id = diggy_dungeons.117
+	title = diggy_dungeons.117.t
+	desc = diggy_dungeons.117.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.117.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+# Emergency System: Yay - Success
+province_event = {
+	id = diggy_dungeons.118
+	title = diggy_dungeons.118.t
+	desc = {
+		trigger = { always = yes}
+		desc = diggy_dungeons.118.d.1
+	}
+	desc = {
+		trigger = { always = no}
+		desc = diggy_dungeons.118.d.2
+	}
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.118.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 114 } 
+	}
+}
+
+# Game Over
+province_event = {
+	id = diggy_dungeons.119
+	title = diggy_dungeons.119.t
+	desc = diggy_dungeons.119.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.119.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+# Game Over
+province_event = {
+	id = diggy_dungeons.120
+	title = diggy_dungeons.120.t
+	desc = diggy_dungeons.120.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.120.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+# End Event
+province_event = {
+	id = diggy_dungeons.121
+	title = diggy_dungeons.121.t
+	desc = diggy_dungeons.121.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+	
+	immediate = {
+		dungeon_immediate_effect = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.121.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		special_reward_expedition = yes
+		currency_effect_expedition = {  currency = treasury cash = yes addTo = owner }
+		currency_effect_expedition = {  currency = adm_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = dip_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = mil_power mana = yes addTo = owner }
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { partyManpower = 1000 } }
+				subtract_variable = { partyManpower = 1000 }
+				owner = { add_manpower = 1 }
+			}
+		}
+		custom_tooltip = back_to_manpower_tooltip
+		custom_tooltip = base_expedition_loot_tooltip
+		if = {
+			limit = { check_variable = { ancientDwarvenKnowledge = 1 } }
+			province_event = { id = diggy_expedition.14 }
+		}
+		else = { hidden_effect = { clear_expedition_effect = yes } }
+		hidden_effect = { set_province_flag = floor_explored }
+	}
+}
+
+# Floor2
+# Beginning Floor 2
+province_event = {
+	id = diggy_dungeons.122
+	title = diggy_dungeons.122.t
+	desc = diggy_dungeons.122.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.122.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			has_province_flag = sent_expedition_@owner
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 123
+			
+			base_failure = 20
+			failure_id = 124
+		}
+	}
+}
+
+# Beginning Floor 2: Fight (E) - Success
+province_event = {
+	id = diggy_dungeons.123
+	title = diggy_dungeons.123.t
+	desc = diggy_dungeons.123.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.123.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_loot = { add_tooltip = yes add = 100 }
+		
+		dungeon_progress_advancement = { id = 125 } 
+	}
+}
+
+# Beginning Floor 2: Fight (E) - Failure
+province_event = {
+	id = diggy_dungeons.124
+	title = diggy_dungeons.124.t
+	desc = diggy_dungeons.124.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.124.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 200 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 125 } 
+	}
+}
+
+# Get Down
+province_event = {
+	id = diggy_dungeons.125
+	title = diggy_dungeons.125.t
+	desc = diggy_dungeons.125.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.125.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 126
+			
+			base_failure = 40
+			failure_id = 127
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.125.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 128 } 
+	}
+}
+
+# Nice and Steady
+province_event = {
+	id = diggy_dungeons.126
+	title = diggy_dungeons.126.t
+	desc = diggy_dungeons.126.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.126.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 129 } 
+	}
+}
+
+# Get Down: Secure the thing (M) - Failure
+province_event = {
+	id = diggy_dungeons.127
+	title = diggy_dungeons.127.t
+	desc = diggy_dungeons.127.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.127.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_supplies = { remove_tooltip = yes loss = 10 }
+		
+		dungeon_progress_advancement = { id = 129 } 
+	}
+}
+
+# Get Down: Just rope down - Failure
+province_event = {
+	id = diggy_dungeons.128
+	title = diggy_dungeons.128.t
+	desc = diggy_dungeons.128.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.128.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		change_party_supplies = { remove_tooltip = yes loss = 10 }
+		
+		dungeon_progress_advancement = { id = 129 } 
+	}
+}
+
+# Chasm 1
+province_event = {
+	id = diggy_dungeons.129
+	title = diggy_dungeons.129.t
+	desc = diggy_dungeons.129.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.129.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 130
+			
+			base_failure = 40
+			failure_id = 131
+		}
+	}
+}
+
+# Chasm 1: Fight (M) - Success
+province_event = {
+	id = diggy_dungeons.130
+	title = diggy_dungeons.130.t
+	desc = diggy_dungeons.130.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.130.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		change_party_supplies = { add_tooltip = yes add = 10 }
+		
+		dungeon_progress_advancement = { id = 132 } 
+	}
+}
+
+# Chasm 1: Fight (M) - Failure
+province_event = {
+	id = diggy_dungeons.131
+	title = diggy_dungeons.131.t
+	desc = diggy_dungeons.131.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.131.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 200 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 132 } 
+	}
+}
+
+# Chasm 2
+province_event = {
+	id = diggy_dungeons.132
+	title = diggy_dungeons.132.t
+	desc = diggy_dungeons.132.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.132.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 133
+			
+			base_failure = 40
+			failure_id = 134
+		}
+	}
+}
+
+# Chasm 2: Fight (M) - Success
+province_event = {
+	id = diggy_dungeons.133
+	title = diggy_dungeons.133.t
+	desc = diggy_dungeons.133.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.133.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_loot = { add_tooltip = yes add = 100 }
+		
+		dungeon_progress_advancement = { id = 135 } 
+	}
+}
+
+# Chasm 2: Fight (M) - Failure
+province_event = {
+	id = diggy_dungeons.134
+	title = diggy_dungeons.134.t
+	desc = diggy_dungeons.134.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.134.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 300 }
+		
+		dungeon_progress_advancement = { id = 135 } 
+	}
+}
+
+# Big Boss
+province_event = {
+	id = diggy_dungeons.135
+	title = diggy_dungeons.135.t
+	desc = diggy_dungeons.135.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.135.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 136
+			
+			base_failure = 60
+			failure_id = 137
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.135.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 139
+			
+			base_failure = 40
+			failure_id = 138
+		}
+	}
+}
+
+# Big Boss: Make a Trap (H) - Success
+province_event = {
+	id = diggy_dungeons.136
+	title = diggy_dungeons.136.t
+	desc = diggy_dungeons.136.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.136.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 140 } 
+	}
+}
+
+# Big Boss: Make a Trap (H) - Failure
+province_event = {
+	id = diggy_dungeons.137
+	title = diggy_dungeons.137.t
+	desc = diggy_dungeons.137.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.137.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 139
+			
+			base_failure = 60
+			failure_id = 138
+		}
+	}
+}
+
+# Game Over
+province_event = {
+	id = diggy_dungeons.138
+	title = diggy_dungeons.138.t
+	desc = diggy_dungeons.138.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.138.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+# Big Boss: Fight (M) - Success
+province_event = {
+	id = diggy_dungeons.139
+	title = diggy_dungeons.139.t
+	desc = diggy_dungeons.139.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.139.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_loot = { add_tooltip = yes add = 200 }
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 140 } 
+	}
+}
+
+# Way Up
+province_event = {
+	id = diggy_dungeons.140
+	title = diggy_dungeons.140.t
+	desc = diggy_dungeons.140.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.140.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 141 } 
+	}
+}
+
+# End Event
+province_event = {
+	id = diggy_dungeons.141
+	title = diggy_dungeons.141.t
+	desc = diggy_dungeons.141.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+	
+	immediate = {
+		dungeon_immediate_effect = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.141.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		special_reward_expedition = yes
+		currency_effect_expedition = {  currency = treasury cash = yes addTo = owner }
+		currency_effect_expedition = {  currency = adm_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = dip_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = mil_power mana = yes addTo = owner }
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { partyManpower = 1000 } }
+				subtract_variable = { partyManpower = 1000 }
+				owner = { add_manpower = 1 }
+			}
+		}
+		custom_tooltip = back_to_manpower_tooltip
+		custom_tooltip = base_expedition_loot_tooltip
+		if = {
+			limit = { check_variable = { ancientDwarvenKnowledge = 1 } }
+			province_event = { id = diggy_expedition.14 }
+		}
+		else = { hidden_effect = { clear_expedition_effect = yes } }
+		hidden_effect = { set_province_flag = floor_explored }
+	}
+}
+
+# Floor3
+# Beginning Floor 3
+province_event = {
+	id = diggy_dungeons.142
+	title = diggy_dungeons.142.t
+	desc = diggy_dungeons.142.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.142.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 143 } 
+	}
+		
+	option = {
+		name = diggy_dungeons.142.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 145
+			
+			base_failure = 40
+			failure_id = 144
+		}
+	}
+}
+
+# Collapsing Shelf
+province_event = {
+	id = diggy_dungeons.143
+	title = diggy_dungeons.143.t
+	desc = diggy_dungeons.143.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.143.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 146
+			
+			base_failure = 40
+			failure_id = 147
+		}
+	}
+}
+
+# Beginning Floor 3: Barricade door (M) - Failure
+province_event = {
+	id = diggy_dungeons.144
+	title = diggy_dungeons.144.t
+	desc = diggy_dungeons.144.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.144.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 148
+			
+			base_failure = 40
+			failure_id = 149
+		}
+	}
+}
+
+# Beginning Floor 3: Barricade door (M) - Success
+province_event = {
+	id = diggy_dungeons.145
+	title = diggy_dungeons.145.t
+	desc = diggy_dungeons.145.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.145.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_loot = { add_tooltip = yes add = 300 }
+		
+		dungeon_progress_advancement = { id = 150 } 
+	}
+}
+
+# Collapsing Shelf: Evade (M) - Success
+province_event = {
+	id = diggy_dungeons.146
+	title = diggy_dungeons.146.t
+	desc = diggy_dungeons.146.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.146.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 150 } 
+	}
+}
+
+# Collapsing Shelf: Evade (M) - Failure
+province_event = {
+	id = diggy_dungeons.147
+	title = diggy_dungeons.147.t
+	desc = diggy_dungeons.147.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		always = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.147.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			has_province_flag = sent_expedition_@owner
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 150 } 
+	}
+}
+
+# Success
+province_event = {
+	id = diggy_dungeons.148
+	title = diggy_dungeons.148.t
+	desc = diggy_dungeons.148.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.148.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_loot = { add_tooltip = yes add = 100 }
+		
+		dungeon_progress_advancement = { id = 150 } 
+	}
+}
+
+# Failure
+province_event = {
+	id = diggy_dungeons.149
+	title = diggy_dungeons.149.t
+	desc = diggy_dungeons.149.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.149.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 200 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 150 } 
+	}
+}
+
+# Scribe Room
+province_event = {
+	id = diggy_dungeons.150
+	title = diggy_dungeons.150.t
+	desc = diggy_dungeons.150.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.150.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 151
+			
+			base_failure = 60
+			failure_id = 152
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.150.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 154
+			
+			base_failure = 40
+			failure_id = 153
+		}
+	}
+}
+
+# Scribe Room: Fight (H) - Success
+province_event = {
+	id = diggy_dungeons.151
+	title = diggy_dungeons.151.t
+	desc = diggy_dungeons.151.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.151.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 155 } 
+	}
+}
+
+# Scribe Room: Fight (H) - Failure
+province_event = {
+	id = diggy_dungeons.152
+	title = diggy_dungeons.152.t
+	desc = diggy_dungeons.152.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.152.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 155 } 
+	}
+}
+
+# Scribe Room: Try to catch (M) - Failure
+province_event = {
+	id = diggy_dungeons.153
+	title = diggy_dungeons.153.t
+	desc = diggy_dungeons.153.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.153.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 156 } 
+	}
+}
+
+# Scribe Room: Try to catch (M) - Success
+province_event = {
+	id = diggy_dungeons.154
+	title = diggy_dungeons.154.t
+	desc = diggy_dungeons.154.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.154.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 156 } 
+	}
+}
+
+# Gold Room
+province_event = {
+	id = diggy_dungeons.155
+	title = diggy_dungeons.155.t
+	desc = diggy_dungeons.155.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.155.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 60
+			success_id = 157
+			
+			base_failure = 40
+			failure_id = 158
+		}
+	}
+}
+
+# Room Somewhere
+province_event = {
+	id = diggy_dungeons.156
+	title = diggy_dungeons.156.t
+	desc = diggy_dungeons.156.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.156.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 80
+			success_id = 159
+			
+			base_failure = 20
+			failure_id = 160
+		}
+	}
+		
+	option = {
+		name = diggy_dungeons.156.b
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		
+		dungeon_progress_advancement = { id = 161 } 
+	}
+}
+
+# Gold Room: try to calm down (M) - Success
+province_event = {
+	id = diggy_dungeons.157
+	title = diggy_dungeons.157.t
+	desc = diggy_dungeons.157.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.157.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { add_tooltip = yes add = 0.5 }
+		
+		dungeon_progress_advancement = { id = 161 } 
+	}
+}
+
+# Gold Room: try to calm down (M) - Failure
+province_event = {
+	id = diggy_dungeons.158
+	title = diggy_dungeons.158.t
+	desc = diggy_dungeons.158.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.158.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 161 } 
+	}
+}
+
+# Room Somewhere: Search Closely - Success
+province_event = {
+	id = diggy_dungeons.159
+	title = diggy_dungeons.159.t
+	desc = diggy_dungeons.159.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.159.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_variable = { which = ancientDwarvenKnowledge value = 1 }
+		
+		dungeon_progress_advancement = { id = 161 } 
+	}
+}
+
+# Room Somewhere: Search Closely - Failure
+province_event = {
+	id = diggy_dungeons.160
+	title = diggy_dungeons.160.t
+	desc = diggy_dungeons.160.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.160.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 161 } 
+	}
+}
+
+# Knowledge Elemental
+province_event = {
+	id = diggy_dungeons.161
+	title = diggy_dungeons.161.t
+	desc = diggy_dungeons.161.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.161.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 162
+			
+			base_failure = 60
+			failure_id = 163
+		}
+	}
+}
+
+# Knowledge Elemental: Fight (H) - Success
+province_event = {
+	id = diggy_dungeons.162
+	title = diggy_dungeons.162.t
+	desc = diggy_dungeons.162.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.162.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 100 }
+		change_party_loot = { add_tooltip = yes add = 100 }
+		
+		dungeon_progress_advancement = { id = 164 } 
+	}
+}
+
+# Knowledge Elemental: Fight (H) - Failure
+province_event = {
+	id = diggy_dungeons.163
+	title = diggy_dungeons.163.t
+	desc = diggy_dungeons.163.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.163.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_party_manpower = { remove_tooltip = yes loss = 200 }
+		change_party_morale = { remove_tooltip = yes loss = 0.5 }
+		
+		dungeon_progress_advancement = { id = 164 } 
+	}
+}
+
+# Living Spell
+province_event = {
+	id = diggy_dungeons.164
+	title = diggy_dungeons.164.t
+	desc = diggy_dungeons.164.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.164.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+			
+		dungeon_encounter_effect = {
+			base_success = 40
+			success_id = 165
+			
+			base_failure = 60
+			failure_id = 166
+		}
+	}
+}
+
+# Living Spell: Fight (H) - Success
+province_event = {
+	id = diggy_dungeons.165
+	title = diggy_dungeons.165.t
+	desc = diggy_dungeons.165.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.165.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		change_variable = { which = ancientDwarvenKnowledge value = 1 }
+		change_party_loot = { add_tooltip = yes add = 200 }
+		
+		dungeon_progress_advancement = { id = 167 } 
+	}
+}
+
+# Game Over
+province_event = {
+	id = diggy_dungeons.166
+	title = diggy_dungeons.166.t
+	desc = diggy_dungeons.166.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+		
+	option = {
+		name = diggy_dungeons.166.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		custom_tooltip = expedition_dead_tooltip
+		hidden_effect = { expedition_dead_effect = yes }
+	}
+}
+
+# End Event
+province_event = {
+	id = diggy_dungeons.167
+	title = diggy_dungeons.167.t
+	desc = diggy_dungeons.167.d
+	picture = TRADEGOODS_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_flag = sent_expedition_@owner
+	}
+	
+	immediate = {
+		dungeon_immediate_effect = yes
+	}
+		
+	option = {
+		name = diggy_dungeons.167.a
+		ai_chance = { factor = 100 }
+		trigger = {
+			always = yes
+		}
+		special_reward_expedition = yes
+		currency_effect_expedition = {  currency = treasury cash = yes addTo = owner }
+		currency_effect_expedition = {  currency = adm_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = dip_power mana = yes addTo = owner }
+		currency_effect_expedition = {  currency = mil_power mana = yes addTo = owner }
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { partyManpower = 1000 } }
+				subtract_variable = { partyManpower = 1000 }
+				owner = { add_manpower = 1 }
+			}
+		}
+		custom_tooltip = back_to_manpower_tooltip
+		custom_tooltip = base_expedition_loot_tooltip
+		if = {
+			limit = { check_variable = { ancientDwarvenKnowledge = 1 } }
+			province_event = { id = diggy_expedition.14 }
+		}
+		else = { hidden_effect = { clear_expedition_effect = yes } }
+		hidden_effect = { set_province_flag = floor_explored }
+	}
+}
+
+
 
