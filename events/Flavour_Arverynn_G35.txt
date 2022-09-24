@@ -1069,9 +1069,9 @@ country_event = {    #Defiance of Vels Domfan
                         }
                     }
                 }
-            cede_province = ROOT
+				cede_province = ROOT
             }
-            add_province_modifier = {
+            add_permanent_province_modifier = {
                 name = G35_imperial_mint
                 duration = -1
             }
@@ -1986,8 +1986,9 @@ country_event = { #The Miracle of Life
 country_event = { #A question of Debts
 	id = flavor_arverynn.29
 	title = flavor_arverynn.29.t
-	desc = flavor_arverynn.29.d
+	desc = flavor_arverynn.29.desc
 	picture = FEUDALISM_eventPicture
+	goto = 1135
 
 	is_triggered_only = yes
 	fire_only_once = yes
@@ -1996,38 +1997,73 @@ country_event = { #A question of Debts
 		OR = {
 			tag = G35
 			was_tag = G35
+		}
 	}
 
 	option = { #Pay them in full
 		name = flavor_arverynn.29.a
-		add_treasury = -150
-		H25 = {
-			add_treasury = 150
-			if = {
-				limit = {
-					is_subject_of = G35
+		add_treasury = -200
+		if = {
+			limit = {
+				exists = H25
+			}
+			H25 = {
+				add_treasury = 200
+				if = {
+					limit = {
+						is_subject_of = G35
+					}
+					add_country_modifier = {
+						name = H25_debt_repaid
+						duration = 7300
+					}
 				}
-				add_country_modifier = {
-				name = H25_debt_repaid
-				duration = 7300
+				add_opinion = {
+					who = G35
+					modifier = opinion_friendliness
+				}			
+			}
+		}
+		else = {
+			1135 = {	#Develops Stenurynn
+				add_base_tax = 1
+				add_base_production = 1
+				add_base_manpower = 1
+				owner = {
+					if = {
+						limit = { NOT = { tag = ROOT } }
+					}
+					add_liberty_desire = -5
 				}
 			}
-			add_opinion = {
-			who = G35
-			modifier = opinion_friendliness
-			}			
+		}
+		
+		ai_chance = {
+			factor = 1
 		}
 	}
 	
 	option = { #give them Vels Domfan.
 		name = flavor_arverynn.29.b
 		trigger = {
+			exists = H25
+			mission_completed = currency_reform
 			1134 = {
 				owned_by = ROOT
 			}
 		}
 		1134 = {
 			cede_province = H25
+		}
+		if = {
+			limit = { 1134 = { has_province_modifier = G35_imperial_mint } }
+			H25 = {
+				add_trust = {
+					who = ROOT
+					value = 10
+					mutual = yes
+				}
+			}
 		}
 		H25 = {
 			add_prestige = 10
@@ -2036,14 +2072,18 @@ country_event = { #A question of Debts
 					is_subject_of = G35
 				}
 				add_country_modifier = {
-				name = H25_debt_repaid
-				duration = 7300
+					name = H25_debt_repaid
+					duration = 7300
 				}
 			}
 			add_opinion = {
 				who = G35
 				modifier = opinion_friendliness
 			}
+		}
+		
+		ai_chance = {
+			factor = 2
 		}
 	}
 	
@@ -2053,47 +2093,71 @@ country_event = { #A question of Debts
 			name = G35_refused_to_pay_debts
 			duration = 7300 #20 Years
 		}
-		H25 = {
-			remove_historical_friend = G35
-			if = {
-				limit = {
-					is_subject_of = G35
+		if = {
+			limit = {
+				exists = H25
+			}
+			H25 = {
+				remove_historical_friend = G35
+				if = {
+					limit = {
+						is_subject_of = G35
+					}
+					add_country_modifier = {
+						name = H25_furious_about_debts
+						duration = 7300 #20 Years
+					}
 				}
-				add_country_modifier = {
-				name = H25_furious_about_debts
-				duration = 7300 #20 Years
+				add_opinion = {
+					who = G35
+					modifier = opinion_angry
 				}
 			}
-			add_opinion = {
-				who = G35
-				modifier = opinion_angry
+		}
+		else = {
+			every_owned_province = {
+				limit = { is_core = H25 }
+				add_unrest = 3
 			}
+		}
+
+		
+		ai_chance = {
+			factor = 1
+			modifier = {
+                factor = 0.5
+                treasury = 200
+            }
+			modifier = {
+                factor = 2
+                ruler_has_personality = greedy_personality
+            }
 		}
 	}
 	
 	option = { #Move the mint to Arverynn and give them Vels Domfan.
 		name = flavor_arverynn.29.d
-		highlight = yes
 		trigger = {
+			exists = H25
+			mission_completed = currency_reform
 			1134 = {
 				owned_by = ROOT
 				has_province_modifier = G35_imperial_mint
 			}
 		}
 		1134 = { #Vels Domfan
-            add_devastation = 20
+            add_devastation = 30
             add_base_production = -2
 			remove_province_modifier = G35_imperial_mint
+			add_unrest = 5
         }
         1139 = { #Arverynn
-            add_base_production = 1
             add_province_modifier = {
                 name = G35_imperial_mint
                 duration = -1
             }
         }
 		add_inflation = 2
-        add_prestige = 10
 		1134 = {
 			cede_province = H25
 		}
@@ -2103,14 +2167,19 @@ country_event = { #A question of Debts
 					is_subject_of = G35
 				}
 				add_country_modifier = {
-				name = H25_debt_repaid
-				duration = 7300
+					name = H25_debt_repaid
+					duration = 7300
 				}
 			}
-			add_opinion = {
-				who = G35
-				modifier = opinion_friendliness
+			add_trust = {	#Cheapstake
+				who = ROOT
+				value = -10
+				mutual = yes
 			}
+		}
+		
+		ai_chance = {
+			factor = 1
 		}
 	}
 }
@@ -2165,6 +2234,30 @@ country_event = { #Runesmithing Reignited, Regain armour buff, lose is .51
 	}
 }
 
+country_event = { #Client state goes free
+	id = flavor_arverynn.47
+	title = flavor_arverynn.47.t
+	desc = flavor_arverynn.47.d
+	picture = CITY_DEVELOPMENT_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		tag = U21
+		has_country_flag = g35_veykodan_client
+	}
+
+	option = {
+		name = flavor_arverynn.47.a
+			
+		restore_country_name = yes
+		remove_country_modifier = G35_radavezyr
+		remove_country_modifier = G35_polersvych
+		clr_country_flag = g35_veykodan_client
+	}
+}
+
 country_event = { #Veykodan Client setup
 	id = flavor_arverynn.48
 	title = flavor_arverynn.48.t
@@ -2188,9 +2281,9 @@ country_event = { #Veykodan Client setup
 	option = {
 		name = flavor_arverynn.48.a
 			
-
-		override_country_name = RADAVEZYR
+		override_country_name = VYCEDA
 		change_graphical_culture = easterngfx
+		set_country_flag = g35_veykodan_client
 		# Vision
 		veykoda_region = {
 			discover_country = ROOT
@@ -2359,7 +2452,7 @@ country_event = { #Foreigners at the gates
 			fire = 2
 			manuever = 2
 			siege = 2
-			name = "Armand sil Sorncost" #Hernando de Soto lol, do note: the actual de Soto expy is Adrien sil Terr, TODO convert file to ANSI and add proper characters
+			name = "Armand síl Sorncóst" #Hernando de Soto lol, do note: the actual de Soto expy is Adrien sil Terr
 			trait = ruthless_personality
 		}
 	}
