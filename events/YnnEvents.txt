@@ -104,6 +104,139 @@ country_event = { #Prepare infrastructure Tromseloc way
 	}
 }
 
+#iosahar drifts away
+#country_event = {
+#	id = ynn_events.6
+#	title = ynn_events.6.t
+#	desc = ynn_events.6.d
+#	picture = ACCUSATION_eventPicture
+#	goto = iosahar_into_tributary_capital
+#	
+#	is_triggered_only = yes
+#	trigger = {
+#		has_country_modifier = ynn_diplo
+#		any_subject_country = {
+#			is_subject_of_type = ynnic_iosahar
+#			NOT = { is_neighbor_of = ROOT }
+#			liberty_desire = 20
+#		}
+#		NOT = { 
+#			has_country_flag = yrw_overlord_debating
+#			stability = 3
+#		}
+#	}
+#	
+#	immediate = {
+#		hidden_effect = {
+#			random_subject_country = {
+#				limit = {
+#					is_subject_of_type = ynnic_iosahar
+#					NOT = { is_neighbor_of = ROOT }
+#					liberty_desire = 20
+#				}
+#				save_event_target_as = iosahar_into_tributary_target
+#				capital_scope = {
+#					save_event_target_as = iosahar_into_tributary_capital
+#				}
+#			}
+#			random_subject_country = {
+#				limit = {
+#					is_subject_of_type = ynnic_iosahar
+#					NOT = { is_neighbor_of = ROOT }
+#					liberty_desire = 50	#Prioritizes disloyal vassals
+#				}
+#				save_event_target_as = iosahar_into_tributary_target
+#				capital_scope = {
+#					save_event_target_as = iosahar_into_tributary_capital
+#				}
+#			}
+#		}
+#	}
+#	
+#	option = {
+#		name = ynn_events.6.a
+#		trigger = {
+#			has_dlc = "El Dorado"
+#			authority = 5
+#		}
+#		ai_chance = {
+#			factor = 5
+#			modifier = {
+#				factor = 2
+#				NOT = { ynnic_iosahar = 3 }
+#			}
+#		}
+#		
+#		custom_tooltip = iosahar_goes_tributary_dlc_tooltip
+#		add_authority = -5
+#	}
+#	
+#	option = {
+#		name = ynn_events.6.a
+#		trigger = {
+#			NOT = { has_dlc = "El Dorado" }
+#			legitimacy = 5		#insert whatever currency you replace legitimacy with
+#		}
+#		ai_chance = {
+#			factor = 5
+#			modifier = {
+#				factor = 2
+#				NOT = { ynnic_iosahar = 3 }
+#			}
+#		}
+#		
+#		custom_tooltip = iosahar_goes_tributary_no_dlc_tooltip
+#		add_legitimacy = -5		#insert whatever currency you replace legitimacy with
+#	}
+#
+#	option = {
+#		name = ynn_events.6.b
+#		
+#		trigger = {
+#			has_dlc = "Mandate of Heaven"
+#		}
+#		ai_chance = {
+#			factor = 3
+#			modifier = {
+#				factor = 3
+#				ynnic_iosahar = 8
+#			}
+#		}
+#		
+#		custom_tooltip = iosahar_goes_tributary_dlc_tooltip
+#		event_target:iosahar_into_tributary_target = {
+#			ROOT = {
+#				create_subject = {
+#					subject_type = tributary_state
+#					subject = PREV
+#				}
+#			}
+#			hidden_effect = { country_event = { id = ynn_events.18 } }
+#		}
+#	}
+#
+#	option = {
+#		name = ynn_events.6.c
+#		
+#		trigger = {
+#			NOT = { has_dlc = "Mandate of Heaven" }
+#		}
+#		ai_chance = {
+#			factor = 3
+#			modifier = {
+#				factor = 3
+#				ynnic_iosahar = 8
+#			}
+#		}
+#		
+#		custom_tooltip = iosahar_goes_tributary_no_dlc_tooltip
+#		event_target:iosahar_into_tributary_target = {
+#			grant_independence = yes
+#			hidden_effect = { country_event = { id = ynn_events.18 } }
+#		}
+#	}
+#}
+
 #The Great Iosahar Insurrection - For the debate-triggered version, see ynn_debate.19
 country_event = {
 	id = ynn_events.7
@@ -275,10 +408,31 @@ country_event = {	#Event used to turn someone into a Iosahar. Use ynn_events.20 
 			}
 		}
 		hidden_effect = {
-			FROM = {
-				every_ally = {
+			if = {	#cleaning allies for an overlord
+				limit = {
 					FROM = {
-						break_alliance = PREV
+						ynnic_iosahar = 1
+						has_country_modifier = ynn_diplo
+						num_of_allies = 1
+					}
+				}
+				ROOT = {
+					if = {
+						limit = {
+							is_subject_of = FROM
+							is_subject_of_type = ynnic_iosahar
+						}
+					}
+					create_subject = {
+						subject_type = vassal
+						subject = FROM
+					}
+					FROM = {
+						grant_independence = yes
+					#	create_subject = {
+					#		subject_type = ynnic_iosahar
+					#		subject = ROOT
+					#	}
 					}
 				}
 			}
@@ -299,6 +453,306 @@ country_event = {	#Event used to turn someone into a Iosahar. Use ynn_events.20 
 				subject_type = ynnic_iosahar
 				subject = ROOT
 			}
+		}
+	}
+}
+
+#Iosahar Defects Due to Alliance
+country_event = {
+	id = ynn_events.10
+	title = ynn_events.10.t
+	desc = ynn_events.10.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = {
+			has_country_modifier = ynn_diplo
+			NOT = { has_country_flag = ynnic_debug_subjugation_2 }	#To fix a subjugated overlord getting this event on its former iosahar
+		}
+		any_ally = {
+			war_with = FROM
+			NOT = {
+				is_in_war = {
+					attacker_leader = THIS
+					defender_leader = FROM
+					casus_belli = cb_independence_war
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = ynn_events.10.a		
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		FROM = {
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_overlord_at_war_with_iosahar
+			}
+			add_trust = {
+				who = ROOT
+				value = -5
+				mutual = yes	#Mutual loss of trust is so that you won't purposefully declare war on your Iosahar's allies to use the Iosahar as a piggy bank
+			}
+			add_prestige = -5 
+		}
+		
+		custom_tooltip = you_as_iosahar_defect_tooltip
+		hidden_effect = { FROM = { country_event = { id = ynn_events.11 } } }
+	}
+}
+
+#Overlord is Informed of Iosahar Defection
+country_event = {
+	id = ynn_events.11
+	title = ynn_events.11.t
+	desc = ynn_events.11.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+	
+	#hidden = yes #Can hide it if it's too obnoxious
+	
+	option = {
+		name = ynn_events.11.a		
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		tooltip = {
+			add_opinion = {
+				who = FROM
+				modifier = ynn_overlord_at_war_with_iosahar
+			}
+			add_trust = {
+				who = FROM
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5 
+		}
+	
+		custom_tooltip = iosahar_defects_tooltip
+	}
+}
+
+#Iosahar-overlord war ends
+country_event = {
+	id = ynn_events.12
+	title = ynn_events.12.t
+	desc = ynn_events.12.d
+	picture = REFORM_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = { has_country_modifier = ynn_diplo }	#Defeated by a country that observes Ynnic Diplomacy
+	}
+	
+	hidden = yes
+	
+	option = {
+		name = ynn_events.12.a		
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		country_event = { id = ynn_events.13 }
+		every_ally = { country_event = { id = ynn_events.13 } }
+	}
+}
+
+#Sorter Event
+country_event = {
+	id = ynn_events.13
+	title = ynn_events.13.t
+	desc = ynn_events.13.d
+	picture = RELIGION_eventPicture
+
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		any_known_country = {
+			OR = {
+				has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+				reverse_has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = ynn_events.13.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		random_known_country = {	#Checks if you are a Iosahar defector, you regain them
+			limit = { 
+				has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+			country_event = { id = ynn_events.14 }
+			overlord = {			#In case the overlord has been made into a Iosahar, the new overlord gets it. This scenario is currently impossible, as making an overlord into a Iosahar will make them lose the defector
+				country_event = { id = ynn_events.14 } 
+				set_country_flag = ynn_14_overlord
+			}
+		}
+		
+		random_known_country = {	#Checks if you have any Iosahar defector, you lose em
+			limit = { 
+				reverse_has_opinion_modifier = {	
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+			country_event = { id = ynn_events.15 }
+		}
+	}
+}
+
+#Your Iosahar is returned
+country_event = {
+	id = ynn_events.14
+	title = ynn_events.14.t
+	desc = {
+		trigger = { NOT = { has_country_flag = ynn_14_overlord } }
+	   desc = ynn_events.14.d1
+	}
+	desc = {
+	   trigger = { has_country_flag = ynn_14_overlord }
+	   desc = ynn_events.14.d2
+	}
+	picture = CONQUEST_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = { is_subject = no }
+	
+	immediate = {
+		hidden_effect = {
+			remove_opinion = {
+				who = FROM
+				modifier = ynn_overlord_at_war_with_iosahar
+			}
+			FROM = { country_event = { id = ynn_events.20 } }
+		}
+	}
+	
+	option = {
+		name = ynn_events.14.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		tooltip = {
+			remove_opinion = {
+				who = FROM
+				modifier = ynn_overlord_at_war_with_iosahar
+			}
+			create_subject = {
+				subject_type = ynnic_iosahar
+				subject = FROM
+			}
+		}
+		
+		add_prestige = 10
+		
+		clr_country_flag = ynn_14_overlord
+	}
+}
+
+#Defector Iosahar goes free
+country_event = {
+	id = ynn_events.15
+	title = ynn_events.15.t
+	desc = ynn_events.15.d
+	picture = RELIGION_eventPicture
+
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	immediate = {
+		hidden_effect = {
+			FROM = {
+				remove_opinion = {
+					who = ROOT
+					modifier = ynn_overlord_at_war_with_iosahar
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = ynn_events.15.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		FROM = {
+			add_opinion = {
+				who = ROOT
+				modifier = vassal_broke_free
+			}
+			add_trust = {
+				who = ROOT
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5
+			country_event = { id = ynn_events.16 }
+		}
+	}
+}
+
+#You are informed your defector Iosahar went free
+country_event = {
+	id = ynn_events.16
+	title = ynn_events.16.t
+	desc = ynn_events.16.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+	
+	option = {
+		name = ynn_events.16.a
+		
+		ai_chance = {
+			factor = 1
+		}
+		
+		tooltip = {
+			add_opinion = {
+				who = FROM
+				modifier = vassal_broke_free
+			}
+			add_trust = {
+				who = FROM
+				value = -5
+				mutual = yes
+			}
+			add_prestige = -5
 		}
 	}
 }
@@ -590,10 +1044,31 @@ country_event = {	#Hidden event used to turn someone into a Iosahar. Use ynn_eve
 			}
 		}
 		hidden_effect = {
-			FROM = {
-				every_ally = {
+			if = {	#cleaning allies for an overlord
+				limit = {
 					FROM = {
-						break_alliance = PREV
+						ynnic_iosahar = 1
+						has_country_modifier = ynn_diplo
+						num_of_allies = 1
+					}
+				}
+				ROOT = {
+					if = {
+						limit = {
+							is_subject_of = FROM
+							is_subject_of_type = ynnic_iosahar
+						}
+					}
+					create_subject = {
+						subject_type = vassal
+						subject = FROM
+					}
+					FROM = {
+						grant_independence = yes
+					#	create_subject = {
+					#		subject_type = ynnic_iosahar
+					#		subject = ROOT
+					#	}
 					}
 				}
 			}
@@ -1365,6 +1840,731 @@ country_event = {
 	}
 }
 
+#Overlord declares offensive war against ally of Iosahar
+country_event = {
+	id = ynn_events.40
+	title = ynn_events.40.t
+	desc = ynn_events.40.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = no
+
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	trigger = {
+		is_subject_of_type = ynnic_iosahar
+		overlord = {
+			any_known_country = {
+				alliance_with = ROOT
+				is_in_war = {
+					attacker_leader = PREV
+				}
+			}
+		}
+		is_at_war = no
+	}
+
+	immediate = {
+		overlord = {
+			save_event_target_as = overlord_iosahar 
+		}
+		every_ally = {
+			limit = {
+				is_in_war = {
+					attacker_leader = event_target:overlord_iosahar
+					defender_leader = THIS
+				}
+			}
+			save_event_target_as = iosahar_ally
+		}
+	}
+
+	option = {	#Join overlord
+		trigger = {
+			NOT = {
+				liberty_desire = 50
+			}
+		}
+		name = ynn_events.40.a
+		ai_chance = {
+			factor = 90
+		}
+		join_all_offensive_wars_of = event_target:overlord_iosahar
+		overlord = {
+			country_event = {
+				id = ynn_events.46
+				days = 1
+			}
+		}
+	}
+	option = {	#pay up and we join overlord
+		trigger = {
+			NOT = {
+				liberty_desire = 80
+			}
+		}
+		name = ynn_events.40.b
+		ai_chance = {
+			factor = 50
+		}
+		overlord = {
+			country_event = {
+				id = ynn_events.41
+				days = 1
+			}
+		}
+	}
+	option = {	#Stay out of it
+		name = ynn_events.40.c
+		ai_chance = {
+			factor = 25
+		}
+		add_prestige = -5
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+		event_target:overlord_iosahar = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+	}
+	option = {	#Pay us or we won't stay out of it
+		name = ynn_events.40.d
+		ai_chance = {
+			factor = 25
+		}
+		overlord = {
+			country_event = {
+				id = ynn_events.42
+				days = 1
+			}
+		}
+	}
+	option = {	#Pay up or we won't fight our overlord
+		trigger = {
+			liberty_desire = 50
+		}
+		name = ynn_events.40.e
+		ai_chance = {
+			factor = 50
+		}
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.43
+				days = 1
+			}
+		}
+	}
+	option = {	#Fuck it we hate their guts anyway
+		trigger = {
+			liberty_desire = 80
+		}
+		name = ynn_events.40.f
+		ai_chance = {
+			factor = 50
+		}
+		join_all_defensive_wars_of = event_target:iosahar_ally
+	}
+}
+
+#Iosahar demands compensation to join war
+country_event = {
+	id = ynn_events.41
+	title = ynn_events.41.t
+	desc = ynn_events.41.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		overlord_of = FROM
+		has_country_modifier = ynn_diplo
+	}
+
+	option = {	#I suppose we can pay
+		name = ynn_events.41.a
+		ai_chance = {
+			factor = 50
+		}
+		add_years_of_income = -0.5
+		add_prestige = -5
+		add_trust = {
+			who = FROM
+			value = 5
+			mutual = yes
+		}
+		FROM = {
+			set_country_flag = iosahar_join_war_overlord
+			country_event = {
+				id = ynn_events.44
+			}
+		}
+	}
+	option = {	#You swore an oath!
+		name = ynn_events.41.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = 10
+		add_trust = {
+			who = FROM
+			value = -5
+		}
+		FROM = {
+			set_country_flag = iosahar_not_join_war_overlord
+			country_event = {
+				id = ynn_events.45 
+				days = 1 
+			}
+		}
+	}
+}
+
+#Iosahar demands compensation to stay neutral
+country_event = {
+	id = ynn_events.42
+	title = ynn_events.42.t
+	desc = ynn_events.42.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		overlord_of = FROM
+		has_country_modifier = ynn_diplo
+	}
+
+	option = {	#I suppose we can't afford another enemy
+		name = ynn_events.42.a
+		ai_chance = {
+			factor = 50
+		}
+		add_years_of_income = -0.3
+		add_prestige = -5
+		FROM = {
+			set_country_flag = iosahar_neutral
+			add_trust = {
+				who = ROOT
+				value = -5
+			}
+			country_event = {
+				id = ynn_events.44
+				days = 1
+			}
+		}
+	}
+	option = {	#Pay you to sit in your castle and do nothing? lmao
+		name = ynn_events.42.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = 10
+		FROM = {
+			set_country_flag = iosahar_not_neutral
+			country_event = {
+				id = ynn_events.45
+				days = 1
+			}
+		}
+	}
+}
+
+#Iosahar demands compensation of ally to join war
+country_event = {
+	id = ynn_events.43
+	title = ynn_events.43.t
+	desc = ynn_events.43.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		alliance_with = FROM
+		has_country_modifier = ynn_diplo
+	}
+
+	option = {	#We need their help dammit
+		name = ynn_events.43.a
+		ai_chance = {
+			factor = 50
+		}
+		add_years_of_income = -0.5
+		add_prestige = -5
+		add_trust = {
+			who = FROM
+			value = 5
+			mutual = yes 
+		}
+		FROM = {
+			set_country_flag = iosahar_join_war_ally
+			country_event = {
+				id = ynn_events.44
+				days = 1
+			}
+		}
+	}
+	option = { #Don't pay the extorting cunts
+		name = ynn_events.43.b
+		ai_chance = {
+			factor = 50
+		}
+		add_trust = {
+			who = FROM
+			value = -5
+		}
+		add_prestige = 10
+		FROM = {
+			set_country_flag = iosahar_not_join_war_ally
+			country_event = {
+				id = ynn_events.45
+				days = 1
+			}
+		}
+	}
+}
+
+#Iosahar gets paid for their stance
+country_event = {
+	id = ynn_events.44
+	title = ynn_events.44.t
+	desc = ynn_events.44.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_subject_of_type = ynnic_iosahar
+		overlord = {
+			any_known_country = {
+				alliance_with = ROOT
+				is_in_war = {
+					attacker_leader = PREV
+				}
+			}
+		}
+		is_at_war = no
+	}
+
+	immediate = {
+		overlord = {
+			save_event_target_as = overlord_iosahar 
+		}
+		random_ally = {
+			limit = {
+				is_in_war = {
+					attacker_leader = event_target:overlord_iosahar
+					defender_leader = THIS
+				}
+			}
+			save_event_target_as = iosahar_ally
+		}
+	}
+
+	option = { #overlord pays for assistance
+		trigger = {
+			has_country_flag = iosahar_join_war_overlord
+		}
+		name = ynn_events.44.a
+		ai_chance = {
+			factor = 100
+		}
+		add_years_of_income = 0.7
+		add_prestige = 5
+		join_all_offensive_wars_of = event_target:overlord_iosahar
+		overlord = {
+			country_event = {
+				id = ynn_events.46
+				days = 1
+			}
+		}
+	}
+
+	option = { #Overlord pays for neutrality
+		trigger = {
+			has_country_flag = iosahar_neutral
+		}
+		name = ynn_events.44.b
+		ai_chance = {
+			factor = 75
+		}
+		add_years_of_income = 0.5
+		add_prestige = 5
+		overlord = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+	}
+	option = { #Our overlord paid us, lets help them actually
+		trigger = {
+			has_country_flag = iosahar_neutral
+		}
+		name = ynn_events.44.c
+		ai_chance = {
+			factor = 25
+		}
+		add_years_of_income = 0.5
+		add_prestige = 5
+		join_all_offensive_wars_of = event_target:overlord_iosahar
+		overlord = {
+			country_event = {
+				id = ynn_events.46
+				days = 1
+			}
+		}
+	}
+
+	option = { #Our ally paid us, off to war we go
+		trigger = {
+			has_country_flag = iosahar_join_war_ally
+		}
+		name = ynn_events.44.d
+		ai_chance = {
+			factor = 100
+		}
+		add_years_of_income = 0.7
+		add_prestige = 5
+		join_all_defensive_wars_of = event_target:iosahar_ally
+		clr_country_flag = iosahar_join_war_ally
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.48
+				days = 1
+			}
+		}
+	}
+}
+
+#Iosahar does not get paid
+country_event = {
+	id = ynn_events.45
+	title = ynn_events.45
+	desc = ynn_events.45.d
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		is_subject_of_type = ynnic_iosahar
+		overlord = {
+			any_known_country = {
+				alliance_with = ROOT
+				is_in_war = {
+					attacker_leader = PREV
+				}
+			}
+		}
+		is_at_war = no
+	}
+
+	immediate = {
+		overlord = {
+			save_event_target_as = overlord_iosahar 
+		}
+		random_ally = {
+			limit = {
+				is_in_war = {
+					attacker_leader = event_target:overlord_iosahar
+					defender_leader = THIS
+				}
+			}
+			save_event_target_as = iosahar_ally
+		}
+	}
+
+	option = { #I guess we stay out of it
+		trigger = {
+			has_country_flag = iosahar_not_join_war_overlord
+		}
+		name = ynn_events.45.a
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = -5
+		add_trust = {
+			who = FROM
+			value = -5
+		}
+		overlord = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+	}
+	option = { #It's treason then
+		trigger = {
+			has_country_flag = iosahar_not_neutral
+		}
+		name = ynn_events.45.b
+		ai_chance = {
+			factor = 75
+		}
+		join_all_defensive_wars_of = event_target:iosahar_ally
+		clr_country_flag = iosahar_not_neutral
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.48
+				days = 1
+			}
+		}
+	}
+	option = { #We won't betray our overlord for nothing
+		trigger = {
+			has_country_flag = iosahar_not_join_war_ally
+		}
+		name = ynn_events.45.c
+		ai_chance = {
+			factor = 80
+		}
+		add_trust = {
+			who = FROM
+			value = -5
+		}
+		overlord = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+	}
+	option = { #We'll join our overlord then
+		trigger = {
+			has_country_flag = iosahar_not_join_war_ally
+		}
+		name = ynn_events.45.d
+		ai_chance = {
+			factor = 10
+		}
+		join_all_offensive_wars_of = event_target:overlord_iosahar
+		overlord = {
+			country_event = {
+				id = ynn_events.46
+				days = 1
+			}
+		}
+	}
+	option = {	#Nevermind we're not messing with that
+		name = ynn_events.45.e
+		ai_chance = {
+			factor = 20
+		}
+		add_prestige = -5
+		overlord = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+		event_target:iosahar_ally = {
+			country_event = {
+				id = ynn_events.47
+				days = 1
+			}
+		}
+		clr_country_flag = iosahar_not_join_war_ally
+		clr_country_flag = iosahar_not_join_war_overlord
+		clr_country_flag = iosahar_not_neutral
+	}
+}
+
+#Iosahar Joins overlord in war
+country_event = {
+	id = ynn_events.46
+	title = ynn_events.46.t
+	desc = {	#Iosahar joins normally
+		trigger = { 
+			NOT = {
+				has_country_flag = iosahar_not_join_war_ally
+				has_country_flag = iosahar_neutral
+				has_country_flag = iosahar_join_war_overlord
+			}
+		}
+		desc = ynn_events.46.d1
+	}
+	desc = {	#Iosahar joined with payment
+		trigger = {
+			has_country_flag = iosahar_join_war_overlord
+		}
+		desc = ynn_events.46.d2
+	}
+	desc = {	#Iosahar joins despite them saying they'd be neutral
+		trigger = {
+			has_country_flag = iosahar_neutral
+		}
+		desc = ynn_events.46.d3
+	}
+	desc = {	#Iosahar joins to spite their ally
+		trigger = {
+			has_country_flag = iosahar_not_join_war_ally
+		}
+		desc = ynn_events.46.d4 
+	}
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		overlord_of = FROM
+	}
+
+	option = {	#Naturally they join, it is their duty
+		trigger = {
+			NOT = {
+				has_country_flag = iosahar_join_war_overlord
+				has_country_flag = iosahar_not_join_war_ally
+				has_country_flag = iosahar_neutral
+			}
+		}
+		name = ynn_events.46.a
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 5
+	}
+	option = {	#It should have been done without question
+		trigger = {
+			OR = {
+				has_country_flag = iosahar_join_war_overlord
+				has_country_flag = iosahar_not_join_war_ally
+				has_country_flag = iosahar_neutral
+			}
+		}
+		name = ynn_events.46.b
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 5
+	}
+}
+
+#Iosahar stays neutral
+country_event = {
+	id = ynn_events.47
+	title = ynn_events.47.t
+	desc = {	#Iosahar stays neutral
+		trigger = {
+			NOT = {
+				has_country_flag = iosahar_neutral
+				has_country_flag = iosahar_not_join_war_ally
+				has_country_flag = iosahar_not_join_war_overlord
+			}
+		}
+		desc = ynn_events.d0 
+	}
+	desc = {	#Iosahar is staying neutral because they were paid
+		trigger = {
+			has_country_flag = iosahar_neutral
+		}
+		desc = ynn_events.47.d1 
+	}
+	desc = {	#Iosahar doesn't join since they weren't paid to help overlord
+		trigger = {
+			has_country_flag = iosahar_not_join_war_overlord
+		}
+		desc = ynn_events.47.d2
+	}
+	desc = {	#Iosahar doesn't join since they weren't paid to help ally
+		trigger = {
+			has_country_flag = iosahar_not_join_war_ally
+		}
+		desc = ynn_events.47.d3
+	}
+
+	option = {	#So much for keeping their oaths
+		trigger = {
+			overlord_of = FROM
+		}
+		name = ynn_events.47.a
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = -1
+	}
+	option = {	#They are too cowardly to face us, or help us
+		trigger = {
+			NOT = {
+				overlord_of = FROM
+			}
+		}
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 1
+	}
+}
+
+#Iosahar joins ally against overlord
+country_event = {
+	id = ynn_events.48
+	title = ynn_events.48.t
+	desc = {	#Iosahar joins war against overlord
+		trigger = {
+			NOT = {
+				has_country_flag = iosahar_join_war_ally
+				has_country_flag = iosahar_not_neutral
+			}
+		}
+		desc = ynn_events.48.d0 
+	}
+	desc = {	#Iosahar joins war against overlord because they got paid
+		trigger = {
+			has_country_flag = iosahar_join_war_ally
+		}
+		desc = ynn_events.48.d1 
+	}
+	desc = {	#Iosahar joins war since overlord didn't pay them to stay neutral
+		trigger = {
+			has_country_flag = iosahar_not_neutral
+		}
+		desc = ynn_events.48.d2 
+	}
+	picture = SIEGE_eventPicture
+
+	is_triggered_only = yes 
+
+	option = {	#We will get you your freedom
+		trigger = {
+			NOT = {
+				has_country_flag = iosahar_join_war_ally
+				has_country_flag = iosahar_not_neutral
+			}
+		}
+		name = ynn_events.48.a
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 5
+	}
+	option = {	#Their help is most needed
+		trigger = {
+			OR = {
+				has_country_flag = iosahar_join_war_ally
+				has_country_flag = iosahar_not_neutral
+			}
+		}
+		name = ynn_events.48.b
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 2
+	}
+}
+
 # country_event = { #Dam Maintenance
 	# id = ynn_events.23
 	# title = ynn_events.23.t
@@ -1510,15 +2710,15 @@ country_event = { #We must demand Satisfaction
 		}
 		NOT = {
 			OR = {
-				has_country_flag = defender_in_honor_joust
-				has_country_flag = offender_in_honor_joust
+				has_country_flag = defender_in_honour_joust
+				has_country_flag = offender_in_honour_joust
 			}
 		}
 		any_known_country = {
 			NOT = {
 				OR = {
-					has_country_flag = offender_in_honor_joust
-					has_country_flag = defender_in_honor_joust
+					has_country_flag = offender_in_honour_joust
+					has_country_flag = defender_in_honour_joust
 				}
 			}
 			ROOT = {
@@ -1541,7 +2741,7 @@ country_event = { #We must demand Satisfaction
 	}
 
 	immediate = {
-		set_country_flag = defender_in_honor_joust
+		set_country_flag = defender_in_honour_joust
 		random_known_country = {
 			limit = {
 				ROOT = {
@@ -1557,7 +2757,7 @@ country_event = { #We must demand Satisfaction
 					}
 				}
 			}
-			set_country_flag = offender_in_honor_joust 
+			set_country_flag = offender_in_honour_joust 
 		}	
 	}
 
@@ -1568,7 +2768,7 @@ country_event = { #We must demand Satisfaction
 		}
 		random_known_country = {
 			limit = {
-				has_country_flag = offender_in_honor_joust
+				has_country_flag = offender_in_honour_joust
 				ROOT = {
 					OR = {
 						has_opinion_modifier = {
@@ -1620,7 +2820,7 @@ country_event = { #We must demand Satisfaction
 	}
 }
 
-country_event = {
+country_event = {	#The gauntlet has been thrown
 	id = ynn_events.111
 	title = ynn_events.111.t
 	desc = ynn_events.111.d 
@@ -2008,13 +3208,13 @@ country_event = {
 				id = ynn_events.114
 			}
 		}
-		clr_country_flag = offender_in_honor_joust
+		clr_country_flag = offender_in_honour_joust
 	}
 
 	after = {
 		if = {
 			limit = {
-				has_country_flag = offender_in_honor_joust
+				has_country_flag = offender_in_honour_joust
 			}
 			subtract_variable = {
 				which = defenderJoustPower
@@ -2026,12 +3226,16 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = 5 
+							value = 10 
 						} 
 					}
 					country_event = {
 						id = ynn_events.113
 						days = 5
+					}
+					random = {
+						chance = 50
+						set_ruler_flag = brutally_unhorsed
 					}
 					FROM = {
 						country_event = {
@@ -2044,14 +3248,18 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = 4 
+							value = 9
 						} 
 					}
 					random_list = {
-						90 = {
+						95 = {
 							country_event = {
 								id = ynn_events.113
 								days = 5
+							}
+							random = {
+								chance = 30
+								set_ruler_flag = brutally_unhorsed
 							}
 							FROM = {
 								country_event = {
@@ -2060,42 +3268,8 @@ country_event = {
 								}
 							}
 						}
-						10 = {
-							country_event = { 
-								id = ynn_events.112
-								days = 5
-							}
-							FROM = {
-								country_event = {
-									id = ynn_events.113
-									days = 5
-								}
-							}
-						}
-					}
-				}
-				else_if = {
-					limit = { 
-						check_variable = { 
-							which = defenderJoustPower
-							value = 3 
-						} 
-					}
-					random_list = {
-						80 = {
+						05 = {
 							country_event = {
-								id = ynn_events.113
-								days = 5
-							}
-							FROM = {
-								country_event = {
-									id = ynn_events.112
-									days = 5
-								}
-							}
-						}
-						20 = {
-							country_event = { 
 								id = ynn_events.112
 								days = 5
 							}
@@ -2112,7 +3286,159 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = 2 
+							value = 8
+						} 
+					}
+					random_list = {
+						90 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							random = {
+								chance = 30
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						10 = {
+							country_event = {
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 8
+						} 
+					}
+					random_list = {
+						85 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							random = {
+								chance = 25
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						15 = {
+							country_event = {
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 9
+						} 
+					}
+					random_list = {
+						80 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							random = {
+								chance = 20
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						20 = {
+							country_event = {
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 9
+						} 
+					}
+					random_list = {
+						75 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							random = {
+								chance = 15
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						25 = {
+							country_event = {
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 4 
 						} 
 					}
 					random_list = {
@@ -2120,6 +3446,10 @@ country_event = {
 							country_event = {
 								id = ynn_events.113
 								days = 5
+							}
+							random = {
+								chance = 10
+								set_ruler_flag = brutally_unhorsed
 							}
 							FROM = {
 								country_event = {
@@ -2145,8 +3475,46 @@ country_event = {
 				else_if = {
 					limit = { 
 						check_variable = { 
+							which = defenderJoustPower
+							value = 3 
+						} 
+					}
+					random_list = {
+						65 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							random = {
+								chance = 05
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						35 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
 							which = defenderJoustPower 
-							value = 1 
+							value = 2 
 						} 
 					}
 					random_list = {
@@ -2163,6 +3531,40 @@ country_event = {
 							}
 						}
 						40 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 1 
+						} 
+					}
+					random_list = {
+						55 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						45 = {
 							country_event = {
 								id = ynn_events.112
 								days = 5
@@ -2218,6 +3620,40 @@ country_event = {
 						} 
 					}
 					random_list = {
+						45 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						55 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -2 
+						} 
+					}
+					random_list = {
 						40 = {
 							country_event = {
 								id = ynn_events.113
@@ -2248,7 +3684,45 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = -2 
+							value = -3 
+							} 
+						}
+					random_list = {
+						35 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						65 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+								random = {
+									chance = 05
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -4 
 						} 
 					}
 					random_list = {
@@ -2274,6 +3748,10 @@ country_event = {
 									id = ynn_events.113
 									days = 5
 								}
+								random = {
+									chance = 10
+									set_ruler_flag = brutally_unhorsed
+								}
 							}
 						}
 					}
@@ -2282,9 +3760,47 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = -3 
-							} 
+							value = -5 
+						} 
+					}
+					random_list = {
+						25 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
 						}
+						75 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+								random = {
+									chance = 15
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -6
+						} 
+					}
 					random_list = {
 						20 = {
 							country_event = {
@@ -2308,6 +3824,10 @@ country_event = {
 									id = ynn_events.113
 									days = 5
 								}
+								random = {
+									chance = 20
+									set_ruler_flag = brutally_unhorsed
+								}
 							}
 						}
 					}
@@ -2316,7 +3836,45 @@ country_event = {
 					limit = { 
 						check_variable = { 
 							which = defenderJoustPower 
-							value = -4 
+							value = -7
+						} 
+					}
+					random_list = {
+						15 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						85 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+								random = {
+									chance = 25
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -8
 						} 
 					}
 					random_list = {
@@ -2342,6 +3900,48 @@ country_event = {
 									id = ynn_events.113
 									days = 5
 								}
+								random = {
+									chance = 30
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -9
+						} 
+					}
+					random_list = {
+						05 = {
+							country_event = {
+								id = ynn_events.113
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.112
+									days = 5
+								}
+							}
+						}
+						95 = {
+							country_event = { 
+								id = ynn_events.112
+								days = 5
+							}
+							FROM = {
+								country_event = {
+									id = ynn_events.113
+									days = 5
+								}
+								random = {
+									chance = 30
+									set_ruler_flag = brutally_unhorsed
+								}
 							}
 						}
 					}
@@ -2356,6 +3956,10 @@ country_event = {
 							id = ynn_events.113
 							days = 5
 						}
+						random = {
+							chance = 50
+							set_ruler_flag = brutally_unhorsed
+						}
 					}
 				}
 			}
@@ -2366,7 +3970,48 @@ country_event = {
 country_event = { #Joust is won 
 	id = ynn_events.112
 	title = ynn_events.112.t 
-	desc = ynn_events.112.d
+	desc = {
+		trigger = {
+			has_country_flag = offender_in_honour_joust
+			has_country_flag = defender_in_honour_joust
+			NOT = {
+				any_known_country = {
+					OR = {
+						has_country_flag = offender_in_honour_joust
+						has_country_flag = defender_in_honour_joust
+					}
+					has_ruler_flag = brutally_unhorsed
+				}
+			}
+		}
+
+		desc = ynn_events.112.d1
+	}
+
+	desc = {
+		trigger = {
+			has_country_flag = offender_in_honour_joust
+			any_known_country = {
+				has_country_flag = defender_in_honour_joust
+				has_ruler_flag = brutally_unhorsed
+			}
+		}
+
+		desc = ynn_events.112.d2
+	}
+
+	desc = {
+		trigger = {
+			has_country_flag = defender_in_honour_joust
+			any_known_country = {
+				has_country_flag = offender_in_honour_joust
+				has_ruler_flag = brutally_unhorsed
+			}
+		}
+
+		desc = ynn_events.112.d3
+	}
+
 	picture = TOURNAMENT_eventPicture
 
 	is_triggered_only = yes 
@@ -2374,8 +4019,8 @@ country_event = { #Joust is won
 
 	trigger = {
 		OR = {
-			has_country_flag = offender_in_honor_joust
-			has_country_flag = defender_in_honor_joust
+			has_country_flag = offender_in_honour_joust
+			has_country_flag = defender_in_honour_joust
 		}
 	}
 
@@ -2385,7 +4030,7 @@ country_event = { #Joust is won
 			factor = 100
 		}
 		add_country_modifier = {
-			name = honor_joust_won
+			name = honour_joust_won
 			duration = 3650
 		}
 		add_prestige = 20
@@ -2407,15 +4052,45 @@ country_event = { #Joust is won
 			}
 			add_scaled_republican_tradition = 10
 		}
-		clr_country_flag = defender_in_honor_joust
-		clr_country_flag = offender_in_honor_joust
+		clr_country_flag = defender_in_honour_joust
+		clr_country_flag = offender_in_honour_joust
+		clr_ruler_flag = brutally_unhorsed
 	}
 }
 
 country_event = { #Joust is lost 
 	id = ynn_events.113
 	title = ynn_events.113.t 
-	desc = ynn_events.113.d
+	desc = {
+		trigger = {
+			has_country_flag = offender_in_honour_joust 
+			has_country_flag = defender_in_honour_joust
+			NOT = {
+				has_ruler_flag = brutally_unhorsed
+			}
+		}
+		
+		desc = ynn_events.113.d1
+	}
+
+	desc = {
+		trigger = {
+			has_country_flag = offender_in_honour_joust
+			has_ruler_flag = brutally_unhorsed
+		}
+
+		desc = ynn_events.113.d2
+	}
+
+	desc = {
+		trigger = {
+			has_country_flag = defender_in_honour_joust
+			has_ruler_flag = brutally_unhorsed
+		}
+
+		desc = ynn_events.113.d3
+	}
+	
 	picture = TOURNAMENT_eventPicture
 
 	is_triggered_only = yes 
@@ -2423,8 +4098,8 @@ country_event = { #Joust is lost
 
 	trigger = {
 		OR = {
-			has_country_flag = offender_in_honor_joust
-			has_country_flag = defender_in_honor_joust
+			has_country_flag = offender_in_honour_joust
+			has_country_flag = defender_in_honour_joust
 		}
 	}
 
@@ -2434,10 +4109,19 @@ country_event = { #Joust is lost
 			factor = 100
 		}
 		add_country_modifier = {
-			name = honor_joust_lost
+			name = honour_joust_lost
 			duration = 3650
 		}
 		add_prestige = -20
+		if = {
+			limit = {
+				has_ruler_flag = brutally_unhorsed
+			}
+			random = {
+				chance = 50
+				kill_ruler = yes
+			}
+		}
 		if = {
 			limit = {
 				government = monarchy
@@ -2456,8 +4140,9 @@ country_event = { #Joust is lost
 			}
 			add_scaled_republican_tradition = -10
 		}
-		clr_country_flag = defender_in_honor_joust
-		clr_country_flag = offender_in_honor_joust
+		clr_country_flag = defender_in_honour_joust
+		clr_country_flag = offender_in_honour_joust
+		clr_ruler_flag = brutally_unhorsed
 	}
 }
 
@@ -2470,7 +4155,7 @@ country_event = { #The coward refused our challenge
 	is_triggered_only = yes
 
 	trigger = {
-		has_country_flag = defender_in_honor_joust
+		has_country_flag = defender_in_honour_joust
 	}
 
 	option = {
@@ -2504,14 +4189,14 @@ country_event = { #The coward refused our challenge
 	}
 
 	after = {
-		clr_country_flag = defender_in_honor_joust
+		clr_country_flag = defender_in_honour_joust
 	}
 }
 
 country_event = {	#A gift of flowers
-	id = ynn_events.157
-	title = ynn_events.157.t
-	desc = ynn_events.157.d
+	id = ynn_events.151
+	title = ynn_events.151.t
+	desc = ynn_events.151.d
 	picture = GOOD_WITH_MONARCH_eventPicture
 
 	is_triggered_only = yes
@@ -2549,7 +4234,7 @@ country_event = {	#A gift of flowers
 	}
 
 	option = {
-		name = ynn_events.157.a
+		name = ynn_events.151.a
 		ai_chance = {
 			factor = 100
 		}
@@ -2568,9 +4253,9 @@ country_event = {	#A gift of flowers
 }
 
 country_event = {	#Bellflowers in bloom
-	id = ynn_events.158
-	title = ynn_events.158.t
-	desc = ynn_events.158.t
+	id = ynn_events.152
+	title = ynn_events.152.t
+	desc = ynn_events.152.t
 	picture = SURAKES_SUN_GARDEN_eventPicture
 
 	is_triggered_only = yes
@@ -2581,6 +4266,10 @@ country_event = {	#Bellflowers in bloom
 	}
 
 	option = {
+		name = ynn_events.152.a
+		ai_chance = {
+			factor = 100
+		}
 		capital = {
 			add_province_modifier = {
 				name = wonderful_garden
@@ -2591,9 +4280,9 @@ country_event = {	#Bellflowers in bloom
 }
 
 country_event = {	#Exiled amethyst knight
-	id = ynn_events.159
-	title = ynn_events.159.t
-	desc = ynn_events.159.d
+	id = ynn_events.153
+	title = ynn_events.153.t
+	desc = ynn_events.153.d
 	picture = NOBLE_ESTATE_eventPicture
 
 	is_triggered_only = yes
@@ -2621,7 +4310,7 @@ country_event = {	#Exiled amethyst knight
 	}
 
 	option = {
-		name = ynn_events.159.a 
+		name = ynn_events.153.a 
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -2653,7 +4342,7 @@ country_event = {	#Exiled amethyst knight
 	}
 
 	option = {
-		name = ynn_events.159.b
+		name = ynn_events.153.b
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -2674,9 +4363,9 @@ country_event = {	#Exiled amethyst knight
 }
 
 country_event = { #The blood of Lukaus
-	id = ynn_events.160
-	title = ynn_events.160.t
-	desc = ynn_events.160.d
+	id = ynn_events.115
+	title = ynn_events.115.t
+	desc = ynn_events.115.d
 	picture = TOURNAMENT_eventPicture
 
 	is_triggered_only = yes
@@ -2707,7 +4396,7 @@ country_event = { #The blood of Lukaus
 	}
 
 	option = {
-		name = ynn_events.160.a 
+		name = ynn_events.115.a 
 		ai_chance = {
 			factor = 50
 		}
@@ -2729,7 +4418,7 @@ country_event = { #The blood of Lukaus
 	}
 
 	option = {
-		name = ynn_events.160.b
+		name = ynn_events.115.b
 		ai_chance = {
 			factor = 50
 		}
@@ -2752,9 +4441,9 @@ country_event = { #The blood of Lukaus
 }
 
 country_event = { #Mage of the Academy of Rzenta
-	id = ynn_events.161
-	title = ynn_events.161.t
-	desc = ynn_events.161.d
+	id = ynn_events.205
+	title = ynn_events.205.t
+	desc = ynn_events.205.d
 	picture = BIG_BOOK_eventPicture
 
 	is_triggered_only = yes 
@@ -2779,7 +4468,7 @@ country_event = { #Mage of the Academy of Rzenta
 	}
 
 	option = {
-		name = ynn_events.161.a 
+		name = ynn_events.205.a 
 		ai_chance = {
 			factor = 45
 			modifier = {
@@ -2787,6 +4476,7 @@ country_event = { #Mage of the Academy of Rzenta
 				ruler_has_personality = scholar_personality
 			}
 		}
+		add_treasury = -50
 		define_advisor = {
 			type = court_mage
 			skill = 2
@@ -2802,7 +4492,7 @@ country_event = { #Mage of the Academy of Rzenta
 	}
 
 	option = {
-		name = ynn_events.161.b
+		name = ynn_events.205.b
 		ai_chance = {
 			factor = 45
 			modifier = {
@@ -2815,13 +4505,13 @@ country_event = { #Mage of the Academy of Rzenta
 				}
 			}
 		}
-		add_treasury = -50
+		add_treasury = -100
 		add_prestige = -10
 		create_war_wizard_effect = yes 
 	}
 	
 	option = {
-		name = ynn_events.161.c
+		name = ynn_events.205.c
 		ai_chance = {
 			factor = 10
 		}
@@ -2830,9 +4520,9 @@ country_event = { #Mage of the Academy of Rzenta
 }
 
 country_event = {	#Adopt epednar crossmount for scouting?
-	id = ynn_events.162
-	title = ynn_events.162.t
-	desc = ynn_events.162.d
+	id = ynn_events.154
+	title = ynn_events.154.t
+	desc = ynn_events.154.d
 	picture = HORDE_ON_HORSEBACK_eventPicture
 
 	is_triggered_only = yes
@@ -2859,7 +4549,7 @@ country_event = {	#Adopt epednar crossmount for scouting?
 	}
 
 	option = {
-		name = ynn_events.162.a
+		name = ynn_events.154.a
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -2887,7 +4577,7 @@ country_event = {	#Adopt epednar crossmount for scouting?
 	}
 
 	option = {
-		name = ynn_events.162.b
+		name = ynn_events.154.b
 		ai_chance = {
 			factor = 50
 		}
@@ -2896,9 +4586,9 @@ country_event = {	#Adopt epednar crossmount for scouting?
 }
 
 country_event = {	#Holy merchant fleet asks for a port
-	id = ynn_events.163
-	title = ynn_events.163.t
-	desc = ynn_events.163.d
+	id = ynn_events.155
+	title = ynn_events.155.t
+	desc = ynn_events.155.d
 	picture = NAVAL_MILITARY_eventPicture
 
 	is_triggered_only = yes
@@ -2926,7 +4616,7 @@ country_event = {	#Holy merchant fleet asks for a port
 	}
 
 	option = {
-		name = ynn_events.163.a
+		name = ynn_events.155.a
 		ai_chance = {
 			factor = 60
 			modifier = {
@@ -2961,7 +4651,7 @@ country_event = {	#Holy merchant fleet asks for a port
 	}
 
 	option = {
-		name = ynn_events.163.b
+		name = ynn_events.155.b
 		ai_chance = {
 			factor = 50
 		}
@@ -2971,9 +4661,9 @@ country_event = {	#Holy merchant fleet asks for a port
 }
 
 country_event = {	#Aspiring hero on Potraga
-	id = ynn_events.164
-	title = ynn_events.162.t
-	desc = ynn_events.162.d 
+	id = ynn_events.116
+	title = ynn_events.116.t
+	desc = ynn_events.116.d 
 	picture = MILITARISTICALLY_TALENTED_RULER_eventPicture
 
 	is_triggered_only = yes 
@@ -2995,7 +4685,7 @@ country_event = {	#Aspiring hero on Potraga
 	}
 
 	option = {
-		name = ynn_events.164.a
+		name = ynn_events.116.a
 		ai_chance = {
 			factor = 50
 		}
@@ -3011,7 +4701,7 @@ country_event = {	#Aspiring hero on Potraga
 	}
 
 	option = {
-		name = ynn_events.164.b
+		name = ynn_events.116.b
 		ai_chance = {
 			factor = 50
 		}
@@ -3029,7 +4719,7 @@ country_event = {	#Aspiring hero on Potraga
 				has_heir = no
 			}
 		}
-		name = ynn_events.164.c
+		name = ynn_events.116.c
 		ai_chance = {
 			factor = 75
 			modifier = {
@@ -3061,7 +4751,7 @@ country_event = {	#Aspiring hero on Potraga
 			is_female = yes 
 			has_consort = no 
 		}
-		name = ynn_events.164.d 
+		name = ynn_events.116.d 
 		ai_chance = {
 			factor = 75
 			modifier = {
@@ -3086,9 +4776,9 @@ country_event = {	#Aspiring hero on Potraga
 }
 
 country_event = {	#False rumours of Thromshana
-	id = ynn_events.165
-	title = ynn_events.165.t
-	desc = ynn_events.165.d
+	id = ynn_events.206
+	title = ynn_events.206.t
+	desc = ynn_events.206.d
 	picture = ACCUSATION_eventPicture
 
 	is_triggered_only = yes
@@ -3168,7 +4858,7 @@ country_event = {	#False rumours of Thromshana
 				ruler_has_personality = bold_fighter_personality
 			}
 		}
-		name = ynn_events.165.a
+		name = ynn_events.206.a
 		ai_chance = {
 			factor = 100
 		}
@@ -3209,7 +4899,7 @@ country_event = {	#False rumours of Thromshana
 				ruler_has_personality = bold_fighter_personality
 			}
 		}
-		name = ynn_events.165.b
+		name = ynn_events.206.b
 		ai_chance = {
 			factor = 100
 		}
@@ -3259,7 +4949,7 @@ country_event = {	#False rumours of Thromshana
 				ruler_has_personality = bold_fighter_personality
 			}
 		}
-		name = ynn_events.165.c
+		name = ynn_events.206.c
 		ai_chance = {
 			factor = 33
 		}
@@ -3309,7 +4999,7 @@ country_event = {	#False rumours of Thromshana
 				ruler_has_personality = bold_fighter_personality
 			}
 		}
-		name = ynn_events.165.d
+		name = ynn_events.206.d
 		ai_chance = {
 			factor = 33
 		}
@@ -3343,7 +5033,7 @@ country_event = {	#False rumours of Thromshana
 				ruler_has_personality = bold_fighter_personality
 			}
 		}
-		name = ynn_events.165.e
+		name = ynn_events.206.e
 		ai_chance = {
 			factor = 33
 		}
@@ -3459,9 +5149,9 @@ country_event = {	#False rumours of Thromshana
 }
 
 country_event = {	#Stenurynn gifts Teriyer
-	id = ynn_events.166
-	title = ynn_events.166.t
-	desc = ynn_events.166.d
+	id = ynn_events.156
+	title = ynn_events.156.t
+	desc = ynn_events.156.d
 	picture = NOBLE_ESTATE_eventPicture
 
 	is_triggered_only = yes
@@ -3494,7 +5184,7 @@ country_event = {	#Stenurynn gifts Teriyer
 	}
 
 	option = {
-		name = ynn_events.166.a
+		name = ynn_events.156.a
 		ai_chance = {
 			factor = 100
 		}
@@ -3515,9 +5205,9 @@ country_event = {	#Stenurynn gifts Teriyer
 }
 
 country_event = {	#The king of the stuir balia
-	id = ynn_events.200
-	title = ynn_events.200.t
-	desc = ynn_events.200.d
+	id = ynn_events.300
+	title = ynn_events.300.t
+	desc = ynn_events.300.d
 	picture = MALAYAN_PORT_eventPicture
 
 	is_triggered_only = yes
@@ -3549,7 +5239,7 @@ country_event = {	#The king of the stuir balia
 	}
 
 	option = {
-		name = ynn_events.200.a
+		name = ynn_events.300.a
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -3577,7 +5267,7 @@ country_event = {	#The king of the stuir balia
 	}
 
 	option = {
-		name = ynn_events.200.b
+		name = ynn_events.300.b
 		ai_chance = {
 			factor = 50
 		}
@@ -3590,8 +5280,8 @@ country_event = {	#The king of the stuir balia
 }
 
 country_event = {	#Water Serpent surfaces!
-	id = ynn_events.201
-	title = ynn_events.201.t
+	id = ynn_events.301
+	title = ynn_events.301.t
 	desc = {
 		trigger = {
 			NOT = {
@@ -3599,7 +5289,7 @@ country_event = {	#Water Serpent surfaces!
 				has_country_flag = serpent_eats_barge
 			}
 		}
-		desc = ynn_events.201.d1
+		desc = ynn_events.301.d1
 	}
 
 	desc = {
@@ -3609,7 +5299,7 @@ country_event = {	#Water Serpent surfaces!
 				has_country_flag = serpent_eats_barge
 			}
 		}
-		desc = ynn_events.201.d2
+		desc = ynn_events.301.d2
 	}
 	picture = SHIP_SAILING_eventPicture
 
@@ -3659,7 +5349,7 @@ country_event = {	#Water Serpent surfaces!
 				has_country_flag = serpent_eats_barge
 			}
 		}
-		name = ynn_events.201.a
+		name = ynn_events.301.a
 		ai_chance = {
 			factor = 100
 		}
@@ -3674,7 +5364,7 @@ country_event = {	#Water Serpent surfaces!
 				has_country_flag = serpent_eats_barge
 			}
 		}
-		name = ynn_events.201.b
+		name = ynn_events.301.b
 		ai_chance = {
 			factor = 100
 		}
@@ -3689,9 +5379,9 @@ country_event = {	#Water Serpent surfaces!
 }
 
 country_event = { #Pet snapping ottter
-	id = ynn_events.202
-	title = ynn_events.202.t
-	desc = ynn_events.202.d 
+	id = ynn_events.302
+	title = ynn_events.302.t
+	desc = ynn_events.302.d 
 	picture = SEA_TREASURE_eventpicture
 
 	is_triggered_only = yes
@@ -3710,94 +5400,94 @@ country_event = { #Pet snapping ottter
 	}
 
 	option = { #Make this the basic name ai will pcick
-		name = ynn_events.202.a 
+		name = ynn_events.302.a 
 		ai_chance = {
 			factor = 100
 		}
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d1
+			desc = pet_snapping_otter_1_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.b  
+		name = ynn_events.302.b  
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d2
+			desc = pet_snapping_otter_2_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.c 
+		name = ynn_events.302.c 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d3
+			desc = pet_snapping_otter_3_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.d 
+		name = ynn_events.302.d 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d4
+			desc = pet_snapping_otter_4_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.e 
+		name = ynn_events.302.e 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d5
+			desc = pet_snapping_otter_5_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.f
+		name = ynn_events.302.f
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d6
+			desc = pet_snapping_otter_6_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.g
+		name = ynn_events.302.g
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d7
+			desc = pet_snapping_otter_7_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.h 
+		name = ynn_events.302.h 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d8
+			desc = pet_snapping_otter_8_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.i 
+		name = ynn_events.302.i 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d9
+			desc = pet_snapping_otter_9_desc
 		}
 	}
 	option = { #Thank you kind citizen
-		name = ynn_events.202.j 
+		name = ynn_events.302.j 
 		add_country_modifier = {
 			name = pet_snapping_otter
 			duration = -1
-			desc = pet_snapping_otter.d10
+			desc = pet_snapping_otter_10_desc
 		}
 	}
 }
 
 country_event = { #Pet otter does a good fishing
-	id = ynn_events.203
-	title = ynn_events.203.t
-	desc = ynn_events.203.d 
+	id = ynn_events.303
+	title = ynn_events.303.t
+	desc = ynn_events.303.d 
 	picture = SEA_TREASURE_eventpicture
 
 	is_triggered_only = no
@@ -3811,16 +5501,16 @@ country_event = { #Pet otter does a good fishing
 	}
 
 	option = { #Thank you otter 
-		name = ynn_events.203.a 
+		name = ynn_events.303.a 
 		add_dip_power = 20
 		add_prestige = 1
 	}
 }
 
 country_event = { #Pet otter dies
-	id = ynn_events.204
-	title = ynn_events.204.t
-	desc = ynn_events.204.d 
+	id = ynn_events.304
+	title = ynn_events.304.t
+	desc = ynn_events.304.d 
 	picture = BAD_WITH_MONARCH_eventpicture
 
 	is_triggered_only = no 
@@ -3834,9 +5524,35 @@ country_event = { #Pet otter dies
 	}
 
 	option = { #Rip otter
-		name = ynn_events.204.a 
+		name = ynn_events.304.a 
 		ai_chance = {
-			factor = 100
+			factor = 80
+		}
+		remove_country_modifier = pet_snapping_otter
+		if = {
+			limit = {
+				ruler_has_personality = cruel_personality
+			}
+			random = {
+				chance = 50
+				remove_ruler_personality = cruel_personality
+			}
+		}
+		if = {
+			limit = {
+				ruler_has_personality = malevolent_personality
+			}
+			random = {
+				chance = 50
+				remove_ruler_personality = malevolent_personality
+			}
+		}
+	}
+	
+	option = {
+		name = ynn_events.304.b
+		ai_chance = {
+			factor = 20
 		}
 		remove_country_modifier = pet_snapping_otter
 		if = {
@@ -3861,9 +5577,9 @@ country_event = { #Pet otter dies
 }
 
 province_event = { #Giant Beavers swamp village
-	id = ynn_events.205
-	title = ynn_events.205.t 
-	desc = ynn_events.205.d 
+	id = ynn_events.305
+	title = ynn_events.305.t 
+	desc = ynn_events.305.d 
 	picture = 19_MONSOON_eventpicture 
 
 	is_triggered_only = yes
@@ -3876,11 +5592,11 @@ province_event = { #Giant Beavers swamp village
 	}
 
 	immediate = {
-		add_devastation = 20
+		add_devastation = 10
 	}
 
 	option = { #Help them rebuild
-		name = ynn_events.205.a 
+		name = ynn_events.305.a 
 		goto = ROOT 
 		ai_chance = {
 			factor = 80
@@ -3916,7 +5632,7 @@ province_event = { #Giant Beavers swamp village
 	}
 
 	option = { #Fuck em
-		name = ynn_events.205.b 
+		name = ynn_events.305.b 
 		ai_chance = {
 			factor = 20
 			modifier = {
@@ -3935,33 +5651,26 @@ province_event = { #Giant Beavers swamp village
 				}
 			}
 		}
-		random_list = {
-			25 = {
-				add_base_manpower = -1
-				add_base_production = -1
-			}
-			25 = {
-				add_base_tax = -1
-				add_base_production = -1
-			}
-			25 = {
-				add_base_manpower = -1
-				add_base_tax = -1
-			}
-			25 = {
-				add_base_manpower = -1
-				add_base_production = -1
-				add_base_tax = -1
-			}
+		random = {
+			chance = 50
+			add_base_tax = -1 
+		}
+		random = {
+			chance = 50
+			add_base_production = -1
+		}
+		random = {
+			chance = 50
+			add_base_manpower = -1
 		}
 		add_devastation = 20
 	}
 }
 
 country_event = {	#Pet ynnea pig 
-	id = ynn_events.206
-	title = ynn_events.206.t
-	desc = ynn_events.206.d
+	id = ynn_events.306
+	title = ynn_events.306.t
+	desc = ynn_events.306.d
 	picture = ARTWORK_eventpicture 
 
 	is_triggered_only = yes
@@ -3980,7 +5689,7 @@ country_event = {	#Pet ynnea pig
 	}
 
 	option = {
-		name = ynn_events.206.a
+		name = ynn_events.306.a
 		ai_chance = {
 			factor = 90
 			modifier = {
@@ -3989,15 +5698,15 @@ country_event = {	#Pet ynnea pig
 			}
 		}
 		add_treasury = -40
-		add_country_modifier = { 
+		add_ruler_modifier = { 
 			name = pet_ynnea_pig
-			duration = 3650
+			duration = -1
 			desc = pet_ynnea_pig_desc
 		}
 	}
 
 	option = {
-		name = ynn_events.206.b 
+		name = ynn_events.306.b 
 		ai_chance = {
 			factor = 10
 		}
@@ -4006,9 +5715,9 @@ country_event = {	#Pet ynnea pig
 }
 
 province_event = { #Whitetail fox 
-	id = ynn_events.207
-	title = ynn_events.207.t 
-	desc = ynn_events.207.d 
+	id = ynn_events.307
+	title = ynn_events.307.t 
+	desc = ynn_events.307.d 
 	picture = COMET_SIGHTED_eventPicture
 
 	is_triggered_only = yes
@@ -4021,7 +5730,7 @@ province_event = { #Whitetail fox
 	}
 
 	option = {
-		name = ynn_events.207.a 
+		name = ynn_events.307.a 
 		goto = ROOT
 		ai_chance = {
 			factor = 100
@@ -4035,9 +5744,9 @@ province_event = { #Whitetail fox
 }
 
 country_event = {	#Stone fish at the feast
-	id = ynn_events.208
-	title = ynn_events.208.t
-	desc = ynn_events.208.d 
+	id = ynn_events.308
+	title = ynn_events.308.t
+	desc = ynn_events.308.d 
 	picture = DIPLOMACY_eventPicture
 
 	is_triggered_only = yes
@@ -4057,7 +5766,7 @@ country_event = {	#Stone fish at the feast
 	}
 
 	option = {
-		name = ynn_events.208.a
+		name = ynn_events.308.a
 		ai_chance = {
 			factor = 90
 			modifier = {
@@ -4069,12 +5778,12 @@ country_event = {	#Stone fish at the feast
 			random_list = {
 				95 = {
 					country_event = {
-						id = ynn_events.209
+						id = ynn_events.309
 					}
 				}
 				05 = {
 					country_event = {
-						id = ynn_events.210
+						id = ynn_events.310
 					}
 				}
 			}
@@ -4082,7 +5791,7 @@ country_event = {	#Stone fish at the feast
 	}
 
 	option = {
-		name = ynn_events.208.b
+		name = ynn_events.308.b
 		ai_chance = {
 			factor = 10
 		}
@@ -4097,9 +5806,9 @@ country_event = {	#Stone fish at the feast
 }
 
 country_event = {	#Fish good
-	id = ynn_events.209
-	title = ynn_events.209.t
-	desc = ynn_events.209.d
+	id = ynn_events.309
+	title = ynn_events.309.t
+	desc = ynn_events.309.d
 	picture = KING_DOING_GREAT_eventPicture
 
 	is_triggered_only = yes
@@ -4109,7 +5818,7 @@ country_event = {	#Fish good
 	}
 
 	option = {
-		name = ynn_events.209.a
+		name = ynn_events.309.a
 		ai_chance = {
 			factor = 100
 		}
@@ -4126,9 +5835,9 @@ country_event = {	#Fish good
 }
 
 country_event = {	#Fish bad :(
-	id = ynn_events.210
-	title = ynn_events.210.t
-	desc = ynn_events.210.d
+	id = ynn_events.310
+	title = ynn_events.310.t
+	desc = ynn_events.310.d
 	picture = KING_SICK_IN_BED_eventPicture
 
 	is_triggered_only = yes
@@ -4138,7 +5847,7 @@ country_event = {	#Fish bad :(
 	}
 
 	option = {
-		name = ynn_events.210.a
+		name = ynn_events.310.a
 		ai_chance = {
 			factor = 100
 		}
@@ -4157,23 +5866,3 @@ country_event = {	#Fish bad :(
 	}
 }
 
-country_event = { #Prepare infrastructure Tromseloc way
-	id = ynn_events.300
-	title = ynn_events.300.t
-	desc = ynn_events.300.d
-	picture = EXPLORERS_eventPicture
-
-	is_triggered_only = yes
-
-	trigger = {
-		technology_group = tech_ynnic
-	}
-
-	option = {
-		name = ynn_events.300.a
-		2781 = {
-			add_siberian_construction = 400
-			rename_capital = "Rohaves"	
-		}
-	}
-}
