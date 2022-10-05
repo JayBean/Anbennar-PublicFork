@@ -20,16 +20,15 @@ country_event = { #Startup event, triggered from 00_on_actions startup events
 		ai_chance = { factor = 100 }
 		add_ruler_modifier = {
 			name = chaingrasper_exceptional_willpower
-			duration = -1 
+			duration = 20000 #Until just before 1500
 		}
 		hidden_effect = {
 			set_ruler_flag = chaingrasper_lichdom_quest
 			
-			#DADEVO: THIS MAKES ENTIRE MT VISIBLE, TESTING ONLY
-			set_country_flag = chaingrasper_lichdom_achieved
-			set_country_flag = chaingrasper_endgame_achieved
-			swap_non_generic_missions = yes
-			#DADEVO: THIS MAKES ENTIRE MT VISIBLE, TESTING ONLY
+			#THIS MAKES ENTIRE MT VISIBLE, TESTING ONLY
+			#set_country_flag = chaingrasper_lichdom_achieved
+			#set_country_flag = chaingrasper_endgame_achieved
+			#swap_non_generic_missions = yes
 		}
 	}
 }
@@ -72,9 +71,7 @@ country_event = {
 	trigger = {
 		tag = H74 #Chaingrasper
 		NOT = { has_country_flag = chaingrasper_lichdom_achieved }
-		NOT = { #Dak died at some point
-			has_ruler_modifier = chaingrasper_exceptional_willpower
-		}
+		NOT = { has_ruler_modifier = chaingrasper_exceptional_willpower } #Either Dak died at some point or you took too long and it wore off
 	}
 
 	option = { #Bad RNG so RIP.
@@ -127,13 +124,12 @@ country_event = {
 		
 		4284 = {
 			spawn_rebels = {
-				type = particularist
-				size = 2 #DADEVO: check this lol
+				type = particularist_rebels
+				size = 2
 				culture = granite_dwarf
 				religion = ancestor_worship
-				friend = I19
 				leader = "Goblinsbane"
-				win = no
+				should_take_capital = yes
 			}
 		}
 		
@@ -149,12 +145,13 @@ country_event = {
 	desc = flavor_chaingrasper.3.d
 	picture = REFORM_eventPicture
 	
-	fire_only_once = yes #DADEVO: TODO figure out how to fire when specific revolt dies?
+	fire_only_once = yes
 	
 	trigger = {
 		tag = H74 #Chaingrasper
-		num_of_rebel_armies = 0
 		has_country_flag = chaingrasper_fought_goblinsbane
+		#NOT = { has_spawned_rebels = particularist_rebels }
+		NOT = { num_of_rebel_armies = 1 }
 	}
 		
 	option = { #We finally got rid of him!
@@ -177,6 +174,7 @@ country_event = {
 		name = flavor_chaingrasper.4.a
 		ai_chance = { factor = 100 }
 		add_prestige = -5
+
 		hidden_effect = {
 			country_event = {
 				id = flavor_chaingrasper.5
@@ -184,6 +182,24 @@ country_event = {
 				random = 100
 			}
 		}
+	}
+}
+
+country_event = {
+	id = flavor_chaingrasper.400 #Set organization privileges
+	title = flavor_chaingrasper.400.t
+	desc = flavor_chaingrasper.400.d
+	picture = DEBATE_REPUBLICAN_eventPicture
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	hidden = yes
+		
+	option = { #Stop being sad you stupid artificers
+		name = flavor_chaingrasper.400.a
+		ai_chance = { factor = 100 }
+		set_estate_privilege = estate_mages_organization_state
+		set_estate_privilege = estate_artificers_organization_independent_unions
 	}
 }
 
@@ -200,11 +216,18 @@ country_event = {
 		name = flavor_chaingrasper.5.a
 		ai_chance = { factor = 100 }
 		add_prestige = -10
+		add_country_modifier = {
+			name = chaingrasper_disgruntled_artificers
+			duration = -1
+		}
+		custom_tooltip = chaingrasper_artificers_revolt_provinces_tt
+		custom_tooltip = chaingrasper_artificers_revolt_country_tt
 		hidden_effect = {
 			set_country_flag = chaingrasper_angry_artificers_achieved
-			add_country_modifier = {
-				name = chaingrasper_disgruntled_artificers
-				duration = -1
+			swap_non_generic_missions = yes
+			add_estate_loyalty = {
+				estate = estate_artificers
+				loyalty = -25
 			}
 			every_owned_province = { #Add artificer resistance to all holds
 				if = {
@@ -220,66 +243,86 @@ country_event = {
 					}
 				}
 			}
-			#Also add modifier to up to 5 random high dev provinces
-			random_core_province = { #1
-				limit = {
-					NOT = { #Doesn't already have modifier, includes holds
-						has_province_modifier = chaingrasper_artificer_resistance
-					}
-					development = 10
-				}
-				add_province_modifier = {
-					name = chaingrasper_artificer_resistance
-					duration = -1
-				}
+			country_event = { #Add a couple of resistance debuffs to random non-hold provinces with 10+ dev
+				id = flavor_chaingrasper.500
+				days = 0
 			}
-			random_core_province = { #2
-				limit = {
-					NOT = { #Doesn't already have modifier, includes holds
-						has_province_modifier = chaingrasper_artificer_resistance
-					}
-					development = 10
+		}
+	}
+}
+
+country_event = {
+	id = flavor_chaingrasper.500 #Artificer Resistance on non-hold provinces
+	title = flavor_chaingrasper.500.t
+	desc = flavor_chaingrasper.500.d
+	picture = ANGRY_MOB_eventPicture
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	hidden = yes
+		
+	option = {
+		name = flavor_chaingrasper.500.a
+		ai_chance = { factor = 100 }
+		#Also add modifier to up to 5 random 10+ dev non-hold provinces
+		random_core_province = { #1
+			limit = {
+				NOT = {
+					has_province_modifier = chaingrasper_artificer_resistance
 				}
-				add_province_modifier = {
-					name = chaingrasper_artificer_resistance
-					duration = -1
-				}
+				development = 10
 			}
-			random_core_province = { #3
-				limit = {
-					NOT = { #Doesn't already have modifier, includes holds
-						has_province_modifier = chaingrasper_artificer_resistance
-					}
-					development = 10
-				}
-				add_province_modifier = {
-					name = chaingrasper_artificer_resistance
-					duration = -1
-				}
+			add_province_modifier = {
+				name = chaingrasper_artificer_resistance
+				duration = -1
 			}
-			random_core_province = { #4
-				limit = {
-					NOT = { #Doesn't already have modifier, includes holds
-						has_province_modifier = chaingrasper_artificer_resistance
-					}
-					development = 10
+		}
+		random_core_province = { #2
+			limit = {
+				NOT = {
+					has_province_modifier = chaingrasper_artificer_resistance
 				}
-				add_province_modifier = {
-					name = chaingrasper_artificer_resistance
-					duration = -1
-				}
+				development = 10
 			}
-			random_core_province = { #5
-				limit = {
-					NOT = { #Doesn't already have modifier, includes holds
-						has_province_modifier = chaingrasper_artificer_resistance
-					}
-					development = 10
+			add_province_modifier = {
+				name = chaingrasper_artificer_resistance
+				duration = -1
+			}
+		}
+		random_core_province = { #3
+			limit = {
+				NOT = {
+					has_province_modifier = chaingrasper_artificer_resistance
 				}
-				add_province_modifier = {
-					name = chaingrasper_artificer_resistance
-					duration = -1
+				development = 10
+			}
+			add_province_modifier = {
+				name = chaingrasper_artificer_resistance
+				duration = -1
+			}
+		}
+		random_core_province = { #4
+			limit = {
+				NOT = {
+					has_province_modifier = chaingrasper_artificer_resistance
 				}
+				development = 10
+			}
+			add_province_modifier = {
+				name = chaingrasper_artificer_resistance
+				duration = -1
+			}
+		}
+		random_core_province = { #5
+			limit = {
+				NOT = {
+					has_province_modifier = chaingrasper_artificer_resistance
+				}
+				development = 10
+			}
+			add_province_modifier = {
+				name = chaingrasper_artificer_resistance
+				duration = -1
 			}
 		}
 	}
@@ -373,6 +416,8 @@ country_event = {
 	}
 }
 
+
+
 country_event = {
 	id = flavor_chaingrasper.200 #Raiders from the Serpentspine
 	title = flavor_chaingrasper.200.t
@@ -382,21 +427,73 @@ country_event = {
 	is_triggered_only = yes	
 	fire_only_once = yes
 		
-	option = { #Change capital to Gronstunad
-		name = flavor_chaingrasper.7.a
-		ai_chance = { factor = 80 }
-		set_capital	= 4311
-		4311 = { #Gronstunad
-			add_province_modifier = {
-				name = chaingrasper_a_new_capital
-				duration = 9125
-			}
+	option = { #Why are those goblins so mean?
+		name = flavor_chaingrasper.200.a
+		ai_chance = { factor = 100 }
+		add_opinion = {
+			who = H74
+			modifier = chaingrasper_raided_us
 		}
 	}
+}
+
+country_event = {
+	id = flavor_chaingrasper.201 #The Sacking of Sharaja
+	title = flavor_chaingrasper.201.t
+	desc = flavor_chaingrasper.201.d
+	picture = BORDER_TENSION_eventPicture
 	
-	option = { #Keep capital
-		name = flavor_chaingrasper.7.b
-		ai_chance = { factor = 20 }
-		add_stability_or_adm_power = yes
+	is_triggered_only = yes	
+	fire_only_once = yes
+		
+	option = { #Why are those goblins so mean?
+		name = flavor_chaingrasper.201.a
+		ai_chance = { factor = 100 }
+		4397 = { #Sharaja
+			add_base_tax = -1
+			add_base_production = -3
+			add_devastation = 50
+			if = {
+				limit = {
+					has_dlc = "Mandate of Heaven"
+				}
+				add_prosperity = -100
+			}
+		}
+		add_opinion = {
+			who = H74
+			modifier = chaingrasper_raided_us
+		}
+	}
+}
+
+country_event = {
+	id = flavor_chaingrasper.202 #The Sacking of Dhenijansar
+	title = flavor_chaingrasper.202.t
+	desc = flavor_chaingrasper.202.d
+	picture = BORDER_TENSION_eventPicture
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+		
+	option = { #Why are those goblins so mean?
+		name = flavor_chaingrasper.202.a
+		ai_chance = { factor = 100 }
+		4411 = { #Dhenijansar
+			add_base_tax = -3
+			add_base_production = -1
+			add_base_manpower = -1
+			add_devastation = 100
+			if = {
+				limit = {
+					has_dlc = "Mandate of Heaven"
+				}
+				add_prosperity = -100
+			}
+		}
+		add_opinion = {
+			who = H74
+			modifier = chaingrasper_raided_us
+		}
 	}
 }
