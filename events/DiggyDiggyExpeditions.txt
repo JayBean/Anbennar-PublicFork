@@ -314,8 +314,15 @@ province_event = {
 			limit = { check_variable = { partyManpower = 1 } NOT = { has_province_flag = expedition_in_progress } }
 			custom_tooltip = start_expedition_tooltip
 			hidden_effect = {
+				set_variable = { which = rewardsFactor which = partyRewards }
+				divide_variable = { which = rewardsFactor which = lootEstimate }
+				if = {
+					limit = { NOT = { check_variable = { rewardsFactor = 0.01 } } }
+					set_variable = { rewardsFactor = 0.01 }
+				}
+			
 				set_province_flag = sent_expedition_@owner
-				set_province_flag = expedition_in_progress
+				set_province_flag = expedition_in_progress				
 				if = {
 					limit = { has_province_flag = explorable_dungeon }		#Launch custom dungeon instead of normal expedition
 					province_event = { id = diggy_dungeons.2 days = 30 }
@@ -333,11 +340,8 @@ province_event = {
 			limit = { has_province_flag = expedition_in_progress }
 			custom_tooltip = expedition_in_progress_tooltip
 		}
-		if = {
-			limit = { NOT = { has_province_flag = explorable_dungeon } }
-			custom_tooltip = expedition_loot_estimate_tooltip
-			custom_tooltip = expedition_floor_estimate_tooltip
-		}
+		custom_tooltip = expedition_loot_estimate_tooltip
+		custom_tooltip = expedition_floor_estimate_tooltip
 		hidden_effect = { province_event = { id = diggy_expedition.1006 } }
 	}
 	
@@ -991,6 +995,10 @@ province_event = {
 				divide_variable = { cashLoot = 1000 }
 				multiply_variable = { cashLoot = 1000 }
 			}
+			else = {
+				set_variable = { which = badLoot which = partyLoot }
+				multiply_variable = { badLoot = -1 }
+			}
 			if = {
 				limit = { 
 					has_terrain = cavern
@@ -1052,6 +1060,7 @@ province_event = {
 	
 	after = {
 		hidden_effect = {
+			set_variable = { badLoot = 0 }
 			if = {
 				limit = { has_province_flag = special_cave }
 				owner = { country_event = { id = diggy.35 } }
@@ -1114,7 +1123,7 @@ province_event = {
 		else = { hidden_effect = { clear_expedition_effect = yes } }
 	}
 	
-	# Pay them
+	# Pay them, back to manpower
 	option = {
         name = diggy_expedition.12.c
         ai_chance = { factor = 100 }
@@ -1128,8 +1137,33 @@ province_event = {
 			}
 		}
 		custom_tooltip = pay_the_difference_tooltip
-		owner = { add_years_of_income = -0.5 }
+		currency_effect_expedition = { currency = treasury badLoot = yes takeFrom = owner }
 		custom_tooltip = back_to_manpower_tooltip
+		remove_province_modifier = expedition_target
+		if = {
+			limit = { check_variable = { ancientDwarvenKnowledge = 1 } }
+			province_event = { id = diggy_expedition.14 }
+		}
+		else = { hidden_effect = { clear_expedition_effect = yes } }
+	}
+	
+	# Pay them, back to the field
+	option = {
+        name = diggy_expedition.12.e
+        ai_chance = { factor = 100 }
+		trigger = { hidden_trigger = { NOT = { check_variable = { partyLoot = 1 } } } }
+		special_reward_expedition = yes
+		hidden_effect = {
+			while = {
+				limit = { check_variable = { partyManpower = 1000 } }
+				subtract_variable = { partyManpower = 1000 }
+				owner = { infantry = PREV }
+			}
+			owner = { add_manpower = 1 }
+		}
+		custom_tooltip = pay_the_difference_tooltip
+		currency_effect_expedition = { currency = treasury badLoot = yes takeFrom = owner }
+		custom_tooltip = back_to_manpower_unit_tooltip
 		remove_province_modifier = expedition_target
 		if = {
 			limit = { check_variable = { ancientDwarvenKnowledge = 1 } }
@@ -1140,7 +1174,7 @@ province_event = {
 	
 	# Fuck them
 	option = {
-        name = diggy_expedition.12.e
+        name = diggy_expedition.12.f
         ai_chance = { factor = 100 }
 		trigger = { hidden_trigger = { NOT = { check_variable = { partyLoot = 1 } } } }
 		special_reward_expedition = yes
