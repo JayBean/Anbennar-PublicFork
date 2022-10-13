@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-druplesnubb"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -23,4 +23,4 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.34.*"
-path="mod/Anbennar-PublicFork"
+path="mod/anbennar-eu4-fork-druplesnubb"
