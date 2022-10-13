@@ -1534,6 +1534,10 @@ country_event = { #The Eastern Border
 			months = 360
 		}
 		swap_non_generic_missions = yes
+		if = {
+			limit = { has_country_flag = tluukt_jaddari }
+			hidden_effect = { F48 = { country_event = { id = flavour_tluukt.71 days = 15 } } }
+		}
 	}
 }
 
@@ -1795,8 +1799,24 @@ country_event = { #The Legion Falls
 			}
 			F46 = { country_event = { id = flavour_tluukt.53 } }
 		}
-		hidden_effect = { country_event = { id = flavour_tluukt.45 days = 1825 } } #Harpy Puppet if Siadan is alive
-		hidden_effect = { country_event = { id = flavour_tluukt.62 days = 1825 } } #Harpy Puppet if Siadan is dead
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						F48 = { NOT = { is_enemy = ROOT } }
+						NOT = { is_enemy = F48 }
+						NOT = { has_country_flag = tluukt_nosiadan }
+					}
+					F48 = { is_subject_of = ROOT }
+				}
+			}
+			hidden_effect = { country_event = { id = flavour_tluukt.45 days = 1825 } } #Harpy Puppet if Siadan is alive
+			hidden_effect = { country_event = { id = flavour_tluukt.62 days = 1825 } } #Harpy Puppet if Siadan is dead
+		}
+		else_if = {
+			limit = { has_country_flag = tluukt_nosiadan }
+			hidden_effect = { country_event = { id = flavour_tluukt.72 days = 1825 } }#Kogzokka
+		}
 	}
 }
 
@@ -2641,10 +2661,21 @@ country_event = { #Cleaning up Kogzalla and Kograffa
 	option = {
 		name = flavour_tluukt.63.b #Keep them
 		ai_chance = { factor = 40 }
-		add_estate_loyalty = {
-			estate = estate_monstrous_tribes
-			loyalty = -20
+		if = {
+			limit = { has_estate = estate_monstrous_tribes }
+			add_estate_loyalty = {
+				estate = estate_monstrous_tribes
+				loyalty = -20
+			}
 		}
+		else_if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_loyalty = {
+				estate = estate_monstrous_tribes
+				loyalty = -20
+			}
+		}
+		else = { reduce_legitimacy_large_effect = yes }
 	}
 	option = {
 		name = flavour_tluukt.63.c #Annex them
@@ -2812,6 +2843,193 @@ country_event = { #The Matriarchies of Eld
 	option = {
 		name = flavour_tluukt.69.b #Might makes right, loser.
 		add_ruler_modifier = { name = tluukt_the_strong duration = -1 }
+	}
+}
+
+country_event = { #Harpylen reconsiders Tluukt
+	id = flavour_tluukt.70
+	title = flavour_tluukt.70.title
+	desc = flavour_tluukt.70.desc
+	picture = VILLAGE_BURNING_eventPicture
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { tag = F28 }
+	
+	option = {
+		name = flavour_tluukt.70.a #We must forge a pact of our own with this rising pack
+		ai_chance = { factor = 100 }
+		add_prestige = -5
+		force_remove_rival = F28
+		add_opinion = {
+			who = F28
+			modifier = tluukt_harpylen_pact
+		}
+		reverse_add_opinion = {
+			who = F28
+			modifier = tluukt_harpylen_pact
+		}
+	}
+
+	option = {
+		name = flavour_tluukt.70.b #We can never forgive the gnolls the atrocities of their forebears
+		ai_chance = { factor = 0 }
+		add_prestige = 5
+	}
+}
+
+country_event = { #Historical friendship between Tluukt and Siadanlen
+	id = flavour_tluukt.71
+	title = flavour_tluukt.71.title
+	desc = flavour_tluukt.71.desc
+	picture = VILLAGE_BURNING_eventPicture
+	is_triggered_only = yes
+	major = yes
+	major_trigger = { tag = F28 }
+	trigger = { is_subject = no }
+	
+	option = {
+		name = flavour_tluukt.71.a #Together, we shall avenge Zokka.
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { is_enemy = F28 }
+			force_remove_rival = F28
+		}
+		add_historical_friend = F28
+		add_opinion = {
+			who = F28
+			modifier = tluukt_harpylen_pact
+		}
+		reverse_add_opinion = {
+			who = F28
+			modifier = tluukt_harpylen_pact
+		}
+	}
+
+	option = {
+		name = flavour_tluukt.71.b #We cannot trust in the strength of gnolls.
+		ai_chance = { factor = 0 }
+		add_prestige = 10
+	}
+}
+
+country_event = { #Kogzokka
+	id = flavour_tluukt.72
+	title = flavour_tluukt.72.title
+	desc = flavour_tluukt.72.desc
+	picture = CIVIL_WAR_eventPicture
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { exists = F29 }
+		any_owned_province = { has_province_modifier = tluukt_jaddarin_unrest }
+	}
+	
+	option = {
+		name = flavour_tluukt.72.a #Create Kogzokka
+		ai_chance = { factor = 100 }
+
+		far_salahad_region = {
+			limit = {
+				NOT = { area = arrtukerr_area }
+				country_or_non_sovereign_subject_holds = ROOT
+			}
+			cede_province = F29
+		}
+
+		vassalize = F29
+		override_country_name = TLUUKT_KOGZOKKA
+
+		if = {
+			limit = { has_estate = estate_monstrous_tribes }
+			add_estate_loyalty = {
+				estate = estate_monstrous_tribes
+				loyalty = -20
+			}
+		}
+		else_if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_loyalty = {
+				estate = estate_monstrous_tribes
+				loyalty = -20
+			}
+		}
+		else = { reduce_legitimacy_large_effect = yes }
+
+		F29 = {
+			add_historical_friend = F28
+			capital_scope = { add_core = F29 }
+			far_salahad_region = {
+				limit = { NOT = { country_or_non_sovereign_subject_holds = ROOT } }
+				add_permanent_claim = F29
+				add_claim = ROOT
+				hidden_effect = {
+					if = {
+						limit = { culture_is_gnollish = yes }
+						add_core = F29
+					}						
+				}
+			}
+		}
+		hidden_effect = { set_country_flag = tluukt_kogzokka }
+		swap_non_generic_missions = yes
+	}
+
+	option = {
+		name = flavour_tluukt.72.b #We cannot elevate any one pack over another
+		ai_chance = { factor = 0 }
+		add_prestige = 5
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_loyalty_modifier = {
+				estate = estate_nobles
+				desc = EST_VAL_EXAMPLE
+				loyalty = 10
+				duration = 7300
+			}
+		}
+		else_if = {
+			limit = { has_estate = monstrous_tribes }
+			add_estate_loyalty_modifier = {
+				estate = estate_monstrous_tribes
+				desc = EST_VAL_EXAMPLE
+				loyalty = 10
+				duration = 7300
+			}
+		}
+		else = { increase_legitimacy_medium_effect = yes }
+		random_owned_province = {
+			limit = {
+				is_core = F46
+			}
+			spawn_rebels = {
+				type = nationalist_rebels
+				size = 2
+				culture = desert_elf
+				religion = the_jadd
+				win = yes
+				friend = F46
+			}
+			random_neighbor_province = { 
+				limit = { owned_by = ROOT }
+				spawn_rebels = {
+					type = nationalist_rebels
+					size = 1
+					culture = masnsih
+					religion = the_jadd
+					friend = F46
+				}
+			}
+			random_neighbor_province = { 
+				limit = { owned_by = ROOT }
+				spawn_rebels = {
+					type = nationalist_rebels
+					size = 1
+					culture = masnsih
+					religion = the_jadd
+					friend = F46
+				}
+			}
+		}
 	}
 }
 
