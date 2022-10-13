@@ -45,6 +45,7 @@ tributary_state = {}
 autonomous_vassal = {}
 warlord_vassal = {}
 slave_state = {}
+subsidiary_command = {}
 centaur_dominion = {}
 centaur_follower = {}
 amlharaz_hold = {}
@@ -54,6 +55,7 @@ infernal_order_state_subject = {}
 oni_governorship = {}
 seghdihr_syndicate = {}
 ynnic_iosahar = {}
+gylikheion = {}
 
 default = {
 	# Graphics:
@@ -123,7 +125,8 @@ default = {
 	manpower_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
 	sailors_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
 	military_focus = 1.0								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
-
+	annex_cost_per_development = 8.0					# annex/integrate cost per development
+	
 	relative_power_class = 1 							# See description above
 	should_quit_wars_on_activation = yes
 	diplomacy_view_class = 1							# See description above
@@ -236,6 +239,23 @@ vassal = {
 	modifier_overlord = {
 		modifier = vassal_subject
 	}
+	modifier_overlord = {
+		modifier = pirate_subject
+		trigger = {
+			has_government_attribute = is_pirate_republic_reform
+			overlord = {
+				has_government_attribute = pirate_vassal_bonus
+			}
+		}
+	}
+	modifier_subject = {
+		modifier = subject_tax_modifier
+		trigger = {
+			overlord = {
+				has_government_attribute = subject_tax_modifier_25
+			}
+		}
+	}
 
 	overlord_opinion_modifier = is_vassal
 	subject_opinion_modifier = is_vassal
@@ -283,6 +303,14 @@ march = {
 		}
 		expiration_message_overlord = MARCHTOOLARGE
 		expiration_message_subject = MARCHTOOLARGEUS
+	}
+	modifier_subject = {
+		modifier = subject_tax_modifier
+		trigger = {
+			overlord = {
+				has_government_attribute = subject_tax_modifier_25
+			}
+		}
 	}
 }
 
@@ -570,6 +598,18 @@ personal_union = {
 	modifier_overlord = {
 		modifier = union_subject
 	}
+	modifier_overlord = {
+		trigger = {
+			overlord = { has_government_attribute = personal_union_war_contribution }
+		}
+		modifier = pu_overlord_bonus
+	}
+	modifier_subject = {
+		trigger = {
+			overlord = { has_government_attribute = personal_union_war_contribution }
+		}
+		modifier = pu_subject_bonus
+	}
 
 	overlord_opinion_modifier = in_union
 	subject_opinion_modifier = in_union
@@ -673,12 +713,19 @@ colony = {
 	start_colonial_war = yes
 	increase_tariffs = yes
 	decrease_tariffs = yes
+	enforce_culture = yes
 
 	# Modifiers:
 	modifier_overlord = {
 		modifier = large_colonial_nation
 		trigger = {
 			num_of_cities = 10
+		}
+	}
+	modifier_subject = {
+		modifier = new_world_exploitation_modifier
+		trigger = {
+			overlord = { has_government_attribute = extra_trade_goods_for_colonial_subjects }
 		}
 	}
 
@@ -709,6 +756,7 @@ crown_colony = {
 	takeondebt = yes
 	block_settlement_growth = yes
 	allow_settlement_growth = yes
+	enforce_culture = yes
 	
 	# Modifiers:
 	modifier_overlord = clear
@@ -738,6 +786,7 @@ private_enterprise = {
 	replace_governor = no
 	block_settlement_growth = no
 	allow_settlement_growth = no
+	enforce_culture = yes
 	
 	# Modifiers:	
 	modifier_overlord = clear
@@ -768,6 +817,7 @@ self_governing_colony = {
 	block_settlement_growth = no
 	allow_settlement_growth = no
 	press_sailors = no
+	enforce_culture = yes	
 	
 	# Modifiers:	
 	modifier_overlord = clear
@@ -790,31 +840,28 @@ tributary_state = {
 
 	# Triggers:
 	is_potential_overlord = {
-		has_dlc = "Mandate of Heaven"
-		NOT = { 
-			is_subject_of_type = tributary_state
-		}
 		OR = {
-			culture_group = gnollish
-			culture_group = ogre
-#			AND = {
-#				culture_group = ynnic_ruinborn_elf
-#				OR = {
-#					NOT = { is_at_war = yes }
-#					any_known_country = {
-#						war_with = ROOT
-#						NOT = { culture_group = ynnic_ruinborn_elf }
-#					}
-#				}
-#			}
-			has_reform = celestial_empire
-			has_government_attribute = has_tributaries
-			has_country_flag = can_create_tributaries_flag
-			has_country_flag = can_create_tributaries_flag_estate
-			is_nomad = yes
-			religion_group = eastern
-			technology_group = chinese
-			technology_group = polynesian_tech
+			AND = {
+				has_dlc = "Mandate of Heaven"
+				NOT = {
+					is_subject_of_type = tributary_state
+				}
+				OR = {
+					has_reform = celestial_empire
+					has_government_attribute = has_tributaries
+					has_country_flag = can_create_tributaries_flag
+					has_country_flag = can_create_tributaries_flag_estate
+					is_nomad = yes
+					#Anbennar - Removed unused vanilla stuff
+					#religion_group = eastern
+					#technology_group = chinese
+					#technology_group = polynesian_tech
+					#Anbennar
+					culture_group = gnollish
+					culture_group = ogre
+				}
+			}
+			has_country_flag = forced_tributary_state	#A special flag for the Ottomans so they can get Crimea without allowing them to make tributaries by default
 		}
 		#Anbennar
 		NOT = {
@@ -956,7 +1003,6 @@ autonomous_vassal = {
 	# Subject Interactions:
 	scutage = no
 	embargo_rivals = yes
-	place_relative_on_throne = yes
 	sacrifice_ruler = yes
 	sacrifice_heir = yes
 	divert_trade = yes
@@ -984,21 +1030,38 @@ autonomous_vassal = {
 		}
 	}
 	
-	#modifier_overlord = {	#Removed due to tribal growth being currently too high
-	#	modifier = cheshoshi_vassal_tribute_overlord
-	#	trigger = {
-	#		FROM = { religion = death_cult_of_cheshosh }
-	#		ROOT = { religion = death_cult_of_cheshosh }
-	#	}
-	#}
+	modifier_overlord = {	#Removed due to tribal growth being currently too high
+		modifier = cheshoshi_vassal_tribute_overlord
+		trigger = {
+			FROM = { religion = death_cult_of_cheshosh }
+			ROOT = { religion = death_cult_of_cheshosh }
+		}
+	}
 	
-	#modifier_subject = {
-	#	modifier = cheshoshi_vassal_tribute_subject
-	#	trigger = {
-	#		FROM = { religion = death_cult_of_cheshosh }
-	#		ROOT = { religion = death_cult_of_cheshosh }
-	#	}
-	#}
+	modifier_subject = {
+		modifier = cheshoshi_vassal_tribute_subject
+		trigger = {
+			FROM = { religion = death_cult_of_cheshosh }
+			ROOT = { religion = death_cult_of_cheshosh }
+		}
+	}
+	
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { NOT = { has_country_flag = funding_of_the_jade_march_upgraded_flag } }
+		}
+	}
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { has_country_flag = funding_of_the_jade_march_upgraded_flag }
+		}
+	}
 	
 	can_fight = {
 		independent_nations = yes
@@ -1063,11 +1126,11 @@ slave_state = {
 	should_quit_wars_on_activation = yes
 	
 	base_liberty_desire = -20.0
-	liberty_desire_negative_prestige = 0.25
-	liberty_desire_development_ratio = 0.25
+	liberty_desire_negative_prestige = 0.15
+	liberty_desire_development_ratio = 0.15
 	pays_overlord = 1.5									# 1.0 represents the amount payed by vassals
 	#forcelimit_bonus = 1								# 1.0 represents bonus from having a vassal
-	forcelimit_to_overlord = 0.25					# Percent of subject FL to use as base for modifiers
+	forcelimit_to_overlord = 0.15					# Percent of subject FL to use as base for modifiers
 	military_focus = 1.5								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
 	liberty_desire_revolution = 0.0
 
@@ -1103,8 +1166,47 @@ slave_state = {
 		trigger = {
 			tag = R81 # Jade March
 			is_subject_of = R62 # The Command
+			overlord = { NOT = { has_country_flag = funding_of_the_jade_march_upgraded_flag } }
 		}
 	}
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { has_country_flag = funding_of_the_jade_march_upgraded_flag }
+		}
+	}
+}
+
+subsidiary_command = {
+	copy_from = default
+
+	# Graphics:
+	sprite = GFX_icon_march
+	diplomacy_overlord_sprite = GFX_diplomacy_leadmarch
+	diplomacy_subject_sprite = GFX_diplomacy_weakmarch
+
+	# Properties
+	can_fight_independence_war = yes
+	joins_overlords_wars = no
+	can_have_subjects_of_other_types = yes
+	liberty_desire_development_ratio = 0.1
+	liberty_desire_same_dynasty = -10.0
+	pays_overlord = 0
+	relative_power_class = 2
+	liberty_desire_revolution = 10.0
+	can_concentrate_development = no
+	grant_province = no
+	can_ally = { same_overlord = subsidiary_command }
+	military_focus = 10
+	should_quit_wars_on_activation = yes
+
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+
+	modifier_overlord = clear
+	modifier_subject = clear
 }
 
 centaur_dominion = {
@@ -1709,9 +1811,9 @@ ynnic_iosahar = {
 	#can_be_established = { always = yes }				# Ditto
 	
 	# Graphics:
-	sprite = GFX_icon_vassal
-	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal
-	diplomacy_subject_sprite = GFX_diplomacy_amvassal
+	sprite = GFX_icon_iosahar
+	diplomacy_overlord_sprite = GFX_diplomacy_leadiosahar
+	diplomacy_subject_sprite = GFX_diplomacy_amiosahar
 
 	# Properties:
 	can_fight_independence_war = no
@@ -1778,6 +1880,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_1
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b	#Custom trigger created an error
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 1 }
 			NOT = { FROM = { ynnic_iosahar = 2 } }
 		}
@@ -1786,6 +1908,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_2
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 2 }
 			NOT = { FROM = { ynnic_iosahar = 3 } }
 		}
@@ -1794,6 +1936,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_3
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 3 }
 			NOT = { FROM = { ynnic_iosahar = 4 } }
 		}
@@ -1802,6 +1964,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_4
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 4 }
 			NOT = { FROM = { ynnic_iosahar = 5 } }
 		}
@@ -1810,6 +1992,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_5
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 5 }
 			NOT = { FROM = { ynnic_iosahar = 6 } }
 		}
@@ -1818,6 +2020,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_6
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 6 }
 			NOT = { FROM = { ynnic_iosahar = 7 } }
 		}
@@ -1826,6 +2048,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_7
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 7 }
 			NOT = { FROM = { ynnic_iosahar = 8 } }
 		}
@@ -1834,6 +2076,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_8
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 8 }
 			NOT = { FROM = { ynnic_iosahar = 9 } }
 		}
@@ -1842,6 +2104,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_9
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 9 }
 			NOT = { FROM = { ynnic_iosahar = 10 } }
 		}
@@ -1850,6 +2132,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_10
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 10 }
 			NOT = { FROM = { ynnic_iosahar = 11 } }
 		}
@@ -1858,6 +2160,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_11
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 11 }
 			NOT = { FROM = { ynnic_iosahar = 12 } }
 		}
@@ -1866,6 +2188,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_12
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 12 }
 			NOT = { FROM = { ynnic_iosahar = 13 } }
 		}
@@ -1874,6 +2216,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_13
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 13 }
 			NOT = { FROM = { ynnic_iosahar = 14 } }
 		}
@@ -1882,6 +2244,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_14
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 14 }
 			NOT = { FROM = { ynnic_iosahar = 15 } }
 		}
@@ -1890,6 +2272,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_15
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 15 }
 			NOT = { FROM = { ynnic_iosahar = 16 } }
 		}
@@ -1898,6 +2300,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_16
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 16 }
 			NOT = { FROM = { ynnic_iosahar = 17 } }
 		}
@@ -1906,6 +2328,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_17
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 17 }
 			NOT = { FROM = { ynnic_iosahar = 18 } }
 		}
@@ -1914,6 +2356,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_18
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 18 }
 			NOT = { FROM = { ynnic_iosahar = 19 } }
 		}
@@ -1922,6 +2384,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_19
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 19 }
 			NOT = { FROM = { ynnic_iosahar = 20 } }
 		}
@@ -1930,6 +2412,26 @@ ynnic_iosahar = {
 	modifier_subject = {
 		modifier = ynnic_iosahar_subject_20
 		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
 			FROM = { ynnic_iosahar = 20 }
 		}
 	}
@@ -2037,7 +2539,6 @@ twin_empire = {
 	# Subject Interactions:
 	scutage = no
 	embargo_rivals = yes
-	place_relative_on_throne = yes
 	sacrifice_ruler = yes
 	sacrifice_heir = yes
 	divert_trade = yes
@@ -2056,4 +2557,74 @@ twin_empire = {
 	modifier_overlord = {
 		modifier = vassal_subject
 	}
+}
+
+gylikheion = {
+	#If similar subject added check if it needs to be added to these scripted triggers:
+	#is_subject_except_tributary_trigger
+	#is_free_or_tributary_trigger
+	copy_from = default
+
+	# Triggers:
+	is_potential_overlord = {
+		OR = {
+			tag = G52
+			tag = G00
+		}
+	}
+	
+	# Graphics:
+	sprite = GFX_subject_tributary_state
+	diplomacy_overlord_sprite = GFX_diplomacy_leadtributary
+	diplomacy_subject_sprite = GFX_diplomacy_amtributary
+
+	# Properties:
+	joins_overlords_wars = no
+	overlord_can_attack = no
+	takes_diplo_slot = no
+	has_power_projection = no
+	can_release_in_peace = no
+	can_send_tribute = yes
+	uses_military_focus = no
+	can_concentrate_development = no
+	can_have_great_projects_moved_by_overlord = no
+	
+	max_government_rank = 2
+	
+	base_liberty_desire = 0.0
+	liberty_desire_negative_prestige = 1.0
+	liberty_desire_development_ratio = 0.2
+	
+	relative_power_class = 1 							# See description above
+	should_quit_wars_on_activation = yes
+	
+	can_fight = {
+	}
+	can_rival = {
+	}
+	can_ally = {
+	}
+	can_marry = {
+	}
+
+	# Subject Interactions:
+	# (continuous)
+	send_officers = yes
+	divert_trade = yes
+	# (immediate)
+	enforce_religion = yes
+	grant_province = no
+	grant_core_claim = no
+	takeondebt = yes
+	bestow_gifts = yes
+	send_additional_troops = yes
+	demand_artifacts = yes
+	conscript_general = yes
+	block_settlement_growth = no
+	allow_settlement_growth = no
+
+	# Modifiers:
+	modifier_subject = clear # Tributaries don't get the ordinary subject_nation penalty 
+	overlord_opinion_modifier = is_gylikheion
+	subject_opinion_modifier = is_gylikheion
 }
