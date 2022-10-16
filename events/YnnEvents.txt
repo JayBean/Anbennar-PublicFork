@@ -306,6 +306,7 @@ country_event = {	#Event used to turn someone into a Iosahar. Use ynn_events.20 
 		hidden_effect = {	#Clears alliances for Ynnic overlord
 			FROM = {
 				every_ally = {
+					limit = { capital_scope = { superregion = ynn_superregion } }
 					FROM = {
 						break_alliance = PREV
 					}
@@ -637,6 +638,7 @@ country_event = {	#Hidden event used to turn someone into a Iosahar. Use ynn_eve
 		hidden_effect = {	#Clears alliances for Ynnic overlord
 			FROM = {
 				every_ally = {
+					limit = { capital_scope = { superregion = ynn_superregion } }
 					FROM = {
 						break_alliance = PREV
 					}
@@ -713,7 +715,7 @@ country_event = {
 	major = yes
 	
 	trigger = {
-		owns = 1133
+		owns = 1133	#Adbrabohvi
 		any_country = {
 			has_discovered = 1133
 			NOT = {
@@ -1387,126 +1389,3227 @@ country_event = {
 	}
 }
 
-
-# country_event = { #Dam Maintenance
-	# id = ynn_events.23
-	# title = ynn_events.23.t
-	# desc = ynn_events.23.d
-	# picture = RELIGION_eventPicture
-
-	# is_triggered_only = yes
+country_event = { #Controller Event for Ynnic Floods and Dam Maintenance
+	id = ynn_events.100
+	title = ynn_events.100.t
+	desc = ynn_events.100.d
+	picture = SHIP_SAILING_eventPicture
 	
-	# trigger = {
-		# has_country_flag = ynn_recently_maintained_dam_flag
-	# }
-	
-	# option = { 
-		# name = ynn_events.23.a
-		# ai_chance = { factor = 1 }
-		# clr_country_flag = ynn_recently_maintained_dam_flag
-	# }
-# }
-
-country_event = { #Dam Maintenance
-	id = ynn_events.50
-	title = ynn_events.50.t
-	desc = ynn_events.50.d
-	picture = RELIGION_eventPicture
+	hidden = yes
 
 	is_triggered_only = yes
 	
 	trigger = {
-		OR = {
-			1186 = { #Mocbarja
-				owned_by = ROOT
-			}
-			1165 = { #Bosancovac
-				owned_by = ROOT
-			}
-			1138 = { #Vels Bacar
-				owned_by = ROOT
-			}
-			1133 = { #Adbrabohvi
-				owned_by = ROOT
-			}
-		}
-		capital_scope = {
-			superregion = ynn_superregion
-		}
-		NOT = {
-			has_country_flag = ynn_recently_maintained_dam_flag
+		any_owned_province = { 
+			province_group = ynn_riverside	#All the Dams are in this group
 		}
 	}
-	immediate = {
-		hidden_effect = {
+	
+	option = {
+		name = ynn_events.100.a
+		
+		#River Floods
+		every_owned_province = {
+			limit = {
+				province_group = ynn_riverside
+			}
 			random_list = {
 				1 = {
-					trigger = {
-						1186 = { #Mocbarja
-							owned_by = ROOT
-						}
+					modifier = {
+						factor = 10
+						has_global_flag = crimson_deluge_is_actively_happening
 					}
-					1186 = {
-						save_event_target_as = ynnic_dam_maintenance_event_target
+					modifier = {
+						factor = 2
+						NOT = { culture_group = ynnic_ruinborn_elf }	#More used to living alongside the Ynn's central banks
 					}
-				}
-				1 = {
-					trigger = {
-						1165 = { #Bosancovac
-							owned_by = ROOT
-						}
+					modifier = {
+						factor = 2
+						has_dlc = "Leviathan"
+						NOT = { ynn_upstream_dam_tier_1 = yes }		#Rzenta will fail this check no matter what as it lacks any dam to protect it
 					}
-					1165 = {
-						save_event_target_as = ynnic_dam_maintenance_event_target
+					modifier = {
+						factor = 0.5
+						has_dlc = "Leviathan"
+						ynn_upstream_dam_tier_2 = yes
 					}
-				}
-				1 = {
-					trigger = {
-						1138 = { #Vels Bacar
-							owned_by = ROOT
-						}
-					}
-					1138 = {
-						save_event_target_as = ynnic_dam_maintenance_event_target
+					province_event = {
+						id = ynn_events.106
+						days = 1
+						random = 720		#2 years delay max, as it's a 3 year pulse event
 					}
 				}
-				1 = {
-					trigger = {
-						1133 = { #Adbrabohvi
-							owned_by = ROOT
-						}
-					}
-					1133 = {
-						save_event_target_as = ynnic_dam_maintenance_event_target
-					}
+				99 = {
 				}
 			}
 		}
-	}
-	option = { #Let it Decay, we can't afford it.
-		name = ynn_events.50.a
-		ai_chance = { factor = 1 }
-		event_target:ynnic_dam_maintenance_event_target = {
-			
-		}
-	}
-	option = { #
-		name = ynn_events.50.b
-		ai_chance = { factor = 1 }
-	}
-	option = { #Let us hire dwarves to aid in it's construction!
-		name = ynn_events.50.c
-		ai_chance = { factor = 1 }
-		trigger = {
-			OR = {
-				any_known_country = {
-					tag = G94
+		
+		#Dam Maintenance
+		if = {
+			limit = { 
+				has_dlc = "Leviathan"
+			}
+			every_owned_province = {
+				limit = {
+					has_province_modifier = ynnic_dam_modifier
 				}
-				any_owned_province = {
-					has_dwarven_minority_trigger = yes
-					has_dwarven_majority_trigger = yes
+				random_list = {	#20-80 normally, 80-20 if there's devastation
+					20 = {
+						modifier = {
+							factor = 4
+							devastation = 1
+						}
+						modifier = {
+							factor = 0
+							has_province_modifier = ynnic_dam_recently_maintained
+						}
+						province_event = {
+							id = ynn_events.107
+							days = 1
+							random = 720		#2 years delay max, as it's a 3 year pulse event
+						}
+					}
+					80 = {
+						modifier = {
+							factor = 0.25
+							devastation = 1
+						}
+						modifier = {	#Damaged Dam requires immediate maintenance
+							factor = 0
+							NOT = {
+								has_great_project = {
+									type = ynnic_dam_adbrabohvi
+									tier = 1
+								}
+								has_great_project = {
+									type = ynnic_dam_vels_bacar
+									tier = 1
+								}
+								has_great_project = {
+									type = ynnic_dam_mocbarja
+									tier = 1
+								}
+								has_great_project = {
+									type = ynnic_dam_bosancovac
+									tier = 1
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 }
+
+country_event = { #Controller Event for General Flavour Events
+	id = ynn_events.101
+	title = ynn_events.101.t
+	desc = ynn_events.101.d
+	picture = SHIP_SAILING_eventPicture
+	
+	hidden = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+	}
+	
+	option = {
+		name = ynn_events.101.a
+		
+
+		random_list = {	
+		
+			###General Events###
+			
+			10 = {
+				modifier = {
+					factor = 0
+					OR = {
+						NOT = {
+							has_country_modifier = ynn_diplo
+						}
+						has_ruler_flag = defender_in_honour_joust
+						has_ruler_flag = offender_in_honour_joust
+						regency = yes
+						NOT = {
+							any_known_country = {
+								AND = {
+									NOT = {
+										has_ruler_flag = offender_in_honour_joust
+										has_ruler_flag = defender_in_honour_joust
+										regency = yes
+									}
+									OR = {
+										reverse_has_opinion_modifier = {
+											who = ROOT
+											modifier = scornfully_insulted
+										}
+										reverse_has_opinion_modifier = {
+											who = ROOT
+											modifier = insulted
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					is_monarch_leader = yes
+				}
+				modifier = {
+					factor = 2
+					ruler_has_personality = bold_fighter_personality
+				}
+				country_event = {
+					id = ynn_events.110		#We Must Demand Satisfaction
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.115		#The Blood of Lukaus
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.116		#Aspiring Hero on Potraga
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			###Events pertaining particular countries###
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							NOT = { has_country_modifier = ynn_brelari_cheap_iron }
+							G27 = {
+								exists = yes
+								owns = 2838	#Vers Argan
+								has_opinion = {
+									who = ROOT
+									value = 10
+								}
+							}
+							NOT = { tag = G27 }
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					ruler_has_personality = entrepreneur_personality
+				}
+				modifier = {
+					factor = 0.5
+					ruler_has_personality = greedy_personality
+				}
+				country_event = {
+					id = ynn_events.150		#Brelar Offers Cheap Iron
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							NOT = { has_country_flag = ynn_bellflowers_from_grebniesth }
+							G28 = {
+								exists = yes
+								owns = 1182	#Grebniesth
+								has_opinion = {
+									who = ROOT
+									value = 100
+								}
+								OR = {
+									alliance_with = ROOT
+									is_subject_of_type_with_overlord = {
+										who = ROOT
+										type = ynnic_iosahar
+									}
+								}
+							}
+							NOT = { tag = G28 }
+						}
+					}
+				}
+				country_event = {
+					id = ynn_events.151		#A Gift of Flowers!
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							G26 = {
+								exists = yes
+								owns = 1172	#Amacimst
+								NOT = {
+									has_opinion_modifier = {
+										who = ROOT
+										modifier = ynn_rejected_exiled_knight
+									}
+									has_opinion_modifier = {
+										who = ROOT
+										modifier = ynn_harbored_exiled_knight
+									}
+								}
+							}
+							NOT = { tag = G26 }
+						}
+					}
+				}
+				modifier = {		#Prefers to go to Ynn River Worshippers
+					factor = 0.5
+					NOT = {
+						religion = ynn_river_worship
+						religion = ynn_river_reformed
+					}
+				}
+				country_event = {
+					id = ynn_events.153		#Exiled Amethyst Knight
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							NOT = {
+								has_country_modifier = ynn_crossbreed_mounted_scouts
+							}
+							G34 = {	
+								exists = yes
+								owns = 1828	#Arganjuzorn
+								has_opinion = {
+									who = ROOT
+									value = 50
+								}
+							}
+						}
+					}
+				}
+				country_event = {
+					id = ynn_events.154		#Adopt the Epednar Crossmount for Scouting?
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							any_owned_province = {
+								province_group = ynn_riverside
+							}
+							NOT = {
+								any_owned_province = {
+									has_province_modifier = ynn_holy_merchant_port
+								}
+							}
+							OR = {
+								religion = ynn_river_worship
+								religion = ynn_river_reformed
+							}
+							G33 = {	
+								exists = yes
+								owns = 1165	#Bosancovac
+								OR = {
+									religion = ynn_river_worship
+									religion = ynn_river_reformed
+								}
+							}
+						}
+					}
+				}
+				country_event = {
+					id = ynn_events.155		#Holy Merchant Fleet Asks for a Port
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					NOT = {
+						AND = {
+							NOT = { has_country_modifier = ynn_stenurynn_teriyer }
+							H25 = {	
+								exists = yes
+								owns = 1135	#Stenurynn
+								OR = {
+									alliance_with = ROOT
+									is_subject_of_type_with_overlord = {
+										who = ROOT
+										type = ynnic_iosahar
+									}
+								}
+								trust = { 
+									who = ROOT 
+									value = 60 
+								}
+							}
+							NOT = { tag = H25 }
+						}
+					}
+				}
+				country_event = {
+					id = ynn_events.156		#Stenurynn gifts Teriyer!
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			###Events pertaining particular provinces###
+			
+			10 = {
+				modifier = {	#Prefers to go to Ynn River Worshippers
+					factor = 0.5
+					NOT = {
+						religion = ynn_river_worship
+						religion = ynn_river_reformed
+					}
+				}
+				modifier = {	#Malacnari Warrior - Riverblade rivalry
+					factor = 0.5
+					tag = G32
+				}
+				modifier = {	#Unlikely to serve enemies and rivals
+					factor = 0.25
+					1138 = {
+						owner = { 
+							OR = {
+								war_with = ROOT 
+								is_enemy = ROOT
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					OR = {
+						ruler_has_personality = well_connected_personality
+						ruler_has_personality = well_advised_personality
+					}
+				}
+				modifier = {	#Prefer working for a leader with a good reputation
+					factor = 0.5
+					OR = {
+						consort_has_personality = malevolent_personality
+						consort_has_personality = cruel_personality
+						consort_has_personality = sinner_personality
+						consort_has_personality = drunkard_personality
+						consort_has_personality = embezzler_personality
+						consort_has_personality = babbling_buffoon_personality
+					}
+				}
+				modifier = {	#School of the Riverblades needs Sarda culture and Ynn River Worship to operate
+					factor = 0
+					NOT = {
+						1138 = {
+							AND = {
+								culture = sarda
+								OR = {
+									religion = ynn_river_worship
+									religion = ynn_river_reformed
+								}
+							}
+						}
+					}
+				}
+				country_event = {
+					id = ynn_events.200		#School of Riverblades Graduate Offers Service
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {	#TODO
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.201		#Darantynn Palace
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {	#TODO
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.202		#Erandil Poison-Arrow
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {	#TODO
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.203		#Domfanynn
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {	#TODO
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.204		#Mara Luar
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.205		#Mage of the Academy of Rzenta
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.206		#False Rumours of Thromshana 
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			###Animals and Zodiacs###
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.300		#The King of the Stuir Balia
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.301		#Water Serpent Surfaces!
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.302		#Pet Snapping Otter?
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.305		#Village Swamped by Beavers
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.306		#Pet Ynnea Pig?
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.307		#Whitetail Fox Sighted!
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.308		#Stone Fish at the Feast!
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {	#TODO
+				#modifier = {
+				#	factor = 0
+				#}
+				country_event = {
+					id = ynn_events.311		#Rivarly between Sky and Water
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+			
+			10 = {
+				modifier = {
+					factor = 0
+					OR = {
+						NOT = { ruler_culture = dolindhan }
+						has_reform = malacnar_monarchy
+						NOT = {
+							AND = {
+								adm = 4
+								dip = 4
+								mil = 4
+							}
+						}
+						has_ruler_personality = craven_personality
+						has_ruler_modifier = ynn_wild_antler_horse_prestige
+						has_ruler_modifier = ynn_wild_antler_horse_battle
+					}
+				}
+				modifier = {
+					factor = 2
+					dynasty = "yen Drev"
+				}
+				modifier = {
+					factor = 2
+					has_personal_deity = ynn_zodiac_deity_1		#Antler Horse
+				}
+				country_event = {
+					id = ynn_events.312		#Taming a Wild Antler Horse
+					days = 1
+					random = 720		#2 years delay max, as it's a 3 year pulse event
+				}
+			}
+		}
+	}
+}
+
+province_event = { #Devastating Floods
+	id = ynn_events.106
+	title = ynn_events.106.t
+	desc = {
+		trigger = { NOT = { has_global_flag = crimson_deluge_is_actively_happening } }
+	   desc = ynn_events.106.d1
+	}
+	desc = {
+	   trigger = { has_global_flag = crimson_deluge_is_actively_happening }
+	   desc = ynn_events.106.d2
+	}
+	picture = FAMINE_eventPicture
+	
+	goto = ROOT
+
+	is_triggered_only = yes
+	
+	trigger = {
+		province_group = ynn_riverside
+		NOT = { 
+			AND = {
+				has_dlc = "Leviathan"
+				ynn_upstream_dam_tier_3 = yes 
+			}
+		}
+	}
+	
+	option = { #Pay for relief and reconstruction
+		name = ynn_events.106.a
+        ai_chance = {
+			factor = 10
+		}
+		trigger = {
+			NOT = { has_global_flag = crimson_deluge_is_actively_happening }
+		}
+		
+		owner = {
+			add_treasury = -50
+			add_yearly_manpower = -0.2
+		}
+	}
+	
+	option = { #Don't pay
+		name = ynn_events.106.b
+        ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				owner = { is_bankrupt = yes }
+			}
+			modifier = {
+				factor = 10
+				owner = { 
+					NOT = { capital_scope = { superregion = ynn_superregion } }
+				}
+			}
+		}
+		
+	   random_list = {
+			33 = {
+				add_base_tax = -1
+			}
+			33 = {
+				add_base_production = -1
+			}
+			33 = {
+				add_base_manpower = -1
+			}
+		}
+		add_devastation = 25
+	}
+}
+
+province_event = { #Dam Maintenance
+	id = ynn_events.107
+	title = ynn_events.107.t
+	desc = {
+		trigger = { 
+			OR = {
+				has_great_project = {
+					type = ynnic_dam_adbrabohvi
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_vels_bacar
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_mocbarja
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_bosancovac
+					tier = 1
+				}
+			}
+		}
+	   desc = ynn_events.107.d1
+	}
+	desc = {
+		trigger = { 
+			NOT = {
+				has_great_project = {
+					type = ynnic_dam_adbrabohvi
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_vels_bacar
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_mocbarja
+					tier = 1
+				}
+				has_great_project = {
+					type = ynnic_dam_bosancovac
+					tier = 1
+				}
+			}
+		}
+	   desc = ynn_events.107.d2
+	}
+	picture = GREAT_BUILDING_eventPicture
+	
+	goto = ROOT
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_modifier = ynnic_dam_modifier
+		has_dlc = "Leviathan"
+		#Has the Dam Monuments
+		OR = {
+			has_great_project = {
+				type = ynnic_dam_adbrabohvi
+				tier = 0
+			}
+			has_great_project = {
+				type = ynnic_dam_vels_bacar
+				tier = 0
+			}
+			has_great_project = {
+				type = ynnic_dam_mocbarja
+				tier = 0
+			}
+			has_great_project = {
+				type = ynnic_dam_bosancovac
+				tier = 0
+			}
+		}
+		#Dam Monument Usage Conditions Are Fulfilled
+		OR = {
+			province_is_or_accepts_religion_group = {
+				religion_group = ynnic
+			}
+			AND = {
+				culture_group = ynnic_ruinborn_elf
+				province_is_or_accepts_culture = yes
+			}
+		}
+		owner = { 
+			capital_scope = {
+				superregion = ynn_superregion
+			}
+		}
+		NOT = {
+			#Hasn't been maintained recently
+			has_province_modifier = ynnic_dam_recently_maintained
+			#dDam isn't currently being upgraded
+			has_construction = ynnic_dam_adbrabohvi	
+			has_construction = ynnic_dam_vels_bacar
+			has_construction = ynnic_dam_mocbarja
+			has_construction = ynnic_dam_bosancovac	
+		}
+	}
+	
+	option = { #Pay to maintain it
+		name = ynn_events.107.a
+		ai_chance = { factor = 10 }
+		
+		if = {
+			limit = {
+				OR = {
+					has_great_project = {
+						type = ynnic_dam_adbrabohvi
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_vels_bacar
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_mocbarja
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_bosancovac
+						tier = 1
+					}
+				}
+			}
+			owner = { add_treasury = -240 }
+			add_province_modifier = {
+				name = ynnic_dam_recently_maintained
+				duration = 11520	#32 years
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_adbrabohvi
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -300 }
+			add_great_project_tier = {
+				type = ynnic_dam_adbrabohvi
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_vels_bacar
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -300 }
+			add_great_project_tier = {
+				type = ynnic_dam_vels_bacar
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_mocbarja
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -300 }
+			add_great_project_tier = {
+				type = ynnic_dam_mocbarja
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_bosancovac
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -300 }
+			add_great_project_tier = {
+				type = ynnic_dam_bosancovac
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+	}
+	
+	option = { #Let it Decay, we can't afford it.
+		name = ynn_events.107.b
+        ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				owner = { is_bankrupt = yes }
+			}
+		}
+		if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_adbrabohvi
+					tier = 1
+				}
+			}
+			add_great_project_tier = {
+				type = ynnic_dam_adbrabohvi
+				tier = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_vels_bacar
+					tier = 1
+				}
+			}
+			add_great_project_tier = {
+				type = ynnic_dam_vels_bacar
+				tier = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_mocbarja
+					tier = 1
+				}
+			}
+			add_great_project_tier = {
+				type = ynnic_dam_mocbarja
+				tier = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_bosancovac
+					tier = 1
+				}
+			}
+			add_great_project_tier = {
+				type = ynnic_dam_bosancovac
+				tier = -1
+			}
+		}
+		else = {
+			custom_tooltip = ynn_flooding_downstream_tt
+			random_list = {
+				random = {
+					chance = 50
+					owner = { reduce_stability_or_adm_power = yes }
+				}
+			}
+		}
+		owner = { add_prestige = -5 }
+	}
+	
+	option = { #Let us hire dwarves to aid in its construction!
+		name = ynn_events.107.c
+        ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 2
+				owner = { 
+					OR = {
+						wants_to_increase_tolerance_dwarven = yes
+						high_tolerance_dwarven_race_trigger = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0.5
+				owner = {
+					OR = {
+						wants_to_decrease_tolerance_dwarven = yes
+						low_tolerance_dwarven_race_trigger = yes
+					}
+				}
+			}
+		}
+		trigger = {
+			owner = {
+				OR = {
+					any_known_country = {
+						culture_is_dwarven = yes
+					}
+					any_owned_province = {
+						has_dwarven_minority_trigger = yes
+						has_dwarven_majority_trigger = yes
+					}
+				}
+				NOT = {
+					has_country_modifier = racial_pop_dwarven_expulsion
+					has_country_modifier = racial_pop_dwarven_purge
+				}
+			}
+		}
+		highlight = yes
+		
+		owner = { small_increase_of_dwarven_tolerance_effect = yes }
+		if = {
+			limit = {
+				OR = {
+					has_great_project = {
+						type = ynnic_dam_adbrabohvi
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_vels_bacar
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_mocbarja
+						tier = 1
+					}
+					has_great_project = {
+						type = ynnic_dam_bosancovac
+						tier = 1
+					}
+				}
+			}
+			owner = { add_treasury = -300 }
+			add_province_modifier = {
+				name = ynnic_dam_recently_maintained
+				duration = 14400	#40 years
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_adbrabohvi
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -350 }
+			add_great_project_tier = {
+				type = ynnic_dam_adbrabohvi
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_vels_bacar
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -350 }
+			add_great_project_tier = {
+				type = ynnic_dam_vels_bacar
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_mocbarja
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -350 }
+			add_great_project_tier = {
+				type = ynnic_dam_mocbarja
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_great_project = {
+					type = ynnic_dam_bosancovac
+					tier = 0
+				}
+			}
+			owner = { add_treasury = -350 }
+			add_great_project_tier = {
+				type = ynnic_dam_bosancovac
+				tier = 1
+			}
+			tooltip = {
+				add_province_modifier = {
+					name = ynnic_dam_recently_maintained
+					duration = 7200		#20 years
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				NOT = {
+					has_great_project = {
+						type = ynnic_dam_adbrabohvi
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_vels_bacar
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_mocbarja
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_bosancovac
+						tier = 3
+					}
+				}
+			}
+			add_province_modifier = {
+				name = ynnic_dam_overseen_by_dwarves
+				duration = 3600	#10 years
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_great_project = {
+						type = ynnic_dam_adbrabohvi
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_vels_bacar
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_mocbarja
+						tier = 3
+					}
+					has_great_project = {
+						type = ynnic_dam_bosancovac
+						tier = 3
+					}
+				}
+			}
+			custom_tooltip = on_dam_upgrade_tt_1
+			hidden_effect = {
+				every_province_in_state = {
+					add_base_production = 1
+				}
+			}
+		}
+		random = {
+			chance = 50
+			add_dwarven_minority_size_effect = yes
+		}
+	}
+}
+
+country_event = { #We must demand Satisfaction
+	id = ynn_events.110
+	title = ynn_events.110.t
+	desc = ynn_events.110.d 
+	picture = ACCUSATION_eventPicture
+	
+	goto = event_target:ynn_joust_offender_capital
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		has_country_modifier = ynn_diplo
+		NOT = {
+			has_ruler_flag = defender_in_honour_joust
+			has_ruler_flag = offender_in_honour_joust
+			regency = yes
+		}
+		any_known_country = {
+			NOT = {
+				has_ruler_flag = offender_in_honour_joust
+				has_ruler_flag = defender_in_honour_joust
+				regency = yes
+			}
+			OR = {
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = scornfully_insulted
+				}
+				reverse_has_opinion_modifier = {
+					who = ROOT
+					modifier = insulted
+				}
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			set_ruler_flag = defender_in_honour_joust
+			save_event_target_as = ynn_joust_defender
+			capital_scope = { save_event_target_as = ynn_joust_defender_capital }
+			random_known_country = {
+				limit = {
+					OR = {
+						reverse_has_opinion_modifier = {
+							who = ROOT
+							modifier = scornfully_insulted
+						}
+						reverse_has_opinion_modifier = {
+							who = ROOT
+							modifier = insulted
+						}
+					}
+				}
+				set_ruler_flag = offender_in_honour_joust 
+				save_event_target_as = ynn_joust_offender
+				capital_scope = { save_event_target_as = ynn_joust_offender_capital }
+			}
+		}
+	}
+
+	option = { #They must answer for their words
+		name = ynn_events.110.a 
+		ai_chance = {
+			factor = 10
+		}
+		event_target:ynn_joust_offender = {
+			country_event = {
+				id = ynn_events.111
+				days = 5
+			}
+		}
+		custom_tooltip = ynn_joust_tt
+	}
+
+	option = { #This is a stupid idea
+		name = ynn_events.110.b 
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				ruler_has_personality = careful_personality
+			}
+			modifier = {
+				factor = 100
+				ruler_has_personality = craven_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = bold_fighter_personality
+			}
+			modifier = {
+				factor = 0.5
+				is_monarch_leader = yes
+			}
+			modifier = {
+				factor = 5
+				event_target:ynn_joust_offender = { mil = 4 }
+				NOT = { mil = 3 }
+			}
+			modifier = {
+				factor = 5
+				event_target:ynn_joust_offender = { ruler_has_mage_personality = yes }
+				NOT = { ruler_has_mage_personality = yes }
+			}
+		}
+		add_prestige = -10
+		add_legitimacy = -5
+		add_republican_tradition = -3
+		add_devotion = -5
+		clr_ruler_flag = defender_in_honour_joust
+		event_target:ynn_joust_offender = { clr_ruler_flag = offender_in_honour_joust }
+	}
+}
+
+country_event = {	#The gauntlet has been thrown
+	id = ynn_events.111
+	title = ynn_events.111.t
+	desc = ynn_events.111.d 
+	picture = NOBLE_ESTATE_DEMANDS_eventPicture
+	
+	goto = event_target:ynn_joust_defender_capital
+
+	is_triggered_only = yes 
+	
+	trigger = {
+		NOT = {
+			regency = yes
+		}
+		has_ruler_flag = offender_in_honour_joust
+	}
+
+	option = { #I will prove my words with steel
+		name = ynn_events.111.a 
+		ai_chance = {
+			factor = 10
+		}
+		custom_tooltip = ynn_joust_tt
+		hidden_effect = {
+			set_variable = {
+				which = offenderJoustPower
+				value = 0
+			}
+			set_variable = {
+				which = defenderJoustPower
+				value = 0
+			}
+			
+			###	Offender Joust Power	###
+			
+			event_target:ynn_joust_offender = {
+				trigger_switch = {
+					on_trigger = mil
+					6 = { 
+						ROOT = {
+							change_variable = {
+								which = offenderJoustPower
+								value = 10
+							}
+						}
+					}
+					5 = { 
+						ROOT = {
+							change_variable = {
+								which = offenderJoustPower
+								value = 8
+							}
+						}
+					}
+					4 = { 
+						ROOT = {
+							change_variable = {
+								which = offenderJoustPower
+								value = 6
+							}
+						}
+					}
+					3 = { 
+					}
+					2 = { 
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 2
+							}
+						}
+					}
+					1 = { 
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 3
+							}
+						}
+					}
+					0 = { 
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 4
+							}
+						}
+					}
+				}
+				trigger_switch = {
+					on_trigger = ruler_age
+					60 = {
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 3
+							}
+						}
+					}
+					50 = {
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 2
+							}
+						}
+					}
+					40 = {
+						ROOT = {
+							subtract_variable = {
+								which = offenderJoustPower
+								value = 1
+							}
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = bold_fighter_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = strict_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = martial_educator_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = tactical_genius_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_mage_personality = yes
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 5
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = great_conqueror_personality 
+						ROOT = { ai = no }
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 7
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = mythical_conqueror_personality 
+						ROOT = { ai = no }
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 10
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = conqueror_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = craven_personality 
+					}
+					ROOT = {
+						subtract_variable = {
+							which = offenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						OR = {
+							tag = G35
+							was_tag = G35
+						}
+						if = {
+							limit = {
+								OR = {	#Scaled on the battle modifiers each lance gives
+									has_country_modifier = G35_lance_1_1
+									has_country_modifier = G35_lance_1_3
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = offenderJoustPower
+									value = 1
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_2_1
+									has_country_modifier = G35_lance_2_3
+									has_country_modifier = G35_lance_1_2
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = offenderJoustPower
+									value = 2
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_3_1
+									has_country_modifier = G35_lance_3_3
+									has_country_modifier = G35_lance_2_2
+									has_country_modifier = G35_lance_3_2
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = offenderJoustPower
+									value = 3
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_4_1
+									has_country_modifier = G35_lance_4_3
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = offenderJoustPower
+									value = 4
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								has_country_modifier = G35_lance_4_2
+							}
+							ROOT = {
+								add_variable = {
+									which = offenderJoustPower
+									value = 5
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			###	Defender Power Power	###
+			
+			event_target:ynn_joust_defender = {
+				trigger_switch = {
+					on_trigger = mil
+					6 = { 
+						ROOT = {
+							change_variable = {
+								which = defenderJoustPower
+								value = 10
+							}
+						}
+					}
+					5 = { 
+						ROOT = {
+							change_variable = {
+								which = defenderJoustPower
+								value = 8
+							}
+						}
+					}
+					4 = { 
+						ROOT = {
+							change_variable = {
+								which = defenderJoustPower
+								value = 6
+							}
+						}
+					}
+					3 = { 
+					}
+					2 = { 
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 2
+							}
+						}
+					}
+					1 = { 
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 3
+							}
+						}
+					}
+					0 = { 
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 4
+							}
+						}
+					}
+				}
+				trigger_switch = {
+					on_trigger = ruler_age
+					60 = {
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 3
+							}
+						}
+					}
+					50 = {
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 2
+							}
+						}
+					}
+					40 = {
+						ROOT = {
+							subtract_variable = {
+								which = defenderJoustPower
+								value = 1
+							}
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = bold_fighter_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = strict_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = martial_educator_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = tactical_genius_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_mage_personality = yes
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 5
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = great_conqueror_personality 
+						ROOT = { ai = no }
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 7
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = mythical_conqueror_personality 
+						ROOT = { ai = no }
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 10
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = conqueror_personality 
+					}
+					ROOT = {
+						change_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ruler_has_personality = craven_personality 
+					}
+					ROOT = {
+						subtract_variable = {
+							which = defenderJoustPower
+							value = 4
+						}
+					}
+				}
+				if = {
+					limit = { 
+						OR = {
+							tag = G35
+							was_tag = G35
+						}
+						if = {
+							limit = {
+								OR = {	#Scaled on the battle modifiers each lance gives
+									has_country_modifier = G35_lance_1_1
+									has_country_modifier = G35_lance_1_3
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = defenderJoustPower
+									value = 1
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_2_1
+									has_country_modifier = G35_lance_2_3
+									has_country_modifier = G35_lance_1_2
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = defenderJoustPower
+									value = 2
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_3_1
+									has_country_modifier = G35_lance_3_3
+									has_country_modifier = G35_lance_2_2
+									has_country_modifier = G35_lance_3_2
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = defenderJoustPower
+									value = 3
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									has_country_modifier = G35_lance_4_1
+									has_country_modifier = G35_lance_4_3
+								}
+							}
+							ROOT = {
+								add_variable = {
+									which = defenderJoustPower
+									value = 4
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								has_country_modifier = G35_lance_4_2
+							}
+							ROOT = {
+								add_variable = {
+									which = defenderJoustPower
+									value = 5
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { #I am too cowardly
+		name = ynn_events.111.b 
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 5
+				NOT = { has_country_modifier = ynn_diplo }	#You care less about chivalry and jousts
+			}
+			modifier = {
+				factor = 5
+				ruler_has_personality = careful_personality
+			}
+			modifier = {
+				factor = 100
+				ruler_has_personality = craven_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = bold_fighter_personality
+			}
+			modifier = {
+				factor = 0.5
+				is_monarch_leader = yes
+			}
+			modifier = {
+				factor = 5
+				FROM = { mil = 4 }
+				NOT = { mil = 3 }
+			}
+			modifier = {
+				factor = 5
+				FROM = { ruler_has_mage_personality = yes }
+				NOT = { ruler_has_mage_personality = yes }
+			}
+		}
+		add_prestige = -10
+		add_ruler_modifier = {
+			name = ynn_refused_duel_of_honour
+			duration = -1
+		}
+		FROM = {
+			country_event = {
+				id = ynn_events.114
+			}
+		}
+		clr_ruler_flag = offender_in_honour_joust
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_ruler_flag = offender_in_honour_joust
+			}
+			hidden_effect = {
+				subtract_variable = {
+					which = defenderJoustPower
+					which = offenderJoustPower
+				}
+			}
+			log = "Current Defender Joust Power is [Root.defenderJoustPower.GetValue]"
+			hidden_effect = {
+				if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 10 
+						} 
+					}
+					save_event_target_as = ynn_joust_loser
+					random = {
+						chance = 50
+						set_ruler_flag = brutally_unhorsed
+					}
+					FROM = {
+						save_event_target_as = ynn_joust_winner
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = {
+							which = defenderJoustPower 
+							value = 9
+						} 
+					}
+					random_list = {
+						95 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 30
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						05 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 8
+						} 
+					}
+					random_list = {
+						90 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 30
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						10 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 7
+						} 
+					}
+					random_list = {
+						85 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 25
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						15 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 6
+						} 
+					}
+					random_list = {
+						80 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 20
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						20 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 5
+						} 
+					}
+					random_list = {
+						75 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 15
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						25 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 4 
+						} 
+					}
+					random_list = {
+						70 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 10
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						30 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower
+							value = 3 
+						} 
+					}
+					random_list = {
+						65 = {
+							save_event_target_as = ynn_joust_loser
+							random = {
+								chance = 05
+								set_ruler_flag = brutally_unhorsed
+							}
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						35 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 2 
+						} 
+					}
+					random_list = {
+						60 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						40 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 1
+						} 
+					}
+					random_list = {
+						55 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						45 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = 0 
+						} 
+					}
+					random_list = {
+						50 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						50 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -1 
+						} 
+					}
+					random_list = {
+						45 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						55 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -2 
+						} 
+					}
+					random_list = {
+						40 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						60 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -3 
+						} 
+					}
+					random_list = {
+						35 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						65 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 05
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -4 
+						} 
+					}
+					random_list = {
+						30 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						70 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 10
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -5 
+						} 
+					}
+					random_list = {
+						25 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						75 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 15
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -6
+						} 
+					}
+					random_list = {
+						20 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						80 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 20
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -7
+						} 
+					}
+					random_list = {
+						15 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						85 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 25
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -8
+						} 
+					}
+					random_list = {
+						10 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						90 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 30
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = { 
+						check_variable = { 
+							which = defenderJoustPower 
+							value = -9
+						} 
+					}
+					random_list = {
+						05 = {
+							save_event_target_as = ynn_joust_loser
+							FROM = {
+								save_event_target_as = ynn_joust_winner
+							}
+						}
+						95 = {
+							save_event_target_as = ynn_joust_winner
+							FROM = {
+								save_event_target_as = ynn_joust_loser
+								random = {
+									chance = 30
+									set_ruler_flag = brutally_unhorsed
+								}
+							}
+						}
+					}
+				}
+				else = {
+					save_event_target_as = ynn_joust_winner
+					FROM = {
+						save_event_target_as = ynn_joust_loser
+						random = {
+							chance = 50
+							set_ruler_flag = brutally_unhorsed
+						}
+					}
+				}
+			}
+			event_target:ynn_joust_winner = {
+				country_event = {
+					id = ynn_events.112
+					days = 5
+				}
+			}
+			event_target:ynn_joust_loser = {
+				country_event = {
+					id = ynn_events.113
+					days = 5
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Joust is won 
+	id = ynn_events.112
+	title = ynn_events.112.t 
+	desc = ynn_events.112.d
+
+	picture = TOURNAMENT_eventPicture
+
+	is_triggered_only = yes 
+
+	trigger = {
+		OR = {
+			has_ruler_flag = offender_in_honour_joust
+			has_ruler_flag = defender_in_honour_joust
+		}
+		NOT = {
+			regency = yes
+		}
+	}
+
+	option = {
+		name = ynn_events.112.a 
+		ai_chance = {
+			factor = 100
+		}
+		add_country_modifier = {
+			name = ynn_honour_joust_won
+			duration = 3650
+		}
+		add_prestige = 20
+		if = {
+			limit = {
+				event_target:ynn_joust_loser = { has_ruler_flag = brutally_unhorsed }
+			}
+			tooltip = {
+				event_target:ynn_joust_loser = {
+					random = {
+						chance = 50
+						kill_ruler = yes
+					}
+				}
+			}
+		}
+		add_legitimacy = 10
+		add_devotion = 10
+		add_scaled_republican_tradition = 5
+		hidden_effect = {
+			clr_ruler_flag = defender_in_honour_joust
+			clr_ruler_flag = offender_in_honour_joust
+			clr_ruler_flag = brutally_unhorsed
+			remove_opinion = {
+				who = event_target:ynn_joust_loser
+				modifier = insulted
+			}
+			remove_opinion = {
+				who = event_target:ynn_joust_loser
+				modifier = scornfully_insulted
+			}
+		}
+	}
+}
+
+country_event = { #Joust is lost 
+	id = ynn_events.113
+	title = ynn_events.113.t 
+	desc = ynn_events.113.d
+	
+	picture = TOURNAMENT_eventPicture
+
+	is_triggered_only = yes 
+
+	trigger = {
+		OR = {
+			has_ruler_flag = offender_in_honour_joust
+			has_ruler_flag = defender_in_honour_joust
+		}
+		NOT = {
+			regency = yes
+		}
+	}
+
+	option = {
+		name = ynn_events.113.a 
+		ai_chance = {
+			factor = 100
+		}
+		add_country_modifier = {
+			name = ynn_honour_joust_lost
+			duration = 3650
+		}
+		add_prestige = -20
+		if = {
+			limit = {
+				has_ruler_flag = brutally_unhorsed
+			}
+			random = {
+				chance = 50
+				kill_ruler = yes
+			}
+		}
+		add_legitimacy = -10
+		add_devotion = -10
+		add_scaled_republican_tradition = -5
+		hidden_effect = {
+			clr_ruler_flag = defender_in_honour_joust
+			clr_ruler_flag = offender_in_honour_joust
+			clr_ruler_flag = brutally_unhorsed
+			remove_opinion = {
+				who = FROM
+				modifier = insulted
+			}
+			remove_opinion = {
+				who = FROM
+				modifier = scornfully_insulted
+			}
+		}
+	}
+}
+
+country_event = { #The coward refused our challenge
+	id = ynn_events.114
+	title = ynn_events.114.t 
+	desc = ynn_events.114.d
+	picture = KING_DOING_GREAT_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_ruler_flag = defender_in_honour_joust
+	}
+
+	option = {
+		name = ynn_events.114.a 
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 10
+		add_country_modifier = {
+			name = ynn_insults_proven_wrong
+			duration = 3650
+		}
+		add_legitimacy = 5
+		add_devotion = 5
+		add_scaled_republican_tradition = 3
+		hidden_effect = {
+			clr_ruler_flag = defender_in_honour_joust
+			FROM = { clr_ruler_flag = offender_in_honour_joust }
+			remove_opinion = {
+				who = event_target:ynn_joust_loser
+				modifier = insulted
+			}
+			remove_opinion = {
+				who = event_target:ynn_joust_loser
+				modifier = scornfully_insulted
+			}
+		}
+	}
+}
+
+country_event = { #Brelar Offers Cheap Iron
+	id = ynn_events.150
+	title = ynn_events.150.t
+	desc = ynn_events.150.d
+	picture = TRADE_GOODS_METALS_AND_MINING_EQUIPENT_eventPicture
+	
+	goto = 2838
+
+	is_triggered_only = yes
+	
+	trigger = {
+		capital_scope = { superregion = ynn_superregion }
+		NOT = { has_country_modifier = ynn_brelari_cheap_iron }
+		G27 = {
+			exists = yes
+			owns = 2838	#Vers Argan
+			has_opinion = {
+				who = ROOT
+				value = 10
+			}
+		}
+		NOT = { tag = G27 }
+	}
+	
+	option = { #Accept
+		name = ynn_events.150.a
+        ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0.5
+				NOT = {
+					trust = { who = G27 value = 40 }
+				}
+			}
+			modifier = {
+				factor = 0.5
+				NOT = {	
+					has_opinion = {
+						who = G27
+						value = 10
+					}
+				}
+			}
+			modifier = {
+				factor = 0.2
+				is_bankrupt = yes
+			}
+		}
+		
+		add_years_of_income = -0.15
+		add_country_modifier = {
+			name = ynn_brelari_cheap_iron
+			duration = 3600
+		}
+		add_opinion = {
+			who = G27
+			modifier = opinion_grateful
+		}
+		add_trust = {
+			who = G27
+			value = 10
+			mutual = no
+		}
+	}
+	
+	option = { #Decline
+		name = ynn_events.150.b
+        ai_chance = {
+			factor = 5
+		}
+		add_prestige = -5
+	}
+}
+
+country_event = {	#A Gift of Flowers
+	id = ynn_events.151
+	title = ynn_events.151.t
+	desc = ynn_events.151.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+	
+	goto = 1182
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		NOT = { has_country_flag = ynn_bellflowers_from_grebniesth }
+		G28 = {
+			exists = yes
+			owns = 1182	#Grebniesth
+			has_opinion = {
+				who = ROOT
+				value = 100
+			}
+			OR = {
+				alliance_with = ROOT
+				is_subject_of_type_with_overlord = {
+					who = ROOT
+					type = ynnic_iosahar
+				}
+			}
+		}
+		NOT = { tag = G28 }
+	}
+
+	option = {
+		name = ynn_events.151.a
+		ai_chance = {
+			factor = 100
+		}
+		add_prestige = 5
+		add_country_modifier = {
+			name = ynn_grebniesther_bellflowers
+			duration = 3650
+		}
+		add_trust = {
+			who = G28
+			value = 10
+			mutual = yes
+		}
+		hidden_effect = {
+			set_country_flag = ynn_bellflowers_from_grebniesth
+			country_event = {
+				id = ynn_events.152
+				days = 180
+				random = 720	#Bellflowers take two years to bloom on average
+			}
+		}
+	}
+}
+
+country_event = {	#Bellflowers in bloom
+	id = ynn_events.152
+	title = ynn_events.152.t
+	desc = ynn_events.152.t
+	picture = SURAKES_SUN_GARDEN_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = ynn_bellflowers_from_grebniesth
+	}
+
+	option = {
+		name = ynn_events.152.a
+		ai_chance = {
+			factor = 100
+		}
+		capital_scope = {
+			add_province_modifier = {
+				name = ynn_wonderful_bellflower_garden
+				duration = -1
+			}
+		}
+	}
+}
+
+country_event = {	#Exiled amethyst knight
+	id = ynn_events.153
+	title = ynn_events.153.t
+	desc = ynn_events.153.d
+	picture = NOBLE_ESTATE_eventPicture
+	
+	goto = 1172
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		G26 = {
+			exists = yes
+			owns = 1172	#Amacimst
+			NOT = {
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = ynn_rejected_exiled_knight
+				}
+				has_opinion_modifier = {
+					who = ROOT
+					modifier = ynn_harbored_exiled_knight
+				}
+			}
+		}
+		NOT = { tag = G26 }
+	}
+
+	option = {
+		name = ynn_events.153.a 
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 90
+				ruler_has_personality = conqueror_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = great_conqueror_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = mythical_conqueror_personality
+			}
+		}
+		create_general = {
+			tradition = 60
+			culture = dolindhan
+		}
+		add_trust = {
+			who = G26
+			value = -5
+			mutual = yes
+		}
+		G26 = {
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_harbored_exiled_knight
+			}
+		}
+	}
+
+	option = {
+		name = ynn_events.153.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 90
+				ruler_has_personality = zealot_personality
+			}
+		}
+		add_trust = {
+			who = G26
+			value = 5
+			mutual = yes
+		}
+		G26 = {
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_rejected_exiled_knight
+			}
+		}
+	}
+}
+
+country_event = {	#Adopt epednar crossmount for scouting?
+	id = ynn_events.154
+	title = ynn_events.154.t
+	desc = ynn_events.154.d
+	picture = HORDE_ON_HORSEBACK_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		NOT = {
+			has_country_modifier = ynn_crossbreed_mounted_scouts
+		}
+		G34 = {	
+			exists = yes
+			owns = 1828	#Arganjuzorn
+			has_opinion = {
+				who = ROOT
+				value = 50
+			}
+		}
+	}
+
+	option = {
+		name = ynn_events.154.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				ruler_has_personality = greedy_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = conqueror_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = great_conqueror_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = mythical_conqueror_personality
+			}
+		}
+		add_treasury = -100
+		add_country_modifier = {
+			name = ynn_crossbreed_mounted_scouts
+			duration = 3650
+		}
+	}
+
+	option = {
+		name = ynn_events.154.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = 10
+	}
+}
+
+country_event = {	#Holy merchant fleet asks for a port
+	id = ynn_events.155
+	title = ynn_events.155.t
+	desc = ynn_events.155.d
+	picture = NAVAL_MILITARY_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		any_owned_province = {
+			province_group = ynn_riverside
+		}
+		NOT = {
+			any_owned_province = {
+				has_province_modifier = ynn_holy_merchant_port
+			}
+		}
+		OR = {
+			religion = ynn_river_worship
+			religion = ynn_river_reformed
+		}
+		G33 = {	
+			exists = yes
+			owns = 1165	#Bosancovac
+			OR = {
+				religion = ynn_river_worship
+				religion = ynn_river_reformed
+			}
+		}
+	}
+
+	option = {
+		name = ynn_events.155.a
+		ai_chance = {
+			factor = 60
+			modifier = {
+				factor = 90
+				ruler_has_personality = naive_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = entrepreneur_personality
+			}
+			modifier = {
+				factor = 90
+				ruler_has_personality = embezzler_personality
+			}
+			modifier = {
+				factor = 0
+				ruler_has_personality = secretive_personality
+			}
+		}
+		add_years_of_income = 0.5
+		add_prestige = -5
+		add_mercantilism = -5
+		random_owned_province = {
+			limit = {
+				province_group = ynn_riverside
+			}
+			add_province_modifier = {
+				name = ynn_holy_merchant_port
+				duration = 3650
+			}
+		}
+	}
+
+	option = {
+		name = ynn_events.155.b
+		ai_chance = {
+			factor = 50
+		}
+		add_prestige = 5
+		add_mercantilism = 5
+	}
+}
+
+country_event = {	#Stenurynn gifts Teriyer
+	id = ynn_events.156
+	title = ynn_events.156.t
+	desc = ynn_events.156.d
+	picture = NOBLE_ESTATE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+		NOT = { has_country_modifier = ynn_stenurynn_teriyer }
+		H25 = {	
+			exists = yes
+			owns = 1135	#Stenurynn
+			OR = {
+				alliance_with = ROOT
+				is_subject_of_type_with_overlord = {
+					who = ROOT
+					type = ynnic_iosahar
+				}
+			}
+			trust = { 
+				who = ROOT 
+				value = 60 
+			}
+		}
+		NOT = { tag = H25 }
+	}
+
+	option = {
+		name = ynn_events.156.a
+		ai_chance = {
+			factor = 100
+		}
+		add_opinion = {
+			who = H25
+			modifier = ynn_gifted_puppy
+		}
+		add_trust = {
+			who = H25
+			value = 5
+			mutual = yes
+		}
+		add_country_modifier = {
+			name = ynn_stenurynn_teriyer
+			duration = 5475
+		}
+	}
+}
+
+country_event = { #School of Riverblades Graduate Offers Service
+	id = ynn_events.200
+	title = ynn_events.200.t
+	desc = {
+		trigger = { 
+			NOT = {
+				capital_scope = { province_id = 1138 }
+			}
+		}
+	   desc = ynn_events.200.d1
+	}
+	desc = {
+		trigger = { 
+			capital_scope = { province_id = 1138 }
+		}
+	   desc = ynn_events.200.d2
+	}
+	picture = GENERALS_DISCUSSING_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		capital_scope = { superregion = ynn_superregion }
+		1138 = {
+			culture = sarda
+			OR = {
+				religion = ynn_river_worship
+				religion = ynn_river_reformed
+			}
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+			1138 = { save_event_target_as = vels_bacar_target }
+			#event_target:vels_bacar_target = {	#Name generation commented out because it requires define_general which doesn't accept random skill
+			#	root = {
+			#		set_saved_name = {
+			#			key = ynn_riverblade_graduate_name
+			#			type = advisor
+			#			scope = prev
+			#		}
+			#	}
+			#}
+		}
+	}
+	
+	option = { #Make them an advisor
+		name = ynn_events.200.a
+        ai_chance = {
+			factor = 10
+		}
+		
+		define_advisor = {
+			#name = ynn_riverblade_graduate_name
+			type = commandant
+			skill = 2
+			culture = sarda
+			discount = yes
+			religion = event_target:vels_bacar_target
+		}
+		
+		#clear_saved_name = ynn_riverblade_graduate_name
+	}
+	
+	option = { #Make them a general
+		name = ynn_events.200.b
+        ai_chance = {
+			factor = 10
+		}
+		
+		if = {		#Quality is proportional to the army tradition of Vels Bacar's owner
+			limit = {
+				1138 = { owner =  { army_tradition = 50 } }
+			}
+			create_general = {
+				tradition = 100
+				add_fire = 2
+			}
+		}
+		else_ = {
+			create_general = {
+				tradition = 50
+				add_fire = 1
+			}
+		}
+		
+		#clear_saved_name = ynn_riverblade_graduate_name
+	}
+}
+
+country_event = { #Your Ruler Tames a Wild Antler Horse
+	id = ynn_events.312
+	title = ynn_events.312.t
+	desc = ynn_events.312.d
+	picture = FEYFOREST_eventPicture
+
+	is_triggered_only = yes
+	
+	trigger = {
+		capital_scope = { superregion = ynn_superregion }
+		ruler_culture = dolindhan
+		NOT = { has_reform = malacnar_monarchy }
+		adm = 4
+		dip = 4
+		mil = 4
+		NOT = { 
+			has_ruler_modifier = ynn_wild_antler_horse_prestige 
+			has_ruler_modifier = ynn_wild_antler_horse_battle
+			has_ruler_personality = craven_personality
+		}
+	}
+	
+	option = { #Ride it in ceremonies
+		name = ynn_events.312.a
+		add_ruler_modifier = {
+			name = ynn_wild_antler_horse_prestige
+			duration = -1
+		}
+	}	
+	
+	option = { #Ride it in Battle
+		name = ynn_events.312.b
+		if = {
+			limit = {
+				is_female = no
+				NOT = { is_monarch_leader = yes }
+			}
+			convert_ruler_to_general = 70
+		}
+		else_if = {
+			limit = {
+				is_female = yes
+				NOT = { is_monarch_leader = yes }
+			}
+			convert_female_ruler_to_general = 70
+		}
+		add_ruler_modifier = {
+			name = ynn_wild_antler_horse_battle
+			duration = -1
+		}
+	}
+}
+
+
