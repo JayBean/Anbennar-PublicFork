@@ -1011,8 +1011,21 @@ tluukt_2 = {
 		position = 11
 		
 		provinces_to_highlight = {
-			owned_by = F27
-			NOT = { F27 = { alliance_with = ROOT } }
+			if = {
+				limit = {
+					exists = F27
+					F27 = { NOT = { is_enemy = ROOT } }
+					NOT = { is_enemy = F27 }
+				}
+				owned_by = F27
+				NOT = { F27 = { alliance_with = ROOT } }
+			}
+			else = {
+				OR = {
+					area = anzarzax_area
+					area = anzabad_area
+				}
+			}
 		}
 		
 		trigger = {
@@ -1079,10 +1092,21 @@ tluukt_2 = {
 		
 		trigger = {
 			OR = {
-				F27 = {
-					has_opinion_modifier = {
-						who = ROOT
-						modifier = scornfully_insulted
+				if = {
+					limit = { has_dlc = "Dharma" }
+					F27 = {
+						has_opinion_modifier = {
+							who = ROOT
+							modifier = scornfully_insulted
+						}
+					}
+				}
+				else = {
+					F27 = {
+						has_opinion_modifier = {
+							who = ROOT
+							modifier = insulted
+						}
 					}
 				}
 				NOT = { exists = F27 }
@@ -1103,6 +1127,10 @@ tluukt_2 = {
 		}
 		
 		effect = {
+			if = {
+				limit = { NOT = { has_dlc = "Dharma" } }
+				add_prestige = -5
+			}
 			660 = { change_trade_goods = slaves }
 			if = {
 				limit = { exists = F27 }
@@ -1181,6 +1209,10 @@ tluukt_3 = {
 					has_port = yes
 				}
 				ROOT = { knows_country = PREV }
+				has_opinion = {
+					who = ROOT
+					value = 100
+				}
 			}
 		}
 		
@@ -1429,7 +1461,7 @@ tluukt_4 = {
 		effect = {
 			change_government_reform_progress = -50
 			add_mil_power = -100
-			add_country_modifier = { name = tluukt_modernized_carnage duration = -1 }
+			add_country_modifier = { name = tluukt_golden_chains duration = -1 }
 		}
 	}
 
@@ -1622,7 +1654,7 @@ tluukt_4 = {
 		effect = {
 			add_stability_or_adm_power = yes
 			increase_legitimacy_huge_effect = yes
-			remove_country_modifier = tluukt_modernized_carnage
+			remove_country_modifier = tluukt_golden_chains
 			remove_country_modifier = tluukt_gnoll_offices
 			remove_country_modifier = tluukt_permanent_records
 			remove_country_modifier = tluukt_decentralized_tribes
@@ -1630,7 +1662,7 @@ tluukt_4 = {
 			country_event = { id = flavour_tluukt.33 }
 			tooltip = { change_government = monarchy }
 			#hidden_effect = { set_country_flag = tluukt_reformed }
-			swap_non_generic_missions = yes
+			#swap_non_generic_missions = yes
 		}
 	}
 }
@@ -1737,15 +1769,42 @@ tluukt_3j = {
 		
 		trigger = {
 			OR = {
+				has_spy_network_in = {
+					who = F39
+					value = 25
+				}
+				NOT = { exists = F39 }
 				AND = {
-					is_at_war = no
-					F25 = { is_at_war = yes }
+					overlord_of = F39
+					F39 = { NOT = { is_subject_of_type = tributary_state } }
+				}
+				F39 = {
+					overlord = {
+						has_spy_network_from = {
+							who = ROOT
+							value = 25
+						}
+					}
+				}
+				AND = {
+					owns_or_non_sovereign_subject_of = 604
+					owns_or_non_sovereign_subject_of = 611
+				}
+			}
+			if = {
+				limit = {
 					604 = { country_or_subject_holds = F25 }
 					611 = { country_or_subject_holds = F25 }
 				}
-				AND = {
-					604 = { NOT = { country_or_subject_holds = F25 } }
-					611 = { NOT = { country_or_subject_holds = F25 } }
+				OR = {
+					AND = {
+						is_at_war = no
+						F25 = { is_at_war = yes }
+					}
+					army_strength = {
+						who = F25
+						value = 2
+					}
 				}
 			}
 		}
@@ -1758,89 +1817,86 @@ tluukt_3j = {
 					604 = { country_or_subject_holds = F25 }
 					611 = { country_or_subject_holds = F25 }
 				}
-				declare_war_with_cb = {
-					who = F25
-					casus_belli = cb_monster_vs_civ
-				}
+				add_country_modifier = { name = tluukt_razing_zanbar duration = 1825 }
 			}
 		}
 	}
 
-	tluukt_treaty_grumar = {
-		icon = mission_monarch_diplomacy
-		required_missions = {
-			tluukt_curtail_liberators
-		}
-		position = 3
-		
-		provinces_to_highlight = {
-			owned_by = F25
-		}
-		
-		trigger = {
-			OR = {
-				AND = {
-					war_with = F25
-					treasury = 200
-					dip_power = 200
-					controls = 604
-					controls = 611
-					604 = { country_or_subject_holds = F25 }
-					611 = { country_or_subject_holds = F25 }
-					war_score_against = {
-						who = F25
-						value = 10
-					}
-					any_known_country = {
-						NOT = { tag = ROOT }
-						OR = {
-							war_with = F25
-							has_won_war_against = {
-								who = F25
-								max_years_since = 1
-							}
-							F25 = {
-								has_won_war_against = {
-									who = PREV
-									max_years_since = 1
-								}
-							}
-						}
-					}
-				}
-				AND = {
-					is_at_war = no
-					604 = { country_or_subject_holds = ROOT }
-					611 = { country_or_subject_holds = ROOT }
-				}
-			}
-		}
-		
-		effect = {
-			if = {
-				limit = { war_with = F25 }
-				#Event: Treaty of Grumar
-				country_event = { id = flavour_tluukt.39 }
-			}
-			else = {
-				add_mil_power = 100
-			}	
-		}
-	}
+	#tluukt_treaty_grumar = { #Pending removal because I think its lame
+	#	icon = mission_monarch_diplomacy
+	#	required_missions = {
+	#		tluukt_curtail_liberators
+	#	}
+	#	position = 3
+	#	
+	#	provinces_to_highlight = {
+	#		owned_by = F25
+	#	}
+	#	
+	#	trigger = {
+	#		OR = {
+	#			AND = {
+	#				war_with = F25
+	#				treasury = 200
+	#				dip_power = 200
+	#				controls = 604
+	#				controls = 611
+	#				604 = { country_or_subject_holds = F25 }
+	#				611 = { country_or_subject_holds = F25 }
+	#				war_score_against = {
+	#					who = F25
+	#					value = 10
+	#				}
+	#				any_known_country = {
+	#					NOT = { tag = ROOT }
+	#					OR = {
+	#						war_with = F25
+	#						has_won_war_against = {
+	#							who = F25
+	#							max_years_since = 1
+	#						}
+	#						F25 = {
+	#							has_won_war_against = {
+	#								who = PREV
+	#								max_years_since = 1
+	#							}
+	#						}
+	#					}
+	#				}
+	#			}
+	#			AND = {
+	#				is_at_war = no
+	#				604 = { country_or_subject_holds = ROOT }
+	#				611 = { country_or_subject_holds = ROOT }
+	#			}
+	#		}
+	#	}
+	#	
+	#	effect = {
+	#		if = {
+	#			limit = { war_with = F25 }
+	#			#Event: Treaty of Grumar
+	#			country_event = { id = flavour_tluukt.39 }
+	#		}
+	#		else = {
+	#			add_mil_power = 100
+	#		}	
+	#	}
+	#}
 
 	tluukt_zanbar_crushed = {
 		icon = mission_fortify_mandu
 		required_missions = {
-			tluukt_treaty_grumar
+			#tluukt_treaty_grumar
+			tluukt_curtail_liberators
 		}
-		position = 4
+		position = 3
 		
 		provinces_to_highlight = {
 			province_id = 604
 		}
 		
 		trigger = {
-			F39 = { is_subject_of = ROOT } #TO-DO; Consider modifying this in-case Bulwar breaks their tributary status.
 			604 = {
 				OR = {
 					AND = {
@@ -2351,7 +2407,6 @@ tluukt_5j_kogzokka = {
 			}
 			add_country_modifier = { name = tluukt_kogzokkan_merchants duration = -1 }
 			F29 = {
-				set_government_rank = 2
 				set_capital = 2913
 				add_mercantilism = 25
 				add_country_modifier = { name = tluukt_kogzokkan_plutarchy duration = -1 }
@@ -2371,7 +2426,7 @@ tluukt_5j_kogzokka = {
 				add_trade_modifier = {
 					who = F29
 					duration = -1
-					power = 50
+					power = 75
 					key = TLUUKT_CARAVANSERAI
 				}
 			}
@@ -2379,7 +2434,7 @@ tluukt_5j_kogzokka = {
 				add_trade_modifier = {
 					who = F29
 					duration = -1
-					power = 50
+					power = 75
 					key = TLUUKT_CARAVANSERAI
 				}
 			}
@@ -2417,13 +2472,18 @@ tluukt_3z = {
 		}
 		
 		trigger = {
-			alliance_with = F29
-			F29 = {
-				has_opinion = {
-					who = ROOT
-					value = 150
+			OR = {
+				AND = {
+					alliance_with = F29
+					F29 = {
+						has_opinion = {
+							who = ROOT
+							value = 150
+						}
+						is_at_war = no
+					}
 				}
-				is_at_war = no
+				NOT = { exists = F29 }
 			}
 		}
 		
@@ -2571,6 +2631,7 @@ tluukt_4z = {
 				}
 			}
 			#Give special benefits to Azka-Sur?
+			U20 = { add_treasury = 100 }
 		}
 	}
 
@@ -2713,52 +2774,53 @@ tluukt_5z = {
 		}
 	}
 
-	tluukt_prepare_contingencies = {
-		icon = balance_the_estates
-		required_missions = {
-			tluukt_support_sihrusam
-		}
-		position = 3
-		
-		provinces_to_highlight = {
-			owned_by = ROOT
-			culture_is_gnollish = yes
-			unrest = 1
-		}
-		
-		trigger = {
-			manpower_percentage = 0.6
-			OR = {
-				AND = {
-					crown_land_share = 50
-					estate_loyalty = {
-						estate = estate_monstrous_tribes
-						loyalty = 30
-					}
-				}
-				estate_loyalty = {
-					estate = estate_monstrous_tribes
-					loyalty = 60
-				}
-			}
-			all_owned_province = {
-				OR = {
-					NOT = { culture_is_gnollish = yes }
-					NOT = { unrest = 1 }
-				}
-			}
-		}
-		
-		effect = {
-			add_stability_or_adm_power = yes
-			increase_legitimacy_large_effect = yes
-		}
-	}
+	#tluukt_prepare_contingencies = { #Pending removal because I think its lame.
+	#	icon = balance_the_estates
+	#	required_missions = {
+	#		tluukt_support_sihrusam
+	#	}
+	#	position = 3
+	#	
+	#	provinces_to_highlight = {
+	#		owned_by = ROOT
+	#		culture_is_gnollish = yes
+	#		unrest = 1
+	#	}
+	#	
+	#	trigger = {
+	#		manpower_percentage = 0.6
+	#		OR = {
+	#			AND = {
+	#				crown_land_share = 50
+	#				estate_loyalty = {
+	#					estate = estate_monstrous_tribes
+	#					loyalty = 30
+	#				}
+	#			}
+	#			estate_loyalty = {
+	#				estate = estate_monstrous_tribes
+	#				loyalty = 60
+	#			}
+	#		}
+	#		all_owned_province = {
+	#			OR = {
+	#				NOT = { culture_is_gnollish = yes }
+	#				NOT = { unrest = 1 }
+	#			}
+	#		}
+	#	}
+	#	
+	#	effect = {
+	#		add_stability_or_adm_power = yes
+	#		increase_legitimacy_large_effect = yes
+	#	}
+	#}
 
 	tluukt_sarhal_gnolls = {
 		icon = mission_whisper
 		required_missions = {
-			tluukt_prepare_contingencies
+			#tluukt_prepare_contingencies
+			tluukt_support_sihrusam
 		}
 		position = 4
 		
@@ -2830,17 +2892,28 @@ tluukt_5z = {
 		
 		provinces_to_highlight = {
 			owned_by = F29
+			superregion = bulwar_superregion
 		}
 		
 		trigger = {
 			OR = {
 				AND = {
 					is_at_war = no
-					F29 = {
-						is_at_war = no
-						has_opinion_modifier = {
-							who = ROOT
-							modifier = scornfully_insulted
+					if = {
+						limit = { has_dlc = "Dharma" }
+						F29 = {
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = scornfully_insulted
+							}
+						}
+					}
+					else = {
+						F29 = {
+							has_opinion_modifier = {
+								who = ROOT
+								modifier = insulted
+							}
 						}
 					}
 				}
@@ -2877,6 +2950,10 @@ tluukt_5z = {
 					set_country_flag = tluukt_the_challenge
 				}
 				country_event = { id = flavour_tluukt.54 } #The Challenge
+				if = {
+					limit = { NOT = { has_dlc = "Dharma" } }
+					add_prestige = -5
+				}
 			}
 			else_if = {
 				limit = { F29 = { any_owned_province = { superregion = bulwar_superregion } } }
@@ -2900,6 +2977,17 @@ tluukt_5z = {
 				if = {
 					limit = { mission_completed = tluukt_sarhal_rituals }
 					add_country_modifier = { name = tluukt_demon_boon duration = 1825 }
+				}
+				if = {
+					limit = { NOT = { has_dlc = "Dharma" } }
+					add_prestige = -5
+				}
+			}
+			else = {
+				add_prestige = 10
+				add_power_projection = {
+					type = mission_rewards_power_projection
+					amount = 15
 				}
 			}
 		}
@@ -3041,6 +3129,8 @@ tluukt_4s = {
 				alliance_with = F29
 				F29 = { is_subject_of = ROOT }
 			}
+			F29 = { at_peace = yes }
+			army_size = F29
 		}
 		
 		effect = {
