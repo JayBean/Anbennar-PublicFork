@@ -1,0 +1,1654 @@
+namespace = aw_thieves_guild
+
+#The Adventurers Wanted uses a strict ID system to make the system easier to author content for
+#The IDs below 100 are core utility systems that are usually straight copies or modifications of how the AW system works, such as monsters being able to migrate and be defeated by adventurers.
+#The IDs above 100 are more unique situations for the specific encounter, but they should correlate with the numbers from above: if ID 10s deal with migration, then ID 110s should be the unique events to do with migration - for example bribing a Thieves Guild to GTFO your country
+#Crazy and more uniques ones that dont conform to the utilities should be ID 200
+
+#USE THE anb_aw_thieves_guild TO SEE A SIMPLE COPY-PASTABLE FORMAT IN ADDITION TO STUFF LIKE MIGRATION STYLES ETC
+
+
+#0 - spawn in province
+province_event = {
+	id = aw_thieves_guild.0
+	title = aw_thieves_guild.0.t
+	desc = aw_thieves_guild.0.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	#hidden = yes
+	
+	option = {  
+		name = aw_basic.0.a
+		ai_chance = { 
+			factor = 20 
+		}
+		add_permanent_province_modifier = {
+			name = aw_thieves_guild_1
+			duration = -1  
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+	}
+}
+
+
+#1 - event manager, called by on_actions. This happens ONCE per pulse. If you have 7 of these, it still only fires the manager once
+country_event = {
+	id = aw_thieves_guild.1
+	title = aw_thieves_guild.1.t
+	desc = aw_thieves_guild.1.d
+	picture = COMET_SIGHTED_eventPicture
+
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		any_owned_province = {
+			OR = { 
+				has_province_modifier = aw_thieves_guild_1
+				has_province_modifier = aw_thieves_guild_2
+				has_province_modifier = aw_thieves_guild_3
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 2
+			num_of_owned_provinces_with = {
+				value = 3
+				OR = { 
+					has_province_modifier = aw_thieves_guild_1
+					has_province_modifier = aw_thieves_guild_2
+					has_province_modifier = aw_thieves_guild_3
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_owned_province = {
+			limit = {
+				OR = { 
+					has_province_modifier = aw_thieves_guild_1
+					has_province_modifier = aw_thieves_guild_2
+					has_province_modifier = aw_thieves_guild_3
+				}
+			}
+			save_event_target_as = aw_thieves_guild_target
+		}
+	}
+	
+	
+	option = {
+		event_target:aw_thieves_guild_target = {
+			random_list = {
+				#13 - Base Propagation
+				5 = {
+					province_event = { id = aw_thieves_guild.13 }
+				}   
+
+				#15 - migrate from monstrous nation. pretty much should happen upon thieves guild gain from monstrous really
+				100 = {
+					modifier = {
+						#only want this to ever be part of the equation if you are monstrous
+						factor = 0
+						NOT = { owner = { has_country_modifier = monstrous_nation } }
+					}
+					province_event = { id = aw_thieves_guild.15 }
+				}  
+
+				#20 - Base natural removal
+				7 = {
+					#Specific modifiers
+
+					#Will remove itself if the province gets poor. This is because some events will get rid of development!
+					modifier = {
+						factor = 3
+						NOT = { development = 15 }
+						NOT = { has_terrain = city_terrain }
+					}
+						province_event = { id = aw_thieves_guild.20 }
+				}
+
+				#21 - Base adventurer removal
+				15 = {
+					#Base modifiers
+
+					#more likely if generous quest rewards/adverturer nation
+					modifier = {
+						factor = 1.5
+						OR = {
+							owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							owner = { has_adventurer_reform = yes }
+						}
+					}
+
+					#more likely if loyal
+					modifier = {
+						factor = 2
+						owner = {
+							estate_loyalty = {
+								estate = estate_adventurers
+								loyalty = 60
+							}
+						}
+					}
+
+					#more likely if high influence
+					modifier = {
+						factor = 2
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 60
+							}
+						}
+					}
+					#small influence boost at 30
+					modifier = {
+						factor = 1.5
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 30
+							}
+						}
+					}
+					#adventurer type sponsorships
+					modifier = {
+						factor = 2
+						owner = {
+							has_estate_privilege = estate_adventurers_sponsor_rogues
+						}
+					}
+					province_event = { id = aw_thieves_guild.21 }
+				}
+
+				#22 - Base natural tier down
+				10 = {
+					province_event = { id = aw_thieves_guild.22 }
+				}
+
+				#23 - Base adventurer tier down
+				20 = {
+					#Base modifiers
+
+					#more likely if generous quest rewards/adverturer nation
+					modifier = {
+						factor = 2
+						OR = {
+							owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							owner = { has_adventurer_reform = yes }
+						}
+					}
+
+					#more likely if loyal
+					modifier = {
+						factor = 2
+						owner = {
+							estate_loyalty = {
+								estate = estate_adventurers
+								loyalty = 60
+							}
+						}
+					}
+
+					#more likely if high influence
+					modifier = {
+						factor = 2
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 60
+							}
+						}
+					}
+					#small influence boost at 30
+					modifier = {
+						factor = 1.5
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 30
+							}
+						}
+					}
+					#adventurer type sponsorships
+					modifier = {
+						factor = 2
+						owner = {
+							has_estate_privilege = estate_adventurers_sponsor_rogues
+						}
+					}
+					province_event = { id = aw_thieves_guild.23 }
+				}
+
+				#24 - monstrous nation removal
+				50 = {
+					modifier = {
+						#only want this to ever be part of the equation if you are monstrous
+						factor = 0
+						NOT = { owner = { has_country_modifier = monstrous_nation } }
+					}
+					province_event = { id = aw_thieves_guild.24 }
+				}
+
+				#30 - Base natural tier up
+				10 = {
+					province_event = { id = aw_thieves_guild.30 }
+				}
+
+				7 = {
+					#Base modifiers
+
+					#more likely if generous quest rewards/adverturer nation
+					modifier = {
+						factor = 2
+						OR = {
+							owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							owner = { has_adventurer_reform = yes }
+						}
+					}
+
+					#more likely if loyal
+					modifier = {
+						factor = 2
+						owner = {
+							estate_loyalty = {
+								estate = estate_adventurers
+								loyalty = 60
+							}
+						}
+					}
+
+					#more likely if high influence
+					modifier = {
+						factor = 2
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 60
+							}
+						}
+					}
+
+					modifier = {
+						factor = 0
+						owner = {
+							estate_loyalty = {
+								estate = estate_adventurers
+								loyalty = 30	#adventurers dont do this if they like you
+							}
+						}
+					}
+					province_event = { id = aw_thieves_guild.120 }  #Adventurer removal but adventurers steal
+				}
+				10 = {
+					province_event = { id = aw_thieves_guild.121 }  #Tier down, civil war
+				}
+				7 = {
+					modifier = {
+						factor = 1.5
+						OR = {
+							owner = { years_of_income = 2 }
+							owner = { is_at_war = no }
+						}
+					}
+					province_event = { id = aw_thieves_guild.123 }  #tier down due to good times
+				}
+				7 = {
+					province_event = { id = aw_thieves_guild.124 }  #Master thief bargains to remove thieves guild
+				}
+				10 = {
+					province_event = { id = aw_thieves_guild.130 }  #Cross country heists
+				}
+				7 = {
+					modifier = {
+						factor = 1.5
+						OR = {
+							owner = { is_bankrupt = yes }
+							owner = { is_at_war = yes }
+						}
+					}
+					province_event = { id = aw_thieves_guild.131 }  #Bad times tiers up
+				}
+				5 = {
+					modifier = {
+						factor = 2
+						owner = { 
+							estate_influence = {
+								estate = estate_burghers
+								influence = 60
+							}
+						}
+					}
+					province_event = { id = aw_thieves_guild.200 }  #Rob burghers
+				}
+				5 = {
+					modifier = {
+						factor = 2
+						owner = { 
+							estate_influence = {
+								estate = estate_nobles
+								influence = 60
+							}
+						}
+					}
+					province_event = { id = aw_thieves_guild.201 }  #Rob nobles
+				}
+				5 = {
+					modifier = {
+						factor = 3
+						OR = {
+							owner = { years_of_income = 3 }
+							owner = { NOT = { stability = 1 } }
+						}
+					}
+					province_event = { id = aw_thieves_guild.202 }  #National Banks robbed
+				}
+				10 = {
+					province_event = { id = aw_thieves_guild.203 }  #Steal precursor relics
+				}
+			}
+		}
+	}
+	
+}
+
+############## 10s - Migration and Propagation ###################
+
+#10 - Base migration - they dont
+
+#11 - migration target notification if it goes to other country - only used for monstrous
+province_event = {
+	id = aw_thieves_guild.11
+	title = aw_thieves_guild.11.t
+	desc = aw_thieves_guild.11.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	option = {
+		# deal with it ourselves
+		name = aw_basic.0.a
+		ai_chance = { 
+			factor = 20 
+		}
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+
+		owner = {
+			add_opinion = {
+				who = event_target:aw_thieves_guild_migration_origin_owner
+				modifier = aw_crossed_border
+			}
+		}
+
+		#CHANGEABLE - SPREAD TYPE: Tier makes Tier of the same at target (NOTE: THIS USUALLY SHOULD BE THE SAME AS id.10 above)
+		if = {
+			limit = {
+				FROM = { has_province_modifier = aw_thieves_guild_1 }
+			}
+			add_permanent_province_modifier = { 
+				name = aw_thieves_guild_1
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { has_province_modifier = aw_thieves_guild_2 }
+			}
+			add_permanent_province_modifier = { 
+				name = aw_thieves_guild_2
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = {
+				FROM = { has_province_modifier = aw_thieves_guild_3 }
+			}
+			add_permanent_province_modifier = { 
+				name = aw_thieves_guild_3
+				duration = -1
+			}
+		}
+
+	}
+
+	after = {
+		FROM = {	#cleanup event to remove the modifiers from the original province
+			remove_province_modifier = aw_thieves_guild_1
+			remove_province_modifier = aw_thieves_guild_2
+			remove_province_modifier = aw_thieves_guild_3
+		}
+	}
+}
+
+#13 - Base propagation - only level 2 thieves can propagate. propagates across any province in your country if you have space
+province_event = {
+	id = aw_thieves_guild.13
+	title = aw_thieves_guild.13.t
+	desc = aw_thieves_guild.13.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			NOT = { has_country_modifier = monstrous_nation }
+			num_of_cities = 10
+			any_owned_province = {
+				OR = {
+					development = 20
+					has_terrain = city_terrain
+				}
+				NOT = { has_province_modifier = aw_thieves_guild_1 }
+				NOT = { has_province_modifier = aw_thieves_guild_2 }
+				NOT = { has_province_modifier = aw_thieves_guild_3 }
+			}
+		}
+
+		OR = {
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+
+			#CHANGEABLE - MIGRATION TYPE -  Any province in own country under criteria   
+			owner = {
+				random_owned_province = {
+					limit = {
+						#Unique Conditions
+						OR = {
+							development = 20
+							has_terrain = city_terrain
+						}
+
+						#Base Conditions
+						is_city = yes
+
+						NOT = { has_province_modifier = aw_thieves_guild_1 }
+						NOT = { has_province_modifier = aw_thieves_guild_2 }
+						NOT = { has_province_modifier = aw_thieves_guild_3 }
+					}
+					save_event_target_as = aw_thieves_guild_migration_target
+				}
+			}
+		}
+	}
+
+	#If migration is within country
+	option = {  
+		name = aw_thieves_guild.13.a
+		ai_chance = { factor = 100 }
+		goto = aw_thieves_guild_migration_target
+		# trigger = {
+			# event_target:aw_thieves_guild_migration_target = {
+				# owned_by = ROOT
+			# }
+		# }
+
+
+		event_target:aw_thieves_guild_migration_target = {
+			# if = {
+				# limit = {
+					# owned_by = ROOT
+				# }
+
+				#CHANGEABLE - SPREAD TYPE: Tier propagates Tier of the same at target
+				if = {
+					limit = {
+						ROOT = { has_province_modifier = aw_thieves_guild_1 }
+					}
+					add_permanent_province_modifier = { 
+						name = aw_thieves_guild_1
+						duration = -1
+					}
+				}
+				else_if = {
+					limit = {
+						ROOT = { has_province_modifier = aw_thieves_guild_2 }
+					}
+					add_permanent_province_modifier = { 
+						name = aw_thieves_guild_2
+						duration = -1
+					}
+				}
+				else_if = {
+					limit = {
+						ROOT = { has_province_modifier = aw_thieves_guild_3 }
+					}
+					add_permanent_province_modifier = { 
+						name = aw_thieves_guild_3
+						duration = -1
+					}
+				}
+			# }
+		}
+	}
+
+	# #If migration is sent to OTHER country - nah
+	# option = {  
+	#	 name = aw_thieves_guild.13.b
+	#	 ai_chance = { factor = 100 }
+	#	 goto = aw_thieves_guild_migration_target
+	#	 trigger = {
+	#		 event_target:aw_thieves_guild_migration_target = {
+	#			 NOT = { owned_by = ROOT }   #if the target isnt in your country, then send an event to them that notifies + adds it on their end
+	#		 }
+	#	 }
+
+	#	 event_target:aw_thieves_guild_migration_target = {
+	#		 province_event = {
+	#			 id = aw_thieves_guild.14
+	#			 days = 14
+	#			 #random = 31
+	#		 }
+	#	 }
+	# }
+}
+
+#14 - propagation target notification - nah
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+province_event = {
+	id = aw_thieves_guild.15
+	title = aw_thieves_guild.15.t
+	desc = aw_thieves_guild.15.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { has_country_modifier = monstrous_nation }
+		OR = {
+			has_province_modifier = aw_thieves_guild_1
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+
+		owner = {
+			any_neighbor_country = {
+				NOT = { has_country_modifier = monstrous_nation }
+				any_owned_province = {
+					#Base Conditions
+					NOT = { province_id = ROOT }
+					is_city = yes
+
+					NOT = { has_province_modifier = aw_thieves_guild_1 }
+					NOT = { has_province_modifier = aw_thieves_guild_2 }
+					NOT = { has_province_modifier = aw_thieves_guild_3 }
+
+
+					#Unique Conditions
+					OR = {
+						development = 20
+						has_terrain = city_terrain
+					}
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		hidden_effect = {
+
+			#Special one for this event, targeting a neighbouring country that isnt monstrous and any of their owned events
+
+			#CHANGABLE - edit Specific Conditions to make sure it moves to that kind of province! (e.g. if its a thieves guild it will move to a city province)
+
+			owner = {
+				random_neighbor_country = {
+					limit = {
+						NOT = { has_country_modifier = monstrous_nation }
+					}
+					random_owned_province = {
+						limit = {
+							#Base Conditions
+							NOT = { province_id = ROOT }
+							is_city = yes
+	
+							NOT = { has_province_modifier = aw_thieves_guild_1 }
+							NOT = { has_province_modifier = aw_thieves_guild_2 }
+							NOT = { has_province_modifier = aw_thieves_guild_3 }
+	
+	
+							#Unique Conditions
+							OR = {
+								development = 20
+								has_terrain = city_terrain
+							}
+						   
+						}
+						save_event_target_as = aw_thieves_guild_migration_target
+					}
+				}
+				save_event_target_as = aw_thieves_guild_migration_origin_owner
+			}
+		}
+	}
+
+
+	#If migration is sent to OTHER country
+	option = {  
+		name = aw_thieves_guild.15.a
+		ai_chance = { factor = 100 }
+		goto = aw_thieves_guild_migration_target
+
+		#It's migration, so remove modifier from previous province
+		tooltip = { #this is fake. the real one happens via the event
+			remove_province_modifier = aw_thieves_guild_1
+			remove_province_modifier = aw_thieves_guild_2
+			remove_province_modifier = aw_thieves_guild_3
+		}
+
+		custom_tooltip = aw_thieves_guild_migrate_to_other_country_tt
+		hidden_effect = {
+			event_target:aw_thieves_guild_migration_target = {
+				province_event = {
+					id = aw_thieves_guild.11
+				}
+			}
+		}
+	}
+}
+
+############## 20s - Removal/Tier Down ###################
+
+#20 - natural removal
+province_event = {
+	id = aw_thieves_guild.20
+	title = aw_thieves_guild.20.t
+	desc = aw_thieves_guild.20.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_province_modifier = aw_thieves_guild_1
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	option = {
+		# oh, thank goodness
+		name = aw_thieves_guild.20.a
+		ai_chance = { factor = 100 }
+
+		remove_province_modifier = aw_thieves_guild_1
+		remove_province_modifier = aw_thieves_guild_2
+		remove_province_modifier = aw_thieves_guild_3
+
+	}
+}
+
+#21 - adventurer removal
+province_event = {
+	id = aw_thieves_guild.21
+	title = aw_thieves_guild.21.t
+	desc = aw_thieves_guild.21.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
+		OR = {
+			has_province_modifier = aw_thieves_guild_1
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	option = {
+		# oh, thank goodness
+		name = aw_thieves_guild.21.a
+		ai_chance = { factor = 100 }
+
+
+
+		#Specific - gives money for removal
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			owner = { add_years_of_income = 0.2 }
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			owner = { add_years_of_income = 0.1 }
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+			owner = { add_years_of_income = 0.05 }
+		}
+
+		#only give upon complete removal
+		owner = {
+			add_estate_influence_modifier = {
+				estate = estate_adventurers
+				desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+				duration = 3650
+				influence = 5
+			}
+		}
+
+		owner = { add_prestige_excess_to_splendour_effect = { VAL=5} }
+
+	}
+}
+
+#22 - natural tier down - city watch whittles them down
+province_event = {
+	id = aw_thieves_guild.22
+	title = aw_thieves_guild.22.t
+	desc = aw_thieves_guild.22.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = { 
+			has_province_modifier = aw_thieves_guild_1 
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	option = {
+		name = aw_thieves_guild.22.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+		}
+	}
+}
+
+#23 - adventurer tier down
+province_event = {
+	id = aw_thieves_guild.23
+	title = aw_thieves_guild.23.t
+	desc = aw_thieves_guild.23.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
+		OR = { 
+			has_province_modifier = aw_thieves_guild_1 
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	option = {
+		name = aw_thieves_guild.23.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+			owner = { add_prestige_excess_to_splendour_effect = { VAL=5} }
+
+			owner = {
+				add_estate_influence_modifier = {
+					estate = estate_adventurers
+					desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+					duration = 3650
+					influence = 5
+				}
+			}
+		}
+	}
+}
+
+#24 - monster removal
+province_event = {
+	id = aw_thieves_guild.24
+	title = aw_thieves_guild.24.t
+	desc = aw_thieves_guild.24.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { has_country_modifier = monstrous_nation }
+
+		OR = {
+			has_province_modifier = aw_thieves_guild_1
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	option = {
+ 
+		name = aw_thieves_guild.20.a
+		ai_chance = { factor = 100 }
+
+		remove_province_modifier = aw_thieves_guild_1
+		remove_province_modifier = aw_thieves_guild_2
+		remove_province_modifier = aw_thieves_guild_3
+
+		owner = { add_prestige = 3 }
+
+	}
+}
+
+#25 - monster natural tier down. keep if you want, or just rely on removal - removed
+
+
+############## 30s - Tier Up ###################
+
+#30 - natural tier up
+province_event = {
+	id = aw_thieves_guild.30
+	title = aw_thieves_guild.30.t
+	desc = aw_thieves_guild.30.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = { 
+			has_province_modifier = aw_thieves_guild_1 
+			has_province_modifier = aw_thieves_guild_2
+		}
+	}
+	option = {
+		name = aw_thieves_guild.30.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_3
+				duration = -1  
+			}
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+	}
+}
+
+############## 110s - Special Migration & Propagation ###################
+
+#110 - they offer to migrate to another country... for a price!
+
+############## 120s - Special Removal/Tier Down ###################
+
+#120 - adventurers defeat but steal their money
+province_event = {
+	id = aw_thieves_guild.120
+	title = aw_thieves_guild.120.t
+	desc = aw_thieves_guild.120.d
+	picture = SMUGGLERS_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = { 
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	option = {
+		name = aw_thieves_guild.120.a
+		ai_chance = { factor = 100 }
+
+		remove_province_modifier = aw_thieves_guild_1
+		remove_province_modifier = aw_thieves_guild_2
+		remove_province_modifier = aw_thieves_guild_3
+
+		owner = {
+			add_estate_influence_modifier = {
+				estate = estate_adventurers
+				desc = wealth_from_thieves_guild
+				duration = 3650
+				influence = 20
+			}
+		}
+	}
+}
+
+#121 - civil war amongst thieves
+province_event = {
+	id = aw_thieves_guild.121
+	title = aw_thieves_guild.121.t
+	desc = aw_thieves_guild.121.d
+	picture = FEUDALISM_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { has_province_modifier = aw_thieves_guild_war_among_thieves }
+
+		has_province_modifier = aw_thieves_guild_2
+		has_province_modifier = aw_thieves_guild_3
+
+	}
+	option = {
+		name = aw_thieves_guild.121.a
+		ai_chance = { factor = 100 }
+
+		add_permanent_province_modifier  = {
+			name = aw_thieves_guild_war_among_thieves
+			duration = 3650  
+		}
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_1
+				duration = -1  
+			}
+		}
+
+	}
+}
+
+#123 - country is booming, so thieves dont need to thief. tiers down.
+province_event = {
+	id = aw_thieves_guild.123
+	title = aw_thieves_guild.123.t
+	desc = aw_thieves_guild.123.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { stability = 3 }
+
+		OR = {
+			has_province_modifier = aw_thieves_guild_1
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	option = {
+		# oh, thank goodness
+		name = aw_thieves_guild.123.a
+		ai_chance = { factor = 100 }
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+		}
+
+	}
+}
+
+#124 - master thief wants out and wants to betray
+province_event = {
+	id = aw_thieves_guild.124
+	title = aw_thieves_guild.124.t
+	desc = aw_thieves_guild.124.d
+	picture = DIPLOMACY_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_modifier = aw_thieves_guild_3
+	}
+	
+	#hire them as an advisor and remove thieves guild
+	option = {
+		name = aw_thieves_guild.124.a
+		ai_chance = { factor = 100 }
+
+		remove_province_modifier = aw_thieves_guild_3
+
+		owner = { add_adm_power = -100 }
+
+		owner = {
+			define_advisor = {
+				type = spymaster
+				skill = 3
+				location = ROOT
+				discount = yes
+			}
+		}
+
+
+	}
+
+	#nah forget them
+	option = {
+		name = aw_thieves_guild.124.b
+		ai_chance = { factor = 50 }
+
+		owner = { add_prestige_excess_to_splendour_effect = { VAL=5} }
+
+	}
+
+	#intricate webweaver fucks em up
+	option = {
+		name = aw_thieves_guild.124.c
+		ai_chance = { factor = 100 }
+		trigger = {
+			owner = { ruler_has_personality = intricate_web_weaver_personality }
+		}
+		highlight = yes
+
+		owner = { add_dip_power = -30 }
+
+		remove_province_modifier = aw_thieves_guild_3
+
+	}
+}
+
+############## 130s - Special Tier Up ###################
+
+#130 - Thieves pull off big heists across country and tier up
+province_event = {
+	id = aw_thieves_guild.130
+	title = aw_thieves_guild.130.t
+	desc = aw_thieves_guild.130.d
+	picture = SMUGGLERS_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			stability = -2
+			num_of_owned_provinces_with = { #just so we dont do it to countries that doesnt have lots of provinces
+				value = 6
+				OR = {
+					development = 20
+					has_terrain = city_terrain
+				}
+			}
+		}
+
+		has_province_modifier = aw_thieves_guild_3  #only legit bros can do this
+	}
+
+	immediate = {
+		owner = {
+			random_owned_province = {
+				limit = {
+					OR = {
+						development = 20
+						has_terrain = city_terrain
+					}
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_1 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_2 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_3 }
+				}
+				save_event_target_as = aw_thieves_guild_heist_target_1
+				set_province_flag = aw_thieves_guild_heist_provtarget_1
+			}
+		}
+		owner = {
+			random_owned_province = {
+				limit = {
+					OR = {
+						development = 20
+						has_terrain = city_terrain
+					}
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_1 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_2 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_3 }
+				}
+				save_event_target_as = aw_thieves_guild_heist_target_2
+				set_province_flag = aw_thieves_guild_heist_provtarget_2
+			}
+		}
+		owner = {
+			random_owned_province = {
+				limit = {
+					OR = {
+						development = 20
+						has_terrain = city_terrain
+					}
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_1 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_2 }
+					NOT = { has_province_flag = aw_thieves_guild_heist_provtarget_3 }
+				}
+				save_event_target_as = aw_thieves_guild_heist_target_3
+				set_province_flag = aw_thieves_guild_heist_provtarget_3
+			}
+		}
+	}
+
+	option = {
+		name = aw_thieves_guild.130.a
+		ai_chance = { factor = 100 }
+
+		owner = { add_stability = -1 }
+
+		event_target:aw_thieves_guild_heist_target_1 = {
+			add_base_tax = -1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_2
+			clr_province_flag = aw_thieves_guild_heist_provtarget_3
+		}
+		event_target:aw_thieves_guild_heist_target_2 = {
+			add_base_tax = -1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_2
+			clr_province_flag = aw_thieves_guild_heist_provtarget_3
+		}
+		event_target:aw_thieves_guild_heist_target_3 = {
+			add_base_tax = -1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_1
+			clr_province_flag = aw_thieves_guild_heist_provtarget_2
+			clr_province_flag = aw_thieves_guild_heist_provtarget_3
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+
+	}
+
+	option = {
+		name = aw_thieves_guild.130.b
+		ai_chance = { factor = 1000 }
+		trigger = {
+			owner = { has_personal_deity = nathalyne }
+		}
+		highlight = yes
+
+		custom_tooltip = has_personal_deity_nathalyne_tooltip
+
+		owner = { add_stability_or_adm_power = yes }
+
+		event_target:aw_thieves_guild_heist_target_1 = {
+			add_base_tax = -1
+		}
+		event_target:aw_thieves_guild_heist_target_2 = {
+			add_base_tax = -1
+		}
+		event_target:aw_thieves_guild_heist_target_3 = {
+			add_base_tax = -1
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+
+	}
+
+}
+
+#131 - your shit economy and country makes more thieves. go figure.
+province_event = {
+	id = aw_thieves_guild.131
+	title = aw_thieves_guild.131.t
+	desc = aw_thieves_guild.131.d
+	picture = BAD_WITH_MONARCH_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = { #some of the influencing triggers like being bankrupt is in the event manager
+		owner = {
+			NOT = { stability = 0 }
+		}
+		OR = {
+			has_province_modifier = aw_thieves_guild_2
+			has_province_modifier = aw_thieves_guild_3
+		}
+	}
+	
+	option = {
+		# shit
+		name = aw_thieves_guild.131.a
+		ai_chance = { factor = 100 }
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_3 
+			}
+			remove_province_modifier = aw_thieves_guild_3
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_1
+				duration = -1  
+			}
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+
+	}
+}
+
+############## 200s - Special Flavour ###################
+
+#200 - Mercantile orgs robbed
+province_event = {
+	id = aw_thieves_guild.200
+	title = aw_thieves_guild.200.t
+	desc = aw_thieves_guild.200.d
+	picture = BURGHER_ESTATE_UPSET_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_estate = estate_burghers 
+			years_of_income = 1
+			NOT = { #aka estate not too weak
+				estate_influence = {
+					estate = estate_burghers
+					influence = 30
+				}
+			}
+		}
+
+		owner = {
+			NOT = {
+				has_estate_influence_modifier = {
+					estate = estate_burghers
+					modifier = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				}
+			}
+		}
+		owner = {
+			NOT = {
+				has_estate_loyalty_modifier = {
+					estate = estate_burghers
+					modifier = EST_VAL_AW_THIEVES_GUILD_ROBBED_SUPPORTED
+				}
+			}
+		}
+
+		has_province_modifier = aw_thieves_guild_1
+		has_province_modifier = aw_thieves_guild_2
+		has_province_modifier = aw_thieves_guild_3
+	}
+
+	option = {
+		name = aw_thieves_guild.200.a
+		ai_chance = { factor = 100 }
+
+		owner = {
+			add_estate_influence_modifier = {
+				estate = estate_burghers
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				influence = -10
+				duration = 7300
+			}
+		}
+	}
+
+	option = {
+		name = aw_thieves_guild.200.b
+		ai_chance = { factor = 100 }
+
+		owner = {
+			add_years_of_income = -0.25
+
+			add_estate_loyalty_modifier = {
+				estate = estate_burghers
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED_SUPPORTED
+				loyalty = 10
+				duration = 3650
+			}
+			add_estate_influence_modifier = {
+				estate = estate_burghers
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				influence = -10
+				duration = 3650
+			}
+		}
+	}
+}
+
+
+#201 - Noble manor robbed
+province_event = {
+	id = aw_thieves_guild.201
+	title = aw_thieves_guild.201.t
+	desc = aw_thieves_guild.201.d
+	picture = ARTWORK_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			has_estate = estate_nobles 
+			prestige = 50
+
+			NOT = { #aka estate not too weak
+				estate_influence = {
+					estate = estate_nobles
+					influence = 30
+				}
+			}
+		}
+
+		has_province_modifier = aw_thieves_guild_1
+		has_province_modifier = aw_thieves_guild_2
+		has_province_modifier = aw_thieves_guild_3
+
+		owner = {
+			NOT = {
+				has_estate_loyalty_modifier = {
+					estate = estate_nobles
+					modifier = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				}
+			}
+		}
+		owner = {
+			NOT = {
+				has_estate_loyalty_modifier = {
+					estate = estate_nobles
+					modifier = EST_VAL_AW_THIEVES_GUILD_ROBBED_SUPPORTED
+				}
+			}
+		}
+	}
+
+	option = {
+		name = aw_thieves_guild.201.a
+		ai_chance = { factor = 100 }
+
+		owner = {
+			add_estate_influence_modifier = {
+				estate = estate_nobles
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				influence = -10
+				duration = 7300
+			}
+		}
+	}
+
+	option = {
+		name = aw_thieves_guild.201.b
+		ai_chance = { factor = 100 }
+
+		owner = {
+			add_prestige = -30
+
+			add_estate_loyalty_modifier = {
+				estate = estate_nobles
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED_SUPPORTED
+				loyalty = 10
+				duration = 7300
+			}
+			add_estate_influence_modifier = {
+				estate = estate_nobles
+				desc = EST_VAL_AW_THIEVES_GUILD_ROBBED
+				influence = -10
+				duration = 7300
+			}
+		}
+	}
+}
+
+
+#202 - Thieves steal from national banks, causes inflation!
+province_event = {
+	id = aw_thieves_guild.202
+	title = aw_thieves_guild.202.t
+	desc = aw_thieves_guild.202.d
+	picture = BANKRUPTCY_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			NOT = { inflation = 50 } 
+		}
+
+		has_province_modifier = aw_thieves_guild_3
+	}
+
+	#Oh well
+	option = {
+		name = aw_thieves_guild.202.a
+		ai_chance = { factor = 100 }
+
+		owner = { 
+			add_inflation = 20 
+		}
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_3
+				duration = -1  
+			}
+		}
+
+	}
+
+	#Spend some of our money to support the banks
+	option = {
+		name = aw_thieves_guild.202.b
+		ai_chance = { factor = 100 }
+
+		owner = { 
+			add_years_of_income = -0.5
+			add_inflation = 20
+		}
+
+
+		if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_1
+			}
+			remove_province_modifier = aw_thieves_guild_1
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_2
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_thieves_guild_2
+			}
+			remove_province_modifier = aw_thieves_guild_2
+			add_permanent_province_modifier  = {
+				name = aw_thieves_guild_3
+				duration = -1  
+			}
+		}
+
+	}
+}
+
+
+#203 - steal precursor relics across country. malus on province for a while
+province_event = {
+	id = aw_thieves_guild.203
+	title = aw_thieves_guild.203.t
+	desc = aw_thieves_guild.203.d
+	picture = SMUGGLERS_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			random_owned_province = {
+				limit = {
+					trade_goods = precursor_relics
+					NOT = { has_province_modifier = aw_thieves_guild_stolen_relics }
+				}
+				save_event_target_as = aw_thieves_guild_relic_target
+			}
+		}
+	}
+	
+	trigger = {
+		has_province_modifier = aw_thieves_guild_2
+		has_province_modifier = aw_thieves_guild_3
+	}
+
+	option = {
+		name = aw_thieves_guild.203.a
+		ai_chance = { factor = 100 }
+
+		event_target:aw_thieves_guild_relic_target = {
+			add_permanent_province_modifier = { 
+				name = aw_thieves_guild_stolen_relics
+				duration = 3650
+			}
+		}
+	}
+
+}

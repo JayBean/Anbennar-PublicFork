@@ -1,4 +1,3 @@
-
 # OBS! Full modding not supported. Code support still needed to remove/rename the original subject types.
 # Custom ones CAN be created with scriptable diplomatic actions (see "dummy" at the bottom of this file), although this is not currently very functional.
 
@@ -9,7 +8,7 @@
 
 # count = x is used (means it "counts as" x in some triggers).
 
-# copy_from copies everything except count, is_potential_overlord, and can_be_established
+# copy_from copies everything except count and is_potential_overlord
 
 # relative_power_class decides how Subjects are grouped together when considering relative strenghth towards overlord:
 # If it is 0 they won't consider relative power and if it is 1 they will only consider their own power (and those supporting their independence) compared to their Overlord's.
@@ -39,14 +38,24 @@ personal_union = {}
 client_vassal = {}
 client_march = {}
 colony = {}
+crown_colony = {}
+private_enterprise = {}
+self_governing_colony = {}
 tributary_state = {}
 autonomous_vassal = {}
 warlord_vassal = {}
 slave_state = {}
+subsidiary_command = {}
 centaur_dominion = {}
 centaur_follower = {}
 amlharaz_hold = {}
 acolyte_dominion = {}
+infernal_collaborator = {}
+infernal_order_state_subject = {}
+oni_governorship = {}
+seghdihr_syndicate = {}
+ynnic_iosahar = {}
+gylikheion = {}
 
 default = {
 	# Graphics:
@@ -56,7 +65,6 @@ default = {
 
 	# Triggers:
 	is_potential_overlord = { always = no } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
-	can_be_established = { always = no }				# Ditto
 	
 	# Properties:
 	has_overlords_ruler = no
@@ -99,6 +107,8 @@ default = {
 	is_march = no
 	forms_trade_companies = yes
 	can_concentrate_development = yes
+	can_have_great_projects_moved_by_overlord = yes
+	extend_trading_range = no
 
 	max_government_rank = 0								# 0 means no limit
 	cities_required_for_bonuses = 0						# How many cities the subject needs before giving bonuses to overlord
@@ -110,16 +120,13 @@ default = {
 	liberty_desire_same_dynasty = 0.0
 	liberty_desire_revolution = 30.0					# Liberty desire at 100% revolution spread in country
 	pays_overlord = 0.0									# 1.0 represents the amount payed by vassals
-	forcelimit_bonus = 0.0								# 1.0 represents bonus from having a vassal
 	forcelimit_to_overlord = 0.0						# Percent of subject FL to use as base for modifiers
-	naval_forcelimit_bonus = 0.0						# 1.0 represents bonus from having a vassal
 	naval_forcelimit_to_overlord = 0.0					# Percent of subject FL to use as base for modifiers
-	manpower_bonus = 0.0								# 1.0 represents bonus from having a vassal
 	manpower_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
-	sailors_bonus = 0.0									# 1.0 represents bonus from having a vassal
 	sailors_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
 	military_focus = 1.0								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
-
+	annex_cost_per_development = 8.0					# annex/integrate cost per development
+	
 	relative_power_class = 1 							# See description above
 	should_quit_wars_on_activation = yes
 	diplomacy_view_class = 1							# See description above
@@ -210,7 +217,6 @@ vassal = {
 	liberty_desire_development_ratio = 0.25
 	liberty_desire_same_dynasty = -5.0
 	pays_overlord = 1.0
-	forcelimit_bonus = 1.0
 	forcelimit_to_overlord = 0.1
 
 	relative_power_class = 2
@@ -232,6 +238,23 @@ vassal = {
 	}
 	modifier_overlord = {
 		modifier = vassal_subject
+	}
+	modifier_overlord = {
+		modifier = pirate_subject
+		trigger = {
+			has_government_attribute = is_pirate_republic_reform
+			overlord = {
+				has_government_attribute = pirate_vassal_bonus
+			}
+		}
+	}
+	modifier_subject = {
+		modifier = subject_tax_modifier
+		trigger = {
+			overlord = {
+				has_government_attribute = subject_tax_modifier_25
+			}
+		}
 	}
 
 	overlord_opinion_modifier = is_vassal
@@ -281,20 +304,34 @@ march = {
 		expiration_message_overlord = MARCHTOOLARGE
 		expiration_message_subject = MARCHTOOLARGEUS
 	}
+	modifier_subject = {
+		modifier = subject_tax_modifier
+		trigger = {
+			overlord = {
+				has_government_attribute = subject_tax_modifier_25
+			}
+		}
+	}
 }
 
 daimyo_vassal = {
 	copy_from = vassal
 	count = vassal
 	
+	# Graphics:
+	sprite = GFX_icon_prabhi
+	diplomacy_overlord_sprite = GFX_diplomacy_leadprabhi
+	diplomacy_subject_sprite = GFX_diplomacy_amprabhi
+	
 	# Properties:
 	has_power_projection = yes
 	takes_diplo_slot = no
+	gives_daimyo_bonuses = no #RAJ REVAMP
 	joins_overlords_wars = no
-	gives_daimyo_bonuses = yes
 	gets_help_with_rebels = no
 	separatists_become_subjects = yes
 	allows_taking_land_without_independence = yes
+	overlord_can_fabricate_for = no
 	can_use_claims = no
 	forms_trade_companies = no
 	can_concentrate_development = no
@@ -302,6 +339,8 @@ daimyo_vassal = {
 	trust_on_start = 0
 	
 	base_liberty_desire = 10.0
+	pays_overlord = 0.6
+	forcelimit_to_overlord = 0.0
 	military_focus = 1.2
 
 	relative_power_class = 1
@@ -334,15 +373,8 @@ daimyo_vassal = {
 	enforce_culture = no
 	seize_territory = no
 	#(enable)
-	force_seppuku = yes
-	contribute_to_capital = yes
 	## force_isolation = yes #No isolation in Anbennar
 	return_land = yes
-	## conscript_general = yes #because of war wizards
-	#(special)
-	sword_hunt = yes
-	sankin_kotai = yes
-	expel_ronin = yes
 	
 	# Modifiers
 	
@@ -354,32 +386,28 @@ daimyo_vassal = {
 	modifier_overlord = {
 		modifier = daimyo_subject
 	}
-	
-	
-	modifier_overlord = {
-		modifier = overlord_sword_hunt
-		trigger = {
-			has_country_modifier = subject_sword_hunt
-		}
-	}
 }
 
 great_daimyo_vassal = {
 	copy_from = vassal
 	
 	# Graphics:
-	sprite = GFX_icon_march
-	diplomacy_overlord_sprite = GFX_diplomacy_leadmarch
-	diplomacy_subject_sprite = GFX_diplomacy_weakmarch
+	sprite = GFX_icon_senapti
+	diplomacy_overlord_sprite = GFX_diplomacy_leadsenapti
+	diplomacy_subject_sprite = GFX_diplomacy_amsenapti
 	
 	# Properties:
 	has_power_projection = yes
 	takes_diplo_slot = no
 	joins_overlords_wars = yes
-	gives_daimyo_bonuses = yes
+	gives_daimyo_bonuses = yes #RAJ REVAMP
 	gets_help_with_rebels = no
 	separatists_become_subjects = yes
 	allows_taking_land_without_independence = yes
+	can_have_subjects_of_other_types = yes
+	overlord_protects_external = yes
+	overlord_enforce_peace_attacking = yes
+	overlord_can_fabricate_for = no
 	can_use_claims = no
 	max_government_rank = 2
 
@@ -387,14 +415,17 @@ great_daimyo_vassal = {
 	
 	base_liberty_desire = 10
 	pays_overlord = 0.0
+	forcelimit_to_overlord = 0.20
 	military_focus = 1.5
 
 	relative_power_class = 1
 	should_quit_wars_on_activation = yes
 
 	can_fight = {
+		independent_nations = yes
 		same_overlord = daimyo_vassal
 		same_overlord = great_daimyo_vassal
+		other_overlord = all
 	}
 	can_rival = {
 		same_overlord = daimyo_vassal
@@ -412,7 +443,7 @@ great_daimyo_vassal = {
 	# Subject Interactions
 	#(disable)
 	scutage = no
-	subsidize_armies = yes
+	#subsidize_armies = yes
 	fortify_march = yes
 	send_officers = yes
 	grant_core_claim = yes
@@ -423,15 +454,8 @@ great_daimyo_vassal = {
 	seize_territory = no
 	divert_trade = no
 	#(enable)
-	force_seppuku = yes
-	contribute_to_capital = yes
 	## force_isolation = yes #No isolation in Anbennar
 	return_land = yes
-	## conscript_general = yes #Because of battlemages
-	#(special)
-	sword_hunt = yes
-	sankin_kotai = yes
-	expel_ronin = yes
 	
 	# Modifiers
 	
@@ -454,12 +478,6 @@ great_daimyo_vassal = {
 		}
 		expiration_message_overlord = MARCHTOOLARGE
 		expiration_message_subject = MARCHTOOLARGEUS
-	}
-	modifier_overlord = {
-		modifier = overlord_sword_hunt
-		trigger = {
-			has_country_modifier = subject_sword_hunt
-		}
 	}
 }
 
@@ -560,6 +578,7 @@ personal_union = {
 	can_union_break = yes
 	transfer_subjects_when_made = yes
 	can_concentrate_development = no
+	extend_trading_range = yes
 
 	liberty_desire_negative_prestige = 1.0
 	military_focus = 0.66
@@ -579,6 +598,18 @@ personal_union = {
 	modifier_overlord = {
 		modifier = union_subject
 	}
+	modifier_overlord = {
+		trigger = {
+			overlord = { has_government_attribute = personal_union_war_contribution }
+		}
+		modifier = pu_overlord_bonus
+	}
+	modifier_subject = {
+		trigger = {
+			overlord = { has_government_attribute = personal_union_war_contribution }
+		}
+		modifier = pu_subject_bonus
+	}
 
 	overlord_opinion_modifier = in_union
 	subject_opinion_modifier = in_union
@@ -594,6 +625,7 @@ client_vassal = {
 
 	# Properties:
 	created_by_overlord = yes
+	extend_trading_range = yes
 
 	base_liberty_desire = -25.0
 	liberty_desire_revolution = 0
@@ -612,6 +644,7 @@ client_march = {
 
 	# Properties:
 	created_by_overlord = yes
+	extend_trading_range = yes
 
 	base_liberty_desire = -40.0
 	liberty_desire_revolution = 0
@@ -644,7 +677,8 @@ colony = {
 	press_sailors = yes
 	transfer_trade_power = yes
 	can_concentrate_development = no
-	
+	extend_trading_range = yes
+
 	liberty_desire_development_ratio = 0.1
 
 	max_government_rank = 1
@@ -655,11 +689,17 @@ colony = {
 
 	can_fight = {
 		other_overlord = colony
+		other_overlord = crown_colony
+		other_overlord = private_enterprise
+		other_overlord = self_governing_colony
 		neighboring_primitives = yes
 		colonial_region_nations = yes
 	}
 	can_rival = {
 		other_overlord = colony
+		other_overlord = crown_colony
+		other_overlord = private_enterprise
+		other_overlord = self_governing_colony
 		neighboring_primitives = yes
 		colonial_region_nations = yes
 	}
@@ -673,12 +713,19 @@ colony = {
 	start_colonial_war = yes
 	increase_tariffs = yes
 	decrease_tariffs = yes
+	enforce_culture = yes
 
 	# Modifiers:
 	modifier_overlord = {
 		modifier = large_colonial_nation
 		trigger = {
 			num_of_cities = 10
+		}
+	}
+	modifier_subject = {
+		modifier = new_world_exploitation_modifier
+		trigger = {
+			overlord = { has_government_attribute = extra_trade_goods_for_colonial_subjects }
 		}
 	}
 
@@ -695,14 +742,10 @@ crown_colony = {
 	can_send_missionary_to_subject = yes	
 	count = colony
 
-	forcelimit_bonus = 1.0
-	forcelimit_to_overlord = 0.5
-	manpower_bonus = 1.0
-	manpower_to_overlord = 0.5
-	naval_forcelimit_bonus = 0.5
-	naval_forcelimit_to_overlord = 0.05
-	sailors_bonus = 0.5
-	sailors_to_overlord = 0.05
+	forcelimit_to_overlord = 0.3
+	manpower_to_overlord = 0.3
+	naval_forcelimit_to_overlord = 0.01
+	sailors_to_overlord = 0.01
 
 	# Subject Interactions:
 	embargo_rivals = yes
@@ -713,8 +756,10 @@ crown_colony = {
 	takeondebt = yes
 	block_settlement_growth = yes
 	allow_settlement_growth = yes
+	enforce_culture = yes
 	
 	# Modifiers:
+	modifier_overlord = clear
 	modifier_overlord = {
 		modifier = crown_colony_overlord
 	}
@@ -732,21 +777,19 @@ private_enterprise = {
 	is_colony_subtype = yes
 	count = colony
 
-	forcelimit_bonus = 0.0
 	forcelimit_to_overlord = 0.0
-	manpower_bonus = 0.0
 	manpower_to_overlord = 0.0
-	naval_forcelimit_bonus = 1.0
-	naval_forcelimit_to_overlord = 0.5
-	sailors_bonus = 1.0
-	sailors_to_overlord = 0.5
+	naval_forcelimit_to_overlord = 0.3
+	sailors_to_overlord = 0.3
 
 	# Subject Interactions:
 	replace_governor = no
 	block_settlement_growth = no
 	allow_settlement_growth = no
+	enforce_culture = yes
 	
 	# Modifiers:	
+	modifier_overlord = clear
 	modifier_overlord = {
 		modifier = private_enterprise_overlord
 	}
@@ -764,22 +807,20 @@ self_governing_colony = {
 	is_colony_subtype = yes
 	count = colony
 
-	forcelimit_bonus = 0.1
-	forcelimit_to_overlord = 0.05
-	manpower_bonus = 0.1
-	manpower_to_overlord = 0.05
-	naval_forcelimit_bonus = 0.1
-	naval_forcelimit_to_overlord = 0.05
-	sailors_bonus = 0.1
-	sailors_to_overlord = 0.05
+	forcelimit_to_overlord = 0.002
+	manpower_to_overlord = 0.002
+	naval_forcelimit_to_overlord = 0.002
+	sailors_to_overlord = 0.002
 
 	# Subject Interactions:
 	replace_governor = no
 	block_settlement_growth = no
 	allow_settlement_growth = no
 	press_sailors = no
+	enforce_culture = yes	
 	
 	# Modifiers:	
+	modifier_overlord = clear
 	modifier_overlord = {
 		modifier = self_governing_colony_overlord
 	}
@@ -795,30 +836,41 @@ tributary_state = {
 	#is_subject_except_tributary_trigger
 	#is_free_or_tributary_trigger
 	copy_from = default
+	can_have_great_projects_moved_by_overlord = no
 
 	# Triggers:
 	is_potential_overlord = {
-		has_dlc = "Mandate of Heaven"
-		NOT = { 
-			is_subject_of_type = tributary_state
-		}
 		OR = {
-			culture_group = gnollish
-			culture_group = ogre
 			AND = {
-				culture_group = ynnic_ruinborn_elf
+				has_dlc = "Mandate of Heaven"
+				NOT = {
+					is_subject_of_type = tributary_state
+				}
 				OR = {
-					NOT = { is_at_war = yes }
-					any_known_country = {
-						war_with = ROOT
-						NOT = { culture_group = ynnic_ruinborn_elf }
-					}
+					has_reform = celestial_empire
+					has_government_attribute = has_tributaries
+					has_country_flag = can_create_tributaries_flag
+					has_country_flag = can_create_tributaries_flag_estate
+					is_nomad = yes
+					#Anbennar - Removed unused vanilla stuff
+					#religion_group = eastern
+					#technology_group = chinese
+					#technology_group = polynesian_tech
+					#Anbennar
+					culture_group = gnollish
+					culture_group = ogre
 				}
 			}
-			has_reform = celestial_empire
+			has_country_flag = forced_tributary_state	#A special flag for the Ottomans so they can get Crimea without allowing them to make tributaries by default
 		}
-		NOT = { has_country_modifier = hobgoblin_administration }
-		NOT = { has_country_modifier = centaur_administration }
+		#Anbennar
+		NOT = {
+			primary_culture = shuvuush 	# North Haless bird riders, AI too stupid to use tribs
+			primary_culture = guwaadun 	# North Haless bird riders, AI too stupid to use tribs
+			primary_culture = daxug 	# North Haless bird riders, AI too stupid to use tribs
+			has_country_modifier = hobgoblin_administration
+			has_country_modifier = centaur_administration
+		}
 	}
 	
 	# Graphics:
@@ -925,7 +977,6 @@ autonomous_vassal = {
 	
 	# Triggers:
 	is_potential_overlord = { always = yes } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
-	can_be_established = { always = yes }				# Ditto
 	
 	# Graphics:
 	sprite = GFX_icon_vassal
@@ -940,8 +991,8 @@ autonomous_vassal = {
 	
 	max_government_rank = 1
 	trust_on_start = 40
-	base_liberty_desire = -5.0
-	forcelimit_bonus = 1.0
+	base_liberty_desire = -5
+	#forcelimit_bonus = 1.0
 	forcelimit_to_overlord = 0.1
 	liberty_desire_development_ratio = 0.1
 	liberty_desire_same_dynasty = -10.0
@@ -952,7 +1003,6 @@ autonomous_vassal = {
 	# Subject Interactions:
 	scutage = no
 	embargo_rivals = yes
-	place_relative_on_throne = yes
 	sacrifice_ruler = yes
 	sacrifice_heir = yes
 	divert_trade = yes
@@ -968,6 +1018,9 @@ autonomous_vassal = {
 	
 	modifier_overlord = clear #We don't want to duplicate the ones inherited from default
 	modifier_subject = clear
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
 	
 	modifier_overlord = {
 		modifier = aelnar_holy_knight_maintenance
@@ -977,7 +1030,7 @@ autonomous_vassal = {
 		}
 	}
 	
-	modifier_overlord = {
+	modifier_overlord = {	#Removed due to tribal growth being currently too high
 		modifier = cheshoshi_vassal_tribute_overlord
 		trigger = {
 			FROM = { religion = death_cult_of_cheshosh }
@@ -990,6 +1043,23 @@ autonomous_vassal = {
 		trigger = {
 			FROM = { religion = death_cult_of_cheshosh }
 			ROOT = { religion = death_cult_of_cheshosh }
+		}
+	}
+	
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { NOT = { has_country_flag = funding_of_the_jade_march_upgraded_flag } }
+		}
+	}
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { has_country_flag = funding_of_the_jade_march_upgraded_flag }
 		}
 	}
 	
@@ -1056,11 +1126,11 @@ slave_state = {
 	should_quit_wars_on_activation = yes
 	
 	base_liberty_desire = -20.0
-	liberty_desire_negative_prestige = 0.25
-	liberty_desire_development_ratio = 0.25
+	liberty_desire_negative_prestige = 0.15
+	liberty_desire_development_ratio = 0.15
 	pays_overlord = 1.5									# 1.0 represents the amount payed by vassals
-	forcelimit_bonus = 1								# 1.0 represents bonus from having a vassal
-	forcelimit_to_overlord = 0.25					# Percent of subject FL to use as base for modifiers
+	#forcelimit_bonus = 1								# 1.0 represents bonus from having a vassal
+	forcelimit_to_overlord = 0.15					# Percent of subject FL to use as base for modifiers
 	military_focus = 1.5								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
 	liberty_desire_revolution = 0.0
 
@@ -1073,6 +1143,9 @@ slave_state = {
 	
 	modifier_overlord = clear #We don't want to duplicate the ones inherited from default
 	modifier_subject = clear
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
 	
 	modifier_overlord = {
 		modifier = hobgoblin_riches_of_jade_mines
@@ -1088,6 +1161,52 @@ slave_state = {
 			is_subject_of = R62 # The Command
 		}
 	}
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { NOT = { has_country_flag = funding_of_the_jade_march_upgraded_flag } }
+		}
+	}
+	modifier_overlord = {
+		modifier = hobgoblin_funding_of_the_jade_march
+		trigger = {
+			tag = R81 # Jade March
+			is_subject_of = R62 # The Command
+			overlord = { has_country_flag = funding_of_the_jade_march_upgraded_flag }
+		}
+	}
+}
+
+subsidiary_command = {
+	copy_from = default
+
+	# Graphics:
+	sprite = GFX_icon_march
+	diplomacy_overlord_sprite = GFX_diplomacy_leadmarch
+	diplomacy_subject_sprite = GFX_diplomacy_weakmarch
+
+	# Properties
+	can_fight_independence_war = yes
+	joins_overlords_wars = no
+	can_have_subjects_of_other_types = yes
+	liberty_desire_development_ratio = 0.1
+	liberty_desire_same_dynasty = -10.0
+	pays_overlord = 0
+	relative_power_class = 2
+	liberty_desire_revolution = 10.0
+	can_concentrate_development = no
+	grant_province = no
+	can_ally = { same_overlord = subsidiary_command }
+	military_focus = 10
+	should_quit_wars_on_activation = yes
+
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+
+	modifier_overlord = clear
+	modifier_subject = clear
 }
 
 centaur_dominion = {
@@ -1199,7 +1318,8 @@ centaur_follower = {
 	liberty_desire_development_ratio = 0.5
 	liberty_desire_same_dynasty = -5.0
 	pays_overlord = 1.0
-	forcelimit_bonus = 1.0
+	#manpower_bonus = 1.0
+	#forcelimit_bonus = 1.0
 	forcelimit_to_overlord = 0.0
 
 	relative_power_class = 2
@@ -1258,7 +1378,7 @@ amlharaz_hold = {
 	liberty_desire_development_ratio = 0.5
 	liberty_desire_same_dynasty = -5.0
 	pays_overlord = 1.0
-	forcelimit_bonus = 3.0
+	#forcelimit_bonus = 3.0
 	forcelimit_to_overlord = 0.1
 
 	relative_power_class = 5
@@ -1288,6 +1408,9 @@ amlharaz_hold = {
 		# modifier = centaur_subjugated_ai_boost
 		# trigger = { ai = yes }
 	# }
+	modifier_overlord = {
+		modifier = amlharaz_subject
+	}
 
 	overlord_opinion_modifier = is_vassal
 	subject_opinion_modifier = is_vassal
@@ -1306,13 +1429,13 @@ castanor_dominion = {
 	military_focus = 1.5
 	base_liberty_desire = -15.0
 	can_be_annexed = no
-	forcelimit_bonus = 1.0
+	#forcelimit_bonus = 1.0
 	forcelimit_to_overlord = 0.2
-	manpower_bonus = 1
+	#manpower_bonus = 1
 	manpower_to_overlord = 0.25
-	naval_forcelimit_bonus = 1.0
+	#naval_forcelimit_bonus = 1.0
 	naval_forcelimit_to_overlord = 0.2
-	sailors_bonus = 1
+	#sailors_bonus = 1
 	sailors_to_overlord = 0.25
 	upgrade_subject_type = yes
 	takes_diplo_slot = no
@@ -1335,8 +1458,7 @@ acolyte_dominion = {
 	copy_from = default
 	
 	# Triggers:
-	is_potential_overlord = { always = yes } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
-	can_be_established = { always = yes }				# Ditto
+	is_potential_overlord = { tag = Z99 } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
 	
 	# Graphics:
 	sprite = GFX_icon_vassal
@@ -1354,12 +1476,12 @@ acolyte_dominion = {
 	max_government_rank = 2
 	trust_on_start = 50
 	military_focus = 2
-	base_liberty_desire = -25.0
-	forcelimit_bonus = 1.0
+	base_liberty_desire = 0.0
+	#forcelimit_bonus = 1.0
 	forcelimit_to_overlord = 0.1
 	liberty_desire_development_ratio = 0.05
-	liberty_desire_same_dynasty = -10.0
-	pays_overlord = 0.35 								#1.0 Is what vassal pays
+	liberty_desire_same_dynasty = 0.0
+	pays_overlord = 0.2 								#1.0 Is what vassal pays
 	relative_power_class = 8 							#Unique
 	liberty_desire_revolution = 10.0
 	
@@ -1380,8 +1502,32 @@ acolyte_dominion = {
 	overlord_opinion_modifier = is_vassal
 	subject_opinion_modifier = is_vassal
 	
+	#FROM = Overlord
+	#ROOT = Subject
 	modifier_overlord = clear #We don't want to duplicate the ones inherited from default
 	modifier_subject = clear
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
+	
+	modifier_overlord = {
+		modifier = acolyte_dominion_too_small_overlord
+		trigger = {
+			NOT = {
+				development_of_overlord_fraction = 0.20
+			}
+		}
+	}
+	
+	modifier_subject = {
+		modifier = acolyte_dominion_too_small
+		trigger = {
+			NOT = {
+				development_of_overlord_fraction = 0.20
+			}
+		}
+		expiration_message_overlord = ACOLYTETOOSMALL
+	}
 	
 	can_fight = {
 		independent_nations = yes
@@ -1399,8 +1545,1150 @@ acolyte_dominion = {
 		same_overlord = all
 	}
 }
+
+infernal_collaborator = {
+	copy_from = default
+	
+	# Graphics:
+	sprite = GFX_icon_vassal
+	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal
+	diplomacy_subject_sprite = GFX_diplomacy_amvassal
+
+	# Properties:
+	transfer_trade_if_merchant_republic = yes
+	can_be_annexed = yes
+	has_power_projection = no
+	gets_help_with_rebels = yes
+	forms_trade_companies = no
+	can_have_subjects_of_other_types = yes
+	transfer_subjects_when_made = no
+
+	max_government_rank = 2
+
+	liberty_desire_development_ratio = 0.05
+	liberty_desire_same_dynasty = -5.0
+	pays_overlord = 1.0
+	base_liberty_desire = -25.0
+	#forcelimit_bonus = 1.0
+	forcelimit_to_overlord = 0.1
+
+	relative_power_class = 0
+	should_quit_wars_on_activation = yes
+
+	restoration_cb = cb_disloyal_vassal
+
+	# Subject Interactions:
+	support_loyalists = yes
+	divert_trade = yes
+	subsidize_armies = yes
+	send_additional_troops = yes
+	seize_territory = no
+
+	# Modifiers:
+	modifier_subject = {
+		modifier = vassal_nation
+	}
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
+
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+}
+
+infernal_order_state_subject = {
+	copy_from = default
+	
+	# Graphics:
+	sprite = GFX_icon_vassal
+	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal
+	diplomacy_subject_sprite = GFX_diplomacy_amvassal
+
+	# Properties:
+	gets_help_with_rebels = yes
+	overlord_can_attack = no
+	overlord_protects_external = yes
+	counts_for_borders = yes
+	takes_diplo_slot = no
+	can_be_integrated = no
+	can_be_annexed = no
+	can_have_subjects_of_other_types = yes
+	transfer_subjects_when_made = no
+
+	max_government_rank = 2
+
+	liberty_desire_development_ratio = 0
+	liberty_desire_same_dynasty = -5.0
+	pays_overlord = 1.0
+	base_liberty_desire = -100.0
+	#forcelimit_bonus = 1.0
+	forcelimit_to_overlord = 0.1
+
+	relative_power_class = 0
+	should_quit_wars_on_activation = yes
+
+	restoration_cb = cb_disloyal_vassal
+
+	# Subject Interactions:
+	support_loyalists = yes
+	divert_trade = yes
+	subsidize_armies = yes
+	send_additional_troops = yes
+	seize_territory = no
+
+	# Modifiers:
+	modifier_subject = {
+		modifier = vassal_nation
+	}
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
+
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+
+	can_fight = {
+		independent_nations = yes
+		other_overlord = all
+		same_overlord = all
+	}
+
+	can_rival = {
+		independent_nations = yes
+		other_overlord = all
+		same_overlord = all
+	}
+}
+oni_governorship = {
+	copy_from = default
+	# Graphics:
+	sprite = GFX_icon_vassal
+	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal # The one that the overlord sees
+	diplomacy_subject_sprite = GFX_diplomacy_amvassal	# The one that the subject sees
+
+	# Triggers:
+	is_potential_overlord = { tag = Y01 } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
+	
+	# Properties:
+	has_overlords_ruler = no
+	can_fight_independence_war = yes
+	is_voluntary = no									# Whether they can leave the relationship whenever they want
+	transfer_trade_power = no
+	transfer_trade_if_merchant_republic = no
+	joins_overlords_wars = yes
+	joins_colonial_wars = no
+	can_be_integrated = no
+	can_release_and_play = no							# "Release Colony" in SubjectView
+	uses_tariffs = no
+	dynamically_created_during_history = no				# If the country is automatically created. ( Makes for special checks during history )
+	eats_overlords_colonies = no						# Wheter subject assumes control of overlord's colonies in same colonial region.
+	has_colonial_parent = no							# Regulates most rules that should hold only for colonies
+	overlord_can_attack = yes
+	overlord_can_be_subject = no
+	can_have_subjects_of_other_types = no
+	can_be_annexed = no
+	takes_diplo_slot = no
+	has_power_projection = yes
+	can_release_in_peace = no
+	uses_military_focus = yes
+	overlord_protects_external = yes					# Whether overlord always gets called (declinable) against countries without the same overlord. When this is 'no' overlord will only join if the defender would have been blocked (by its subject type) from attacking the attacker.
+	counts_for_borders = yes							# Whether distance between borders counts this subject type as part of its overlord's borders.
+	overlord_enforce_peace_attacking = no				# Whether the overlord can enforce peace on the subject's enemy even when the subject is the attacker
+	can_use_claims = yes								# Whether the overlord can use the subject's claims and cores for declaring war
+	gives_daimyo_bonuses = no #why was this yes
+	gets_help_with_rebels = yes							# Only for AI. Bidirectional.
+	share_rebel_popup = yes								# Whether the Overlord gets popups about Subject's rebels and sees them in Stability View.
+	separatists_become_subjects = no					# Whether separatist rebels enforcing demands will become subjects of the overlord.
+	allows_taking_land_without_independence = no
+	can_transfer_in_peace = no							# Whether this subject type can be made into a vassal with the "Transfer Subject" Age Ability.
+	can_set_mil_focus = yes
+	can_send_missionary_to_subject = yes				# Requires Cradle of Civilization
+	can_union_break = no								# Only works together with has_overlords_ruler
+	overlord_can_fabricate_for = yes
+	does_overlord_size_count_for_warscore_cost = yes
+	is_colony_subtype = no
+	is_march = no
+	forms_trade_companies = no
+	can_concentrate_development = no
+
+	max_government_rank = 0								# 0 means no limit
+	cities_required_for_bonuses = 0						# How many cities the subject needs before giving bonuses to overlord
+	trust_on_start = 35									# Overlord and subject will each get this much extra trust with each other at game start
+
+	base_liberty_desire = 0.0
+	liberty_desire_negative_prestige = 0.0
+	liberty_desire_development_ratio = 0.1
+	liberty_desire_same_dynasty = 0.0
+	liberty_desire_revolution = 30.0					# Liberty desire at 100% revolution spread in country
+	pays_overlord = 1.0									# 1.0 represents the amount payed by vassals
+	#forcelimit_bonus = 0.0								# DEPRECATED 1.0 represents bonus from having a vassal
+	forcelimit_to_overlord = 0.1						# Percent of subject FL to use as base for modifiers
+	#naval_forcelimit_bonus = 0.0						# DEPRECATED 1.0 represents bonus from having a vassal
+	naval_forcelimit_to_overlord = 0.0					# Percent of subject FL to use as base for modifiers
+	#manpower_bonus = 0.0								# DEPRECATED 1.0 represents bonus from having a vassal
+	manpower_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
+	#sailors_bonus = 0.0								# DEPRECATED 1.0 represents bonus from having a vassal
+	sailors_to_overlord = 0.0							# Percent of subject FL to use as base for modifiers
+	military_focus = 1.0								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
+
+	relative_power_class = 1 							# See description above
+	should_quit_wars_on_activation = yes
+	diplomacy_view_class = 1							# See description above
+	can_fight = {
+	}
+	can_rival = {
+	}
+	can_ally = {
+	}
+	can_marry = {
+	}
+
+	# Subject Interactions:
+	# (continuous)
+	embargo_rivals = yes
+	support_loyalists = no
+	subsidize_armies = yes
+	scutage = yes
+	send_officers = no
+	divert_trade = yes
+	# (immediate)
+	placate_rulers = yes
+	place_relative_on_throne = no
+	enforce_religion = yes
+	customize_subject = no #:eyes:
+	replace_governor = no
+	grant_province = yes
+	enforce_culture = no
+	siphon_income = no
+	fortify_march = no
+	seize_territory = no
+	start_colonial_war = no
+	grant_core_claim = yes
+	sacrifice_ruler = no
+	sacrifice_heir = no
+	increase_tariffs = no
+	decrease_tariffs = no
+	takeondebt = yes
+	bestow_gifts = no
+	send_additional_troops = no
+	demand_artifacts = no
+	demand_additional_tribute = no
+	force_seppuku = no
+	press_sailors = no
+	contribute_to_capital = no
+	force_isolation = no
+	return_land = no
+	conscript_general = no
+	knowledge_sharing = yes
+	block_settlement_growth = yes
+	allow_settlement_growth = yes
+	change_colonial_type = no
+	upgrade_subject_type = no
+
+	# (special)
+	sword_hunt = no
+	sankin_kotai = no
+	expel_ronin = no
+
+	# Modifiers:
+	modifier_subject = clear # Use this to clear after copy_from.
+	modifier_subject = { # Otherwise, this only adds modifiers, and doesn't remove previously added.
+		modifier = subject_nation
+	}
+	modifier_overlord = clear
+
+	overlord_opinion_modifier = null # If not "null" it will look for a modifier with that name in 00_opinion_modifiers.txt and other files in that directory.
+	subject_opinion_modifier = null
+}
+
+ynnic_iosahar = {
+	copy_from = default
+	
+	# Triggers:
+	is_potential_overlord = {  # This part is not copied in copy_from. Actual default is equivalent to always = yes
+		always = yes
+	} 
+	#can_be_established = { always = yes }				# Ditto
+	
+	# Graphics:
+	sprite = GFX_icon_iosahar
+	diplomacy_overlord_sprite = GFX_diplomacy_leadiosahar
+	diplomacy_subject_sprite = GFX_diplomacy_amiosahar
+
+	# Properties:
+	can_fight_independence_war = no
+	is_voluntary = no
+	joins_overlords_wars = yes
+	overlord_can_attack = yes
+	overlord_can_be_subject = yes
+	gets_help_with_rebels = yes
+	can_have_subjects_of_other_types = yes
+	can_be_annexed = yes
+	takes_diplo_slot = no
+	can_release_in_peace = no
+	overlord_protects_external = yes
+	overlord_enforce_peace_attacking = yes
+	separatists_become_subjects = yes
+	allows_taking_land_without_independence = yes
+
+	base_liberty_desire = 0.0
+	liberty_desire_negative_prestige = 1.0
+	liberty_desire_development_ratio = 0.5
+	pays_overlord = 0.5
+	#forcelimit_bonus = 0.5
+	forcelimit_to_overlord = 0
+	military_focus = 6.0
+
+	relative_power_class = 5
+	should_quit_wars_on_activation = yes
+
+	can_fight = {	#Copied the setup of tributaries
+		independent_nations = yes
+		same_overlord = ynnic_iosahar
+		other_overlord = all
+	}
+	can_rival = {
+		independent_nations = yes
+		same_overlord = ynnic_iosahar
+		other_overlord = all
+	}
+	can_ally = {
+		independent_nations = yes
+		same_overlord = ynnic_iosahar
+		other_overlord = all
+	}
+	can_marry = {
+		independent_nations = yes
+		same_overlord = ynnic_iosahar
+		other_overlord = all
+	}
+
+	# Subject Interactions:
+	support_loyalists = no
+	placate_rulers = no
+	grant_province = no
+	seize_territory = yes
+	bestow_gifts = no
+	conscript_general = yes
+	upgrade_subject_type = yes
+
+	# Modifiers:
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject
+	}
+	
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_1
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b	#Custom trigger created an error
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 1 }
+			NOT = { FROM = { ynnic_iosahar = 2 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_2
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 2 }
+			NOT = { FROM = { ynnic_iosahar = 3 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_3
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 3 }
+			NOT = { FROM = { ynnic_iosahar = 4 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_4
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 4 }
+			NOT = { FROM = { ynnic_iosahar = 5 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_5
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 5 }
+			NOT = { FROM = { ynnic_iosahar = 6 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_6
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 6 }
+			NOT = { FROM = { ynnic_iosahar = 7 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_7
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 7 }
+			NOT = { FROM = { ynnic_iosahar = 8 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_8
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 8 }
+			NOT = { FROM = { ynnic_iosahar = 9 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_9
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 9 }
+			NOT = { FROM = { ynnic_iosahar = 10 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_10
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 10 }
+			NOT = { FROM = { ynnic_iosahar = 11 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_11
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 11 }
+			NOT = { FROM = { ynnic_iosahar = 12 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_12
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 12 }
+			NOT = { FROM = { ynnic_iosahar = 13 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_13
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 13 }
+			NOT = { FROM = { ynnic_iosahar = 14 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_14
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 14 }
+			NOT = { FROM = { ynnic_iosahar = 15 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_15
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 15 }
+			NOT = { FROM = { ynnic_iosahar = 16 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_16
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 16 }
+			NOT = { FROM = { ynnic_iosahar = 17 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_17
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 17 }
+			NOT = { FROM = { ynnic_iosahar = 18 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_18
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 18 }
+			NOT = { FROM = { ynnic_iosahar = 19 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_19
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 19 }
+			NOT = { FROM = { ynnic_iosahar = 20 } }
+		}
+	}
+
+	modifier_subject = {
+		modifier = ynnic_iosahar_subject_20
+		trigger = {
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U70
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = dolindhan
+					capital_scope = { region = dolindha_region }
+				}
+			}
+			NOT = {
+				AND = {
+					FROM = {
+						tag = U69
+						has_country_modifier = yrw_2b
+					}
+					primary_culture = sarda
+					capital_scope = { region = sarda_region }
+				}
+			}
+			FROM = { ynnic_iosahar = 20 }
+		}
+	}
+
+	modifier_overlord = {
+		modifier = ynnic_iosahar_overlord
+	}
+	modifier_overlord = {
+		modifier = ynnic_iosahar_overlord_dam
+		trigger = {
+			OR = {
+				owns = 1133
+				owns = 1138
+				owns = 1165
+				owns = 1186
+			}
+		}
+	}
+
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+
+}
 # Completely scripted subject type (no code used). Add any number of these. Check common/new_diplomatic_actions for how to make visible in game.
 dummy =
 {
 	copy_from = default
+}
+
+seghdihr_syndicate = {
+	copy_from = default
+	
+	# Triggers:
+	is_potential_overlord = {
+		tag = H78
+	}
+	
+	# Graphics:
+	sprite = GFX_icon_amlharaz
+	diplomacy_overlord_sprite = GFX_diplomacy_leadamlharaz
+	diplomacy_subject_sprite = GFX_diplomacy_amamlharaz
+	
+	# Properties:
+	can_fight_independence_war = no
+	transfer_trade_power = yes
+	can_be_integrated = no
+	can_be_annexed = no
+	can_release_in_peace = no
+	can_transfer_in_peace = no
+	overlord_can_fabricate_for = no
+	overlord_protects_external = yes
+	max_government_rank = 2
+	base_liberty_desire = -25
+	pays_overlord = 1.5
+	military_focus = 0.33								# How much the AI subject should spend etc. on army and forts. 0 should make them spend nothing. Very high values will probably not make a big difference since there will be sanity checks.
+	relative_power_class = 2						# See description above
+	diplomacy_view_class = 1							# See description above
+
+	# Subject Interactions:
+	subsidize_armies = yes
+	grant_province = no
+	fortify_march = yes
+	grant_core_claim = no
+
+	# Modifiers:
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+	
+	modifier_overlord = clear #We don't want to duplicate the ones inherited from default
+	modifier_subject = clear
+	
+	modifier_overlord = {
+		modifier = seghdihr_syndicate_overlord_bonus
+	}
+}
+
+twin_empire = {
+	copy_from = default
+
+	# Triggers:
+	is_potential_overlord = { always = yes } 			# This part is not copied in copy_from. Actual default is equivalent to always = yes
+	
+	# Graphics:
+	sprite = GFX_icon_vassal
+	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal
+	diplomacy_subject_sprite = GFX_diplomacy_amvassal
+
+	# Properties:
+	gets_help_with_rebels = yes
+	overlord_can_attack = no
+	overlord_protects_external = yes
+	takes_diplo_slot = yes
+	
+	max_government_rank = 3
+	trust_on_start = 75
+	base_liberty_desire = -25
+	#forcelimit_bonus = 1.0
+	forcelimit_to_overlord = 0.1
+	liberty_desire_development_ratio = 0.05
+	liberty_desire_same_dynasty = -10.0
+	pays_overlord = 0.35 								#1.0 Is what vassal pays
+	relative_power_class = 2 							#Same as vassal
+	liberty_desire_revolution = 10.0
+	
+	# Subject Interactions:
+	scutage = no
+	embargo_rivals = yes
+	sacrifice_ruler = yes
+	sacrifice_heir = yes
+	divert_trade = yes
+	place_relative_on_throne = yes
+	subsidize_armies = yes
+	send_additional_troops = yes
+	
+	send_officers = yes
+	
+	# Modifiers:
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
+	
+	modifier_overlord = clear #We don't want to duplicate the ones inherited from default
+	modifier_subject = clear
+	modifier_overlord = {
+		modifier = vassal_subject
+	}
+}
+
+gylikheion = {
+	#If similar subject added check if it needs to be added to these scripted triggers:
+	#is_subject_except_tributary_trigger
+	#is_free_or_tributary_trigger
+	copy_from = default
+
+	# Triggers:
+	is_potential_overlord = {
+		OR = {
+			tag = G52
+			tag = G00
+		}
+	}
+	
+	# Graphics:
+	sprite = GFX_subject_tributary_state
+	diplomacy_overlord_sprite = GFX_diplomacy_leadtributary
+	diplomacy_subject_sprite = GFX_diplomacy_amtributary
+
+	# Properties:
+	joins_overlords_wars = no
+	overlord_can_attack = no
+	takes_diplo_slot = no
+	has_power_projection = no
+	can_release_in_peace = no
+	can_send_tribute = yes
+	uses_military_focus = no
+	can_concentrate_development = no
+	can_have_great_projects_moved_by_overlord = no
+	
+	max_government_rank = 2
+	
+	base_liberty_desire = 0.0
+	liberty_desire_negative_prestige = 1.0
+	liberty_desire_development_ratio = 0.2
+	
+	relative_power_class = 1 							# See description above
+	should_quit_wars_on_activation = yes
+	
+	can_fight = {
+	}
+	can_rival = {
+	}
+	can_ally = {
+	}
+	can_marry = {
+	}
+
+	# Subject Interactions:
+	# (continuous)
+	send_officers = yes
+	divert_trade = yes
+	# (immediate)
+	enforce_religion = yes
+	grant_province = no
+	grant_core_claim = no
+	takeondebt = yes
+	bestow_gifts = yes
+	send_additional_troops = yes
+	demand_artifacts = yes
+	conscript_general = yes
+	block_settlement_growth = no
+	allow_settlement_growth = no
+
+	# Modifiers:
+	modifier_subject = clear # Tributaries don't get the ordinary subject_nation penalty 
+	overlord_opinion_modifier = is_gylikheion
+	subject_opinion_modifier = is_gylikheion
+}
+
+kruman = {
+	copy_from = default
+	
+	# Graphics:
+	sprite = GFX_icon_vassal
+	diplomacy_overlord_sprite = GFX_diplomacy_leadvassal
+	diplomacy_subject_sprite = GFX_diplomacy_amvassal
+
+	# Properties:
+	transfer_trade_if_merchant_republic = yes
+	can_be_annexed = no
+	has_power_projection = no
+	gets_help_with_rebels = yes
+	forms_trade_companies = no
+	takes_diplo_slot = no # Don't know if this is correct as doc didn't say but it seems right?
+
+	max_government_rank = 1
+
+	liberty_desire_development_ratio = 0.15 # Slightly lower than vassal
+	liberty_desire_same_dynasty = -5.0
+	pays_overlord = 1.0
+	forcelimit_to_overlord = 0.1
+
+	relative_power_class = 1 # Makes them all count relative power independently
+	should_quit_wars_on_activation = yes
+
+	restoration_cb = cb_disloyal_vassal
+
+	# Subject Interactions:
+	scutage = yes
+	place_relative_on_throne = no
+	sacrifice_ruler = no
+	sacrifice_heir = no
+	divert_trade = yes
+	seize_territory = no
+
+	# Modifiers:
+	modifier_subject = {
+		modifier = kruman_nation
+	}
+	modifier_overlord = {
+		modifier = kruman_subject
+	}
+	modifier_overlord = {
+		modifier = pirate_subject
+		trigger = {
+			has_government_attribute = is_pirate_republic_reform
+			overlord = {
+				has_government_attribute = pirate_vassal_bonus
+			}
+		}
+	}
+	modifier_subject = {
+		modifier = subject_tax_modifier
+		trigger = {
+			overlord = {
+				has_government_attribute = subject_tax_modifier_25
+			}
+		}
+	}
+	overlord_opinion_modifier = is_vassal
+	subject_opinion_modifier = is_vassal
 }

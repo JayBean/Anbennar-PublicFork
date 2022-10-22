@@ -1,0 +1,1495 @@
+namespace = magic_duel
+
+# When Creating a Spell, keep in mind the "value" of a mana point. So the whole system stay consistent. The default spell should be calculated as costing 10 mana
+#
+# 1 Mana = 1 Damage = 1 Shield = 0.1 Accuracy = 0.2 Evasion = 0.2 DoT = 0.2 HoT = 0.2 Power
+#
+# Abjuration: 20% More Shield 15% More Evasion Buff
+# Conjuration: 15% More Shield 20% More Evasion Buff
+# Divination: 30% More Accuracy Buff 30% More Evasion Buff
+# Enchantment: 20% More Accuracy Debuff 30% More Evasion Debuff
+# Evocation: 30% More Direct Damage
+# Illusion: 30% More Accuracy Debuff
+# Necromancy: 20% More DoT
+# Transmutation: 10% More Everything
+#
+# Spell Rank should also affect the mana efficiency in an additive manner, by 10% Increment.
+# So a Legendary Evocation spell would deal (30+30)% More damage per mana, so 1 mana = 1.6 damage, while a talented one would deal (30+10%) more damage per mana (so 1.4)
+#
+# You're free to distribute the mana pool of the spell however you want for multiple effect spell. Here is an exemple :
+#
+# Legendary Necromancy Spell that apply a DoT and Shield you for 100 mana:
+# 70 mana for the DoT = 70 x (1 + 0.2 + 0.3) x 0.2 = 21 Damage Per Turn
+# 30 mana for the Shield = 30 x (1 + 0 + 0.3) x 1 = 39 Shield
+
+# Initialisation
+country_event = {
+	id =  magic_duel.0
+	title =  magic_duel.0.t
+	desc =  magic_duel.0.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		random_known_country = {
+			limit = { has_country_flag = duel_@ROOT }
+			save_event_target_as = defender
+			set_ruler_flag = in_magic_duel
+		}
+		save_event_target_as = attacker
+		set_ruler_flag = in_magic_duel
+	}
+	
+	after = {
+		random_known_country = {
+			limit = { has_country_flag = duel_@ROOT }
+			clr_country_flag = duel_@ROOT
+		}
+	}
+	
+	option = {
+		name = magic_duel.0.a
+		ai_chance = { factor = 40 }
+		event_target:defender = { magic_duel_initialize_stats = yes }
+		event_target:attacker = { magic_duel_initialize_stats = yes }
+		if = {
+			limit = {
+				event_target:attacker = { ai = no }
+				event_target:defender = { ai = yes }
+			}
+			event_target:attacker = { country_event = { id = magic_duel.1 } }
+		}
+		else_if = {
+			limit = {
+				event_target:attacker = { ai = yes }
+				event_target:defender = { ai = no }
+			}
+			event_target:defender = { country_event = { id = magic_duel.1 } }
+		}
+		else = {
+			event_target:attacker = { country_event = { id = magic_duel.1 } }
+			event_target:defender = { country_event = { id = magic_duel.1 } }
+		}
+	}
+}
+
+#Main Menu
+country_event = {
+	id =  magic_duel.1
+	title =  magic_duel.1.t
+	desc =  magic_duel.1.d
+	picture = {
+		picture = JORGUREM_FIGHT_ANIMATED_eventPicture
+		trigger = {
+			event_target:defender = { has_ruler = "Jorgurem the Frozen" }
+		}
+	}
+	
+	picture = {
+		picture = MAGIC_DUEL_ANIMATED_eventPicture
+		trigger = {
+			always = yes
+		}
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		# has_ruler_flag = in_magic_duel
+		always = yes
+	}
+	
+	immediate = {
+		# parse_printing_value = yes
+	}
+	
+	#Abjuration
+	option = {
+		name = magic_duel.1.a
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = abjuration_1
+				check_variable = { current_mana = 30 }
+				want_to_reduce_enemy_evasion = yes
+			}
+			modifier = {
+				factor = 6
+				has_ruler_flag = abjuration_2
+				check_variable = { current_mana = 50 }
+				want_to_increase_shield = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = abjuration_3
+				check_variable = { current_mana = 80 }
+				want_to_increase_accuracy = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = abjuration_3
+				check_variable = { current_mana = 80 }
+				want_to_increase_accuracy_big = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_abjuration }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_abjuration_0
+		if = {
+			limit = { has_ruler_flag = abjuration_1 }
+			custom_tooltip = casting_abjuration_1
+		}
+		if = {
+			limit = { has_ruler_flag = abjuration_2 }
+			custom_tooltip = casting_abjuration_2
+		}
+		if = {
+			limit = { has_ruler_flag = abjuration_3 }
+			custom_tooltip = casting_abjuration_3
+		}
+	}
+	#Conjuration
+	option = {
+		name = magic_duel.1.b
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = conjuration_1
+				check_variable = { current_mana = 20 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = conjuration_2
+				check_variable = { current_mana = 35 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = conjuration_2
+				check_variable = { current_mana = 35 }
+				want_to_reduce_enemy_accuracy = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = conjuration_3
+				check_variable = { current_mana = 60 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = conjuration_3
+				check_variable = { current_mana = 60 }
+				want_to_increase_shield = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_conjuration }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_conjuration_0
+		if = {
+			limit = { has_ruler_flag = conjuration_1 }
+			custom_tooltip = casting_conjuration_1
+		}
+		if = {
+			limit = { has_ruler_flag = conjuration_2 }
+			custom_tooltip = casting_conjuration_2
+		}
+		if = {
+			limit = { has_ruler_flag = conjuration_3 }
+			custom_tooltip = casting_conjuration_3
+		}
+	}
+	#Divination
+	option = {
+		name = magic_duel.1.c
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = divination_1
+				check_variable = { current_mana = 30 }
+				want_to_reduce_enemy_accuracy = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = divination_2
+				check_variable = { current_mana = 30 }
+				want_to_increase_accuracy = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = divination_2
+				check_variable = { current_mana = 30 }
+				want_to_increase_accuracy_big = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = divination_3
+				check_variable = { current_mana = 50 }
+				want_to_increase_accuracy = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = divination_3
+				check_variable = { current_mana = 50 }
+				want_to_increase_accuracy_big = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_divination }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_divination_0
+		if = {
+			limit = { has_ruler_flag = divination_1 }
+			custom_tooltip = casting_divination_1
+		}
+		if = {
+			limit = { has_ruler_flag = divination_2 }
+			custom_tooltip = casting_divination_2
+		}
+		if = {
+			limit = { has_ruler_flag = divination_3 }
+			custom_tooltip = casting_divination_3
+		}
+		
+	}
+	#Enchantment
+	option = {
+		name = magic_duel.1.e
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = enchantment_1
+				check_variable = { current_mana = 25 }
+				want_to_increase_shield = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = enchantment_2
+				check_variable = { current_mana = 40 }
+				want_to_reduce_enemy_accuracy = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = enchantment_2
+				check_variable = { current_mana = 40 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = enchantment_3
+				check_variable = { current_mana = 65 }
+				want_to_reduce_enemy_accuracy = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = enchantment_3
+				check_variable = { current_mana = 65 }
+				want_to_deal_damage = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_enchantment }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_enchantment_0
+		if = {
+			limit = { has_ruler_flag = enchantment_1 }
+			custom_tooltip = casting_enchantment_1
+		}
+		if = {
+			limit = { has_ruler_flag = enchantment_2 }
+			custom_tooltip = casting_enchantment_2
+		}
+		if = {
+			limit = { has_ruler_flag = enchantment_3 }
+			custom_tooltip = casting_enchantment_3
+		}
+	}
+	#Evocation
+	option = {
+		name = magic_duel.1.f
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3.5
+				has_ruler_flag = evocation_1
+				check_variable = { current_mana = 25 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = evocation_2
+				check_variable = { current_mana = 55 }
+				want_to_reduce_enemy_evasion = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = evocation_2
+				check_variable = { current_mana = 55 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 50
+				has_ruler_flag = evocation_3
+				check_variable = { current_mana = 75 }
+				want_to_heal = yes
+			}
+			modifier = {
+				factor = 50
+				has_ruler_flag = evocation_3
+				check_variable = { current_mana = 75 }
+				want_to_heal_big = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_evocation }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_evocation_0
+		if = {
+			limit = { has_ruler_flag = evocation_1 }
+			custom_tooltip = casting_evocation_1
+		}
+		if = {
+			limit = { has_ruler_flag = evocation_2 }
+			custom_tooltip = casting_evocation_2
+		}
+		if = {
+			limit = { has_ruler_flag = evocation_3 }
+			custom_tooltip = casting_evocation_3
+		}
+	}
+	#Illusion
+	option = {
+		name = magic_duel.1.g
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = illusion_1
+				check_variable = { current_mana = 20 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 3
+				has_ruler_flag = illusion_1
+				check_variable = { current_mana = 20 }
+				want_to_incrase_evasion = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = illusion_2
+				check_variable = { current_mana = 40 }
+				want_to_incrase_evasion = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = illusion_2
+				check_variable = { current_mana = 40 }
+				want_to_incrase_evasion_big = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = illusion_3
+				check_variable = { current_mana = 120 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = illusion_3
+				check_variable = { current_mana = 120 }
+				want_to_incrase_evasion = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = illusion_3
+				check_variable = { current_mana = 120 }
+				want_to_incrase_evasion_big = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_illusion }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_illusion_0
+		if = {
+			limit = { has_ruler_flag = illusion_1 }
+			custom_tooltip = casting_illusion_1
+		}
+		if = {
+			limit = { has_ruler_flag = illusion_2 }
+			custom_tooltip = casting_illusion_2
+		}
+		if = {
+			limit = { has_ruler_flag = illusion_3 }
+			custom_tooltip = casting_illusion_3
+		}
+	}
+	#Necromancy
+	option = {
+		name = magic_duel.1.h
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3
+				has_ruler_flag = necromancy_1
+				check_variable = { current_mana = 25 }
+				want_to_apply_dot = yes
+			}
+			modifier = {
+				factor = 3
+				has_ruler_flag = necromancy_1
+				check_variable = { current_mana = 25 }
+				OR = {
+					want_to_reduce_enemy_accuracy = yes
+					want_to_apply_dot = yes
+				}
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = necromancy_2
+				check_variable = { current_mana = 35 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = necromancy_2
+				check_variable = { current_mana = 35 }
+				want_to_apply_dot = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = necromancy_3
+				check_variable = { current_mana = 80 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 5
+				has_ruler_flag = necromancy_3
+				check_variable = { current_mana = 80 }
+				want_to_apply_dot = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_necromancy }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_necromancy_0
+		if = {
+			limit = { has_ruler_flag = necromancy_1 }
+			custom_tooltip = casting_necromancy_1
+		}
+		if = {
+			limit = { has_ruler_flag = necromancy_2 }
+			custom_tooltip = casting_necromancy_2
+		}
+		if = {
+			limit = { has_ruler_flag = necromancy_3 }
+			custom_tooltip = casting_necromancy_3
+		}
+	}
+	#Transmutation
+	option = {
+		name = magic_duel.1.i
+		ai_chance = { 
+			factor = 40
+			modifier = {
+				factor = 3.5
+				has_ruler_flag = transmutation_1
+				check_variable = { current_mana = 35 }
+				want_to_increase_shield = yes
+			}
+			modifier = {
+				factor = 4
+				has_ruler_flag = transmutation_2
+				check_variable = { current_mana = 50 }
+				want_to_deal_damage = yes
+			}
+			modifier = {
+				factor = 50
+				has_ruler_flag = transmutation_3
+				check_variable = { current_mana = 75 }
+				want_to_heal = yes
+			}
+			modifier = {
+				factor = 50
+				has_ruler_flag = transmutation_3
+				check_variable = { current_mana = 75 }
+				want_to_heal_big = yes
+			}
+		}
+		hidden_effect = { set_ruler_flag = casting_transmutation }
+		hidden_effect = { hidden_effect = { country_event = { id = magic_duel.2 } } }
+		custom_tooltip = available_spell_tooltip
+		custom_tooltip = casting_transmutation_0
+		if = {
+			limit = { has_ruler_flag = transmutation_1 }
+			custom_tooltip = casting_transmutation_1
+		}
+		if = {
+			limit = { has_ruler_flag = transmutation_2 }
+			custom_tooltip = casting_transmutation_2
+		}
+		if = {
+			limit = { has_ruler_flag = transmutation_3 }
+			custom_tooltip = casting_transmutation_3
+		}
+	}
+	#Mana Regen
+	option = {
+		name = magic_duel.1.j
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 0
+				check_variable = { current_mana = 30 }
+			}
+			
+			modifier = {
+				factor = 2
+				want_to_increase_mana = yes
+			}
+		}
+		highlight = yes
+		custom_tooltip = regen_mana_tooltip
+		cast_spell = { regen_mana=yes value=1.1 cost=0 }
+		reset_printing_value_mana = yes
+		process_magical_turn = yes
+	}
+}
+
+#SpellCasting
+country_event = {
+	id =  magic_duel.2
+	title =  magic_duel.2.t
+	desc =  magic_duel.2.d
+	picture = SPELL_LIST_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		# has_ruler_flag = in_magic_duel
+		always = yes
+	}
+	
+	immediate = {
+		reset_printing_value = yes
+	}
+	
+	after = {
+		clr_casting_flag = yes
+	}
+
+	option = {
+		name = magic_duel.2.a
+		ai_chance = { 
+			factor = 1
+			
+			# modifier = {
+				# factor = 0
+				# tag = NPC
+			# }
+		}
+		highlight = yes
+		hidden_effect = { country_event = { id = magic_duel.1 } }
+		
+	}
+	
+	option = {
+		name = magic_duel.2.aa
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_reduce_enemy_evasion = yes }  }
+		trigger = { has_ruler_flag = casting_abjuration }
+		custom_tooltip = casting_abjuration_0
+		cast_spell = { value=2.5 debuff_spell_evasion=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ab
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_increase_shield = yes } }
+		trigger = { has_ruler_flag = casting_abjuration has_ruler_flag = abjuration_1 check_variable = { current_mana = 30 } }
+		custom_tooltip = casting_abjuration_1
+		cast_spell = { value=40 shield=yes cost=30 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ac
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_incrase_evasion = yes } modifier = { factor = 20 want_to_incrase_evasion_big = yes } modifier = { factor = 0 never_increase_evasion = yes } }
+		trigger = { has_ruler_flag = casting_abjuration has_ruler_flag = abjuration_2 check_variable = { current_mana = 50 } }
+		custom_tooltip = casting_abjuration_2
+		cast_spell = { value=20 buff_spell_evasion=yes cost=50 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ad
+		ai_chance = { factor = 50  modifier = { factor = 20 want_to_increase_accuracy = yes } modifier = { factor = 20 want_to_increase_accuracy_big = yes } modifier = { factor = 0 never_increase_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_abjuration has_ruler_flag = abjuration_3 check_variable = { current_mana = 80 } }
+		custom_tooltip = casting_abjuration_3
+		cast_spell = { value=0.2 buff_spell_power=yes cost=60 }
+		cast_spell = { value=5 buff_spell_accuracy=yes cost=20 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ba
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_apply_dot = yes } modifier = { factor = 10 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_conjuration }
+		custom_tooltip = casting_conjuration_0
+		cast_spell = { value=0.4 dot=yes cost=0 }
+		cast_spell = { value=8 damage=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.bb
+		ai_chance = { factor = 20 modifier = { factor = 10 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_conjuration has_ruler_flag = conjuration_1 check_variable = { current_mana = 20 } }
+		custom_tooltip = casting_conjuration_1
+		cast_spell = { value=22 damage=yes cost=20 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.bc
+		ai_chance = { factor = 35 modifier = { factor = 10 want_to_deal_damage = yes } modifier = { factor = 20 want_to_apply_dot = yes } modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_conjuration has_ruler_flag = conjuration_2 check_variable = { current_mana = 35 } }
+		custom_tooltip = casting_conjuration_2
+		cast_spell = { value=6 dot=yes cost=25 }
+		cast_spell = { value=3 debuff_spell_accuracy=yes cost=10 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.bd
+		ai_chance = { factor = 50 modifier = { factor = 20 want_to_increase_shield = yes } modifier = { factor = 20 want_to_deal_damage = yes }  }
+		trigger = { has_ruler_flag = casting_conjuration has_ruler_flag = conjuration_3 check_variable = { current_mana = 60 } }
+		custom_tooltip = casting_conjuration_3
+		cast_spell = { value=43.5 shield=yes cost=30 }
+		cast_spell = { value=40 damage=yes cost=30 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ca
+		ai_chance = { factor = 5 modifier = { factor = 0 never_increase_evasion = yes } modifier = { factor = 20 want_to_incrase_evasion = yes } }
+		trigger = { has_ruler_flag = casting_divination }
+		custom_tooltip = casting_divination_0
+		cast_spell = { value=6.5 buff_spell_evasion=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.cb
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_divination has_ruler_flag = divination_1 check_variable = { current_mana = 30 } }
+		custom_tooltip = casting_divination_1
+		cast_spell = { value=10 debuff_spell_accuracy=yes cost=30 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.cc
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_increase_accuracy = yes } modifier = { factor = 20 want_to_increase_accuracy_big = yes } modifier = { factor = 0 never_increase_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_divination has_ruler_flag = divination_2 check_variable = { current_mana = 30 } }
+		custom_tooltip = casting_divination_2
+		cast_spell = { value=12 buff_spell_accuracy=yes cost=30 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.cd
+		ai_chance = { factor = 50 modifier = { factor = 20 want_to_increase_accuracy = yes } modifier = { factor = 20 want_to_increase_accuracy_big = yes } modifier = { factor = 0 never_increase_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_divination has_ruler_flag = divination_3 check_variable = { current_mana = 50 } }
+		custom_tooltip = casting_divination_3
+		cast_spell = { value=25 buff_spell_accuracy=yes cost=30 }
+		cast_spell = { value=0.05 buff_spell_power=yes cost=20 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.da
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_increase_accuracy = yes } modifier = { factor = 0 never_increase_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_enchantment }
+		custom_tooltip = casting_enchantment_0
+		cast_spell = { value=2.5 buff_spell_accuracy=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.db
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_increase_shield = yes } }
+		trigger = { has_ruler_flag = casting_enchantment has_ruler_flag = enchantment_1 check_variable = { current_mana = 25 } }
+		custom_tooltip = casting_enchantment_1
+		cast_spell = { value=27.5 shield=yes cost=25 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.dc
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } modifier = { factor = 20 want_to_apply_dot = yes } }
+		trigger = { has_ruler_flag = casting_enchantment has_ruler_flag = enchantment_2 check_variable = { current_mana = 40 } }
+		custom_tooltip = casting_enchantment_2
+		cast_spell = { value=5 dot=yes cost=20 }
+		cast_spell = { value=7.5 debuff_spell_accuracy=yes cost=20 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.dd
+		ai_chance = { factor = 50 modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_enchantment has_ruler_flag = enchantment_3 check_variable = { current_mana = 65 } }
+		custom_tooltip = casting_enchantment_3
+		cast_spell = { value=10 debuff_spell_accuracy=yes cost=25 }
+		cast_spell = { value=50 damage=yes cost=40 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ea
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_evocation }
+		custom_tooltip = casting_evocation_0
+		cast_spell = { value=13 damage=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.eb
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_evocation has_ruler_flag = evocation_1 check_variable = { current_mana = 25 } }
+		custom_tooltip = casting_evocation_1
+		cast_spell = { value=0.025 buff_spell_power=yes cost=10 }
+		cast_spell = { value=20 damage=yes cost=15 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ec
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_reduce_enemy_evasion = yes } modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_evocation has_ruler_flag = evocation_2 check_variable = { current_mana = 55 } }
+		custom_tooltip = casting_evocation_2
+		cast_spell = { value=6 debuff_spell_evasion=yes cost=20 }
+		cast_spell = { value=45 damage=yes cost=35 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ed
+		ai_chance = { factor = 50 modifier = { factor = 50 want_to_heal = yes } modifier = { factor = 50 want_to_heal_big = yes } }
+		trigger = { has_ruler_flag = casting_evocation has_ruler_flag = evocation_3 check_variable = { current_mana = 75 } }
+		custom_tooltip = casting_evocation_3
+		cast_spell = { value=50 heal=yes cost=50 }
+		cast_spell = { value=6.5 hot=yes cost=25 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.fa
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_illusion }
+		custom_tooltip = casting_illusion_0
+		cast_spell = { value=2.5 debuff_spell_accuracy=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.fb
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_incrase_evasion = yes } modifier = { factor = 20 want_to_incrase_evasion_big = yes } modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_illusion has_ruler_flag = illusion_1 check_variable = { current_mana = 20 } }
+		custom_tooltip = casting_illusion_1
+		cast_spell = { value=3.5 buff_spell_evasion=yes cost=10 }
+		cast_spell = { value=11 damage=yes cost=10 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.fc
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_incrase_evasion = yes } modifier = { factor = 20 want_to_incrase_evasion_big = yes } modifier = { factor = 0 never_increase_evasion = yes } }
+		trigger = { has_ruler_flag = casting_illusion has_ruler_flag = illusion_2 check_variable = { current_mana = 40 } }
+		custom_tooltip = casting_illusion_2
+		cast_spell = { value=15 buff_spell_evasion=yes cost=40 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.fd
+		ai_chance = { factor = 50 modifier = { factor = 20 want_to_incrase_evasion = yes } modifier = { factor = 20 want_to_incrase_evasion_big = yes } modifier = { factor = 2 never_increase_evasion = yes } }
+		trigger = { has_ruler_flag = casting_illusion has_ruler_flag = illusion_3 check_variable = { current_mana = 120 } }
+		custom_tooltip = casting_illusion_3
+		cast_spell = { value=0.15 buff_spell_power=yes cost=60 }
+		cast_spell = { value=25 buff_spell_evasion=yes cost=60 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ga
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_apply_dot = yes } }
+		trigger = { has_ruler_flag = casting_necromancy }
+		custom_tooltip = casting_necromancy_0
+		cast_spell = { value=3 dot=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.gb
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_apply_dot = yes } modifier = { factor = 20 want_to_reduce_enemy_accuracy = yes } }
+		trigger = { has_ruler_flag = casting_necromancy has_ruler_flag = necromancy_1 check_variable = { current_mana = 25 } }
+		custom_tooltip = casting_necromancy_1
+		cast_spell = { value=4.2 dot=yes cost=15 }
+		cast_spell = { value=2.75 debuff_spell_accuracy=yes cost=10 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.gc
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_apply_dot = yes } modifier = { factor = 20 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_necromancy has_ruler_flag = necromancy_2 check_variable = { current_mana = 35 } }
+		custom_tooltip = casting_necromancy_2
+		cast_spell = { value=10.5 dot=yes cost=35 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.gd
+		ai_chance = { factor = 50 modifier = { factor = 30 want_to_apply_dot = yes } modifier = { factor = 30 want_to_deal_damage = yes } }
+		trigger = { has_ruler_flag = casting_necromancy has_ruler_flag = necromancy_3 check_variable = { current_mana = 80 } }
+		custom_tooltip = casting_necromancy_3
+		cast_spell = { value=16 dot=yes cost=50 }
+		cast_spell = { value=0.08 debuff_spell_power=yes cost=30 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ia
+		ai_chance = { factor = 5 modifier = { factor = 20 want_to_deal_damage = yes } modifier = { factor = 20 want_to_apply_dot = yes } }
+		trigger = { has_ruler_flag = casting_transmutation }
+		custom_tooltip = casting_transmutation_0
+		cast_spell = { value=0.2 dot=yes cost=0 }
+		cast_spell = { value=10 damage=yes cost=0 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ib
+		ai_chance = { factor = 20 modifier = { factor = 20 want_to_increase_shield = yes } }
+		trigger = { has_ruler_flag = casting_transmutation has_ruler_flag = transmutation_1 check_variable = { current_mana = 35 } }
+		custom_tooltip = casting_transmutation_1
+		cast_spell = { value=42 shield=yes cost=35 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.ic
+		ai_chance = { factor = 35 modifier = { factor = 20 want_to_increase_spell_power_big = yes } modifier = { factor = 0.01 stop_increase_spell_power = yes } }
+		trigger = { has_ruler_flag = casting_transmutation has_ruler_flag = transmutation_2 check_variable = { current_mana = 50 } }
+		custom_tooltip = casting_transmutation_2
+		cast_spell = { value=0.13 buff_spell_power=yes cost=50 }
+		process_magical_turn = yes
+	}
+	
+	option = {
+		name = magic_duel.2.id
+		ai_chance = { factor = 50 modifier = { factor = 50 want_to_heal = yes } modifier = { factor = 50 want_to_heal_big = yes } }
+		trigger = { has_ruler_flag = casting_transmutation has_ruler_flag = transmutation_3 check_variable = { current_mana = 75 } }
+		custom_tooltip = casting_transmutation_3
+		cast_spell = { value=21 hot=yes cost=75 }
+		process_magical_turn = yes
+	}
+}
+
+#Turn Process
+country_event = {
+	id =  magic_duel.3
+	title =  magic_duel.3.t
+	desc =  magic_duel.3.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		# has_ruler_flag = in_magic_duel
+		always = yes
+	}
+	##I should have put comment everywhere but i'm a dumbass. Rip
+	#It just work
+	immediate = {
+		#Overflow Control
+		event_target:attacker = {
+			fix_overflow_value = yes
+			
+			#Clean printing flag when a turn is processed
+			clr_magic_duel_printing_flag = yes
+		}
+		
+		event_target:defender = {
+			fix_overflow_value = yes
+			
+			#Clean printing flag when a turn is processed
+			clr_magic_duel_printing_flag = yes
+		}
+		
+		#Effect flow control: Hot, then Dot, then Damage. The rest is done before, at the same time (Heal included)
+		event_target:attacker = {
+			#Damage Over Time
+			if = {
+				limit = { check_variable = { mag_dot = 1 } }
+				set_variable = { which = dotFoo which = mag_dot }
+				if = {
+					limit = { check_variable = { which = dotFoo which = mag_shield } }
+					set_variable = { printShield = 0 }
+				}
+				while = {
+					limit = { check_variable = { dotFoo = 1 } }
+					if = {
+						limit = { check_variable = { mag_shield = 1 } }
+						subtract_variable = { mag_shield = 1 }
+						subtract_variable = { printShield = 1 }
+						set_ruler_flag = print_shield
+					}
+					else = {
+						subtract_variable = { current_hp = 1 }
+					}
+					subtract_variable = { dotFoo = 1 }
+				}
+				multiply_variable = { mag_dot = 0.9 }
+				divide_variable = { mag_dot = 1000 }
+				multiply_variable = { mag_dot = 1000 }
+			}
+			#Heal Over Time
+			if = {
+				limit = { check_variable = { mag_hot = 1 } }
+				change_variable = { which = current_hp which = mag_hot }
+				if = {
+					limit = { check_variable = { which = current_hp which = mag_hp } }
+					set_variable = { which = current_hp which = mag_hp }
+				}
+				multiply_variable = { mag_hot = 0.9 }
+				divide_variable = { mag_hot = 1000 }
+				multiply_variable = { mag_hot = 1000 }
+			}
+			#Damage
+			set_variable = { which = tempDam which = mag_damage }
+			event_target:defender = { event_target:attacker = { set_variable = { which = mag_damage which = PREV } } }
+			if = { #Resistance
+				limit = { check_variable = { mag_resistance = 1 } }
+				divide_variable = { mag_resistance = 100 }
+				if = {
+					limit = { check_variable = { mag_resistance = 0.9 } }
+					set_variable = { mag_resistance = 0.9 }
+				}
+				set_variable = { tempRes = 1 }
+				subtract_variable = { which = tempRes which = mag_resistance }
+				multiply_variable = { which = mag_damage which = tempRes }
+				multiply_variable = { mag_resistance = 100 }
+			}
+			# set_variable = { printDamage = 0 }
+			if = {
+				limit = { check_variable = { mag_damage = 1 } }
+				set_variable = { which = tempAcc which = mag_accuracy }
+				event_target:defender = { event_target:attacker = { set_variable = { which = mag_accuracy which = PREV } } }
+				set_variable = { which = spellHit which = mag_accuracy }
+				subtract_variable = { which = spellHit which = mag_evasion }
+				spell_hit_or_miss = yes
+				set_variable = { which = mag_accuracy which = tempAcc }
+			}
+			set_variable = { which = mag_damage which = tempDam }
+		}
+		event_target:defender = {
+			#Damage Over Time
+			if = {
+				limit = { check_variable = { mag_dot = 1 } }
+				set_variable = { which = dotFoo which = mag_dot }
+				if = {
+					limit = { check_variable = { which = dotFoo which = mag_shield } }
+					set_variable = { printShield = 0 }
+				}
+				while = {
+					limit = { check_variable = { dotFoo = 1 } }
+					if = {
+						limit = { check_variable = { mag_shield = 1 } }
+						subtract_variable = { mag_shield = 1 }
+						subtract_variable = { printShield = 1 }
+						set_ruler_flag = print_shield
+					}
+					else = {
+						subtract_variable = { current_hp = 1 }
+					}
+					subtract_variable = { dotFoo = 1 }
+				}
+				multiply_variable = { mag_dot = 0.9 }
+				divide_variable = { mag_dot = 1000 }
+				multiply_variable = { mag_dot = 1000 }
+			}
+			#Heal Over Time
+			if = {
+				limit = { check_variable = { mag_hot = 1 } }
+				change_variable = { which = current_hp which = mag_hot }
+				if = {
+					limit = { check_variable = { which = current_hp which = mag_hp } }
+					set_variable = { which = current_hp which = mag_hp }
+				}
+				multiply_variable = { mag_hot = 0.9 }
+				divide_variable = { mag_hot = 1000 }
+				multiply_variable = { mag_hot = 1000 }
+			}
+			#Damage
+			set_variable = { which = tempDam which = mag_damage }
+			event_target:attacker = { event_target:defender = { set_variable = { which = mag_damage which = PREV } } }
+			if = { #Resistance
+				limit = { check_variable = { mag_resistance = 1 } }
+				divide_variable = { mag_resistance = 100 }
+				if = {
+					limit = { check_variable = { mag_resistance = 0.9 } }
+					set_variable = { mag_resistance = 0.9 }
+				}
+				set_variable = { tempRes = 1 }
+				subtract_variable = { which = tempRes which = mag_resistance }
+				multiply_variable = { which = mag_damage which = tempRes }
+				multiply_variable = { mag_resistance = 100 }
+			}
+			# set_variable = { printDamage = 0 }
+			if = {
+				limit = { check_variable = { mag_damage = 1 } }
+				set_variable = { which = tempAcc which = mag_accuracy }
+				event_target:attacker = { event_target:defender = { set_variable = { which = mag_accuracy which = PREV } } }
+				set_variable = { which = spellHit which = mag_accuracy }
+				subtract_variable = { which = spellHit which = mag_evasion }
+				spell_hit_or_miss = yes
+				set_variable = { which = mag_accuracy which = tempAcc }
+			}
+			set_variable = { which = mag_damage which = tempDam }
+		}
+		event_target:attacker = {
+			if = {
+				limit = { check_variable = { which = current_hp which = mag_hp } }
+				set_variable = { which = current_hp which = mag_hp }
+			}
+		}
+		event_target:defender = {
+			if = {
+				limit = { check_variable = { which = current_hp which = mag_hp } }
+				set_variable = { which = current_hp which = mag_hp }
+			}
+		}
+		
+		#Next Turn
+		event_target:attacker = { set_variable = { magicProcess = 0 } set_printing_flag = yes parse_printing_value = yes }
+		event_target:defender = { set_variable = { magicProcess = 0 } set_printing_flag = yes parse_printing_value = yes }
+	}
+
+	#Continue
+	option = {
+		name = magic_duel.3.a
+		ai_chance = { factor = 10 }
+		trigger = {
+			event_target:defender = { check_variable = { current_hp = 0 } }
+			event_target:attacker = { check_variable = { current_hp = 0 } }
+		}
+		if = {
+			limit = {
+				event_target:attacker = { ai = no }
+				event_target:defender = { ai = yes }
+			}
+			event_target:attacker = { country_event = { id = magic_duel.1 } }
+		}
+		else_if = {
+			limit = {
+				event_target:attacker = { ai = yes }
+				event_target:defender = { ai = no }
+			}
+			event_target:defender = { country_event = { id = magic_duel.1 } }
+		}
+		else = {
+			event_target:attacker = { country_event = { id = magic_duel.1 } }
+			event_target:defender = { country_event = { id = magic_duel.1 } }
+		}
+	}
+	#Attacker victory
+	option = {
+		name = magic_duel.3.b
+		ai_chance = { factor = 10 }
+		trigger = {
+			event_target:attacker = { check_variable = { current_hp = 0 } }
+			event_target:defender = { NOT = { check_variable = { current_hp = 0 } } }
+		}
+		if = {
+			limit = { event_target:attacker = { has_ruler_flag = fighting_NPC } } #This is for fighting NPC
+			trigger_switch = { #Here you define which event should the non-NPC country get if he win against the targetted NPC
+				on_trigger = has_ruler_flag
+				npc_jorgurem = { event_target:attacker = { country_event = { id = black_demesne.8 } clr_ruler_flag = npc_jorgurem clr_ruler_flag = fighting_NPC } }
+			}
+			event_target:defender = { magic_duel_npc_clear_magical_flag = yes } #This clear every special flag of the NPC. If they have custom spell (dragon breaths etc...), add the relevant flag to this effect
+		}
+		else = { 
+			event_target:attacker = { country_event = { id = magic_duel.4 } }
+			event_target:defender = { country_event = { id = magic_duel.6 } }
+		}
+		event_target:attacker = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+		event_target:defender = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+	}
+	#Defender victory
+	option = {
+		name = magic_duel.3.c
+		ai_chance = { factor = 10 }
+		trigger = {
+			event_target:defender = { check_variable = { current_hp = 0 } }
+			event_target:attacker = { NOT = { check_variable = { current_hp = 0 } } }
+		}
+		event_target:attacker = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+		event_target:defender = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+		if = {
+			limit = { event_target:attacker = { has_ruler_flag = fighting_NPC } } #This is for fighting NPC
+			trigger_switch = { #Here you define which event should the non-NPC country get if he lose against the targetted NPC
+				on_trigger = has_ruler_flag
+				npc_jorgurem = { event_target:attacker = { country_event = { id = black_demesne.9 } clr_ruler_flag = npc_jorgurem clr_ruler_flag = fighting_NPC } }
+			}
+			event_target:defender = { magic_duel_npc_clear_magical_flag = yes } #This clear every special flag of the NPC. If they have custom spell (dragon breaths etc...), add the relevant flag to this effect
+		}
+		else = { 
+			event_target:defender = { country_event = { id = magic_duel.4 } }
+			event_target:attacker = { country_event = { id = magic_duel.6 } }
+		}
+	}
+	#Draw
+	option = {
+		name = magic_duel.3.e
+		ai_chance = { factor = 10 }
+		trigger = {
+			event_target:attacker = { NOT = { check_variable = { current_hp = 0 } } }
+			event_target:defender = { NOT = { check_variable = { current_hp = 0 } } }
+		}
+		event_target:attacker = { country_event = { id = magic_duel.5 } }
+		event_target:defender = { country_event = { id = magic_duel.5 } }
+		event_target:attacker = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+		event_target:defender = { clr_ruler_flag = in_magic_duel clr_magic_duel_printing_flag = yes }
+	}
+}
+
+#Victory in Magic Duel
+country_event = {
+	id =  magic_duel.4
+	title =  magic_duel.4.t
+	desc =  magic_duel.4.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	after = {
+		hidden_effect = {
+			clr_ruler_flag = in_magic_duel
+		}
+	}
+
+	#Bask in glory
+	option = {
+		name = magic_duel.4.a
+		ai_chance = { factor = 0 }
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = blackpurgis_happening
+					overlord = { has_country_flag = blackpurgis_happening }
+				}
+			}
+			hidden_effect = {
+				change_variable = { currentBlack = 1 }
+				change_variable = { winBlack = 1 }
+			}
+			add_ruler_modifier = {
+				name = recent_blackpurgis_duel
+				duration = 90
+			}
+			if = {
+				limit = { event_target:attacker = { tag = Z99 } NOT = { tag = Z99 } }
+				add_liberty_desire = 15
+				increase_acolyte_influence_15 = yes
+			}
+			else_if = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				increase_acolyte_influence_5 = yes
+			}
+			add_prestige_excess_to_splendour_effect = { VAL=3 }
+			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_won }
+			country_event = { id = flavour_tluukt.55 } #Annex Zokka
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige_excess_to_splendour_effect = { VAL=10 }
+			if = {
+				limit = { tag = F28 } #Tluukt
+				add_ruler_modifier = { name = tluukt_wins_carodir duration = 1825 }
+				tooltip = {
+					F42 = {
+						kill_ruler = yes
+						capital_scope = {
+							change_controller = ROOT
+							every_neighbor_province = {
+								limit = { country_or_non_sovereign_subject_holds = F42 }
+								change_controller = ROOT
+							}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { tag = F42 } #Varamhar
+				capital_scope = {
+					change_controller = ROOT
+					kill_units = {
+						who = F28
+						type = infantry
+						amount = 5
+					}
+					every_neighbor_province = {
+						limit = {
+							controlled_by = F28
+							country_or_non_sovereign_subject_holds = F42
+						}
+						change_controller = ROOT
+					}
+				}
+				tooltip = {
+					F28 = {
+						kill_ruler = yes
+						add_country_modifier = { name = tluukt_loses_carodir duration = 1825 }
+					}
+				}
+			}
+		}
+		else = {
+			add_prestige_excess_to_splendour_effect = { VAL=10 }
+		}
+	}
+}
+
+#Draw in Magic Duel
+country_event = {
+	id =  magic_duel.5
+	title =  magic_duel.5.t
+	desc =  magic_duel.5.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	after = {
+		hidden_effect = {
+			clr_ruler_flag = in_magic_duel
+		}
+	}
+
+	#A bummer
+	option = {
+		name = magic_duel.5.a
+		ai_chance = { factor = 0 }
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = blackpurgis_happening
+					overlord = { has_country_flag = blackpurgis_happening }
+				}
+			}
+			hidden_effect = {
+				change_variable = { currentBlack = 1 }
+				change_variable = { drawBlack = 1 }
+			}
+			add_ruler_modifier = {
+				name = recent_blackpurgis_duel
+				duration = 180
+			}
+			if = {
+				limit = { event_target:attacker = { tag = Z99 } NOT = { tag = Z99 } }
+				add_liberty_desire = 5
+				increase_acolyte_influence_5 = yes
+			}
+			add_prestige = -2.5
+			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_drew }
+			country_event = { id = flavour_tluukt.55 } #Declare war
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige = -5
+		}
+		else = {
+			add_prestige = -5
+		}
+	}
+}
+
+#Loss in Magic Duel
+country_event = {
+	id =  magic_duel.6
+	title =  magic_duel.6.t
+	desc =  magic_duel.6.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	after = {
+		hidden_effect = {
+			clr_ruler_flag = in_magic_duel
+		}
+	}
+
+	#Damn
+	option = {
+		name = magic_duel.6.a
+		ai_chance = { factor = 0 }
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = blackpurgis_happening
+					overlord = { has_country_flag = blackpurgis_happening }
+				}
+			}
+			hidden_effect = {
+				change_variable = { currentBlack = 1 }
+				change_variable = { loseBlack = 1 }
+			}
+			add_ruler_modifier = {
+				name = recent_blackpurgis_duel
+				duration = 180
+			}
+			if = {
+				limit = { event_target:attacker = { tag = Z99 } NOT = { tag = Z99 } }
+				add_liberty_desire = -5
+				decrease_acolyte_influence_5 = yes
+			}
+			else_if = {
+				limit = { is_subject_of_type = acolyte_dominion }
+				decrease_acolyte_influence_10 = yes
+			}
+			add_prestige = -5
+			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_lost }
+			country_event = { id = flavour_tluukt.55 } #Retreat in shame, declare war
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige = -10
+			if = {
+				limit = { tag = F42 } #Varamhar
+				kill_ruler = yes
+				capital_scope = {
+					change_controller = F28
+					every_neighbor_province = {
+						limit = { country_or_non_sovereign_subject_holds = ROOT }
+						change_controller = F28
+					}
+				}
+				tooltip = { F28 = { add_ruler_modifier = { name = tluukt_wins_carodir duration = 1825 } } }
+			}
+			else_if = {
+				limit = { tag = F28 } #Tluukt
+				kill_ruler = yes
+				add_country_modifier = { name = tluukt_loses_carodir duration = 1825 }
+				tooltip = {
+					F42 = {
+						capital_scope = {
+							change_controller = F42
+							kill_units = {
+								who = ROOT
+								type = infantry
+								amount = 5
+							}
+							every_neighbor_province = {
+								limit = {
+									controlled_by = ROOT
+									country_or_non_sovereign_subject_holds = F42
+								}
+								change_controller = F42
+							}
+						}
+					}
+				}
+			}
+		}
+		else = {
+			add_prestige = -10
+		}
+	}
+}
+
+############
+## Background & Debug
+############
+
+# Monster Initialisation
+country_event = {
+	id =  magic_duel.100
+	title =  magic_duel.100.t
+	desc =  magic_duel.100.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+	
+	is_triggered_only = yes
+	
+	hidden = yes
+	
+	trigger = {
+		always = yes
+	}
+	
+	immediate = {
+		NPC = { save_event_target_as = defender }
+		save_event_target_as = attacker
+		set_ruler_flag = fighting_NPC
+	}
+	option = {
+		name = magic_duel.100.a
+		ai_chance = { factor = 40 }
+		event_target:attacker = {									 # Don't touch that
+			magic_duel_initialize_stats = yes
+		}
+		event_target:defender = { 									 #	Defender will be the NPC you fight
+			if = {
+				limit = { ROOT = { has_ruler_flag = npc_jorgurem } } # Define the NPC you will fight
+				define_ruler = { name = "Jorgurem the Frozen" }      # This it the Name of the NPC
+				magic_duel_initialize_stats_npc = { Jorgurem=yes }   # You must define the stats of the NPC. Take exemple on Jorgurem
+			}
+			# country_event = { id = magic_duel.1 }
+		}
+		event_target:attacker = {									 # Don't touch that
+			country_event = { id = magic_duel.1 }
+		}
+	}
+}

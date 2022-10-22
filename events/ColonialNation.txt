@@ -1,4 +1,3 @@
-
 namespace = colonial_nation
 
 # Tariffs Too High
@@ -514,21 +513,23 @@ country_event = {
 	}
 	
 	immediate = {
-		random_country = {
-			limit = {
-				is_colonial_nation_of = ROOT
-				OR = {
-					NOT = { has_country_flag = restricted_colonial_expansion }
-					had_country_flag = { flag = restricted_colonial_expansion days = 10950 }
+		hidden_effect = {
+			random_country = {
+				limit = {
+					is_colonial_nation_of = ROOT
+					OR = {
+						NOT = { has_country_flag = restricted_colonial_expansion }
+						had_country_flag = { flag = restricted_colonial_expansion days = 10950 }
+					}
+					any_owned_province = {
+						is_colony = yes
+					}
+					any_neighbor_country = {
+						primitives = yes
+					}
 				}
-				any_owned_province = {
-					is_colony = yes
-				}
-				any_neighbor_country = {
-					primitives = yes
-				}
+				save_event_target_as = restricted_colonial_expansion_country
 			}
-			save_event_target_as = restricted_colonial_expansion_country
 		}
 	}
 	
@@ -4551,12 +4552,12 @@ country_event = {
 	
 	option = { #pick a new governor
 		name = colonial_nation.183.a
-		exile_ruler_as = colonial_exiled_governor
+		exile_ruler_as = { name = colonial_exiled_governor }
 		define_ruler = {
 			culture = ROOT
-			ADM = 4
-			DIP = 3
-			MIL = 3
+			change_adm = 4
+			change_dip = 3
+			change_mil = 3
 		}
 		random = {
 			chance = 50
@@ -4625,11 +4626,10 @@ country_event = {
 		name = colonial_nation.184.a
 		add_adm_power = -100
 		add_dip_power = -100
-		area = {
-			limit = { owned_by = ROOT }
-			add_unrest = -1
+		add_corruption = -2
+		ai_chance = {
+			factor = 0
 		}
-		add_corruption = -0.5
 	}	
 	
 	option = { #it's surely nothing
@@ -4639,6 +4639,9 @@ country_event = {
 				limit = { owned_by = ROOT }
 				add_unrest = 1
 			}
+		}
+		ai_chance = {
+			factor = 1
 		}
 	}
 }
@@ -4980,15 +4983,10 @@ country_event = {
 	trigger = {
 		any_owned_province = {
 			is_colony = yes
+			NOT = { has_province_flag = absent_governor }
 		}
 		has_dlc = "Leviathan"
-		OR = {
-			is_colonial_nation = yes
-			owner = {
-				is_colonial_nation = yes
-			}
-		}	
-		NOT = { has_province_flag = absent_governor }
+		is_colonial_nation = yes
 	}
 	
 	immediate = {
@@ -4998,8 +4996,8 @@ country_event = {
 					is_colony = yes
 				}
 				save_event_target_as = absent_governor_province
+				set_province_flag = absent_governor
 			}
-			set_province_flag = absent_governor
 		}
 	}
 	
@@ -5089,88 +5087,5 @@ province_event = {
 			}
 		}
 		add_unrest = 1
-	}
-}
-
-# Assign special colonial government reforms to the different types of colonies
-country_event = {
-	id = colonial_nation.192
-	title = colonial_nation.192.t
-	desc = colonial_nation.192.d
-	picture = HARBOUR_eventPicture
-
-	trigger = {
-		has_dlc = "Leviathan"
-		is_colonial_nation = yes
-		OR = {
-			AND = {
-				is_subject_of_type = crown_colony
-				NOT = { has_reform = crown_colony_government }
-			}
-			AND = {
-				is_subject_of_type = private_enterprise
-				NOT = { has_reform = private_enterprise_colony_government }
-			}
-			AND = {
-				is_subject_of_type = self_governing_colony
-				NOT = { has_reform = self_governing_colony_government }
-			}
-		}
-		NOT = { has_country_flag = colonial_nation_government_assignment_failed }	#To avoid that the event infinitely triggers when the assigment fails
-	}
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-
-	hidden = yes
-	
-	option = { #exploit the pilgrims
-		name = colonial_nation.192.a
-
-		if = {
-			limit = {
-				is_subject_of_type = crown_colony
-			}
-			if = {
-				limit = {
-					NOT = { government = republic }
-				}
-				change_government = republic
-			}
-			add_government_reform = crown_colony_government
-		}
-		else_if = {
-			limit = {
-				is_subject_of_type = private_enterprise
-			}
-			if = {
-				limit = {
-					NOT = { government = republic }
-				}
-				change_government = republic
-			}
-			add_government_reform = private_enterprise_colony_government
-		}
-		else_if = {
-			limit = {
-				is_subject_of_type = self_governing_colony
-			}
-			if = {
-				limit = {
-					NOT = { government = republic }
-				}
-				change_government = republic
-			}
-			add_government_reform = self_governing_colony_government
-		}
-		else = {
-			set_country_flag = colonial_nation_government_assignment_failed	
-			#This flag is here to ensure that this event doesn't get triggered infinitely times if the proper government reform assignment fails
-		}
-		
-		ai_chance = {
-			factor = 1
-		}
 	}
 }

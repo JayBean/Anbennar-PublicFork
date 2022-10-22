@@ -1,0 +1,843 @@
+namespace = aw_ghouls
+
+#The Adventurers Wanted uses a strict ID system to make the system easier to author content for
+#The IDs below 100 are core utility systems that are usually straight copies or modifications of how the AW system works, such as monsters being able to migrate and be defeated by adventurers.
+#The IDs above 100 are more unique situations for the specific encounter, but they should correlate with the numbers from above: if ID 10s deal with migration, then ID 110s should be the unique events to do with migration - for example bribing a Thieves Guild to GTFO your country
+#Crazy and more uniques ones that dont conform to the utilities should be ID 200
+
+#USE THE anb_aw_ghouls TO SEE A SIMPLE COPY-PASTABLE FORMAT IN ADDITION TO STUFF LIKE MIGRATION STYLES ETC
+#Search for CHANGEABLE for the criteria you should change in that file and this one
+
+#################################################################
+# Welcome to the master file for the Adventurers Wanted System. In the comments below you'll see copy-pastable events for you to choose, different migration styles as well as prebuilt events to handle stuff like spawning rebellions
+#################################################################
+
+#0 - spawn in province
+province_event = {
+	id = aw_ghouls.0
+	title = aw_ghouls.0.t
+	desc = aw_ghouls.0.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	#hidden = yes
+	
+	#yup thats happening
+	option = {
+		name = aw_basic.0.a
+		ai_chance = { 
+			factor = 1 
+		}
+		add_permanent_province_modifier  = {
+			name = aw_ghouls_1
+			duration = -1  
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+	}
+}
+
+
+#1 - event manager, called by on_actions. This happens ONCE per pulse. If you have 7 of these, it still only fires the manager once
+country_event = {
+	id = aw_ghouls.1
+	title = aw_ghouls.1.t
+	desc = aw_ghouls.1.d
+	picture = COMET_SIGHTED_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		any_owned_province = {
+			OR = { 
+				has_province_modifier = aw_ghouls_1
+				has_province_modifier = aw_ghouls_2
+				#has_province_modifier = aw_ghouls_3
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 2
+			num_of_owned_provinces_with = {
+				value = 3
+				OR = { 
+					has_province_modifier = aw_ghouls_1
+					has_province_modifier = aw_ghouls_2
+					#has_province_modifier = aw_ghouls_3
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_owned_province = {
+			limit = {
+				OR = { 
+					has_province_modifier = aw_ghouls_1
+					has_province_modifier = aw_ghouls_2
+				}
+			}
+			save_event_target_as = aw_ghouls_target
+		}
+	}
+	
+	
+	option = {
+		event_target:aw_ghouls_target = {
+			random_list = {
+				
+				#22 - natural tier down
+				10 = {
+					province_event = { id = aw_ghouls.22 } 
+				}
+
+				#23 - adventurer tier down
+				20 = {
+					#Base modifiers
+
+					#more likely if generous quest rewards/adverturer nation
+					modifier = {
+						factor = 2
+						OR = {
+							owner = { has_estate_privilege = estate_adventurers_generous_quest_rewards }
+							owner = { has_adventurer_reform = yes }
+						}
+					}
+
+					#more likely if loyal
+					modifier = {
+						factor = 2
+						owner = {
+							estate_loyalty = {
+								estate = estate_adventurers
+								loyalty = 60
+							}
+						}
+					}
+
+					#more likely if high influence
+					modifier = {
+						factor = 2
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 60
+							}
+						}
+					}
+					#small influence boost at 30
+					modifier = {
+						factor = 1.5
+						owner = {
+							estate_influence = {
+								estate = estate_adventurers
+								influence = 30
+							}
+						}
+					}
+					#adventurer type sponsorships
+					modifier = {
+						factor = 2
+						owner = {
+							has_estate_privilege = estate_adventurers_sponsor_holy_paladins
+						}
+					}
+					province_event = { id = aw_ghouls.23 }
+				}
+
+
+				#25 - monstrous natural tier down.
+				50 = {
+					#Base modifiers
+					modifier = {
+						#only want this to ever be part of the equation if you are monstrous
+						factor = 0
+						NOT = { owner = { has_country_modifier = monstrous_nation } }
+					}
+					province_event = { id = aw_ghouls.25 }   
+				}
+
+				#30 - natural tier up
+				10 = {
+					province_event = { id = aw_ghouls.30 }   
+				}
+
+				#200 - Ghouls dig up graves, pissing off people in province
+				10 = {
+					province_event = { id = aw_ghouls.200 }   
+				}
+
+				#201 - Ghouls that exist in a non-devastated place attack villages
+				10 = {
+					province_event = { id = aw_ghouls.201 }   
+				}
+
+				#202 - (City or high dev) Sewer Ghouls clog pipes with corpses, making people sick
+				10 = {
+					province_event = { id = aw_ghouls.202 }   
+				}
+
+				#203 - Corpsefields if lots of ghouls
+				5 = {
+					modifier = {
+						factor = 2
+						owner = {
+							num_of_owned_provinces_with = {
+								value = 5
+								has_province_modifier = aw_ghouls_2
+								NOT = { has_province_modifier = aw_ghouls_corpsefields }
+							}
+						}
+					}
+					owner = { country_event = { id = aw_ghouls.203 } }   
+				}
+
+				#204 - Ghastly Stench - ghast pops up
+				10 = {
+					province_event = { id = aw_ghouls.204 }   
+				}
+
+				#205 - Clergy upset at desecration
+				10 = {
+					province_event = { id = aw_ghouls.205 }   
+				}
+
+				# #30 - natural tier up
+				# 10 = {
+				#	 province_event = { id = aw_ghouls.30 }   
+				# }
+
+				# #30 - natural tier up
+				# 10 = {
+				#	 province_event = { id = aw_ghouls.30 }   
+				# }
+
+				# #30 - natural tier up
+				# 10 = {
+				#	 province_event = { id = aw_ghouls.30 }   
+				# }
+			}
+		}
+	}
+	
+}
+
+
+#2 - notification of advanturers wanted spawning
+
+############## 10s - Migration and Propagation ###################
+
+#10 - Base migration
+
+
+#11 - migration target notification if it goes to other country
+
+
+#13 - Base propagation
+
+
+#14 - propagation target notification
+
+
+#15 - Migrate to non monstrous if monstrous nation is owner (if its applicable to monsters, like wyverns etc, then this is fine to remove, else keep)
+
+
+############## 20s - Removal/Tier Down ###################
+
+#20 - natural removal
+
+
+#21 - adventurer removal
+
+
+#22 - natural tier down
+province_event = {
+	id = aw_ghouls.22
+	title = aw_ghouls.22.t
+	desc = aw_ghouls.22.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = { 
+			has_province_modifier = aw_ghouls_1 
+			has_province_modifier = aw_ghouls_2
+		}
+
+		NOT = { devastation = 50 }
+	}
+	option = {
+		name = aw_ghouls.22.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_2
+			}
+			remove_province_modifier = aw_ghouls_2
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+		}
+	}
+}
+
+#23 - adventurer tier down
+province_event = {
+	id = aw_ghouls.23
+	title = aw_ghouls.23.t
+	desc = aw_ghouls.23.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { OR = { has_estate = estate_adventurers has_adventurer_reform = yes  } }
+		OR = { 
+			has_province_modifier = aw_ghouls_1 
+			has_province_modifier = aw_ghouls_2
+		}
+	}
+	option = {
+		name = aw_ghouls.23.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_2
+			}
+			remove_province_modifier = aw_ghouls_2
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+			owner = { add_prestige_excess_to_splendour_effect = { VAL=3 } }
+		}
+
+		owner = {
+			add_estate_influence_modifier = {
+				estate = estate_adventurers
+				desc = EST_VAL_AW_RESOLVED_ADVENTURERS_WANTED_ENCOUNTER
+				duration = 3650
+				influence = 5
+			}
+		}
+
+	}
+}
+
+#24 - monstrous nation removal
+
+#25 - monstrous natural tier down. keep if you want, or just rely on removal
+province_event = {
+	id = aw_ghouls.25
+	title = aw_ghouls.25.t
+	desc = aw_ghouls.25.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { has_country_modifier = monstrous_nation }
+
+		OR = { 
+			has_province_modifier = aw_ghouls_1 
+			has_province_modifier = aw_ghouls_2
+		}
+	}
+	option = {
+		name = aw_ghouls.25.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_2
+			}
+			remove_province_modifier = aw_ghouls_2
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+			owner = { add_prestige_excess_to_splendour_effect = { VAL=3 } }
+		}
+	}
+}
+
+############## 30s - Tier Up ###################
+
+#30 - natural tier up - ghoul fever
+province_event = {
+	id = aw_ghouls.30
+	title = aw_ghouls.30.t
+	desc = aw_ghouls.30.d
+	picture = COMET_SIGHTED_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_modifier = aw_ghouls_1 
+		devastation = 33
+	}
+	
+	option = {
+		name = aw_ghouls.30.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_2
+				duration = -1  
+			}
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip   #should be added for each increase of level
+	}
+}
+
+############## 40s - Other Utility ###################
+
+
+############## 110s - Special Migration & Propagation ###################
+
+#110 - Ghoul spawn due to Battle - less common
+province_event = {
+	id = aw_ghouls.110
+	title = aw_ghouls.110.t
+	desc = aw_ghouls.110.d
+	picture = BATTLE_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	#hidden = yes
+
+	trigger = {
+		is_city = yes
+		devastation = 20
+
+		NOT = { has_province_modifier = aw_ghouls_1 }
+		NOT = { has_province_modifier = aw_ghouls_2 }
+
+		NOT = {
+			OR = {
+				region = south_castanor_region
+				region = inner_castanor_region
+				region = west_castanor_region
+				region = forlorn_vale_region
+				region = dostanor_region
+				region = the_borders_region
+				region = alenic_frontier_region
+			}
+		}
+
+		NOT = {
+			has_underground_terrain = yes
+		}
+
+		continent = europe
+	}
+
+	mean_time_to_happen = {
+		days = 1
+		# Special privelege to stop this
+		modifier = {
+			factor = 0.75
+			owner = { has_estate_privilege = estate_church_protected_burials }
+		}
+	}
+	
+	#level up ghouls or make new ones
+	option = {
+		name = aw_basic.0.a
+		ai_chance = { 
+			factor = 1 
+		}
+
+		if = {
+			limit = {
+				NOT = { has_province_modifier = aw_ghouls_1 }
+				NOT = { has_province_modifier = aw_ghouls_2 }
+			}
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = {
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_2
+				duration = -1  
+			}
+		}
+
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+	}
+}
+
+#110 - Ghoul spawn due to Battle - more common for spoooky places
+province_event = {
+	id = aw_ghouls.111
+	title = aw_ghouls.110.t
+	desc = aw_ghouls.110.d
+	picture = BATTLE_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	#hidden = yes
+
+	trigger = {
+		is_city = yes
+		devastation = 20
+
+		NOT = { has_province_modifier = aw_ghouls_1 }
+		NOT = { has_province_modifier = aw_ghouls_2 }
+
+		OR = {
+			region = south_castanor_region
+			region = inner_castanor_region
+			region = west_castanor_region
+			region = forlorn_vale_region
+			region = dostanor_region
+			region = the_borders_region
+			region = alenic_frontier_region
+		}
+
+		NOT = { has_underground_terrain = yes }
+
+		continent = europe
+	}
+
+	mean_time_to_happen = {
+		days = 1
+		# Special privelege to stop this
+		modifier = {
+			factor = 0.75
+			owner = { has_estate_privilege = estate_church_protected_burials }
+		}
+	}
+	
+	#level up ghouls or make new ones
+
+	option = {
+		name = aw_basic.0.a
+		ai_chance = { 
+			factor = 1 
+		}
+
+		if = {
+			limit = {
+				NOT = { has_province_modifier = aw_ghouls_1 }
+				NOT = { has_province_modifier = aw_ghouls_2 }
+			}
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_1
+				duration = -1  
+			}
+		}
+		else_if = {
+			limit = {
+				has_province_modifier = aw_ghouls_1
+			}
+			remove_province_modifier = aw_ghouls_1
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_2
+				duration = -1  
+			}
+		}
+
+		custom_tooltip = aw_how_to_get_more_adventurer_removal_chance_tooltip
+	}
+}
+
+############## 120s - Special Removal/Tier Down ###################
+
+
+
+############## 130s - Special Tier Up ###################
+
+
+############## 140s - Other Special Utility ###################
+
+
+############## 200s - Special Flavour ###################
+
+#200 - Ghouls dig up graves, pissing off people in province
+province_event = {
+	id = aw_ghouls.200
+	title = aw_ghouls.200.t
+	desc = aw_ghouls.200.d
+	picture = SUFFERING_CHINESE_VILLAGE_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_province_modifier = aw_ghouls_1
+			has_province_modifier = aw_ghouls_2
+		}
+
+		#Religion that dont use graves
+		NOT = { religion_has_burials = yes }
+
+		owner = { NOT = { has_estate_privilege = estate_church_protected_burials } }   #shouldnt fire if you have the privilege
+	}
+	
+	option = {
+		name = aw_ghouls.200.a
+		ai_chance = { 
+			factor = 100 
+		}
+
+		add_named_unrest = {
+			name = aw_ghouls_desecrated_graves
+			value = 10
+		}
+
+	}
+}
+
+#201 - Ghouls that exist in a non-devastated place attack villages
+province_event = {
+	id = aw_ghouls.201
+	title = aw_ghouls.201.t
+	desc = aw_ghouls.201.d
+	picture = PLAGUE_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_province_modifier = aw_ghouls_1
+			has_province_modifier = aw_ghouls_2
+		}
+
+		NOT = { devastation = 25 }
+	}
+	
+	option = {
+		name = aw_ghouls.201.a
+		ai_chance = { 
+			factor = 100 
+		}
+
+		add_devastation = 25
+
+	}
+}
+
+#202 - (City or high dev) Sewer Ghouls clog pipes with corpses, making people sick
+province_event = {
+	id = aw_ghouls.202
+	title = aw_ghouls.202.t
+	desc = aw_ghouls.202.d
+	picture = PLAGUE_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_modifier = aw_ghouls_2
+		OR = {
+			has_terrain = city_terrain
+			development = 20
+		}
+	}
+	
+	option = {
+		name = aw_ghouls.202.a
+		ai_chance = { 
+			factor = 100 
+		}
+
+		add_permanent_province_modifier  = {
+			name = aw_ghouls_corpses_clog_sewers
+			duration = 1825 
+		}
+
+	}
+
+	option = {
+		name = aw_ghouls.202.b
+		ai_chance = { 
+			factor = 1000
+		}
+		trigger = {
+			owner = { ruler_has_personality = architectural_visionary_personality }
+		}
+		highlight = yes
+
+		owner = { add_adm_power = 10 }
+
+	}
+}
+
+#203 - Corpsefields. A massive place with lots of rotting half-eaten corpses. 
+country_event = {
+	id = aw_ghouls.203
+	title = aw_ghouls.203.t
+	desc = aw_ghouls.203.d
+	picture = IMPALED_SOLDIERS_eventPicture
+   
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		num_of_owned_provinces_with = {
+			value = 5
+			has_province_modifier = aw_ghouls_2
+			NOT = { has_province_modifier = aw_ghouls_corpsefields }
+		}
+	}
+	
+	option = {
+		name = aw_ghouls.203.a
+		ai_chance = { 
+			factor = 100 
+		}
+		every_owned_province = { 
+			limit = {
+				has_province_modifier = aw_ghouls_2
+				NOT = { has_province_modifier = aw_ghouls_corpsefields }
+			}
+			add_permanent_province_modifier  = {
+				name = aw_ghouls_corpsefields
+				duration = 7300
+			}
+		}
+
+	}
+}
+
+#204 - Ghastly Stench - ghast pops up
+province_event = {
+	id = aw_ghouls.204
+	title = aw_ghouls.204.t
+	desc = aw_ghouls.204.d
+	picture = IMPALED_SOLDIERS_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		has_province_modifier = aw_ghouls_2
+	}
+	
+	option = {
+		name = aw_ghouls.204.a
+		ai_chance = { 
+			factor = 100 
+		}
+
+		add_named_unrest = {
+			name = aw_ghouls_ghasts_cause_ghastly_stench
+			value = 5
+		}
+
+	}
+}
+
+#205 - Clergy upset at desecration
+province_event = {
+	id = aw_ghouls.205
+	title = aw_ghouls.205.t
+	desc = aw_ghouls.205.d
+	picture = CHURCH_ESTATE_UPSET_eventPicture
+	goto = ROOT
+	
+	hidden = no
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_province_modifier = aw_ghouls_1
+			has_province_modifier = aw_ghouls_2
+		}
+
+		owner = { has_estate = estate_church }
+
+		owner = {
+			NOT = {
+				has_estate_loyalty_modifier = {
+					estate = estate_church
+					modifier = EST_VAL_AW_ALLOWED_GHOUL_DESECRATION_OF_GRAVEYARDS
+				}
+			}
+		}
+
+	}
+	
+	option = {
+		name = aw_ghouls.205.a
+		ai_chance = { 
+			factor = 100 
+		}
+
+		owner = {
+			add_estate_loyalty_modifier = {
+				estate = estate_church
+				desc = EST_VAL_AW_ALLOWED_GHOUL_DESECRATION_OF_GRAVEYARDS
+				loyalty = -10
+				duration = 3650
+			}
+		}
+	}
+
+	option = {
+		name = aw_ghouls.205.b
+		ai_chance = { 
+			factor = 100 
+		}
+		trigger = {
+			owner = { ruler_has_personality = pious_personality }
+		}
+		highlight = yes
+
+		owner = { add_dip_power = -20 }
+
+	}
+
+}
