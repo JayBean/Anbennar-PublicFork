@@ -163,25 +163,71 @@ ziggurat_of_surakel_modifier = {
 }
 
 harpy_roost = {
+	picture = "harpy_roost"
 	potential = {
 		OR = { has_terrain = mountain has_terrain = highlands has_terrain = hills }
 	}
 
 	trigger = {
-		# has_harpy_majority_trigger = yes
-		fort_level = 1
-		culture_group = harpy
-		owner = { has_country_modifier = harpy_administration has_country_modifier = harpy_military }
+		if = { limit = { has_province_modifier = same_roost_owner }	#this modifier is removed when the province changes owner, triggering the recalculation of the roost count
+			fort_level = 1
+			culture_group = harpy
+			owner = {
+				has_country_modifier = harpy_administration
+				has_country_modifier = harpy_military
+			}
+		}
+		else_if = {	#if the PTM was active, deactivate it to trigger the on_deactivation effect
+			limit = {
+				fort_level = 1
+				culture_group = harpy
+				owner = {
+					has_country_modifier = harpy_administration
+					has_country_modifier = harpy_military
+				}
+			}
+			always = no
+		}
+		else = {	#if the PTM was deactivated, activate it to trigger the on_activation effect
+			always = yes
+		}
 	}
-	picture = "harpy_roost"
-	local_development_cost = -0.1
+	local_development_cost = -0.25
 	local_defensiveness = 1
 	
 	#Province scope
 	on_activation = {
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
+				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
+			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
+		}
 	}
 	
 	on_deactivation = {
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
+				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
+			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
+		}
 	}
 }
 
@@ -5037,6 +5083,83 @@ command_tiger_army_maintenance = {
 		}
 		R62 = { remove_country_modifier = command_tiger_army_raised }
     }
+}
+
+#Truedagger
+truedagger_slavery_economy = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		owner = { 
+			low_tolerance_dwarven_race_trigger = yes
+			low_tolerance_orcish_race_trigger = yes
+		}
+		owner = { 
+			NOT = {
+				has_country_modifier = racial_pop_dwarven_expulsion
+				has_country_modifier = racial_pop_dwarven_purge
+				has_country_modifier = racial_pop_orcish_expulsion
+				has_country_modifier = racial_pop_orcish_purge
+
+			}
+		}
+	}
+	picture = "gold_hold"
+
+	global_trade_goods_size_modifier = 0.05
+	global_unrest = 1
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+#Newshire
+newshire_sunwatchers_pulse = {
+	potential = {
+		always = yes
+	}
+	
+	hidden = yes
+
+	trigger = {
+		NOT = { has_province_flag = newshire_sunwatchers_pulse }
+	}
+	
+	on_activation = {
+		set_province_flag = newshire_sunwatchers_pulse
+		newshire_sunwatcher_update = yes	
+	}
+	
+	on_deactivation = {
+		clr_province_flag = newshire_sunwatchers_pulse
+		newshire_sunwatcher_update = yes
+	}
+}
+newshire_squashkin_pulse = {
+	potential = {
+		always = yes
+	}
+	
+	hidden = yes
+
+	trigger = {
+		NOT = { has_province_flag = newshire_squashkin_pulse }
+	}
+	
+	on_activation = {
+		set_province_flag = newshire_squashkin_pulse
+		newshire_squashkin_update = yes	
+	}
+	
+	on_deactivation = {
+		clr_province_flag = newshire_squashkin_pulse
+		newshire_squashkin_update = yes
+	}
 }
 
 vacyntassi_eduz_satkuza_province_triggered_modifier = {
