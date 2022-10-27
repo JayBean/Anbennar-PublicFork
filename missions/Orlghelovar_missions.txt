@@ -286,7 +286,7 @@ orlghelovar_1p4s = {
 		}
 		
 		effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 			add_adm_power = 50
 		}
 	}
@@ -349,7 +349,7 @@ orlghelovar_1p4s = {
 				type = trader
 				skill = 1
 				culture = bahari
-				religion = new_sun_cult
+				religion = bulwari_sun_cult
 				discount = yes
 			}
 			custom_tooltip = orlghelovar_bulwar_discovery_tt
@@ -524,8 +524,13 @@ orlghelovar_2p5s = {
 		
 		trigger = {
 			if = {
-				limit = { has_dlc = "Dharma" } }
+				limit = {
+					NOT = {
+						has_dlc = "Dharma"
+					}
+				}
 				treasury = 1000
+			}
 			4093 = {
 				development = 50
 				if = {
@@ -541,6 +546,14 @@ orlghelovar_2p5s = {
 		}
 		
 		effect = {
+			if = {
+				limit = {
+					NOT = {
+						has_dlc = "Dharma"
+					}
+				}
+				add_treasury = -1000
+			}
 			add_adm_power = -100
 			add_mil_power = -100
 			add_dip_power = -100
@@ -714,25 +727,66 @@ orlghelovar_2p4s = {
 		}
 		
 		trigger = {
-			has_spy_network_in = {
-				who = F23
-				value = 75
+			if = {
+				limit = { exists = F23 }
+				has_spy_network_in = {
+					who = F23
+					value = 75
+				}
+				treasury = 2500
 			}
-			treasury = 2500
+			else_if = {
+				limit = {
+					exists = F23
+					is_vassal = yes
+				}
+				medbahar_area = {
+					type = all
+					country_or_non_sovereign_subject_holds = ROOT
+				}
+				tungr_mountains_area = {
+					type = all
+					country_or_non_sovereign_subject_holds = ROOT
+				}
+			}
+			else = {
+				owns_all_provinces = {
+					area = magairous_area
+					area = medbahar_area
+					area = tungr_mountains_area
+				}
+			}
 		}
 		
 		effect = {
-			create_subject = {
-				subject_type = autonomous_vassal
-				subject = F23
-			}
-			add_treasury = -2500
-			bahar_region = {
+			if = {
 				limit = {
-					NOT = { is_core = F23 }
-					NOT = { owned_by = F23 }
+					F23 = {
+						exists = yes
+						is_vassal = no
+					}
 				}
-				add_permanent_claim = F23
+				create_subject = {
+					subject_type = vassal
+					subject = F23
+				}
+				add_treasury = -2500
+				bahar_region = {
+					limit = {
+						NOT = { is_core = F23 }
+						NOT = { owned_by = F23 }
+					}
+					add_permanent_claim = F23
+				}
+			}
+			else = {
+				bahar_region = {
+					limit = {
+						NOT = { is_core = I12 }
+						NOT = { owned_by = I12 }
+					}
+					add_permanent_claim = I12
+				}
 			}
 		}
 	}
@@ -786,21 +840,14 @@ orlghelovar_2p3s = {
 		}
 		
 		trigger = {
-			any_known_country = {
-				capital_scope = {
-					superregion = deepwoods_superregion
-				}
-				primary_culture = wood_elf
-				has_opinion = {
-					who = ROOT
-					value = 100
-				}
-			}
-		}
-		
-		effect = {
-			random_known_country = {
+			if = {
 				limit = {
+					any_country = {
+						superregion = deepwoods_superregion
+						primary_culture = wood_elf
+					}
+				}
+				any_known_country = {
 					capital_scope = {
 						superregion = deepwoods_superregion
 					}
@@ -810,7 +857,36 @@ orlghelovar_2p3s = {
 						value = 100
 					}
 				}
-				country_event = { id = flavor_orlghelovar.6 }
+			}
+			else = {
+				num_of_allies = 4
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					any_known_country = {
+						superregion = deepwoods_superregion
+						primary_culture = wood_elf
+					}
+				}
+				random_known_country = {
+					limit = {
+						capital_scope = {
+							superregion = deepwoods_superregion
+						}
+						primary_culture = wood_elf
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+					country_event = { id = flavor_orlghelovar.6 }
+				}
+			}
+			else = {
+				add_treasury = 100
 			}
 		}
 	}
@@ -825,9 +901,7 @@ orlghelovar_2p3s = {
 		trigger = {
 			any_ally = {
 				OR = {
-					capital_scope = {
-						region = west_dwarovar_region
-					}
+					culture_group = dwarven
 					primary_culture = wood_elf
 				}
 				has_opinion_modifier = {
@@ -934,7 +1008,12 @@ orlghelovar_2p1s = {
 		}
 		
 		provinces_to_highlight = {
-			NOT = { owned_by = ROOT }
+			NOT = {
+				OR = {
+					owned_by = F23
+					owned_by = ROOT
+				}
+			}
 			OR = {
 				area = south_overmarch_area
 				area = east_overmarch_area
@@ -946,14 +1025,26 @@ orlghelovar_2p1s = {
 			U16 = {
 				exists = no
 			}
-			owns_all_provinces = {
-				area = south_overmarch_area
+			south_overmarch_area = {
+				type = all
+				OR = {
+					owned_by = ROOT
+					owned_by = F23
+				}
 			}
-			owns_all_provinces = {
-				area = west_overmarch_area
+			west_overmarch_area = {
+				type = all
+				OR = {
+					owned_by = ROOT
+					owned_by = F23
+				}
 			}
-			owns_all_provinces = {
-				area = east_overmarch_area
+			east_overmarch_area = {
+				type = all
+				OR = {
+					owned_by = ROOT
+					owned_by = F23
+				}
 			}
 		}
 		
@@ -977,20 +1068,11 @@ orlghelovar_2p1s = {
 				share = 5
 				}
 			}
-			OR = {
-				province_id = 1270
-				province_id = 1252
-			}
+			province_id = 1270
 		}
 		
 		trigger = {
 			1270 = {
-				trade_share = {
-				country = ROOT
-				share = 5
-				}
-			}
-			1252 = {
 				trade_share = {
 				country = ROOT
 				share = 5
@@ -1210,7 +1292,7 @@ orlghelovar_2p2s = {
 				}
 			}
 			else_if = {
-				any_known_country = {
+				any_ally = {
 					any_owned_province = {
 						has_large_gnomish_minority_trigger = yes
 					}
@@ -1519,7 +1601,7 @@ orlghelovar_3p2s = {
 		
 		effect = {
 			add_treasury = -3000
-			4238 = { add_province_modifier = { name = orlghelovar_research_center1 } }
+			4238 = { add_province_modifier = { name = orlghelovar_research_center1 duration = -1 } }
 			country_event = { id = flavor_orlghelovar.100 }
 		}
 	}
@@ -1874,7 +1956,10 @@ orlghelovar_3p3su = {
 					has_province_modifier = orlghelovar_university_digging
 				}
 			}
-			court_mage = 5
+			if = {
+				limit = { has_estate = estate_mages }
+				court_mage = 5
+			}
 			custom_trigger_tooltip = {
 				tooltip = orlghelovar_finished_magic_research_tt
 				has_country_flag = orlghelovar_magic_research_done
@@ -2147,11 +2232,14 @@ orlghelovar_magic_3a = {
 		trigger = {
 			stability = 0
 			spymaster = 3
-			court_mage = 3
+			if = {
+				limit = { has_estate = estate_mages }
+				court_mage = 3
+			}
 		}
 		
 		effect = {
-			add_stability = 1
+			add_stability_or_adm_power = yes
 		}
 	}
 }
@@ -2689,12 +2777,10 @@ orlghelovar_sapphire_glass_1 = {
 						value = 150
 					}
 				}
-				calc_true_if = {
-					amount = 9
-					any_owned_province = {
-						trade_goods = iron
-						base_production = 13
-					}
+				num_of_owned_provinces_with = {
+					value = 9
+					trade_goods = iron
+					base_production = 13
 				}
 			}
 		}
@@ -2952,21 +3038,27 @@ orlghelovar_medicine_1 = {
 		}
 		
 		provinces_to_highlight = {
-			any_known_country = { has_province_flag = caurak_collapse }
+			has_province_flag = caurak_collapse
 		}
 		
 		trigger = {
 			OR = {
-				any_owned_province = {
-					has_province_flag = caurak_collapse
-				}
-				any_known_country = {
+				custom_trigger_tooltip = {
+					tooltip = orlghelovar_medicine_cave_own_tt
 					any_owned_province = {
 						has_province_flag = caurak_collapse
 					}
+				}
+				any_known_country = {
 					has_spy_network_from = {
 						who = ROOT
 						value = 75
+					}
+					custom_trigger_tooltip = {
+						tooltip = orlghelovar_medicine_cave_tt
+						any_owned_province = {
+							has_province_flag = caurak_collapse
+						}
 					}
 				}
 			}
@@ -3425,12 +3517,12 @@ orlghelovar_armour_protection_2 = {
 								primary_culture = cave_goblin
 								primary_culture = black_orc
 							}
-							reverse_has_opinion = {
-								who = PREV
+							has_opinion = {
+								who = ROOT
 								value = 100
 							}
 						}
-						treasury = 1000
+						ROOT = { treasury = 1000 }
 					}
 				}
 			}
