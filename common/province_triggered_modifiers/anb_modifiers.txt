@@ -169,15 +169,27 @@ harpy_roost = {
 	}
 
 	trigger = {
-		# has_harpy_majority_trigger = yes
-		fort_level = 1
-		culture_group = harpy
-		owner = {
-			has_country_modifier = harpy_administration
-			has_country_modifier = harpy_military
+		if = { limit = { has_province_modifier = same_roost_owner }	#this modifier is removed when the province changes owner, triggering the recalculation of the roost count
+			fort_level = 1
+			culture_group = harpy
+			owner = {
+				has_country_modifier = harpy_administration
+				has_country_modifier = harpy_military
+			}
 		}
-		hidden_trigger = {
-			has_province_modifier = same_roost_owner	#this modifier is removed when the province changes owner, triggering on_deactivation to recalculate the roost count
+		else_if = {	#if the PTM was active, deactivate it to trigger the on_deactivation effect
+			limit = {
+				fort_level = 1
+				culture_group = harpy
+				owner = {
+					has_country_modifier = harpy_administration
+					has_country_modifier = harpy_military
+				}
+			}
+			always = no
+		}
+		else = {	#if the PTM was deactivated, activate it to trigger the on_activation effect
+			always = yes
 		}
 	}
 	local_development_cost = -0.25
@@ -185,21 +197,37 @@ harpy_roost = {
 	
 	#Province scope
 	on_activation = {
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
+				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
+			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
+		}
 	}
 	
 	on_deactivation = {
-		save_event_target_as = roost_province
-		owner = {
-			update_roost_count = yes
-			every_known_country = {
-				limit = {
-					has_country_modifier = harpy_administration
-					event_target:roost_province = { previous_owner = PREV }
-				}
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
 				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
 			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
 		}
-		add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
 	}
 }
 
@@ -4211,7 +4239,7 @@ treasure_fleet_upgrade_timer = { #Sovkelqur MT
 	trigger = {
 		5226 = {
 			owner = {
-				has_country_modifier = upgrading_treasure_fleet
+				has_country_modifier = federation_upgrading_treasure_fleet
 			}
 		}
 	}
@@ -5131,5 +5159,28 @@ newshire_squashkin_pulse = {
 	on_deactivation = {
 		clr_province_flag = newshire_squashkin_pulse
 		newshire_squashkin_update = yes
+	}
+}
+
+H33_dual_archprovosts = {
+	potential = {
+		religion = ravelian
+	}
+	trigger = {
+		religion = ravelian
+		has_owner_religion = yes
+		owner = {
+			capital_scope = {
+				region = trollsbay_region
+			}
+		}
+	}
+	picture = "papal_influence_from_cardinals"
+
+	tolerance_own = 0.5
+	papal_influence_from_cardinals = 0.5
+	on_activation = {
+	}
+	on_deactivation = {
 	}
 }
