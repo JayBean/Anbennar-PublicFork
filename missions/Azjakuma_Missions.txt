@@ -488,9 +488,11 @@ azjakuma_missiontree_3_pt_1 = {
 		}
 
 		effect = {
-			custom_tooltip = oni_shuvuush_auxillaries_tooltip
-			custom_tooltip = merc_elite_no_army_prof_tt
 			set_country_flag = oni_shuvuush_auxillaries
+			unlock_merc_company = {
+				merc_company = merc_shuvuush_auxillaries
+				free_merc = yes
+			}
 		}
 	}
 
@@ -502,11 +504,7 @@ azjakuma_missiontree_3_pt_1 = {
 
 		trigger = {
 			stability = 2
-			OR = {
-				has_reform = internal_mission_reform
-				has_reform = external_mission_reform
-				has_reform = mission_to_civilize_reform
-			}
+			reform_level = 2
 		}
 		effect = {
 			country_event = {
@@ -753,6 +751,10 @@ azjakuma_missiontree_5_pt_1 = {
 		icon = alpine_defenses
 		position = 6
 		required_missions = { Y01_breadbasket_north }
+		provinces_to_highlight = {
+			area = yambioka_area
+			NOT = { fort_level = 2 }
+		}
 
 		trigger = {
 			any_owned_province = {
@@ -1611,9 +1613,11 @@ azjakuma_missiontree_2_pt_2 = {
 		provinces_to_highlight = {
 			area = jinqiu_area
 			NOT = {
-				development_in_provinces = {
-					value = 45
-					area = jinqiu_area
+				ROOT = {
+					development_in_provinces = {
+						value = 45
+						area = jinqiu_area
+					}
 				}
 			}
 		}
@@ -1627,9 +1631,12 @@ azjakuma_missiontree_2_pt_2 = {
 				estate = estate_khelorvalshi
 				loyalty = 50
 			}
-			estate_influence = {
-				estate = estate_khelorvalshi
-				influence = 40
+			OR = {
+				estate_influence = {
+					estate = estate_khelorvalshi
+					influence = 40
+				}
+				has_estate_privilege = estate_khelorvalshi_granted_study_privileges
 			}
 		}
 		
@@ -1676,6 +1683,7 @@ azjakuma_missiontree_2_pt_2 = {
 		
 		trigger = {
 			ruler_has_personality = immortal_personality # maybe this could be the scripted trigger ?
+			NOT = { 4871 = { has_province_modifier = azjakuma_ritual_preperations_one } }
 		}
 		
 		effect = {
@@ -1943,8 +1951,10 @@ azjakuma_missiontree_3_pt_2 = {
 		
 		effect = {
 			custom_tooltip = xianjie_remove_remaining_resistance_tooltip
-			custom_tooltip = unlock_kenmanshir_tooltip
-			custom_tooltip = merc_elite_no_army_prof_tt
+			unlock_merc_company = {
+				merc_company = merc_kenmanshir
+				free_merc = yes
+			}
 			hidden_effect = {
 				every_owned_province = {
 					limit = {
@@ -1952,7 +1962,18 @@ azjakuma_missiontree_3_pt_2 = {
 					}
 					remove_province_modifier = azjakuma_remaining_resistance
 				}
-				set_country_flag = unlock_kenmanshir
+			}
+			if = {
+				limit = {
+					OR = {
+						any_owned_province = { has_province_modifier = azjakuma_rebellious_xiaken }
+						any_owned_province = { has_province_modifier = azjakuma_rebellious_xiaken_vassal }
+					}
+				}
+				every_owned_province = {
+					remove_province_modifier = azjakuma_rebellious_xiaken
+					remove_province_modifier = azjakuma_rebellious_xiaken_vassal
+				}
 			}
 		}
 	}
@@ -2149,13 +2170,18 @@ azjakuma_missiontree_4_pt_2 = {
 				value = 42
 				area = unbeksu_area
 			}
-			estate_loyalty = {
-				estate = estate_ajgriijarul
-				loyalty = 50
-			}
-			estate_influence = {
-				estate = estate_ajgriijarul
-				influence = 40
+			OR = {
+				AND = {
+					estate_loyalty = {
+						estate = estate_ajgriijarul
+						loyalty = 50
+					}
+					estate_influence = {
+						estate = estate_ajgriijarul
+						influence = 40
+					}
+				}
+				has_estate_privilege = estate_ajgriijarul_military_command
 			}
 		}
 		
@@ -2513,13 +2539,13 @@ azjakuma_missiontree_5_pt_2 = {
 		
 		provinces_to_highlight = {
 			area = sir_area
-			NOT = { owned_by = ROOT }
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
 		}
 		
 		trigger = {
 			sir_area = {
 				type = all
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			OR = {
 				R78 = { exists = no }
@@ -2531,7 +2557,10 @@ azjakuma_missiontree_5_pt_2 = {
 		}
 		
 		effect = {
-			add_stability_or_adm_power = yes
+			add_power_projection = {
+				type = mission_rewards_power_projection
+				amount = 20
+			}
 			country_event = {
 				id = flavor_azjakuma.2657
 			}
@@ -2682,9 +2711,9 @@ azjakuma_missiontree_5_pt_2 = {
 		required_missions = { Y01_defence_of_the_temples }
 		
 		provinces_to_highlight = {
-			AND = {
-				area = sugroltona_area
-				NOT = {
+			area = sugroltona_area
+			NOT = {
+				ROOT = {
 					development_in_provinces = {
 						value = 54
 						area = sugroltona_area
@@ -2749,7 +2778,8 @@ azjakuma_missiontree_5_pt_2 = {
 				random_subject_country = {
 					limit = { culture_group = goblin }
 					change_religion = lefthand_path
-					save_event_target_as = goblinSubject
+					
+					save_global_event_target_as = azjakuma_goblinSubject # using this below before it's defined writes to log
 					ROOT = {
 						create_subject = {
 							subject_type = autonomous_vassal
@@ -2758,12 +2788,12 @@ azjakuma_missiontree_5_pt_2 = {
 						every_subject_country = {
 							limit = {
 								culture_group = goblin
-								NOT = { tag = event_target:goblinSubject }
+								NOT = { tag = event_target:azjakuma_goblinSubject }
 							}
 							every_owned_province = {
-								add_core = event_target:goblinSubject
+								add_core = event_target:azjakuma_goblinSubject
 								remove_core = owner
-								cede_province = event_target:goblinSubject
+								cede_province = event_target:azjakuma_goblinSubject
 							}
 						}
 					}
@@ -2807,22 +2837,50 @@ azjakuma_missiontree_5_pt_2 = {
 		}
 		
 		trigger = {
-			any_subject_country = { # #change with the jade march tag - I think it would make more sense to have the goblin march own this provinces
-				num_of_owned_provinces_with = {
-					value = 5
-					region = jade_mines_region
-					OR = {
-						trade_goods = copper
-						trade_goods = iron
-						trade_goods = gold
-						trade_goods = mithril
+			if = {
+				limit = {
+						mission_completed = Y01_subjugation_of_goblins # has_saved_event_target didnt work so this instead
+						event_target:azjakuma_goblinSubject = {
+							exists = yes
+						}
+				}
+				event_target:azjakuma_goblinSubject = { # #change with the jade march tag - I think it would make more sense to have the goblin march own this provinces
+					num_of_owned_provinces_with = {
+						value = 5
+						region = jade_mines_region
+						OR = {
+							trade_goods = copper
+							trade_goods = iron
+							trade_goods = gold
+							trade_goods = mithril
+						}
+						development = 12
 					}
-					development = 12
+				}
+			}
+			
+			else = {
+				any_subject_country = { # #change with the jade march tag - I think it would make more sense to have the goblin march own this provinces
+					num_of_owned_provinces_with = {
+						value = 5
+						region = jade_mines_region
+						OR = {
+							trade_goods = copper
+							trade_goods = iron
+							trade_goods = gold
+							trade_goods = mithril
+						}
+						development = 12
+					}
 				}
 			}
 		}
 		
 		effect = {
+			hidden_effect = {
+				clear_global_event_target = azjakuma_goblinSubject
+			}
+		
 			capital_scope = { 
 				add_permanent_province_modifier = { name = azjakuma_senukagrii_main_level_1 duration = -1 }
 			}
