@@ -17,14 +17,20 @@ Y63_missions_1a = {
 		required_missions = { Y63_civil_intercession }
 		
 		provinces_to_highlight = {
-			is_capital_of = Y67
+			is_capital_of = event_target:baihon_winner_event_target
 		}
 		
 		trigger = {
-			NOT = { exists = Y67 }
-			has_spy_network_in = {
-				who = Y66
-				value = 30
+			OR = {
+				NOT = { exists = Y67 }
+				Y67 = { is_subject_of = ROOT }
+			}
+			OR = {
+				has_spy_network_in = {
+					who = event_target:baihon_winner_event_target
+					value = 30
+				}
+				event_target:baihon_winner_event_target = { exists = no }
 			}
 		}
 		
@@ -81,18 +87,18 @@ Y63_missions_1a = {
 		
 		effect = {
 			declare_war_with_cb = {
-			    who = Y66
+			    who = event_target:baihon_winner_event_target
 			    casus_belli = cb_conquest
 			}
 			if = {
 				limit = {
 					has_country_flag = Y63_elephant_grove_flag
 					OR = {
-						4761 = { country_or_non_sovereign_subject_holds = Y66 }
-						4967 = { country_or_non_sovereign_subject_holds = Y66 }
+						4761 = { country_or_non_sovereign_subject_holds = event_target:baihon_winner_event_target }
+						4967 = { country_or_non_sovereign_subject_holds = event_target:baihon_winner_event_target }
 					}
 				}
-				Y66 = { country_event = { id = verkalozovar_events.2 } }
+				event_target:baihon_winner_event_target = { country_event = { id = verkalozovar_events.2 } }
 			}
 		}
 	}
@@ -104,7 +110,7 @@ Y63_missions_1a = {
 		
 		provinces_to_highlight = {
 			OR = {
-				owned_by = Y66
+				owned_by = event_target:baihon_winner_event_target
 				AND = {
 					OR = {
 						area = phonan_area
@@ -117,7 +123,7 @@ Y63_missions_1a = {
 		}
 		
 		trigger = {
-			NOT = { exists = Y66 }
+			NOT = { exists = event_target:baihon_winner_event_target }
 			phonan_area = {
 				type = all
 				country_or_non_sovereign_subject_holds = ROOT
@@ -228,7 +234,13 @@ Y63_missions_1b = {
 		required_missions = { Y63_honor_beyond_the_mountain }
 		
 		trigger = {
-			army_size = Y67
+			if = {
+				limit = { exists = Y97 }
+				army_size = event_target:baihon_winner_event_target
+			}
+			else = {
+				army_size = Y67
+			}
 			custom_trigger_tooltip = {
 				tooltip = Y63_more_than_friends_tt
 				if = {
@@ -242,8 +254,14 @@ Y63_missions_1b = {
 		}
 		
 		effect = {
-			Y67 = {
-				country_event = { id = verkalozovar_events.8 }
+			if = {
+				limit = { exists = Y97 }
+				event_target:baihon_winner_event_target = { country_event = { id = verkalozovar_events.8 } }
+			}
+			else = {
+				Y67 = {
+					country_event = { id = verkalozovar_events.8 }
+				}
 			}
 		}
 	}
@@ -258,17 +276,36 @@ Y63_missions_1b = {
 		}
 		
 		trigger = {
-			Y67 = {
-				is_subject_of = ROOT
-				is_subject_other_than_tributary_trigger = yes
-				NOT = { liberty_desire = 50 }
+			if = {
+				limit = { exists = Y97 }
+				event_target:baihon_winner_event_target = {
+					is_subject_of = ROOT
+					is_subject_other_than_tributary_trigger = yes
+					NOT = { liberty_desire = 50 }
+				}
+			}
+			else = {
+				Y67 = {
+					is_subject_of = ROOT
+					is_subject_other_than_tributary_trigger = yes
+					NOT = { liberty_desire = 50 }
+				}
 			}
 		}
 		
 		effect = {
-			create_subject = {
-				subject_type = patronate
-				subject = Y67
+			if = {
+				limit = { exists = Y97 }
+				create_subject = {
+					subject_type = patronate
+					subject = event_target:baihon_winner_event_target
+				}
+			}
+			else = {
+				create_subject = {
+					subject_type = patronate
+					subject = Y67
+				}
 			}
 			hidden_effect = { complete_mission = Y63_keeping_our_promises }
 		}
@@ -454,18 +491,25 @@ Y63_missions_2 = {
 			}
 			custom_trigger_tooltip = {
 				tooltip = Y63_intercession_2_tt
-				Y67 = { war_score = 25 }
+				OR = {
+					Y67 = { war_score = 25 }
+					has_country_flag = Y63_ma_hoang_angy_flag
+				}
 			}
 		}
 		
 		effect = {
-			every_subject_country = {
-				limit = { primary_culture = hinphat }
-				add_country_modifier = {
-					name = Y63_final_offensive
-					duration = 1825
+			if = {
+				limit = { NOT = { has_country_flag = Y63_ma_hoang_angy_flag } }
+				every_subject_country = {
+					limit = { primary_culture = hinphat }
+					add_country_modifier = {
+						name = Y63_final_offensive
+						duration = 1825
+					}
 				}
 			}
+			
 		}
 	}
 	
@@ -1140,10 +1184,16 @@ Y63_missions_3 = {
 			if = {
 				limit = { exists = Y59 }
 				army_size = Y59
-				Y59 = {
-					has_opinion_modifier = {
-						who = Y63
-						modifier = warned
+				custom_trigger_tooltip = {
+					tooltip = Y63_reminder_tt
+					Y59 = {
+						OR = {
+							has_opinion_modifier = {
+								who = Y63
+								modifier = warned
+							}
+							is_subject = yes
+						}
 					}
 				}
 				NOT = { truce_with = Y59 }
@@ -1696,7 +1746,7 @@ Y63_missions_4 = {
 
 		provinces_to_highlight = {
 			culture = hinphat
-			NOT = { development = 8 }
+			NOT = { base_production = 8 }
 		}
 		
 		trigger = {
@@ -2090,7 +2140,7 @@ Y63_missions_5 = {
 		required_missions = { }
 
 		provinces_to_highlight = {
-			is_capital_of = Y67
+			is_capital_of = ROOT
 		}
 		
 		trigger = {
