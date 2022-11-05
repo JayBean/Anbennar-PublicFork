@@ -1219,7 +1219,7 @@ NEconomy = {
 
 NMilitary = {
 	SLACKEN_AP_DROP = 0.05,
-	SLACKEN_MANPOWER_INCREASE = 2.0,				-- (Anbennar) pdx: 1.0
+	SLACKEN_MANPOWER_INCREASE = 1.0,
 
 	DEVELOPMENT_FOR_BLOCKADE_COST = 0.5,
 	
@@ -2447,7 +2447,7 @@ NReligion = {
 
 	SACRIFICE_LIBERTY_DESIRE = 25,							-- LD added from sacrifice (ruler)
 	SACRIFICE_LIBERTY_DESIRE_HEIR = 20,						-- LD added from sacrifice (heir)
-	AUTHORITY_FROM_DEVELOPMENT = -0.01,						-- (Anbennar) pdx: 0.02 Multiplied by development (affected by autonomy)
+	AUTHORITY_FROM_DEVELOPMENT = 0.00,						-- (Anbennar) pdx: 0.02 Multiplied by development (affected by autonomy)
 	AUTHORITY_FROM_AUTONOMY = 0.0,							-- (Anbennar) pdx: 0.2 Authority loss from granting autonomy
 
 	RELIGIOUS_LEAGUE_COOLDOWN = 5,								-- Minimum years between joining/leaving religious league
