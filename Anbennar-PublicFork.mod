@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-hertog"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -23,4 +23,8 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.34.*"
+<<<<<<< Updated upstream
 path="mod/Anbennar-PublicFork"
+=======
+path="mod/anbennar-eu4-fork-hertog"
+>>>>>>> Stashed changes
