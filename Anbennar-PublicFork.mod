@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-hertog"
 tags={
 	"Alternative History"
 	"Total Conversion"
