@@ -1190,6 +1190,18 @@ on_religion_change = {
 		clr_country_flag = kheio_mil
 		clr_country_flag = kheio_laskaris
 	}
+	
+	# xiaken lose their reform and become independent when religion changes
+	if = {
+	    limit = {
+	        is_subject_of_type = daimyo_xiaken_vassal
+	        NOT = { religion = righteous_path }
+	    }
+	    
+	    #xiaken is removed instantly because RP is one of the conditions for it
+	    #remove_government_reform = xiaken
+	    grant_independence = yes
+	}
 }
 
 # country.
@@ -9801,12 +9813,33 @@ on_dependency_gained = {
 
 	FROM = { update_nsc_level_secondary_effects = yes }
 
-	if = { #Turning Prabhia into Xiakens when you release vassals
+	if = { #Turning Prabhia into Xiakens when you release or gain new vassals
         limit = {
             ROOT = { has_reform = wulin }
             FROM = { is_subject_of_type = daimyo_vassal }
         }
         ROOT = { create_subject = { subject_type = daimyo_xiaken_vassal subject = FROM } }
+        
+        FROM = {
+            # xiaken reform is locked to righteous path
+            if = { 
+                limit = { NOT = { religion = righteous_path } }
+                change_religion = righteous_path
+                capital_scope = { change_religion = righteous_path }
+                add_opinion = { who = ROOT modifier = opinion_forceful_conversion }
+                #force_converted = yes
+            }
+            # if not righteous path, convert country (and capital province) and give force converted malus
+            
+            if = {
+                limit = { NOT = { government = theocracy } }
+                change_government = theocracy
+            }
+            add_government_reform = xiaken
+            # now set to theocracy, then to xiaken reform
+        }
+        
+        
     }
 	
 	#Dhugajir-Nadimraj subject
