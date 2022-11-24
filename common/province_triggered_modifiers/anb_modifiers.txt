@@ -18,11 +18,11 @@ hold_has_parliament = {
 	}
 	picture = "hold_has_parliament"
 	min_local_autonomy = -30
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -38,11 +38,11 @@ abundant_woods = {
 	}
 	picture = "abundant_woods"
 	trade_goods_size = 1.5
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -59,11 +59,11 @@ abundant_woods_cyranvar = {
 	picture = "abundant_woods"
 	trade_goods_size = 2
 	trade_value_modifier = 0.33
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -74,16 +74,19 @@ no_subterannean_race = {
 	}
 
 	trigger = {
-		has_subterranean_race = no
+		custom_trigger_tooltip = {
+			tooltip = no_subterannean_race_tooltip
+			has_subterranean_race = no
+		}
 	}
 	picture = "non_subterran"
 	local_tax_modifier = -0.5
 	local_production_efficiency = -0.5
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -99,11 +102,11 @@ efficient_irrigation = {
 	picture = "efficient_irrigation"
 	trade_goods_size = 1
 	local_development_cost = -0.1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -119,11 +122,11 @@ gold_hold = {
 	picture = "gold_hold"
 	local_gold_depletion_chance_modifier = -1
 	trade_goods_size_modifier = -0.2
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -153,35 +156,88 @@ ziggurat_of_surakel_modifier = {
 	picture = "ziggurat_of_surakel_modifier"
 	tolerance_own = 2
 	global_missionary_strength = 0.02
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 
 harpy_roost = {
+	picture = "harpy_roost"
 	potential = {
 		OR = { has_terrain = mountain has_terrain = highlands has_terrain = hills }
 	}
 
 	trigger = {
-		# has_harpy_majority_trigger = yes
-		fort_level = 1
-		culture_group = harpy
-		owner = { has_country_modifier = harpy_administration has_country_modifier = harpy_military }
+		if = { limit = { has_province_modifier = same_roost_owner }	#this modifier is removed when the province changes owner, triggering the recalculation of the roost count
+			fort_level = 1
+			culture_group = harpy
+			owner = {
+				has_country_modifier = harpy_administration
+				has_country_modifier = harpy_military
+			}
+		}
+		else_if = {	#if the PTM was active, deactivate it to trigger the on_deactivation effect
+			limit = {
+				fort_level = 1
+				culture_group = harpy
+				owner = {
+					has_country_modifier = harpy_administration
+					has_country_modifier = harpy_military
+				}
+			}
+			always = no
+		}
+		else = {	#if the PTM was deactivated, activate it to trigger the on_activation effect
+			always = yes
+		}
 	}
-	picture = "harpy_roost"
-	local_development_cost = -0.1
+	local_development_cost = -0.25
 	local_defensiveness = 1
-	
+
 	#Province scope
 	on_activation = {
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
+				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
+			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
+		}
 	}
-	
+
 	on_deactivation = {
+		if = { limit = { NOT = { has_province_modifier = same_roost_owner } }
+			save_event_target_as = roost_province
+			owner = {
+				update_roost_count = yes
+				every_known_country = {
+					limit = {
+						has_country_modifier = harpy_administration
+						event_target:roost_province = { previous_owner = PREV }
+					}
+					update_roost_count = yes
+				}
+			}
+			add_province_modifier = { name = same_roost_owner duration = -1 hidden = yes }
+		}
+		
+		#Mulen
+		# if = { limit = { has_province_modifier = mulen_hanging_city_foundation } remove_province_modifier = mulen_hanging_city_foundation }
+		# if = { limit = { has_province_modifier = mulen_hanging_city } remove_province_modifier = mulen_hanging_city }
+		# if = { limit = { has_province_modifier = mulen_hanging_city_baths } remove_province_modifier = mulen_hanging_city_baths }
+		# if = { limit = { has_province_modifier = mulen_hanging_city_gardens } remove_province_modifier = mulen_hanging_city_gardens }
+		# if = { limit = { has_province_modifier = mulen_hanging_city_libraries } remove_province_modifier = mulen_hanging_city_libraries }
 	}
 }
 
@@ -196,11 +252,11 @@ sareyand_the_ash_palace = {
 	# picture = "harpy_roost"
 	prestige = 1
 	monarch_admin_power = 1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -217,11 +273,11 @@ sareyand_the_blazing_temple = {
 	picture = "ziggurat_of_surakel_modifier"
 	tolerance_own = 2
 	global_missionary_strength = 0.01
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -241,11 +297,11 @@ jaddari_grand_temple = {
 	missionaries = 1
 	global_missionary_strength = 0.01
 	missionary_maintenance_cost = -0.15
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -261,11 +317,11 @@ jaddari_the_mountain_of_clear_sight = {
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	tolerance_own = 1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -300,11 +356,11 @@ federation_unlawful_occupation = {
 	# picture = "federation_unlawful_occupation"
 	diplomatic_reputation = -1.5
 	prestige = -0.25
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -319,11 +375,11 @@ swamp_stilts_1 = {
 		owner = { primary_culture = mossmouth_ogre }
 	}
 	local_development_cost = -0.3
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -332,11 +388,11 @@ temple_of_kalyin = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { religion = kalyin_worshippers }
 	}
-	
+
 	missionaries = 1
 }
 
@@ -357,11 +413,11 @@ jaddari_eduz_jadd = {
 	establish_order_cost = -0.25
 	missionary_maintenance_cost = -0.15
 	local_missionary_strength = -0.10
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -377,12 +433,12 @@ jaddari_the_suraelic_barracks = {
 	# picture = "harpy_roost"
 	local_manpower = 10
 	regiment_recruit_speed = -0.5
-	
-	
+
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -398,12 +454,12 @@ jaddari_the_heralds_wall = {
 	# picture = "harpy_roost"
 	prestige_from_land = 0.5
 	local_defensiveness = 0.1
-	
-	
+
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -419,11 +475,11 @@ jaddari_the_jaddanzar_academy = {
 	# picture = "harpy_roost"
 	free_leader_pool = 1
 	free_mil_policy = 1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -439,12 +495,12 @@ jaddari_the_school_of_radiant_wisdom = {
 	# picture = "harpy_roost"
 	idea_cost = -0.05
 	advisor_cost = -0.2
-	
-	
+
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -460,12 +516,12 @@ jaddari_the_quarter_of_the_suns = {
 	# picture = "harpy_roost"
 	diplomatic_reputation = 1
 	improve_relation_modifier = 0.25
-	
-	
+
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -480,81 +536,96 @@ jaddari_the_golden_ambon = {
 	}
 	# picture = "harpy_roost"
 	all_power_cost = -0.025
-	
-	
+
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 
 human_hold_1 = {
-    potential = {
-        is_capital = yes
-    }
+	potential = {
+		owner = {
+			OR = {
+				tag = B36
+				was_tag = B36
+			}
+		}
+	}
 
-    trigger = {
-        culture = marrodic
-    }
-    picture = "harpy_roost"
-    local_tax_modifier =  0.1
-    local_production_efficiency = 0.1
+	trigger = {
+		has_human_majority_trigger = yes
+	}
+	picture = "harpy_roost"
+	local_tax_modifier =  0.1
+	local_production_efficiency = 0.1
 
-    #Province scope
-    on_activation = {
-    }
+	#Province scope
+	on_activation = {
+	}
 
-    on_deactivation = {
-    }
+	on_deactivation = {
+	}
 }
 
 human_hold_2 = {
-    potential = {
-        is_capital = yes
-    }
+	potential = {
+		owner = {
+			OR = {
+				tag = B36
+				was_tag = B36
+			}
+		}
+	}
 
-    trigger = {
-        culture = marrodic
-    }
-    picture = "harpy_roost"
-    local_tax_modifier =  0.25
-    local_production_efficiency = 0.25
+	trigger = {
+		has_human_majority_trigger = yes
+	}
+	picture = "harpy_roost"
+	local_tax_modifier =  0.25
+	local_production_efficiency = 0.25
 
-    #Province scope
-    on_activation = {
-    }
+	#Province scope
+	on_activation = {
+	}
 
-    on_deactivation = {
-    }
+	on_deactivation = {
+	}
 }
 
 human_hold_3 = {
-    potential = {
-        is_capital = yes
-    }
+	potential = {
+		owner = {
+			OR = {
+				tag = B36
+				was_tag = B36
+			}
+		}
+	}
 
-    trigger = {
-        culture = marrodic
-    }
-    picture = "harpy_roost"
-    local_tax_modifier =  0.5
-    local_production_efficiency = 0.5
+	trigger = {
+		has_human_majority_trigger = yes
+	}
+	picture = "harpy_roost"
+	local_tax_modifier =  0.5
+	local_production_efficiency = 0.5
 
-    #Province scope
-    on_activation = {
-    }
+	#Province scope
+	on_activation = {
+	}
 
-    on_deactivation = {
-    }
+	on_deactivation = {
+	}
 }
 
 Z26_falahite_temple = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = {
 			OR = {
@@ -565,13 +636,13 @@ Z26_falahite_temple = {
 		}
 		has_owner_religion = yes
 	}
-	
+
 	picture = "falahite_temple_icon"
-	
+
 	global_missionary_strength = 0.02
 	missionaries = 1
 	global_tax_modifier = 0.05
-	
+
 	#Province scope
     on_activation = {
     }
@@ -597,7 +668,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -642,7 +713,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -669,7 +740,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -693,7 +764,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -716,7 +787,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -735,12 +806,12 @@ Z26_falahite_temple = {
 # 		}
 # 	}
 # 	siege_ability = 0.1
-# 	artillery_bonus_vs_fort = 1
+# 	artillery_levels_available_vs_fort = 1
 # 	leader_siege = 1
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -765,7 +836,7 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
 # }
@@ -787,809 +858,9 @@ Z26_falahite_temple = {
 
 # 	on_activation = {
 # 	}
-	
+
 # 	on_deactivation = {
 # 	}
-# }
-
-# #fixes the fixed rng of buildings
-# allclan_industry_rng = {
-
-# 	potential = {
-# 		always = yes
-# 	}
-# 	trigger = {
-# 		had_province_flag = {
-# 			flag = allclan_rng_prov_flag
-# 			days = 2
-# 		}
-# 	}
-# 	on_activation = {
-# 		hidden_effect = {
-# 			remove_building = allclan_industrialization_works
-# 			if = {
-# 				limit = {
-# 					NOT = { has_province_modifier = allclan_quarried_cavern }
-# 					has_terrain = cavern
-# 				}
-# 				add_permanent_province_modifier = {
-# 					name = allclan_quarried_cavern
-# 					duration = -1
-# 				}
-# 				province_event = { id = allclan.31 }
-# 			}
-# 			else_if = {
-# 				limit = {
-# 					OR = {
-# 						#has_province_modifier = allclan_quarried_cavern
-# 						has_province_modifier = rocket_rail
-# 					}
-# 				}
-# 				if = {
-# 					limit = {
-# 						trade_goods = copper
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = iron
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gems
-# 					}
-# 					random_list = {
-# 						100 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gems
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						2 = {
-# 							change_trade_goods = glass
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_glass
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = glass
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_glass
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = salt
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_salt
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = mithril
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_mithril
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gold
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_gold
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = coal
-# 							trade_goods = damestear
-# 							trade_goods = precursor_relics
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_artifice_material
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = fungi
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_food
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = livestock
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_food
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = cloth
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = silk
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = wine
-# 							trade_goods = paper
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = cloth
-# 					}
-# 					change_trade_goods = silk
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_spidersilk
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.30 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = incense
-# 							trade_goods = wool
-# 							trade_goods = slaves
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 			}
-# 			else_if = {
-# 				limit = {
-# 					OR = {
-# 						has_province_modifier = allclan_quarried_cavern
-# 						#has_province_modifier = rocket_rail
-# 					}
-# 				}
-# 				if = {
-# 					limit = {
-# 						trade_goods = copper
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = iron
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gems
-# 					}
-# 					random_list = {
-# 						100 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gems
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						2 = {
-# 							change_trade_goods = glass
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_glass
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = salt
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_salt
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = mithril
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_mithril
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gold
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_gold
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = coal
-# 							trade_goods = damestear
-# 							trade_goods = precursor_relics
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_artifice_material
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = fungi
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_food
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = livestock
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_food
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = cloth
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = silk
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = wine
-# 							trade_goods = paper
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = cloth
-# 					}
-# 					change_trade_goods = silk
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_spidersilk
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.30 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = incense
-# 							trade_goods = wool
-# 							trade_goods = slaves
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 			}
-# 			else_if = {
-# 				limit = {
-# 					OR = {
-# 						has_terrain = dwarven_hold_surface
-# 						has_terrain = dwarven_hold
-# 					}
-# 				}
-# 				add_permanent_province_modifier = {
-# 					name = allclan_hold_mega_industry
-# 					duration = -1
-# 				}
-# 				random_list = {
-# 					100 = {
-# 						owner = { add_prestige = 2 }
-# 					}
-# 					5 = {
-# 						add_province_triggered_modifier = allclan_mega_industry_caffeine_gizmo_complex
-# 						set_global_flag = allclan_mega_industry_caffeine_gizmo_complex
-# 						modifier = {
-# 							factor = 0
-# 							has_global_flag = allclan_mega_industry_caffeine_gizmo_complex
-# 						}
-# 					}
-# 					5 = {
-# 						add_province_triggered_modifier = allclan_mega_industry_crawler_works
-# 						set_global_flag = allclan_mega_industry_crawler_works
-# 						modifier = {
-# 							factor = 0
-# 							has_global_flag = allclan_mega_industry_crawler_works
-# 						}
-# 					}
-# 					5 = {
-# 						add_province_triggered_modifier = allclan_mega_industry_mega_cannon_foundry
-# 						set_global_flag = allclan_mega_industry_mega_cannon_foundry
-# 						modifier = {
-# 							factor = 0
-# 							has_global_flag = allclan_mega_industry_mega_cannon_foundry
-# 						}
-# 					}
-# 					5 = {
-# 						add_province_triggered_modifier = allclan_mega_industry_the_build_a_bomb_workshop
-# 						set_global_flag = allclan_mega_industry_the_build_a_bomb_workshop
-# 						modifier = {
-# 							factor = 0
-# 							has_global_flag = allclan_mega_industry_the_build_a_bomb_workshop
-# 						}
-# 					}
-# 					5 = {
-# 						add_province_triggered_modifier = allclan_mega_industry_work_gas
-# 						set_global_flag = allclan_mega_industry_work_gas
-# 						modifier = {
-# 							factor = 0
-# 							has_global_flag = allclan_mega_industry_work_gas
-# 						}
-# 					}
-# 				}
-# 				if = {
-# 					limit = {
-# 						trade_goods = copper
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = iron
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_allclan_artifice_mining_industrial_material
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gems
-# 					}
-# 					random_list = {
-# 						100 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gems
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						4 = {
-# 							change_trade_goods = glass
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_glass
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = salt
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_salt
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = mithril
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_mithril
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = gold
-# 							add_permanent_province_modifier = {
-# 								name = allclan_artifice_mining_gold
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = mithril
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_mithril
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = gold
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_gold
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = coal
-# 							trade_goods = damestear
-# 							trade_goods = precursor_relics
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_artifice_material
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = fungi
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_food
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = livestock
-# 					}
-# 					random_list = {
-# 						102 = {
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_food
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.31 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = cloth
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 						1 = {
-# 							change_trade_goods = silk
-# 							add_permanent_province_modifier = {
-# 								name = allclan_factory_farm_spidersilk
-# 								duration = -1
-# 							}
-# 							province_event = { id = allclan.30 }
-# 						}
-# 					}
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = wine
-# 							trade_goods = paper
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = cloth
-# 					}
-# 					change_trade_goods = silk
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_spidersilk
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.30 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						OR = {
-# 							trade_goods = incense
-# 							trade_goods = wool
-# 							trade_goods = slaves
-# 						}
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_factory_farm_cash_crops
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-# 				else_if = {
-# 					limit = {
-# 						trade_goods = glass
-# 					}
-# 					add_permanent_province_modifier = {
-# 						name = allclan_artifice_mining_glass
-# 						duration = -1
-# 					}
-# 					province_event = { id = allclan.31 }
-# 				}
-
-# 			}
-# 			remove_province_triggered_modifier = allclan_industry_rng
-# 			clr_province_flag = allclan_rng_prov_flag
-# 		}
-# 	}
-
-# 	on_deactivation = {}
 # }
 
 aelnar_auxiliaries_human = {
@@ -1597,7 +868,7 @@ aelnar_auxiliaries_human = {
 		owner =  { tag = Z43 }
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			NOT = { has_country_modifier = racial_pop_human_purge }
 			NOT = { has_country_modifier = aelnar_army_restructuration }
 		}
@@ -1606,7 +877,7 @@ aelnar_auxiliaries_human = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -1616,7 +887,7 @@ aelnar_auxiliaries_ruinborn = {
 		owner =  { tag = Z43 }
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			NOT = { has_country_modifier = racial_pop_ruinborn_purge }
 			NOT = { has_country_modifier = aelnar_army_restructuration }
 		}
@@ -1626,7 +897,7 @@ aelnar_auxiliaries_ruinborn = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -1635,15 +906,15 @@ aelnar_auxiliaries_ruinborn = {
 	# potential = {
 		# always = yes
 	# }
-	
+
 	# trigger = {
 		# always = yes
 	# }
-	
+
 	# on_activation = {
 		# province_event = { id = diggy.1 }
 	# }
-	
+
 	# on_deactivation = {
 	# }
 # }
@@ -1652,15 +923,15 @@ random_ibevar_disaster_result = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		always = yes
 	}
-	
+
 	on_activation = {
 		province_event = { id = ibevar.5 }
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -1676,14 +947,14 @@ castanor_river_support = {
 			has_country_modifier = castanor_esmar_flotilla
 		}
 	}
-	
+
 	local_defensiveness = -0.33
 
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -1702,7 +973,7 @@ castanor_legions_1_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -1737,7 +1008,7 @@ castanor_legions_1_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_1_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -1772,7 +1043,7 @@ castanor_legions_2_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -1807,7 +1078,7 @@ castanor_legions_2_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_citizen_army_2_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -1842,7 +1113,7 @@ castanor_legions_3_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -1877,7 +1148,7 @@ castanor_legions_3_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_3_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -1912,7 +1183,7 @@ castanor_legions_4_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -1947,7 +1218,7 @@ castanor_legions_4_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_4_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -1982,7 +1253,7 @@ castanor_legions_5_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -2018,7 +1289,7 @@ castanor_legions_5_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_5_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -2054,7 +1325,7 @@ castanor_legions_6_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -2089,7 +1360,7 @@ castanor_legions_6_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_6_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -2126,7 +1397,7 @@ castanor_legions_7_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -2161,7 +1432,7 @@ castanor_legions_7_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_7_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -2197,7 +1468,7 @@ castanor_legions_8_maintenance_triggered = {
             }
         }
     }
-    
+
     on_activation = {
 		# First time hire manpower fix
 		if = {
@@ -2232,7 +1503,7 @@ castanor_legions_8_maintenance_triggered = {
 		B32 = { remove_country_modifier = castanor_legions_8_maintenance_mod_inactive }
 		B32 = { add_army_professionalism = 0.05 }
     }
-    
+
     on_deactivation = {
 		if = {
 			limit = { B32 = { has_country_modifier = castanor_legion_doctrine_full_citizen_army } }
@@ -2264,7 +1535,7 @@ castanor_south_citadel_summer_months = {
 		is_month = 3
 		NOT = { is_month = 9 }
     }
-    
+
     on_activation = {
 		# Move capital to Sapphirewatch (South Citadel)
 		B32 = { 834 = { move_capital_effect = yes } }
@@ -2273,7 +1544,7 @@ castanor_south_citadel_summer_months = {
 	# Entertaining foreign dignitaries and other courtly shit
 	diplomatic_reputation = 2
 	improve_relation_modifier = 0.1
-    
+
     on_deactivation = { }
 }
 
@@ -2300,7 +1571,7 @@ castanor_north_citadel_winter_months = {
 		# Move capital to the North Citadel
 		B32 = { 840 = { move_capital_effect = yes } }
 	}
-    
+
     on_deactivation = { }
 }
 
@@ -2321,9 +1592,9 @@ castanor_shield_legion_mod = {
 
 	hidden = yes
 
-    
+
     on_activation = { }
-    
+
     on_deactivation = {
 		every_province = {
 			limit = { has_province_flag = protected_by_shield_legion }
@@ -2341,7 +1612,7 @@ toaren_roilsard_culture1 = {
 		always = yes
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			num_of_owned_provinces_with = {
 				culture = roilsardi
 				value = 10
@@ -2353,7 +1624,7 @@ toaren_roilsard_culture1 = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2362,7 +1633,7 @@ toaren_roilsard_culture2 = {
 		always = yes
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			num_of_owned_provinces_with = {
 				culture = roilsardi
 				value = 20
@@ -2374,7 +1645,7 @@ toaren_roilsard_culture2 = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2383,7 +1654,7 @@ toaren_roilsard_culture3 = {
 		always = yes
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			num_of_owned_provinces_with = {
 				culture = roilsardi
 				value = 30
@@ -2395,7 +1666,7 @@ toaren_roilsard_culture3 = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2404,7 +1675,7 @@ toaren_roilsard_culture4 = {
 		always = yes
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			num_of_owned_provinces_with = {
 				culture = roilsardi
 				value = 40
@@ -2416,7 +1687,7 @@ toaren_roilsard_culture4 = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2425,7 +1696,7 @@ toaren_roilsard_culture5 = {
 		always = yes
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			num_of_owned_provinces_with = {
 				culture = roilsardi
 				value = 50
@@ -2437,7 +1708,7 @@ toaren_roilsard_culture5 = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2445,17 +1716,17 @@ toaren_roilsard_culture5 = {
 #Ancestral venerator
 venerator_purging_greens = {
 	potential = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 	}
 	trigger = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
-		owner = { 
+		owner = {
 			has_country_modifier = racial_pop_goblin_purge
 			has_country_modifier = racial_pop_orcish_purge
 		}
@@ -2466,27 +1737,27 @@ venerator_purging_greens = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 venerator_crusade = {
 	potential = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 	}
 	trigger = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 		owner = {
 			custom_trigger_tooltip = {
 				tooltip = venerator_crusading
 				any_country = {
-					OR = { 
+					OR = {
 						has_country_modifier = orcish_administration
 						has_country_modifier = goblin_administration
 					}
@@ -2509,20 +1780,20 @@ venerator_crusade = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 venerator_blessed = {
 	potential = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 	}
 	trigger = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 		owner = {
@@ -2538,33 +1809,29 @@ venerator_blessed = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 venerator_greenless = {
 	potential = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 	}
 	trigger = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
-		owner = { 
+		owner = {
 			custom_trigger_tooltip = {
 				tooltip = venerator_purged
-				all_owned_province = {  
-					OR = {
-						NOT = {
-							has_orcish_majority_trigger = yes
-							has_orcish_minority_trigger = yes
-							has_goblin_majority_trigger = yes
-							has_goblin_minority_trigger = yes
-						}
+				all_owned_province = {
+					NOT = {
+						has_any_orcish_pop_trigger = yes
+						has_any_goblin_pop_trigger = yes
 					}
 				}
 			}
@@ -2577,23 +1844,23 @@ venerator_greenless = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 venerator_mithradhum_dishonorable = {
 	potential = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
 	}
 	trigger = {
-		owner = { 
-			has_reform = ancestor_venerator_reform
+		owner = {
+			has_reform = mithradhum_ancestor_venerator_reform
 			religion = ancestor_worship
 		}
-		owner = { 
+		owner = {
 			has_country_modifier = dishonoured_alliance
 		}
 	}
@@ -2606,7 +1873,7 @@ venerator_mithradhum_dishonorable = {
 	on_activation = {
 		owner = { add_stability = -1 }
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2619,14 +1886,14 @@ U20_the_face_of_jaher = {
 	trigger = {
 		religion = bulwari_sun_cult
 		owner = { religion = bulwari_sun_cult }
-		#NSC_level = 1 
+		#NSC_level = 1
 	}
-	missionaries = 1 
-	
+	missionaries = 1
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2640,16 +1907,16 @@ U20_great_temple_azka_sur = {
 	trigger = {
 		religion = bulwari_sun_cult
 		owner = { religion = bulwari_sun_cult }
-		#NSC_level = 1 
+		#NSC_level = 1
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	missionary_maintenance_cost = -0.15
-	tolerance_own = 1 
-	
+	tolerance_own = 1
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2662,16 +1929,16 @@ U20_first_temple = {
 	trigger = {
 		religion = bulwari_sun_cult
 		owner = { religion = bulwari_sun_cult }
-		#NSC_level = 1 
+		#NSC_level = 1
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	missionaries = 1
-	prestige = 0.5 
-	
+	prestige = 0.5
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2684,20 +1951,20 @@ U20_the_south_temple = {
 	trigger = {
 		religion = bulwari_sun_cult
 		owner = { religion = bulwari_sun_cult }
-		#NSC_level = 1 
+		#NSC_level = 1
 	}
 	global_missionary_strength = 0.01
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 
-U20_apadana_hall = { 
-	
+U20_apadana_hall = {
+
 	potential = {
 		always = yes
 	}
@@ -2706,11 +1973,11 @@ U20_apadana_hall = {
 		is_capital = yes
 	}
 	monarch_diplomatic_power = 1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2727,17 +1994,17 @@ province_carver_garrisons = {
             }
         }
     }
-    
+
     #Province scope
     on_activation = {
-        A73 = { 
+        A73 = {
             if = {
                 limit = { army_professionalism = 0.0001 }
                 add_army_professionalism = 0.05
             }
         }
     }
-    
+
     on_deactivation = {
     }
 }
@@ -2754,22 +2021,22 @@ province_orc_recruits = {
             }
         }
     }
-    
+
     #Province scope
     on_activation = {
-        A73 = { 
+        A73 = {
             if = {
                 limit = { army_professionalism = 0.0001 }
                 add_army_professionalism = 0.05
             }
         }
     }
-    
+
     on_deactivation = {
     }
 }
 
-krak_ice_hold_triggered_modifier = { 
+krak_ice_hold_triggered_modifier = {
 	potential = {
 		always = yes
 	}
@@ -2780,11 +2047,11 @@ krak_ice_hold_triggered_modifier = {
 	local_development_cost = -0.1
 	trade_goods_size_modifier = 0.25
 	local_autonomy = -0.05
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2806,7 +2073,7 @@ elikhand_silvervord = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2827,7 +2094,7 @@ elikhand_badeben = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2848,7 +2115,7 @@ elikhand_rohibon = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -2869,7 +2136,7 @@ elikhand_shieldrest = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3160,7 +2427,7 @@ sharaajaghal_games_tick = {
 			limit = { has_province_flag = sharaajaghal_games_tick_11_flag }
 			clr_province_flag = sharaajaghal_games_tick_11_flag
 			sharaajaghal_games_run_game = { game = sprint }
-			
+
 			4485 = {
 				remove_province_triggered_modifier = sharaajaghal_games_tick
 			}
@@ -3292,23 +2559,23 @@ black_the_black_mark_damescrown = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	trade_efficiency = 0.2
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3318,24 +2585,24 @@ black_the_black_mark_vertesk = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	discipline = 0.025
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3345,24 +2612,24 @@ black_the_black_mark_arca_corvur = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	defensiveness = 0.2
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3372,24 +2639,24 @@ black_the_black_mark_gablaine = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	global_tax_modifier = 0.2
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3399,18 +2666,18 @@ black_the_black_grains = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		trade_goods = grain
 	}
 	picture = "black_grains"
-	
+
 	trade_goods_size = 1
 	trade_value_modifier = 0.3
-	
+
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3419,23 +2686,23 @@ black_the_black_mark_eborthil = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	naval_morale = 0.1
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3443,29 +2710,29 @@ black_the_black_mark_eborthil = {
 
 black_kobold_damestear_mine = {
 	potential = {
-		owner = { 
+		owner = {
 			OR = {
 				tag = Z99
 				is_subject_of_type = acolyte_dominion
 			}
 		}
 	}
-	
+
 	trigger = {
 		trade_goods = damestear
 	}
-	
+
 	picture = "damestar_deposit"
-	
-	
+
+
 	trade_goods_size = 1
 	trade_value_modifier = 0.33
 	local_unrest = 3
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3474,24 +2741,24 @@ black_the_black_mark_nathalaire = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	spy_offence = 0.2
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3501,24 +2768,24 @@ black_the_black_mark_tellum = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	global_spy_defence = 0.2
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3529,24 +2796,24 @@ black_the_black_mark_brasan = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	ship_durability = 0.1
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3556,24 +2823,24 @@ black_the_black_mark_bulwar = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = { is_subject_of_type = acolyte_dominion }
 	}
-	
+
 	picture = "bd_black_mark"
-	
-	
+
+
 	local_development_cost = -0.2
 	province_trade_power_value = 10
 	local_manpower_modifier = 0.5
 	land_morale = 0.1
-	
+
 	#Province scope
 	on_activation = {
 		set_province_flag = black_province
 	}
-	
+
 	on_deactivation = {
 		clr_province_flag = black_province
 	}
@@ -3587,14 +2854,14 @@ corintar_corinsfall_memorial = {
 	trigger = {
 		owner = { religion = corinite }
 	}
-	
+
 	missionaries = 1
 	global_heretic_missionary_strength = 0.02
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3604,9 +2871,9 @@ azkare_parliament_calculations_pulse = {
 	potential = {
 		always = yes
 	}
-	
+
 	hidden = yes
-	
+
 	trigger = {
 		OR = {
 			AND = {
@@ -3619,7 +2886,7 @@ azkare_parliament_calculations_pulse = {
 			}
 		}
 	}
-	
+
 	#Province scope
 	on_activation = {
 		random_country = {
@@ -3627,7 +2894,7 @@ azkare_parliament_calculations_pulse = {
 			azkare_parliament_calculations = yes
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3636,9 +2903,9 @@ raj_cohesion_pulse = {
 	potential = {
 		always = yes
 	}
-	
+
 	hidden = yes
-	
+
 	trigger = {
 		OR = {
 			AND = {
@@ -3667,11 +2934,11 @@ raj_cohesion_pulse = {
 			}
 		}
 	}
-	
+
 	on_activation = {
 		raj_monthy_calc = yes
 	}
-	
+
 	on_deactivation = {
 		raj_monthy_calc = yes
 	}
@@ -3681,18 +2948,18 @@ raj_ai_raja_help = {
 	potential = {
 		always = yes
 	}
-	
+
 	hidden = yes
-	
+
 	trigger = {
 		owner = { ai = yes }
 	}
-	
+
 	vassal_income = 0.4
-	
+
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3701,24 +2968,25 @@ demons_blood_export_mod1 = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = {
 			has_reform = black_market_consortium_reform
 			owns_core_province = 1077
+			controls = 1077
 		}
 	}
-	
+
 	local_development_cost = -0.1
 	pr_smugglers_influence = 0.001
 	province_trade_power_value = 10
 	tax_income = 24
 	yearly_patriarch_authority = 0.001
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3727,24 +2995,25 @@ demons_blood_export_mod2 = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = {
 			has_reform = black_market_consortium_reform
 			owns_core_province = 1077
+			controls = 1077
 		}
 	}
-	
+
 	local_development_cost = -0.15
 	pr_smugglers_influence = 0.002
 	province_trade_power_value = 15
 	tax_income = 48
 	yearly_patriarch_authority = 0.002
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3753,24 +3022,25 @@ demons_blood_export_mod3 = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = {
 			has_reform = black_market_consortium_reform
 			owns_core_province = 1077
+			controls = 1077
 		}
 	}
-	
+
 	local_development_cost = -0.2
 	pr_smugglers_influence = 0.005
 	province_trade_power_value = 20
 	tax_income = 74
 	yearly_patriarch_authority = 0.003
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3779,24 +3049,25 @@ demons_blood_export_mod4 = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		owner = {
 			has_reform = black_market_consortium_reform
 			owns_core_province = 1077
+			controls = 1077
 		}
 	}
-	
+
 	local_development_cost = -0.25
 	pr_smugglers_influence = 0.01
 	province_trade_power_value = 25
 	tax_income = 96
 	yearly_patriarch_authority = 0.004
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3814,12 +3085,12 @@ mykx_hellfire_cannons_triggered_deactivation = {
 			is_at_war = no
 		}
 	}
-	
+
 	#Province scope
 	on_activation = {
 		G93 = { clr_country_flag = mykx_hellfire_cannons_flag }
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3837,17 +3108,17 @@ mykx_hellfire_cannons_triggered_mod = {
 			patriarch_authority = 0.01
 		}
 	}
-	
+
 	yearly_patriarch_authority = -0.1
 	global_naval_barrage_cost = -0.2
 	heavy_ship_power = 0.25
 	galley_power = 0.25
 	sailor_maintenance_modifer = 0.25
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3855,7 +3126,7 @@ mykx_hellfire_cannons_triggered_mod = {
 
 beikdugang_triunic = {
 	potential = {
-		owner = { 
+		owner = {
 			always = yes
 		}
 	}
@@ -3874,23 +3145,23 @@ beikdugang_triunic = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 
 beikdugang_nanxin_academy = {
 	potential = {
-		owner = { 
+		owner = {
 			always = yes
 		}
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			mission_completed = Y15_modernize_nanxin
 			if = {
 				limit = {
-					any_known_country = { 
+					any_known_country = {
 						OR = {
 							has_idea_group = maritime_ideas
 							has_idea_group = naval_ideas
@@ -3899,7 +3170,7 @@ beikdugang_nanxin_academy = {
 						capital_scope = { continent = europe }
 					}
 				}
-				any_known_country = { 
+				any_known_country = {
 					OR = {
 						has_idea_group = maritime_ideas
 						has_idea_group = naval_ideas
@@ -3924,7 +3195,7 @@ beikdugang_nanxin_academy = {
 
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3932,7 +3203,7 @@ beikdugang_nanxin_academy = {
 #Treasure Fleet Activator (pulse)
 JY_LF_activator = {
 	potential = {
-		owner = { 
+		owner = {
 			culture_group = triunic
 		}
 		NOT = { has_province_modifier = JY_LF_countdown }
@@ -3948,7 +3219,7 @@ JY_LF_activator = {
 		province_event = { id = treasurefleet.1 }
 		add_province_modifier = { name = JY_LF_countdown duration = 3649 }
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3956,7 +3227,7 @@ JY_LF_activator = {
 #Gives Beikdugang event when Federation forms
 Y15_J33_friends = {
 	potential = {
-		owner = { 
+		owner = {
 			mission_completed = Y15_guns_sword
 			NOT = { has_country_flag = Y15_J33_friend }
 		}
@@ -3975,7 +3246,7 @@ Y15_J33_friends = {
 			}
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -3983,7 +3254,7 @@ Y15_J33_friends = {
 #Remakes historical friendship between Beikdugang and Federation if it ever breaks.
 Y15_J33_friends2 = {
 	potential = {
-		owner = { 
+		owner = {
 			mission_completed = Y15_guns_sword
 		}
 	}
@@ -3998,12 +3269,12 @@ Y15_J33_friends2 = {
 	}
 
 	on_activation = {
-		owner = { 
+		owner = {
 			J33 = { add_historical_friend = PREV }
 			add_historical_friend = J33
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -4011,7 +3282,7 @@ Y15_J33_friends2 = {
 #Makes any and all Marches revolutionary.
 beikdugang_rev_sub = {
 	potential = {
-		owner = { 
+		owner = {
 			mission_completed = Y15_ignite_light
 			is_revolution_target = yes
 		}
@@ -4019,7 +3290,7 @@ beikdugang_rev_sub = {
 	hidden = yes
 	trigger = {
 		owner = {
-			any_subject_country = { 
+			any_subject_country = {
 				is_march = yes
 				NOT = { is_revolutionary = yes }
 			}
@@ -4036,7 +3307,7 @@ beikdugang_rev_sub = {
 			}
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -4045,9 +3316,9 @@ spirit_pulse_province_modifier = {	#This modifier sends a spirit event to a rand
 	potential = {
 		always = yes
 	}
-	
+
 	hidden = yes
-	
+
 	trigger = {
 		OR = {
 			AND = {
@@ -4073,7 +3344,7 @@ spirit_pulse_province_modifier = {	#This modifier sends a spirit event to a rand
 			is_month = 11
 		}
 	}
-	
+
 	on_activation = {
 		random_province = {
 			limit = {
@@ -4085,7 +3356,7 @@ spirit_pulse_province_modifier = {	#This modifier sends a spirit event to a rand
 			province_event = { id = spirits.000 }
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -4094,21 +3365,21 @@ corrupted_temple_complex = {
 	potential = {
 		always = yes
 	}
-	
+
 	trigger = {
 		religion = lefthand_path
 	}
 
 	picture = "spirits_corrupted_temple_complex_province"
-	
+
 	local_warscore_cost_modifier = 0.1
 	trade_value = 0.25 #Precursor relics found inside are being sold
 	church_power_modifier = 0.1
-	
+
 	on_activation = {
 		remove_province_modifier = storm_of_spirits
 	}
-	
+
 	on_deactivation = {
 		add_province_modifier = {
 			name = storm_of_spirits
@@ -4126,16 +3397,16 @@ birsartanses_25_year_plan_mod = {
 			}
 		}
     }
- 
+
     trigger = {
         owner = { has_country_flag = birsartanses_preparing_plan }
     }
-    
+
     #Province scope
     on_activation = {
         owner = { country_event = { id = flavour_birsartanses.6 } }
     }
-    
+
     on_deactivation = {
 
     }
@@ -4160,127 +3431,6 @@ skurkokli_randomizer_mod = {
 	}
 }
 
-# #The Command
-# command_wolf_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_wolf_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_wolf_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
-# command_boar_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_boar_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_boar_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
-# command_lion_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_lion_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_lion_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
-# command_dragon_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_dragon_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_dragon_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
-# command_elephant_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_elephant_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_elephant_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
-# command_tiger_management = {
-# 	potential = {
-# 		owner = { has_estate_privilege = estate_tiger_command_management }
-# 	}
-	
-# 	trigger = {
-# 		owner = { faction_in_power = hob_tiger_command }
-# 	}
-	
-# 	local_development_cost = -0.25
-# 	trade_goods_size_modifier = 0.1
-# 	local_manpower_modifier = 0.5
-	
-# 	on_activation = {
-# 	}
-	
-# 	on_deactivation = {
-# 	}
-# }
-
 tiltaghar_deal_ministries_1_modifier = {
     potential = {
 		owner = {
@@ -4291,19 +3441,21 @@ tiltaghar_deal_ministries_1_modifier = {
 	hidden = yes
 
     trigger = {
-		NOT = {
-			had_country_flag = { 
-				flag = tiltaghar_deal_ministries_accepted_flag
-				days = 9125
+		owner = {
+			NOT = {
+				had_country_flag = {
+					flag = tiltaghar_deal_ministries_accepted_flag
+					days = 9125
+				}
 			}
 		}
     }
     global_unrest = -0.25
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_ministries_1_modifier
     }
@@ -4321,7 +3473,7 @@ tiltaghar_deal_ministries_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_ministries_accepted_flag
 					days = 9125
 				}
@@ -4329,11 +3481,11 @@ tiltaghar_deal_ministries_2_modifier = {
 		}
     }
     global_unrest = -0.5
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_ministries_2_modifier
     }
@@ -4351,7 +3503,7 @@ tiltaghar_deal_ministries_3_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_ministries_accepted_flag
 					days = 9125
 				}
@@ -4359,11 +3511,11 @@ tiltaghar_deal_ministries_3_modifier = {
 		}
     }
     global_unrest = -1
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_ministries_3_modifier
     }
@@ -4381,7 +3533,7 @@ tiltaghar_deal_ministries_4_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_ministries_accepted_flag
 					days = 9125
 				}
@@ -4389,11 +3541,11 @@ tiltaghar_deal_ministries_4_modifier = {
 		}
     }
     global_unrest = -1.25
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_ministries_4_modifier
     }
@@ -4411,7 +3563,7 @@ tiltaghar_elephant_lords_1_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_elephant_lords_accepted_flag
 					days = 9125
 				}
@@ -4419,11 +3571,11 @@ tiltaghar_elephant_lords_1_modifier = {
 		}
     }
     cavalry_cost = -0.025
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_elephant_lords_1_modifier
     }
@@ -4441,7 +3593,7 @@ tiltaghar_elephant_lords_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_elephant_lords_accepted_flag
 					days = 9125
 				}
@@ -4449,11 +3601,11 @@ tiltaghar_elephant_lords_2_modifier = {
 		}
     }
     cavalry_cost = -0.05
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_elephant_lords_2_modifier
     }
@@ -4471,7 +3623,7 @@ tiltaghar_elephant_lords_3_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_elephant_lords_accepted_flag
 					days = 9125
 				}
@@ -4479,11 +3631,11 @@ tiltaghar_elephant_lords_3_modifier = {
 		}
     }
     cavalry_cost = -0.1
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_elephant_lords_3_modifier
     }
@@ -4501,7 +3653,7 @@ tiltaghar_elephant_lords_4_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_elephant_lords_accepted_flag
 					days = 9125
 				}
@@ -4509,11 +3661,11 @@ tiltaghar_elephant_lords_4_modifier = {
 		}
     }
     cavalry_cost = -0.15
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_elephant_lords_4_modifier
     }
@@ -4531,7 +3683,7 @@ tiltaghar_ghankedhen_1_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_ghankedhen_accepted_flag
 					days = 9125
 				}
@@ -4539,11 +3691,11 @@ tiltaghar_ghankedhen_1_modifier = {
 		}
     }
     global_monthly_devastation = -0.01
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_ghankedhen_1_modifier
     }
@@ -4561,7 +3713,7 @@ tiltaghar_ghankedhen_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_ghankedhen_accepted_flag
 					days = 9125
 				}
@@ -4569,11 +3721,11 @@ tiltaghar_ghankedhen_2_modifier = {
 		}
     }
     global_monthly_devastation = -0.03
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_ghankedhen_2_modifier
     }
@@ -4591,7 +3743,7 @@ tiltaghar_deal_brown_orcs_1_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_brown_orcs_accepted_flag
 					days = 9125
 				}
@@ -4599,11 +3751,11 @@ tiltaghar_deal_brown_orcs_1_modifier = {
 		}
     }
     infantry_cost = -0.025
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_brown_orcs_1_modifier
     }
@@ -4621,7 +3773,7 @@ tiltaghar_deal_brown_orcs_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_brown_orcs_accepted_flag
 					days = 9125
 				}
@@ -4629,11 +3781,11 @@ tiltaghar_deal_brown_orcs_2_modifier = {
 		}
     }
 	infantry_cost = -0.05
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_brown_orcs_2_modifier
     }
@@ -4651,7 +3803,7 @@ tiltaghar_deal_brown_orcs_3_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_brown_orcs_accepted_flag
 					days = 9125
 				}
@@ -4659,11 +3811,11 @@ tiltaghar_deal_brown_orcs_3_modifier = {
 		}
     }
 	infantry_cost = -0.1
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_brown_orcs_3_modifier
     }
@@ -4681,7 +3833,7 @@ tiltaghar_deal_brown_orcs_4_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag = tiltaghar_deal_brown_orcs_accepted_flag
 					days = 9125
 				}
@@ -4689,11 +3841,11 @@ tiltaghar_deal_brown_orcs_4_modifier = {
 		}
     }
 	infantry_cost = -0.15
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_brown_orcs_4_modifier
     }
@@ -4711,7 +3863,7 @@ tiltaghar_deal_bhuvauri_1_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_bhuvauri_accepted_flag
 					days = 9125
 				}
@@ -4719,11 +3871,11 @@ tiltaghar_deal_bhuvauri_1_modifier = {
 		}
     }
 	production_efficiency = 0.025
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_bhuvauri_1_modifier
     }
@@ -4741,7 +3893,7 @@ tiltaghar_deal_bhuvauri_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_bhuvauri_accepted_flag
 					days = 9125
 				}
@@ -4749,11 +3901,11 @@ tiltaghar_deal_bhuvauri_2_modifier = {
 		}
     }
 	production_efficiency = 0.05
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_bhuvauri_2_modifier
     }
@@ -4771,7 +3923,7 @@ tiltaghar_deal_bhuvauri_3_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_bhuvauri_accepted_flag
 					days = 9125
 				}
@@ -4779,11 +3931,11 @@ tiltaghar_deal_bhuvauri_3_modifier = {
 		}
     }
 	production_efficiency = 0.1
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_bhuvauri_3_modifier
     }
@@ -4801,7 +3953,7 @@ tiltaghar_deal_bhuvauri_4_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_bhuvauri_accepted_flag
 					days = 9125
 				}
@@ -4809,11 +3961,11 @@ tiltaghar_deal_bhuvauri_4_modifier = {
 		}
     }
 	production_efficiency = 0.15
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_bhuvauri_4_modifier
     }
@@ -4831,7 +3983,7 @@ tiltaghar_deal_dwarves_1_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_dwarves_accepted_flag
 					days = 9125
 				}
@@ -4839,11 +3991,11 @@ tiltaghar_deal_dwarves_1_modifier = {
 		}
     }
 	development_cost = -0.025
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_dwarves_1_modifier
     }
@@ -4861,7 +4013,7 @@ tiltaghar_deal_dwarves_2_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_dwarves_accepted_flag
 					days = 9125
 				}
@@ -4869,11 +4021,11 @@ tiltaghar_deal_dwarves_2_modifier = {
 		}
     }
 	development_cost = -0.05
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_dwarves_2_modifier
     }
@@ -4891,7 +4043,7 @@ tiltaghar_deal_dwarves_3_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_dwarves_accepted_flag
 					days = 9125
 				}
@@ -4899,11 +4051,11 @@ tiltaghar_deal_dwarves_3_modifier = {
 		}
     }
 	development_cost = -0.1
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_dwarves_3_modifier
     }
@@ -4921,7 +4073,7 @@ tiltaghar_deal_dwarves_4_modifier = {
     trigger = {
 		owner = {
 			NOT = {
-				had_country_flag = { 
+				had_country_flag = {
 					flag =  tiltaghar_deal_dwarves_accepted_flag
 					days = 9125
 				}
@@ -4929,11 +4081,11 @@ tiltaghar_deal_dwarves_4_modifier = {
 		}
     }
 	development_cost = -0.15
-    
+
     #Province scope
     on_activation = {
     }
-    
+
     on_deactivation = {
         remove_province_triggered_modifier = tiltaghar_deal_dwarves_4_modifier
     }
@@ -4945,7 +4097,7 @@ ravenhill_war_1 = {
 		owner = { has_country_flag = ravenhill_desire }
 	}
 	trigger = {
-		owner = { 
+		owner = {
 			is_in_war = {
 				attacker_leader = THIS
 				defender_leader = A60
@@ -4955,14 +4107,14 @@ ravenhill_war_1 = {
 			custom_trigger_tooltip = {
 				tooltip = ravenhill_otherwise_peace
 				NOT = {
-					any_known_country = { 
+					any_known_country = {
 						NOT = { tag = A60 }
 						is_in_war = {
 							participants = PREV
 							defender_leader = THIS
 						}
 					}
-					any_known_country = { 
+					any_known_country = {
 						NOT = { tag = A60 }
 						is_in_war = {
 							attacker_leader = THIS
@@ -4979,8 +4131,8 @@ ravenhill_war_1 = {
 	on_activation = {
 		province_event = { id = corvuria.3 }
 	}
-	
-	on_deactivation = {	
+
+	on_deactivation = {
 		province_event = { id = corvuria.31 }
 	}
 }
@@ -4999,7 +4151,7 @@ ravenhill_war_2 = {
 		owner = {
 			any_known_country = {
 				war_with = PREV
-				NOT = { 
+				NOT = {
 					alliance_with = A60
 					has_guaranteed = A60
 					is_subject = yes
@@ -5015,13 +4167,13 @@ ravenhill_war_2 = {
 		owner = {
 			every_known_country = {
 				if = {
-					limit = { 
-						NOT = { 
+					limit = {
+						NOT = {
 							alliance_with = A60
 							has_guaranteed = A60
 							is_subject = yes
 							tag = A60
-						} 
+						}
 					}
 					white_peace = PREV
 					add_prestige = 25
@@ -5029,7 +4181,7 @@ ravenhill_war_2 = {
 			}
 		}
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -5043,7 +4195,7 @@ kheios_deathwind_manager = {
 			}
 		}
 	}
-	
+
 	on_activation = {
 		province_event = {
 			id = kheionai.1
@@ -5074,7 +4226,7 @@ krakazol_slaying_ptm = {
 	trigger = { I20 = { has_ruler_modifier = krakazol_slaying_quest } }
 
 	on_activation = {
-		I20 = { 
+		I20 = {
 			trigger_switch = {
 				on_trigger = has_ruler_flag
 
@@ -5097,7 +4249,7 @@ treasure_fleet_upgrade_timer = { #Sovkelqur MT
 	trigger = {
 		5226 = {
 			owner = {
-				has_country_modifier = upgrading_treasure_fleet
+				has_country_modifier = federation_upgrading_treasure_fleet
 			}
 		}
 	}
@@ -5112,13 +4264,13 @@ treasure_fleet_upgrade_timer = { #Sovkelqur MT
 		5226 = {
 			owner = {
 				if = {
-					limit = { 
+					limit = {
 						has_country_flag = treasure_fleet_level_2
 					}
 					set_country_flag = treasure_fleet_level_3
 				}
 				else_if = {
-					limit = { 
+					limit = {
 						has_country_flag = treasure_fleet_level_1
 					}
 					set_country_flag = treasure_fleet_level_2
@@ -5159,16 +4311,9 @@ boons_from_fleet_trigger = { #Sovkelqur MT
 }
 
 bulwar_districts_manager = {
-    potential = {
-		owner = {
-			OR = {
-				tag = F21
-				was_tag = F21
-			}
-		}
-    }
+
 	hidden = yes
-	
+
 	trigger = {
 		OR = {
 			AND = {
@@ -5197,29 +4342,29 @@ bulwar_districts_manager = {
 			}
 		}
 	}
-	
+
 	on_activation = {
-		bulwar_district_progress_effect = yes
+		province_event = { id = flavour_bulwar_tag.39 }
 	}
-	
+
 	on_deactivation = {
-		bulwar_district_progress_effect = yes
+		province_event = { id = flavour_bulwar_tag.39 }
 	}
 }
 bulwar_azkabar_rebels = {
 	hidden = yes
-	
+
 	trigger = {
-		NOT = { owner = { has_spawned_rebels = heretic_rebels } }
+		NOT = { units_in_province = REB }
 	}
-	
+
 	on_activation = {
 		if = { limit = { units_in_province = F39 }
 			F39 = { country_event = { id = flavour_bulwar_tag.31 } }
 		}
 		remove_province_triggered_modifier = bulwar_azkabar_rebels
 	}
-	
+
 	on_deactivation = { }
 }
 
@@ -5236,11 +4381,11 @@ bulwar_bulwar_temple_modifier = {
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	global_missionary_strength = 0.02
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -5258,11 +4403,11 @@ bulwar_vacyn_temple_modifier = {
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	missionaries = 1
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
@@ -5280,110 +4425,30 @@ bulwar_confluence_temple_modifier = {
 	}
 	picture = "ziggurat_of_surakel_modifier"
 	missionary_maintenance_cost = -0.15
-	
+
 	#Province scope
 	on_activation = {
 	}
-	
+
 	on_deactivation = {
 	}
 }
 
-G52_klereyen_shift = {
-	potential = {
-		owner = {
-			tag = G52
-		}
-	}
-	#hidden = yes
-	trigger = {
-		owner = { 
-			any_owned_province = { 
-				OR = {
-					region = taychend_region
-					region = larankarha_highlands_region
-				}
-				NOT = { is_island = yes }
-				culture_group = kheionai_ruinborn_elf
-				NOT = { culture = klereyen }
-			}
-		}
-	}
-	unjustified_demands = 0.05
 
-	on_activation = {
-		owner = {
-			every_owned_province = { 
-				limit = {
-					OR = {
-						region = taychend_region
-						region = larankarha_highlands_region
-					}
-					NOT = { is_island = yes }
-					culture_group = kheionai_ruinborn_elf
-					NOT = { culture = klereyen }
-				}
-				change_culture = klereyen
-			}
-		}
-	}
-	on_deactivation = {	
-	}
-}
-G52_astolbhen_shift = {
-	potential = {
-		owner = {
-			tag = G52
-		}
-	}
-	#hidden = yes
-	trigger = {
-		owner = { 
-			any_owned_province = { 
-				OR = {
-					region = chendhya_region
-					region = mteibas_valley_region
-				}
-				culture_group = kheionai_ruinborn_elf
-				NOT = { culture = astolbhen }
-				NOT = { has_port = yes }
-			}
-		}
-	}
-	unjustified_demands = 0.05
-
-	on_activation = {
-		owner = {
-			every_owned_province = { 
-				limit = {
-					OR = {
-						region = chendhya_region
-						region = mteibas_valley_region
-					}
-					culture_group = kheionai_ruinborn_elf
-					NOT = { culture = astolbhen }
-					NOT = { has_port = yes }
-				}
-				change_culture = astolbhen
-			}
-		}
-	}
-	on_deactivation = {	
-	}
-}
 G52_liteibhar_land = {
 	potential = {
 		G79 = {
 			OR = {
 				is_subject_of = G52
+				is_subject_of = G00
 				NOT = { exists = yes }
 			}
 		}
 	}
 	#hidden = yes
 	trigger = {
-		owner = { 
-			any_owned_province = { 
+		owner = {
+			any_owned_province = {
 				region = severed_coast_region
 				is_city = yes
 			}
@@ -5397,9 +4462,9 @@ G52_liteibhar_land = {
 				limit = { G79 = { NOT = { exists = yes } } }
 				set_global_flag = G52_G79_subject
 			}
-			every_owned_province = { 
+			severed_coast_region = { #every_owned_province bug workaround
 				limit = {
-					region = severed_coast_region
+					owned_by = PREV
 					is_city = yes
 				}
 				if = {
@@ -5408,6 +4473,14 @@ G52_liteibhar_land = {
 					add_core = G79
 				}
 				cede_province = G79
+				if = {
+					limit = { religion = kheionism }
+					change_religion = gods_of_the_taychend
+				}
+				if = {
+					limit = { culture_group = kheionai_ruinborn_elf }
+					change_culture = yodhanpir
+				}
 			}
 			if = {
 				limit = { has_global_flag = G52_G79_subject }
@@ -5429,7 +4502,7 @@ G52_liteibhar_land = {
 		}
 		G79 = { add_liberty_desire = -5 }
 	}
-	on_deactivation = {	
+	on_deactivation = {
 	}
 }
 G52_liteibhar_colony = {
@@ -5448,7 +4521,10 @@ G52_liteibhar_colony = {
 	trigger = {
 		G79 = {
 			exists = yes
-			is_subject_of = G52
+			OR = {
+				is_subject_of = G52
+				is_subject_of = G00
+			}
 			NOT = {
 				is_subject_of_type = colony
 				is_subject_of_type = self_governing_colony
@@ -5476,6 +4552,824 @@ G52_liteibhar_colony = {
 			}
 		}
 	}
-	on_deactivation = {	
+	on_deactivation = {
+	}
+}
+G52_nakyra_capital_1 = {
+	potential = {
+		owner = {
+			OR = {
+				tag = G52
+				tag = G00
+			}
+		}
+	}
+
+	trigger = {
+		owner = {
+			capital_scope = { province_id = 2497 }
+		}
+	}
+	all_estate_loyalty_equilibrium = 0.1
+	local_defensiveness = 0.15
+
+	on_activation = {
+	}
+	on_deactivation = {
+	}
+}
+G52_nakyra_capital_2 = {
+	potential = {
+		owner = {
+			OR = {
+				tag = G52
+				tag = G00
+			}
+		}
+	}
+
+	trigger = {
+		owner = {
+			capital_scope = { province_id = 2497 }
+		}
+	}
+	local_development_cost = -0.5
+	local_defensiveness = 0.15
+
+	on_activation = {
+	}
+	on_deactivation = {
+	}
+}
+
+greedy_grin_peace_time_1 = {
+	potential = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_1
+		}
+	}
+	trigger = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_1
+            NOT = { is_at_war = yes }
+			has_any_disaster = no
+		}
+	}
+	global_trade_goods_size_modifier = 0.05
+	development_cost = -0.05
+	reinforce_speed = -0.50
+	recover_army_morale_speed = -0.10
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+greedy_grin_war_time_1 = {
+	potential = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_1
+		}
+	}
+	trigger = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_1
+			OR = {
+				has_any_disaster = yes
+                is_at_war = yes
+			}
+		}
+	}
+	global_regiment_recruit_speed = -0.15
+	reinforce_speed = 0.15
+	manpower_recovery_speed = 0.075
+	global_regiment_cost = -0.05
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+greedy_grin_peace_time_2 = {
+	potential = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_3
+		}
+	}
+	trigger = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_3
+            NOT = { is_at_war = yes }
+			has_any_disaster = no
+		}
+	}
+	global_trade_goods_size_modifier = 0.1
+	development_cost = -0.1
+	reinforce_speed = -0.25
+	recover_army_morale_speed = -0.05
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+greedy_grin_war_time_2 = {
+	potential = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_2
+		}
+	}
+	trigger = {
+		owner = {
+			has_country_flag = greedy_grin_levy_system_2
+			OR = {
+				has_any_disaster = yes
+                is_at_war = yes
+			}
+		}
+	}
+	global_regiment_recruit_speed = -0.25
+	reinforce_speed = 0.25
+	manpower_recovery_speed = 0.15
+	global_regiment_cost = -0.1
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+tluukt_fertilize_foothills_rng = {
+	potential = {
+		always = yes
+	}
+
+	trigger = {
+		always = yes
+	}
+
+	on_activation = {
+		owner = { country_event = { id = flavour_tluukt.34 } }
+	}
+
+	on_deactivation = {
+	}
+}
+
+tluukt_strip_sur_rng = {
+	potential = {
+		always = yes
+	}
+
+	trigger = {
+		always = yes
+	}
+
+	on_activation = {
+		owner = { country_event = { id = flavour_tluukt.36 } }
+	}
+
+	on_deactivation = {
+	}
+}
+
+tluukt_sun_chains_rng = {
+	potential = {
+		always = yes
+	}
+
+	trigger = {
+		always = yes
+	}
+
+	on_activation = {
+		owner = { country_event = { id = flavour_tluukt.32 } }
+	}
+
+	on_deactivation = {
+	}
+}
+
+#The Command
+command_wolf_management = {
+	potential = {
+		has_province_modifier = command_wolf_warcamp
+		owner = { has_estate_privilege = estate_wolf_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_wolf_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+command_boar_management = {
+	potential = {
+		has_province_modifier = command_boar_warcamp
+		owner = { has_estate_privilege = estate_boar_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_boar_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+command_lion_management = {
+	potential = {
+		has_province_modifier = command_lion_warcamp
+		owner = { has_estate_privilege = estate_lion_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_lion_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+command_dragon_management = {
+	potential = {
+		has_province_modifier = command_dragon_warcamp
+		owner = { has_estate_privilege = estate_dragon_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_dragon_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+command_elephant_management = {
+	potential = {
+		has_province_modifier = command_elephant_warcamp
+		owner = { has_estate_privilege = estate_elephant_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_elephant_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+command_tiger_management = {
+	potential = {
+		has_province_modifier = command_tiger_warcamp
+		owner = { has_estate_privilege = estate_tiger_command_management }
+	}
+
+	trigger = {
+		owner = { faction_in_power = hob_tiger_command }
+	}
+
+	local_development_cost = -0.25
+	trade_goods_size_modifier = 0.1
+	local_manpower_modifier = 0.5
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+# Command army maintenance modifier setup
+command_wolf_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_wolf_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_wolf_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_wolf_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_wolf_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_wolf_army_raised }
+    }
+}
+command_boar_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_boar_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_boar_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_boar_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_boar_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_boar_army_raised }
+    }
+}
+command_lion_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_lion_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_lion_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_lion_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_lion_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_lion_army_raised }
+    }
+}
+command_dragon_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_dragon_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_dragon_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_dragon_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_dragon_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_dragon_army_raised }
+    }
+}
+command_elephant_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_elephant_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_elephant_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_elephant_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_elephant_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_elephant_army_raised }
+    }
+}
+command_tiger_army_maintenance = {
+    potential = {
+        R62 = { exists = yes }
+    }
+	hidden = yes
+
+    trigger = {
+        R62 = {
+            any_hired_mercenary_company = {
+                template = merc_command_tiger_army
+            }
+        }
+    }
+
+    on_activation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_tiger_army_raised
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_tiger_army_on_standby }
+		R62 = { add_army_professionalism = 0.05 }
+    }
+
+    on_deactivation = {
+		R62 = {
+			add_country_modifier = {
+				name = command_tiger_army_on_standby
+				duration = -1
+			}
+		}
+		R62 = { remove_country_modifier = command_tiger_army_raised }
+    }
+}
+
+#Truedagger
+truedagger_slavery_economy = {
+	potential = {
+		always = yes
+	}
+
+	trigger = {
+		owner = {
+			low_tolerance_dwarven_race_trigger = yes
+			low_tolerance_orcish_race_trigger = yes
+		}
+		owner = {
+			NOT = {
+				has_country_modifier = racial_pop_dwarven_expulsion
+				has_country_modifier = racial_pop_dwarven_purge
+				has_country_modifier = racial_pop_orcish_expulsion
+				has_country_modifier = racial_pop_orcish_purge
+
+			}
+		}
+	}
+	picture = "gold_hold"
+
+	global_trade_goods_size_modifier = 0.05
+	global_unrest = 1
+
+	on_activation = {
+	}
+
+	on_deactivation = {
+	}
+}
+
+#Newshire
+newshire_sunwatchers_pulse = {
+	potential = {
+		always = yes
+	}
+
+	hidden = yes
+
+	trigger = {
+		NOT = { has_province_flag = newshire_sunwatchers_pulse }
+	}
+
+	on_activation = {
+		set_province_flag = newshire_sunwatchers_pulse
+		newshire_sunwatcher_update = yes
+	}
+
+	on_deactivation = {
+		clr_province_flag = newshire_sunwatchers_pulse
+		newshire_sunwatcher_update = yes
+	}
+}
+newshire_squashkin_pulse = {
+	potential = {
+		always = yes
+	}
+
+	hidden = yes
+
+	trigger = {
+		NOT = { has_province_flag = newshire_squashkin_pulse }
+	}
+
+	on_activation = {
+		set_province_flag = newshire_squashkin_pulse
+		newshire_squashkin_update = yes
+	}
+
+	on_deactivation = {
+		clr_province_flag = newshire_squashkin_pulse
+		newshire_squashkin_update = yes
+	}
+}
+
+# Verkal Ozovar
+Y63_masters_of_the_phokhao = {
+	potential = {
+		owner = {
+			is_or_was_tag = { tag = Y63 }
+		}
+	}
+
+	trigger = {
+		owner = {
+			if = {
+				limit = { mission_completed = Y63_focal_point }
+				all_owned_province = {
+					OR = {
+						province_id = 4559
+						is_capital = yes
+					}
+				}
+			}
+			else = {
+				all_owned_province = {
+					is_capital = yes
+				}
+			}
+		}
+	}
+	
+	diplomatic_reputation = 1
+	diplomatic_upkeep = 2
+	local_governing_cost_increase = -100
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+Y63_masters_of_the_phokhao_upgraded = {
+	potential = {
+		owner = {
+			is_or_was_tag = { tag = Y63 }
+		}
+	}
+	
+	trigger = {
+		owner = {
+			if = {
+				limit = { mission_completed = Y63_focal_point }
+				all_owned_province = {
+					OR = {
+						province_id = 4559
+						is_capital = yes
+					}
+				}
+			}
+			else = {
+				all_owned_province = {
+					is_capital = yes
+				}
+			}
+		}
+	}
+	
+	diplomatic_reputation = 1
+	diplomatic_upkeep = 2
+	local_manpower = 4
+	local_governing_cost = -0.5
+	local_governing_cost_increase = -100
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+Y63_nephrite_palace_king = {
+	potential = {
+		owner = {
+			is_or_was_tag = { tag = Y63 }
+		}
+	}
+	
+	trigger = {
+		owner = {
+			custom_trigger_tooltip = {
+				tooltip = is_magocracy_tt
+				has_government_attribute = is_magocracy
+			}
+		}
+	}
+	
+	global_tax_income = 24
+	mages_loyalty_modifier = 0.1
+	mages_influence_modifier = 0.1
+	max_absolutism = 15
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+Y63_nephrite_palace_oz_amekh = {
+	potential = {
+		owner = {
+			is_or_was_tag = { tag = Y63 }
+		}
+	}
+	
+	trigger = {
+		owner = {
+			custom_trigger_tooltip = {
+				tooltip = is_magocracy_tt
+				has_government_attribute = is_magocracy
+			}
+		}
+	}
+	
+	global_tax_income = 24
+	mages_loyalty_modifier = 0.1
+	mages_influence_modifier = 0.1
+	devotion = 1.5
+	reduced_liberty_desire = 25
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+Y63_gates_of_the_sky = {
+	potential = {
+		always = yes
+	}
+	
+	trigger = {
+		has_building = ramparts
+	}
+	
+	local_fort_maintenance_modifier = -1
+	local_garrison_size = 0.15
+	allowed_num_of_manufactories = 1
+	allowed_num_of_buildings = 1
+	
+	on_activation = {
+	}
+	
+	on_deactivation = {
+	}
+}
+
+Y63_hidden_behind_the_curtain = {
+	potential = {
+		owner = {
+			is_or_was_tag = { tag = Y63 }
+		}
+	}
+	
+	hidden = yes
+	
+	trigger = {
+		owner = {
+			has_ruler_modifier = witch_king_modifier
+		}
+	}
+	
+	diplomatic_reputation = 4
+	
+	on_activation = {
+	}
+	on_deactivation = {
+	}
+}
+
+# Cestirmark
+H33_dual_archprovosts = {
+	potential = {
+		religion = ravelian
+	}
+	trigger = {
+		religion = ravelian
+		has_owner_religion = yes
+		owner = {
+			capital_scope = {
+				region = trollsbay_region
+			}
+		}
+	}
+	picture = "papal_influence_from_cardinals"
+
+	tolerance_own = 0.5
+	papal_influence_from_cardinals = 0.5
+	on_activation = {
+	}
+	on_deactivation = {
 	}
 }
