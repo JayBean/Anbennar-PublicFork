@@ -5,6 +5,10 @@ tags={
 	"Fantasy"
 }
 replace_path="common/bookmarks"
+replace_path="common/church_aspects"
+replace_path="common/fetishist_cults"
+replace_path="common/personal_deities"
+replace_path="common/ideas"
 replace_path="common/province_names"
 replace_path="common/government_names"
 replace_path="common/disasters"
