@@ -484,7 +484,10 @@ country_event = {
 				region = forest_of_the_cursed_ones_region
 			}
 		}
-		current_age = age_of_reformation
+		OR = {
+			current_age = age_of_reformation
+			has_country_flag = rzentur_kobold_mission
+		}
 		any_owned_province = {
 			religion = drozma_tur
 			NOT = {
@@ -745,6 +748,430 @@ country_event = {
 		}
 	}
 }
+
+#Cannorian Poachers kill our wildlife
+country_event = {
+	id = ynnsman_events.104
+	title = ynnsman_events.104.t
+	desc = ynnsman_events.104.d
+	picture = FORESTS_eventPicture
+	goto = ynn_cannor_poachers_prov
+	goto = ynn_cannor_poachers_origin
+
+	is_triggered_only = yes
+
+	trigger = {
+		culture_group = ynnic_ruinborn_elf
+		any_owned_province = {
+			any_neighbor_province = {
+				owner = {
+					OR = {
+						is_cannorian_in_ynn = yes
+						technology_group = tech_cannorian
+					}
+				}
+			}
+			OR = {
+				trade_goods = fur
+				trade_goods = ivory
+				has_terrain = forest	# it seems like it would be too rare if it could only happen in fur or ivory provinces, will be more rare without them tho
+				has_terrain = woods
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					any_neighbor_province = {
+						owner = {
+							OR = {
+								is_cannorian_in_ynn = yes
+								technology_group = tech_cannorian
+							}
+						}
+					}
+					OR = {
+						trade_goods = fur
+						trade_goods = ivory
+						has_terrain = forest
+						has_terrain = woods
+					}
+				}
+				save_event_target_as = ynn_cannor_poachers_prov
+				random_neighbor_province = {
+					limit = {
+						owner = {
+							OR = {
+								is_cannorian_in_ynn = yes
+								technology_group = tech_cannorian
+							}
+						}
+					}
+					owner = {
+						save_event_target_as = ynn_cannor_poachers_origin
+					}
+				}
+			}
+		}
+	}
+
+	option = {	#hunt them down, all of them
+		name = ynnsman_events.104.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				ruler_has_personality = malevolent_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = bold_fighter_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = cruel_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = craven_personality
+			}
+		}
+		add_treasury = -75
+		add_prestige = 10
+		event_target:ynn_cannor_poachers_prov = {
+			add_province_modifier = {
+				name = ynn_hunting_poachers
+				duration = 7300
+			}
+		}
+		event_target:ynn_cannor_poachers_origin = {
+			add_manpower = -1
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_poachers_slaughtered
+			}
+		}
+		add_opinion = {
+			who = event_target:ynn_cannor_poachers_origin
+			modifier = ynn_poachers_rampage
+		}
+	}
+
+	option = {	#we cannot deal with this right now
+		name = ynnsman_events.104.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				ruler_has_personality = craven_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = industrious_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = entrepreneur_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = strict_personality
+			}
+		}
+		if = {
+			limit = {
+				event_target:ynn_cannor_poachers_prov = {
+					OR = {
+						trade_goods = fur
+						trade_goods = ivory
+					}
+				}
+			}
+			event_target:ynn_cannor_poachers_prov = {
+				add_devastation = 25
+				add_base_production = -2
+			}
+		}
+		else = {
+			event_target:ynn_cannor_poachers_prov = {
+				add_devastation = 15
+				add_base_production = -1
+			}
+		}
+		add_opinion = {
+			who = event_target:ynn_cannor_poachers_origin
+			modifier = ynn_poachers_rampage
+		}
+	}
+}
+
+#Poachers kill patrol
+country_event = {
+	id = ynnsman_events.105
+	title = ynnsman_events.105.t
+	desc = ynnsman_events.105.d
+	picture = COSSACK_ESTATE_RAIDERS_eventPicture
+	goto = ynn_patrol_killed_prov
+	goto = ynn_patrol_killers_tag
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		culture_group = ynnic_ruinborn_elf
+		any_owned_province = {
+			has_province_modifier = ynn_hunting_poachers
+			any_neighbor_province = {
+				owner = {
+					NOT = {
+						alliance_with = ROOT
+						overlord = {
+							tag = ROOT
+						}
+					}
+					technology_group = tech_cannorian
+					has_opinion_modifier = {
+						modifier = ynn_poachers_slaughtered
+						who = ROOT
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					has_province_modifier = ynn_hunting_poachers
+					any_neighbor_province = {
+						owner = {
+							technology_group = tech_cannorian
+						}
+					}
+				}
+				save_event_target_as = ynn_patrol_killed_prov
+				random_neighbor_province = {
+					limit = {
+						owner = {
+							NOT = {
+								alliance_with = ROOT
+								overlord = {
+									tag = ROOT
+								}
+							}
+							technology_group = tech_cannorian
+							has_opinion_modifier = {
+								modifier = ynn_poachers_slaughtered
+								who = ROOT
+							}
+						}
+					}
+					owner = {
+						save_event_target_as = ynn_patrol_killers_tag
+					}
+				}
+			}
+		}
+	}
+
+	option = {	#This is an attack! Teach these Krahnorians a lesson!
+		name = ynnsman_events.105.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				ruler_has_personality = bold_fighter_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = malevolent_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = cruel_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = zealot_personality
+			}
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = craven_personality
+			}
+		}
+		event_target:ynn_patrol_killers_tag = {
+			declare_war_with_cb = {
+				casus_belli = cb_trade_conflict
+				who = ROOT
+			}
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_poaching_denounced
+			}
+		}
+	}
+
+	option = {	#Ignore it, we can't risk antagonizing them
+		name = ynnsman_events.105.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				ruler_has_personality = craven_personality
+			}
+		}
+		add_prestige = -10
+		event_target:ynn_patrol_killers_tag = {
+			add_opinion = {
+				who = ROOT
+				modifier = ynn_poaching_denounced
+			}
+		}
+		add_casus_belli = {
+			type = cb_insult
+			target = event_target:ynn_patrol_killers_tag
+		}
+	}
+}
+
+#cannorian poachers attack antler horse ranch
+country_event = {
+	id = ynnsman_events.106
+	title = ynnsman_events.106.t
+	desc = ynnsman_events.106.d
+	picture = VILLAGE_BURNING_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		culture_group = ynnic_ruinborn_elf
+		any_owned_province = {
+			has_province_modifier = ynn_hunting_poachers
+			any_neighbor_province = {
+				owner = {
+					NOT = {
+						alliance_with = ROOT
+						overlord = {
+							tag = ROOT
+						}
+					}
+					technology_group = tech_cannorian
+					has_opinion_modifier = {
+						modifier = ynn_poachers_slaughtered
+						who = ROOT
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					has_province_modifier = ynn_hunting_poachers
+					any_neighbor_province = {
+						owner = {
+							NOT = {
+								alliance_with = ROOT
+								overlord = {
+									tag = ROOT
+								}
+							}
+							technology_group = tech_cannorian
+							has_opinion_modifier = {
+								modifier = ynn_poachers_slaughtered
+								who = ROOT
+							}
+						}
+					}
+				}
+				save_event_target_as = ynn_ranch_raid_prov
+				random_neighbor_province = {
+					limit = {
+						owner = {
+							NOT = {
+								alliance_with = ROOT
+								overlord = {
+									tag = ROOT
+								}
+							}
+							technology_group = tech_cannorian
+							has_opinion_modifier = {
+								modifier = ynn_poachers_slaughtered
+								who = ROOT
+							}
+						}
+					}
+					owner = {
+						save_event_target_as = ynn_ranch_raid_origin
+					}
+				}
+			}
+		}
+	}
+
+	option = {	#Invest in its repair and bring in new blood for the ranch!
+		name = ynnsman_events.106.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.5
+				ruler_has_personality = greedy_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = tactical_genius_personality
+			}
+			modifier = {
+				factor = 2
+				ruler_has_personality = bold_fighter_personality
+			}
+			modifier = {
+				factor = 2
+				OR = {
+					ruler_has_personality = conqueror_personality
+					ruler_has_personality = great_conqueror_personality
+					ruler_has_personality = mythical_conqueror_personality
+				}
+			}
+		}
+		add_years_of_income = -0.4
+		add_country_modifier = {
+			name = ynn_new_mounts
+			duration = -1
+		}
+		add_opinion = {
+			who = event_target:ynn_ranch_raid_origin
+			modifier = ynn_ranches_raided
+		}
+	}
+
+	option = {	#No
+		name = ynnsman_events.106.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				ruler_has_personality = greedy_personality
+			}
+		}
+		add_country_modifier = {
+			name = ynn_raided_ranches
+			duration = 3650
+		}
+		add_opinion = {
+			who = event_target:ynn_ranch_raid_origin
+			modifier = ynn_ranches_raided
+		}
+	}
+}
+
+
 
 	###	Events pertaining particular countries	###
 
