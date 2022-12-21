@@ -49,7 +49,10 @@ krakazol_1 = {
 		}
 		
 		provinces_to_highlight = {
-			owned_by = R66
+			OR = {
+				owned_by = R66
+				owned_by = R81
+			}
 		}
 
 		trigger = {
@@ -61,6 +64,10 @@ krakazol_1 = {
 			if = {
 				limit = { exists = R66 }
 				is_neighbor_of = R66
+			}
+			else_if = {
+				limit = { exists = R81 }
+				is_neighbor_of = R81
 			}
 			else = { is_neighbor_of = R62 }
 		}
@@ -102,10 +109,13 @@ krakazol_2 = {
 		
 		effect = {
 			if = {
-				limit = { 4300 = { NOT = { owned_by = R66 } } }
+				limit = { 4300 = { NOT = { owned_by = R66 owned_by = R81 } } }
 				4300 = { add_permanent_province_modifier = { name = krakazol_rushed_defense duration = 9125 } }
 			}
-			else = { 4298 = { add_permanent_province_modifier = { name = krakazol_rushed_defense duration = 9125 } } }
+			else_if = {
+				limit = { 4298 = { NOT = { owned_by = R66 owned_by = R81 } } }
+				4298 = { add_permanent_province_modifier = { name = krakazol_rushed_defense duration = 9125 } } 
+			}
 			ovdal_az_an_area = { 
 				discover_country = ROOT
 				add_permanent_claim = ROOT 
@@ -308,7 +318,7 @@ krakazol_3 = {
 				add_base_manpower = 1
 			}
 			add_country_modifier = { name = krakazol_returning_amethysts duration = 9125 }
-			country_event = { id = flavor_krakazol.3 days = 365 }
+			country_event = { id = flavor_krakazol.3 }
 		}
 	}
 
@@ -542,7 +552,7 @@ krakazol_5 = {
 				add_base_manpower = 1
 				add_permanent_province_modifier = { name = krakazol_prepared_land duration = -1 }
 				if = {
-					limit = { NOT = { owned_by = ROOT } }
+					limit = { NOT = { owned_by = ROOT owned_by = R62 } }
 					owner = { add_trust = { who = ROOT value = 10 } }
 				}
 			}
@@ -622,11 +632,17 @@ krakazol_1b = {
 
 		trigger = {
 			manpower_percentage = 0.8
-			has_spy_network_in = { who = R62 value = 30 }
+			if = {
+				limit = { exists = R62 }
+				has_spy_network_in = { who = R62 value = 30 }
+			}
 		}
 		
 		effect = {
-			add_spy_network_in = { who = R62 value = -30 }
+			if = {
+				limit = { exists = R62 }
+				add_spy_network_in = { who = R62 value = -30 }
+			}
 			dwarovrod_66_68_area = { add_permanent_claim = ROOT }
 			4305 = { add_permanent_claim = ROOT }
 			4350 = { add_permanent_claim = ROOT }
@@ -834,23 +850,41 @@ krakazol_3b = {
 				}
 				war_with = R66
 			}
+			else_if = {
+				limit = { 
+					R81 = { 
+						exists = yes
+						any_owned_province = {
+							OR = {
+								area = dwarovrod_66_68_area
+								province_id = 4305
+								province_id = 4350
+								region = tree_of_stone_region
+							}
+						}
+					} 
+				}
+				war_with = R81
+			}
+			
 			if = {
 				limit = { exists = R62 }
-				custom_trigger_tooltip = {
-					tooltip = krakazol_axe_face_tooltip
-					east_serpentspine_superregion = {
-						has_ruler_leader_from = ROOT
-						OR = {
-							unit_in_battle = yes
-							unit_in_siege = yes
-						}
-					}
+				# custom_trigger_tooltip = {
+				# 	tooltip = krakazol_axe_face_tooltip
+				# 	east_serpentspine_superregion = {
+				# 		has_ruler_leader_from = ROOT
+				# 		OR = {
+				# 			unit_in_battle = yes
+				# 			unit_in_siege = yes
+				# 		}
+				# 	}
+				# }
+				if = {
+					limit = { is_female = no }
+					is_monarch_leader = yes
 				}
 				has_heir = yes
-				if = {
-					limit = { has_female_heir = no }
-					is_heir_leader = yes
-				}
+				heir_age = 10
 			}
 			dwarovrod_66_68_area = { type = all controlled_by = ROOT }
 			4305 = { controlled_by = ROOT }
@@ -1014,7 +1048,7 @@ krakazol_5b = {
 		}
 		
 		effect = {
-			country_event = { id = flavor_krakazol.12 days = 30 }
+			country_event = { id = flavor_krakazol.12 }
 		}
 	}
 	krakazol_fulfill_oath = {
@@ -3279,7 +3313,15 @@ krakazol_3d = {
 		
 		provinces_to_highlight = {
 			if = {
-				limit = { exists = Y01 Y01 = { num_of_cities = 3 } }
+				limit = { 
+					exists = Y01 
+					Y01 = { 
+						num_of_owned_provinces_with = {
+							value = 3
+							region = demon_hills_region
+						}
+					} 
+				}
 				owned_by = Y01
 				Y01 = {
 					NOT = { has_spy_network_from = { who = ROOT value = 30 } }
@@ -3301,14 +3343,27 @@ krakazol_3d = {
 				num_of_regiments_at_full_drill = 50
 			}
 			else = { mil_power = 200 }
+			
 			if = {
 				limit = { has_dlc = "Dharma" }
 				if = {
-					limit = { exists = Y01 Y01 = { num_of_cities = 3 } }
+					limit = { 
+						exists = Y01 
+						Y01 = { 
+							num_of_owned_provinces_with = {
+								value = 3
+								region = demon_hills_region
+							}
+						} 
+					}
 					Y01 = {
 						krakazol_drunk_diplomacy = yes
 						has_spy_network_from = { who = ROOT value = 30 }
 					}
+				}
+				else_if = {
+					limit = { owns = 5430 }
+					owns = 5430
 				}
 				else = {
 					5430 = {
@@ -3332,9 +3387,21 @@ krakazol_3d = {
 				add_mil_power = -200
 			}
 			if = {
-				limit = { exists = Y01 Y01 = { num_of_cities = 3 } }
+				limit = { 
+					exists = Y01 
+					Y01 = { 
+						num_of_owned_provinces_with = {
+							value = 3
+							region = demon_hills_region
+						}
+					} 
+				}
 				add_spy_network_in = { who = Y01 value = -30 }
 				add_casus_belli = { type = cb_humiliate target = Y01 months = 300 }
+			}
+			else_if = {
+				limit = { owns = 5430 }
+				add_stability_or_adm_power = yes
 			}
 			else = {
 				5430 = {
@@ -3371,8 +3438,17 @@ krakazol_3d = {
 		}
 
 		trigger = {
+			#oni first
 			if = {
-				limit = { exists = Y01 Y01 = { num_of_cities = 3 } }
+				limit = { 
+					exists = Y01 
+					Y01 = { 
+						num_of_owned_provinces_with = {
+							value = 3
+							region = demon_hills_region
+						}
+					} 
+				}
 				war_with = Y01
 				demon_hills_region = {
 					type = all
@@ -3385,6 +3461,10 @@ krakazol_3d = {
 						}
 					}
 				}
+			}
+			else_if = {
+				limit = { owns = 5430 }
+				owns = 5430
 			}
 			else = {
 				5430 = {
@@ -3648,11 +3728,17 @@ krakazol_5d = {
 			}
 			4450 = {
 				development = 30
-				trade_goods = precursor_relics
+				custom_trigger_tooltip = {
+					tooltip = krakazol_digging_sideways_tooltip2
+					has_province_flag = already_plundered
+				}
 			}
 			4465 = {
 				development = 30
-				trade_goods = precursor_relics
+				custom_trigger_tooltip = {
+					tooltip = krakazol_digging_sideways_tooltip2
+					has_province_flag = already_plundered
+				}
 			}
 			krakazol_is_drunk = { Drunk = yes }
 		}
