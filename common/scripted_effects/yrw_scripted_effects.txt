@@ -1038,6 +1038,94 @@ yrw_iosahar_liberty_opposition_4 = {
 	}
 }
 
+yrw_iosahar_subjugation_preparation_effect = {
+	every_war_enemy_country = {
+		if = {
+			limit = { 
+				is_in_war = {
+					attacker_leader = THIS
+					defender_leader = ROOT
+					casus_belli = cb_independence_war
+				}
+			}
+		white_peace = ROOT
+		grant_independence = yes
+		# peace subjugated iosahars out of independence wars against vassals
+		# to stop you getting the iosahar back for free, they're released - bad luck
+		# because if their new overlord joins the independence war (i.e. via enforce peace)
+		# then separately peaces, the game crashes
+		}
+	}
+
+	every_subject_country = {
+		if = {	#Breaks PUs
+			limit = {
+				junior_union_with = ROOT
+			}
+			break_union = ROOT
+		}
+		else_if = {		#Iosahar and countries with Ynnic diplomacy are now yours
+			limit = {
+				OR = {
+					is_subject_of_type = ynnic_iosahar
+					has_country_modifier = ynn_diplo
+				}
+			}
+			FROM = {
+				create_subject = {
+					subject_type = ynnic_iosahar
+					subject = PREV
+				}
+			}
+		}
+		else = {	#Other subjects are released
+			grant_independence = yes
+		}
+	}
+	hidden_effect = {	#Clears alliances for ynnic overlord
+		FROM = {
+			every_known_country = {
+				limit = {
+					alliance_with = FROM
+					capital_scope = {
+						superregion = ynn_superregion
+					}
+				}
+				FROM = {
+					break_alliance = PREV
+				}
+			}
+		}
+	}
+		
+	if = {
+		limit = {
+			NOT = { has_country_modifier = ynn_diplo }
+		}
+		add_country_modifier = {
+			name = ynn_diplo
+			duration = -1
+		}
+		if = {
+			limit = {
+				tag = G32
+				has_reform = malacnar_monarchy
+			}
+			FROM = { country_event = { id = flavor_malacnar.200 } }	#The fate of Malacnar
+		}
+		else_if = {
+			limit = {
+				has_country_flag = ynn_iosahar_breakup_debug
+			}
+			clr_country_flag = ynn_iosahar_breakup_debug
+		}
+		else = {
+			FROM = { country_event = { id = ynn_events.10 } }	#Breakup of new Iosahar
+		}
+	}
+
+}
+
 clear_ynn_zodiacs_effect = {
 	remove_country_modifier = ynn_zodiac_ruler_1
 	remove_country_modifier = ynn_zodiac_ruler_2
@@ -1208,6 +1296,30 @@ ynnic_setup_effect = {
 				duration = -1
 				hidden = yes
 			}
+		}
+		country_event = { id = ynn_events.2 }
+	}
+}
+
+ynn_clear_stuir_balia_modifier_effect = {
+	hidden_effect = {
+		if = {
+			limit = {
+				has_country_modifier = ynn_good_stuir_balia
+			}
+			remove_country_modifier = ynn_good_stuir_balia
+		}
+		else_if = {
+			limit = {
+				has_country_modifier = ynn_normal_stuir_balia
+			}
+			remove_country_modifier = ynn_normal_stuir_balia
+		}
+		else_if = {
+			limit = {
+				has_country_modifier = ynn_bad_stuir_balia
+			}
+			remove_country_modifier = ynn_bad_stuir_balia
 		}
 	}
 }
