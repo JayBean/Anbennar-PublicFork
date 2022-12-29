@@ -1,4 +1,4 @@
-name="anbennar-eu4-fork-experteas"
+name="Anbennar-PublicFork"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -27,4 +27,4 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
 supported_version="1.34.*"
-path="mod/anbennar-eu4-fork-experteas"
+path="mod/Anbennar-PublicFork"
