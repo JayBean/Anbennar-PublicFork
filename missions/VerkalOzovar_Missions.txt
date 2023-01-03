@@ -17,7 +17,10 @@ Y63_missions_1a = {
 		required_missions = { Y63_civil_intercession }
 		
 		provinces_to_highlight = {
-			is_capital_of = event_target:baihon_winner_event_target
+			if = {
+				limit = { has_saved_event_target = baihon_winner_event_target }
+				is_capital_of = event_target:baihon_winner_event_target
+			}
 		}
 		
 		trigger = {
@@ -25,12 +28,15 @@ Y63_missions_1a = {
 				NOT = { exists = Y67 }
 				Y67 = { is_subject_of = ROOT }
 			}
-			OR = {
-				has_spy_network_in = {
-					who = event_target:baihon_winner_event_target
-					value = 30
+			if = {
+				limit = { has_saved_event_target = baihon_winner_event_target }
+				OR = {
+					has_spy_network_in = {
+						who = event_target:baihon_winner_event_target
+						value = 30
+					}
+					event_target:baihon_winner_event_target = { exists = no }
 				}
-				event_target:baihon_winner_event_target = { exists = no }
 			}
 		}
 		
@@ -83,14 +89,30 @@ Y63_missions_1a = {
 		trigger = {
 			land_forcelimit = 15
 			army_size_percentage = 1
-			NOT = { truce_with = event_target:baihon_winner_event_target }
-			is_at_war = no
+			if = {
+				limit = { has_saved_event_target = baihon_winner_event_target }
+				NOT = { truce_with = event_target:baihon_winner_event_target }
+				is_at_war = no
+			}
 		}
 		
 		effect = {
-			declare_war_with_cb = {
-			    who = event_target:baihon_winner_event_target
-			    casus_belli = cb_conquest
+			
+			if = {
+				limit = {
+					event_target:baihon_winner_event_target = { development = 20 }
+				}
+				declare_war_with_cb = {
+				    who = event_target:baihon_winner_event_target
+				    casus_belli = cb_conquest
+				}
+			}
+			else = {
+				Y66 = {
+					every_core_province = {
+						add_claim = ROOT
+					}
+				}
 			}
 			if = {
 				limit = {
@@ -214,15 +236,21 @@ Y63_missions_1b = {
 		required_missions = { Y63_welcome_hinphati_veterans }
 
 		provinces_to_highlight = {
-			is_capital_of = Y67
+			OR = {
+				is_capital_of = Y67
+				is_capital_of = Y97
+			}
 		}
 		
 		trigger = {
-			reverse_has_opinion = {
-				who = Y67
-				value = 150
+			if = {
+				limit = { has_saved_event_target = baihon_winner_event_target }
+				reverse_has_opinion = {
+					who = event_target:baihon_winner_event_target
+					value = 150
+				}
+				alliance_with = event_target:baihon_winner_event_target
 			}
-			alliance_with = Y67
 		}
 		
 		effect = {
@@ -237,7 +265,7 @@ Y63_missions_1b = {
 		
 		trigger = {
 			if = {
-				limit = { exists = Y97 }
+				limit = { has_saved_event_target = baihon_winner_event_target }
 				army_size = event_target:baihon_winner_event_target
 			}
 			else = {
@@ -280,10 +308,13 @@ Y63_missions_1b = {
 		trigger = {
 			if = {
 				limit = { exists = Y97 }
-				event_target:baihon_winner_event_target = {
-					is_subject_of = ROOT
-					is_subject_other_than_tributary_trigger = yes
-					NOT = { liberty_desire = 50 }
+				if = {
+					limit = { has_saved_event_target = baihon_winner_event_target }
+					event_target:baihon_winner_event_target = {
+						is_subject_of = ROOT
+						is_subject_other_than_tributary_trigger = yes
+						NOT = { liberty_desire = 50 }
+					}
 				}
 			}
 			else = {
@@ -590,6 +621,7 @@ Y63_missions_2 = {
 		}
 		
 		trigger = {
+			is_free_or_tributary_trigger = yes
 			army_size_percentage = 0.9
 			if = {
 				limit = { has_global_flag = khom_civilwar_honsai_won_war }
@@ -1005,9 +1037,9 @@ Y63_missions_2 = {
 				OR = {
 					trade_goods_produced_amount = {
 						trade_goods = gems
-						amount = 30
+						amount = 25
 					}
-					trade_goods = damestear
+					capital_scope = { trade_goods = damestear }
 				}
 			}
 			OR = {
@@ -1249,11 +1281,22 @@ Y63_missions_3 = {
 		
 		effect = {
 			if = {
-				limit = { exists = Y59 }
+				limit = {
+					Y59 = {
+						exists = yes
+						NOT = { is_subject_of = ROOT }
+					}
+				}
 				declare_war_with_cb = {
 					who = Y59
 					casus_belli = cb_vassalize_mission
 				}
+			}
+			else_if = {
+				limit = {
+					Y59 = { is_subject_of = ROOT }
+				}
+				add_prestige = 10
 			}
 			else = {
 				custom_tooltip = Y63_reminder_of_duty_tt
@@ -1274,7 +1317,7 @@ Y63_missions_3 = {
 		required_missions = { Y63_reminder_of_duty }
 
 		provinces_to_highlight = {
-			province_id = 4779
+			province_id = 4777
 		}
 		
 		trigger = {
@@ -1318,6 +1361,12 @@ Y63_missions_3 = {
 				limit = { NOT = { exists = Y59 } }
 				Y88 = { release = Y59 }
 				vassalize = Y59
+				hidden_effect = {
+					Y59 = {
+						change_religion = righteous_path
+						change_primary_culture = sikai
+					}
+				}
 			}
 			ngoen_area = {
 				add_permanent_claim = Y59
@@ -1417,13 +1466,7 @@ Y63_missions_3 = {
 
 		provinces_to_highlight = {
 			country_or_non_sovereign_subject_holds = ROOT
-			OR = {
-				has_province_modifier = temple_complex
-				has_province_modifier = damaged_temple_complex
-				has_province_modifier = derelict_temple_complex
-				has_province_modifier = corrupted_temple_complex
-				has_province_modifier = ruined_temple_complex
-			}
+			province_group = temple_province_group
 			NOT = { has_fort_building_trigger = yes }
 		}
 		
@@ -1438,43 +1481,27 @@ Y63_missions_3 = {
 						has_fort_building_trigger = yes
 					}
 				}
-				4710 = { 
-					OR = {
-						NOT = { owner = { is_subject_of = ROOT } }
-						has_fort_building_trigger = yes
-					}
-				}
-				4958 = { 
-					OR = {
-						NOT = { owner = { is_subject_of = ROOT } }
-						has_fort_building_trigger = yes
-					}
-				}
-				4964 = { 
-					OR = {
-						NOT = { owner = { is_subject_of = ROOT } }
-						has_fort_building_trigger = yes
-					}
-				}
-				4719 = { 
-					OR = {
-						NOT = { owner = { is_subject_of = ROOT } }
-						has_fort_building_trigger = yes
-					}
-				}
-				4755 = { 
-					OR = {
-						NOT = { owner = { is_subject_of = ROOT } }
-						has_fort_building_trigger = yes
-					}
-				}
 			}
-			any_war_enemy_country = {
-				religion = mystic_accord
-				capital_scope = {
-					OR = {
-						region = lupulan_rainforest_region
-						region = thidinkai_region
+			if = {
+				limit = {
+					any_known_country = {
+						religion = mystic_accord
+						capital_scope = {
+							OR = {
+								region = lupulan_rainforest_region
+								region = thidinkai_region
+							}
+						}
+						NOT = { is_subject_of = ROOT }
+					}
+				}
+				any_war_enemy_country = {
+					religion = mystic_accord
+					capital_scope = {
+						OR = {
+							region = lupulan_rainforest_region
+							region = thidinkai_region
+						}
 					}
 				}
 			}
@@ -1557,6 +1584,12 @@ Y63_missions_3 = {
 		provinces_to_highlight = {
 			region = lupulan_rainforest_region
 			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			NOT = {
+				OR = {
+					province_id = 4805
+					province_id = 4807
+				}
+			}
 		}
 		
 		trigger = {
@@ -1688,7 +1721,10 @@ Y63_missions_3 = {
 				owner = { is_subject_of = ROOT }
 			}
 			4559 = {
-				has_building = mage_tower
+				OR = {
+					has_building = mage_tower
+					has_manufactory_trigger = yes
+				}
 			}
 			custom_trigger_tooltip = {
 				tooltip = is_enchantment_1_tt
@@ -1822,6 +1858,7 @@ Y63_missions_4 = {
 			}
 			adm_power = 50
 			mil_power = 50
+			is_year = 1445
 		}
 		
 		effect = {
@@ -1971,7 +2008,7 @@ Y63_missions_4 = {
 				limit = {
 					estate_loyalty = {
 						estate = estate_adventurers
-						loyalty = 60
+						loyalty = 55
 					}
 					estate_influence = {
 						estate = estate_adventurers
@@ -1985,7 +2022,7 @@ Y63_missions_4 = {
 				limit = {
 					estate_loyalty = {
 						estate = estate_nobles
-						loyalty = 70
+						loyalty = 65
 					}
 					estate_influence = {
 						estate = estate_nobles
