@@ -198,6 +198,7 @@ country_event = {
 				who = ROOT
 				modifier = historical_friend
 			}
+			set_capital = 1168
 		}
 		add_opinion = {
 			who = G30
@@ -1482,7 +1483,10 @@ country_event = {
 		ai_chance = {
 			factor = 0.2
 		}
-		#nothing
+		2742 = {
+			cavalry = ROOT
+			cavalry = ROOT
+		}
 	}
 
 	option = {
@@ -1859,6 +1863,11 @@ country_event = {
 				change_native_size = -100000
 				change_native_ferocity = -100
 				change_native_hostileness = -1000
+				add_province_modifier = {
+					name = G26_cursed_ones_killed
+					duration = 7300
+				}
+				change_culture = dolindhan
 			}
 		}
 	}
@@ -1899,13 +1908,24 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		tag = G26
+		OR = {
+			tag = G26
+			AND = {
+				tag = U70
+				was_tag = G26
+			}
+			AND = {
+				tag = H27
+				was_tag = G26
+			}
+		}
 	}
 
 	immediate = {
 		hidden_effect = {
 			save_global_event_target_as = amacimst_hosting_joust
 			set_country_flag = G26_initiating_joust
+			set_ruler_flag = G26_hosting_grand_joust
 		}
 	}
 
@@ -1915,31 +1935,28 @@ country_event = {
 			factor = 1
 		}
 		set_ruler_flag = G26_partaking_joust
-		every_subject_country = {
+		every_known_country = {
 			limit = {
-				primary_culture = dolindhan
+				OR = {
+					is_subject_of = ROOT
+				}
 				has_opinion = {
-					who = G26
+					who = ROOT
 					value = 100
 				}
+				primary_culture = dolindhan
 			}
 			country_event = {
 				id = flavour_amacimst.51
 				days = 5
 			}
 		}
-		every_known_country = {
-			limit = {
-				has_opinion = {
-					who = G26
-					value = 100
-				}
-				culture = dolindhan
-			}
-			country_event = {
-				id = flavour_amacimst.51
-				days = 5
-			}
+	}
+
+	after = {
+		country_event = {
+			id = flavour_amacimst.500
+			days = 35
 		}
 	}
 }
@@ -1986,9 +2003,22 @@ country_event = {
 	}
 
 	option = {	# I'm in!
+		trigger = {
+			has_regency = no
+		}
 		name = flavour_amacimst.51.a
 		ai_chance = {
 			factor = 1
+			modifier = {
+				factor = 2
+				NOT = {
+					is_female = yes
+				}
+			}
+			modifier = {
+				factor = 0.1
+				has_ruler_modifier = ynn_wounded_in_joust
+			}
 		}
 		set_ruler_flag = G26_partaking_joust
 	}
@@ -1997,18 +2027,12 @@ country_event = {
 		name = flavour_amacimst.51.b
 		ai_chance = {
 			factor = 1
-		}
-		add_prestige = -5
-		set_country_flag = G26_observing_joust
-	}
-
-	after = {
-		FROM = {
-			country_event = {
-				id = flavour_amacimst.500
-				days = 10
+			modifier = {
+				factor = 2
+				is_female = yes
 			}
 		}
+		set_country_flag = G26_observing_joust
 	}
 }
 
@@ -2027,6 +2051,21 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
+			every_known_country = {
+				limit = {
+					OR = {
+						has_ruler_flag = G26_partaking_joust
+						has_country_flag = G26_observing_joust
+					}
+					NOT = {
+						tag = event_target:ynn_joust_loser
+						tag = event_target:ynn_joust_winner
+					}
+				}
+				country_event = {
+					id = flavour_amacimst.152
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
@@ -2035,7 +2074,6 @@ country_event = {
 						has_ruler_flag = G26_joust_win_3
 						has_ruler_flag = G26_joust_win_4
 						has_ruler_flag = G26_joust_win_5
-	
 					}
 				}
 				set_ruler_flag = G26_joust_win_1
@@ -2074,12 +2112,6 @@ country_event = {
 				}
 				clr_ruler_flag = G26_joust_win_5
 			}
-			event_target:amacimst_hosting_joust = {
-				country_event = {
-					id = flavour_amacimst.500
-					days = 2
-				}
-			}
 		}
 	}
 
@@ -2089,8 +2121,12 @@ country_event = {
 			factor = 1
 		}
 		hidden_effect = {
-			clear_global_event_target = ynn_joust_loser
-			clear_global_event_target = ynn_joust_winner
+			event_target:amacimst_hosting_joust = {
+				country_event = {
+					id = flavour_amacimst.500
+					days = 2
+				}
+			}
 		}
 		if = {
 			limit = {
@@ -2120,6 +2156,9 @@ country_event = {
 		add_prestige = 5
 		hidden_effect = {
 			clr_ruler_flag = ynn_brutally_unhorsed
+			clear_global_event_target = ynn_joust_loser
+			clear_global_event_target = ynn_joust_winner
+			clr_country_flag = G26_joust_participant_flag
 		}
 	}
 }
@@ -2134,7 +2173,7 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		has_country_flag = G26_partaking_joust
+		has_ruler_flag = G26_partaking_joust
 	}
 
 	immediate = {
@@ -2147,15 +2186,9 @@ country_event = {
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = {
-			clear_global_event_target = ynn_joust_loser
-			clear_global_event_target = ynn_joust_winner
-		}
 		if = {
 			limit = {
-				event_target:ynn_joust_loser = {
-					has_ruler_flag = ynn_brutally_unhorsed
-				}
+				has_ruler_flag = ynn_brutally_unhorsed
 			}
 			random_list = {
 				10 = {
@@ -2234,9 +2267,38 @@ country_event = {
 		}
 		hidden_effect = {
 			clr_ruler_flag = ynn_brutally_unhorsed
+			clear_global_event_target = ynn_joust_loser
+			clear_global_event_target = ynn_joust_winner
+			clr_country_flag = G26_joust_participant_flag
 		}
 	}
 }
+
+#Joust winner is announced to everyone
+country_event = {
+	id = flavour_amacimst.152
+	title = flavour_amacimst.152.t
+	desc = flavour_amacimst.152.d
+	picture = TOURNAMENT_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_country_flag = G26_observing_joust
+			has_ruler_flag = G26_partaking_joust
+		}
+	}
+
+	option = {
+		name = flavour_amacimst.152.a
+		ai_chance = {
+			factor = 1
+		}
+		#Nothing
+	}
+}
+
 
 #YOU WIN THE JOUST
 country_event = {
@@ -2253,6 +2315,7 @@ country_event = {
 
 	immediate = {
 		clr_ruler_flag = G26_partaking_joust
+		clr_ruler_flag = G26_hosting_grand_joust
 	}
 
 	option = {
@@ -2308,6 +2371,9 @@ country_event = {
 			add_mil_power = 100
 		}
 	}
+	after = {
+		G26_tournament_end_effect = yes
+	}
 }
 
 country_event = {
@@ -2328,6 +2394,9 @@ country_event = {
 			factor = 1
 		}
 		add_splendor = 5
+	}
+	after = {
+		G26_tournament_end_effect = yes
 	}
 }
 
@@ -2459,7 +2528,7 @@ country_event = {
 	picture = TOURNAMENT_eventPicture
 
 	is_triggered_only = yes
-	hidden = yes
+	hidden = no
 
 	trigger = {
 		tag = event_target:amacimst_hosting_joust
@@ -2472,16 +2541,34 @@ country_event = {
 		}
 		if = {
 			limit = {
-				NOT = {
-					calc_true_if = {
-						all_known_country = {
+				OR = {
+					AND = {
+						has_ruler_flag = G26_partaking_joust
+						NOT = {
+							calc_true_if = {
+								all_known_country = {
+									has_ruler_flag = G26_partaking_joust
+								}
+								amount = 1
+							}
+						}
+					}
+					AND = {
+						NOT = {
 							has_ruler_flag = G26_partaking_joust
 						}
-						amount = 2
+						NOT = {
+							calc_true_if = {
+								all_known_country = {
+									has_ruler_flag = G26_partaking_joust
+								}
+								amount = 2
+							}
+						}
 					}
 				}
 			}
-			random_known_country = {
+			if = {
 				limit = {
 					has_ruler_flag = G26_partaking_joust
 				}
@@ -2496,7 +2583,28 @@ country_event = {
 					}
 					country_event = {
 						id = flavour_amacimst.154
+						days = 2
+					}
+				}
+			}
+			else = {
+				random_known_country = {
+					limit = {
+						has_ruler_flag = G26_partaking_joust
+					}
+					save_event_target_as = G26_final_joust_winner	#Basically just doing this for loca 
+					country_event = {
+						id = flavour_amacimst.153
 						days = 1
+					}
+					every_known_country = {
+						limit = {
+							has_country_flag = G26_observing_joust
+						}
+						country_event = {
+							id = flavour_amacimst.154
+							days = 2
+						}
 					}
 				}
 			}
@@ -2530,6 +2638,9 @@ country_event = {
 				}
 				else_if = {
 					limit = {
+						NOT = {
+							has_ruler_flag = G26_partaking_joust
+						}
 						has_country_flag = G26_observing_joust
 					}
 					random_known_country = {
@@ -2627,7 +2738,19 @@ country_event = {
 					}
 					else_if = {
 						limit = {
-							has_country_flag = G26_observing_joust
+							OR = {
+								has_country_flag = G26_observing_joust
+								AND = {
+									has_ruler_flag = G26_partaking_joust
+									OR = {
+										has_ruler_flag = G26_joust_win_1
+										has_ruler_flag = G26_joust_win_2
+										has_ruler_flag = G26_joust_win_3
+										has_ruler_flag = G26_joust_win_4
+										has_ruler_flag = G26_joust_win_5
+									}
+								}
+							}
 						}
 						random_known_country = {
 							limit = {
@@ -2728,7 +2851,19 @@ country_event = {
 					}
 					else_if = {
 						limit = {
-							has_country_flag = G26_observing_joust
+							OR = {
+								has_country_flag = G26_observing_joust
+								AND = {
+									has_ruler_flag = G26_partaking_joust
+									OR = {
+										has_ruler_flag = G26_joust_win_1
+										has_ruler_flag = G26_joust_win_2
+										has_ruler_flag = G26_joust_win_3
+										has_ruler_flag = G26_joust_win_4
+										has_ruler_flag = G26_joust_win_5
+									}
+								}
+							}
 						}
 						random_known_country = {
 							limit = {
@@ -2824,7 +2959,19 @@ country_event = {
 					}
 					else_if = {
 						limit = {
-							has_country_flag = G26_observing_joust
+							OR = {
+								has_country_flag = G26_observing_joust
+								AND = {
+									has_ruler_flag = G26_partaking_joust
+									OR = {
+										has_ruler_flag = G26_joust_win_1
+										has_ruler_flag = G26_joust_win_2
+										has_ruler_flag = G26_joust_win_3
+										has_ruler_flag = G26_joust_win_4
+										has_ruler_flag = G26_joust_win_5
+									}
+								}
+							}
 						}
 						random_known_country = {
 							limit = {
@@ -2915,7 +3062,19 @@ country_event = {
 					}
 					else_if = {
 						limit = {
-							has_country_flag = G26_observing_joust
+							OR = {
+								has_country_flag = G26_observing_joust
+								AND = {
+									has_ruler_flag = G26_partaking_joust
+									OR = {
+										has_ruler_flag = G26_joust_win_1
+										has_ruler_flag = G26_joust_win_2
+										has_ruler_flag = G26_joust_win_3
+										has_ruler_flag = G26_joust_win_4
+										has_ruler_flag = G26_joust_win_5
+									}
+								}
+							}
 						}
 						random_known_country = {
 							limit = {
@@ -2980,7 +3139,19 @@ country_event = {
 					}
 					else_if = {
 						limit = {
-							has_country_flag = G26_observing_joust
+							OR = {
+								has_country_flag = G26_observing_joust
+								AND = {
+									has_ruler_flag = G26_partaking_joust
+									OR = {
+										has_ruler_flag = G26_joust_win_1
+										has_ruler_flag = G26_joust_win_2
+										has_ruler_flag = G26_joust_win_3
+										has_ruler_flag = G26_joust_win_4
+										has_ruler_flag = G26_joust_win_5
+									}
+								}
+							}
 						}
 						random_known_country = {
 							limit = {
@@ -3474,7 +3645,7 @@ country_event = {
 			factor = 1
 		}
 		add_legitimacy = -20
-
+		G26_tournament_end_effect = yes
 	}
 }
 
@@ -3493,6 +3664,80 @@ country_event = {
 
 	option = {
 		name = flavour_amacimst.56.a
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+#If a diffenrent ruler dies
+country_event = {
+	id = flavour_amacimst.57
+	title = flavour_amacimst.57.t
+	desc = flavour_amacimst.57.d
+	picture = KING_SICK_IN_BED_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = G26_joust_participant_flag
+		NOT = {
+			tag = event_target:amacimst_hosting_joust
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			every_known_country = {
+				limit = {
+					OR = {
+						has_country_flag = G26_observing_joust
+						has_ruler_flag = G26_partaking_joust
+					}
+				}
+				country_event = {
+					id = flavour_amacimst.56
+					days = 1
+				}
+			}
+			event_target:amacimst_hosting_joust = {
+				country_event = {
+					id = flavour_amacimst.500
+					days = 2
+				}
+			}
+			clear_global_event_target = ynn_joust_opponent_1
+			clear_global_event_target = ynn_joust_opponent_2
+			clear_global_event_target = ynn_joust_loser
+			clear_global_event_target = ynn_joust_winner
+		}
+	}
+
+	option = {
+		name = flavour_amacimst.57.a
+		ai_chance = {
+			factor = 1
+		}
+		clr_country_flag = G26_joust_participant_flag
+	}
+}
+
+
+#Check to see if this is where it breaks
+country_event = {
+	id = flavour_amacimst.69
+	title = flavour_amacimst.69.t
+	desc = flavour_amacimst.69.d
+	picture = BANKRUPTCY_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		always = yes
+	}
+
+	option = {
+		name = flavour_amacimst.69.a
 		ai_chance = {
 			factor = 1
 		}
