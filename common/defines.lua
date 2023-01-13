@@ -490,8 +490,8 @@ NCountry = {
 
 	CHANGE_COLONIAL_TYPE_COOLDOWN_DURATION = 10,
 	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 400, -- (Anbennar) pdx: 50
-	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- (Anbennar) pdx: 5
-	SIBERIAN_FRONTIER_DAILY_RANGE = 3,		-- (Anbennar) pdx: 11
+	SIBERIAN_FRONTIER_DAILY_BASE = 5,
+	SIBERIAN_FRONTIER_DAILY_RANGE = 11,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
 	FORCE_SEPPUKU_POWER_MULTIPLIER = 5,				-- Times victim's stats
 	SHOGUN_INTERACTIONS_DURATION = 10,				-- Years
