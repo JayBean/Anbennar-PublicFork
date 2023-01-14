@@ -26,5 +26,10 @@ replace_path="history/provinces"
 replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 picture="anbennar.jpg"
+<<<<<<< Updated upstream
 supported_version="1.34.5*"
 path="mod/Anbennar-PublicFork"
+=======
+supported_version="1.34.*"
+path="mod/RubedoFox"
+>>>>>>> Stashed changes
