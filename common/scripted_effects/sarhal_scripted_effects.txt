@@ -4,8 +4,12 @@ night_coven_collapse = {
 		value = -1
 	}
     set_variable = {
-        which = NightReformProv
+        which = NightReformTagCult
         value = 1
+    }
+    set_variable = {
+        which = NightReformLoop
+        value = 0
     }
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
     every_owned_province = {
@@ -15,32 +19,101 @@ night_coven_collapse = {
             }
         }
         remove_core = FROM
-        random_core_country = {
-            FROM = {
-                Release = PREV
-            }
-        }
+        #random_core_country = {
+        #    FROM = {
+        #        Release = PREV
+        #    }
+        #}
     }
     while = {
         limit = {
-            all_owned_province = {
+            any_owned_province = {
                 NOT = {
                     region = yezel_mora_region
                 }
             }
         }
+        #change_variable = {
+        #    which = NightReformLoop
+        #    value = 1
+        #}
         random_owned_province = {
-            NOT = {
-                region = yezel_mora_region
-            }
-            random_core_country = {
-                export_to_variable = {
-                    which = NightReformProv
-                    value = trigger_value:tag
-                    who = FROM
+            limit = {
+                NOT = {
+                    region = yezel_mora_region #fuck custom nations. Don't need to account for spawning ones or converts either cause they don't get reforms
                 }
             }
-            cede_province = NightReformProv:FROM::tag
+    		remove_core = S70
+            random_core_country = {
+                save_event_target_as = night_reform_tag_select
+            }
+            random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
+                20 = { ##
+                    random_core_country = {
+                        save_event_target_as = night_reform_tag_select
+                    }
+                    cede_province = event_target:night_reform_tag_select
+                    owner = {
+                        country_event = { id = shadow.3 } #inform the player
+                    }
+                }
+                30 = { #30% we give to a neighbor
+                    random_neighbor_province = {
+                        limit = {
+                            NOT = {
+                                owned_by = S70
+                            }
+                        }
+                        random_core_country = {
+                            limit = {
+                                #exists = yes
+                                NOT = {
+                                    tag = S70
+                                }
+                            }
+                            save_event_target_as = night_reform_tag_select
+                        }
+                    }
+                    add_claim = event_target:night_reform_tag_select
+                    cede_province = event_target:night_reform_tag_select
+                    owner = {
+                        country_event = { id = shadow.3 } #inform the player
+                    }
+                }
+    			5 = {
+                    cede_province = previous_owner
+                    owner = {
+                        country_event = { id = shadow.3 } #inform the player
+                    }
+    			}
+                #30 = { #pdox needs to fix this
+                #    export_to_variable = {
+                #        which = NightReformTagCult
+                #        value = culture
+                #        who = S70
+                #    }
+                #    region = {
+                #        random_core_country = {
+                #            limit = {
+                #                primary_culture = variable:FROM::NightReformTagCult
+                #            }
+                #            save_event_target_as = night_reform_tag_select
+                #        }
+                #    }
+                #    cede_province = event_target:night_reform_tag_select
+                #    add_core = event_target:night_reform_tag_select
+                #    owner = {
+                #        country_event = { id = shadow.3 } #inform the player
+                #    }
+                #}
+                5 = { ##
+                    random_core_country = {
+                        S70 = {
+                            Release = PREV
+                        }
+                    }
+                }
+            }
         }
     }
 }
