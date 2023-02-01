@@ -26,6 +26,17 @@ on_startup = {
 		save_global_event_target_as = feiten_or_was_feiten_target
 	}
 
+	REB = {
+		country_event = {
+			id = beast_memory.10
+		}
+	}
+
+	country_event = {
+		id = dakinshi.1
+		days = 12
+	}
+
 	#institution spread help
 
 	events = {
@@ -89,6 +100,7 @@ on_startup = {
 		flavor_chaingrasper.1	#Chaingrasper Dak intro
 		flavour_tluukt.64		#Adds Rule of Tluukt to Tluukt
 		flavour_haraagtseda.01  #Adds Haraagtseda intro
+		flavour_amacimst.0		#Amacimst Intro
 
 		medasi.1			#Medasi Succession
 		
@@ -117,11 +129,12 @@ on_startup = {
 		#anbennar_setup.18
 		anbennar_setup.19
 		migration_force_settle.2
-		great_conqueror.1				#GC setup
 		new_sun_cult.7 			#NSC setup in case MoH is disabled
 		flavor_honsai.1 #Ghostempror lifetime startup
 
 		shatteredcrown.0 #lore disclaimer
+		
+		anb_settings.1			#Settings - /!\ keep it at the bottom of the list
 	}
 
 	#update_artifice_points = yes
@@ -566,6 +579,12 @@ on_startup = {
 				hidden = yes
 			}
 		}
+	}
+	
+	# Yinquan
+	if = {
+		limit = { tag = Y26 NOT = { check_variable = { yinquanBattlesWon = 1 } } }
+		set_variable = { yinquanBattlesWon = 0 }
 	}
 }
 
@@ -1810,6 +1829,13 @@ on_main_war_won = {
 		add_horde_unity = 5
 		add_republican_tradition = 2
 	}
+	
+	if = {
+		limit = {
+			has_church_aspect = bronze_dragon_1
+		}
+		add_church_power = 25
+	}
 }
 
 # country
@@ -2165,6 +2191,22 @@ on_battle_won_province = {
 		}
 	}
 
+	if = {
+		limit = {
+			ROOT = {
+				has_province_flag = G26_cursed_one_expedition
+			}
+			FROM = {
+				has_country_flag = G26_gamer_time
+			}
+		}
+		FROM = {
+			country_event = {
+				id = flavour_amacimst.102
+			}
+		}
+	}
+
 	random_events = {
 		900 = 0
 
@@ -2457,26 +2499,6 @@ on_battle_won_unit = {
 			}
 		}
 	}
-	if = {
-        limit = {
-            unit_owner = {
-                is_chosen_country = yes
-				religion = bulwari_sun_cult
-				has_dlc = "Mandate of Heaven"
-				isolationism = 4
-            }
-            is_ruler_commanding_unit = yes
-        }
-        unit_owner = { change_variable = { which = battlesWonBySunElfRuler value = 1 } }
-		if = { limit = { unit_owner = { check_variable = { which = battlesWonBySunElfRuler value = 5 } } }
-			if = { limit = { unit_owner = { check_variable = { which = battlesWonBySunElfRuler value = 10 } } }
-				unit_owner = { country_event = { id = new_sun_cult.4 } }
-			}
-			else = {
-				unit_owner = { country_event = { id = new_sun_cult.3 } }
-			}
-		}
-    }
 }
 
 # country
@@ -2492,10 +2514,14 @@ on_battle_won_country = {
 		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		centaur_battle_count_win = yes
 		country_event = { id = magic_on_action.3 } #Undead manpower gain
-	}
-	if = {
-		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		ogre_battle_count_win = yes
+		#Anbennar
+		if = {
+			limit = {
+				has_church_aspect = brown_dragon_1
+			}
+			add_church_power = 5
+		}
 	}
 	if = { limit = { has_country_flag = has_nsc_disaster }
 		change_variable = { which = nscDisasterBattleWonScoreVar value = 1 }
@@ -2505,6 +2531,10 @@ on_battle_won_country = {
 	}
 	if = { limit = { tag = B37 }
 		change_variable = { which = RogieriaEmulantAdenn value = 1 }
+	}
+	if = {
+		limit = { tag = Y26 }
+		change_variable = { which = yinquanBattlesWon value = 1 }
 	}
 	if = { limit = { tag = I03 }
 		country_event = { id = flavor_vazhatun.25 }
@@ -2711,6 +2741,22 @@ on_battle_lost_province = {
 		1000 = 0
 		#100 = tyw_events.22	# Capital Battle in Religious War
 	}
+
+	if = {
+		limit = {
+			ROOT = {
+				has_province_flag = G26_cursed_one_expedition
+			}
+			FROM = {
+				has_country_flag = G26_gamer_time
+			}
+		}
+		FROM = {
+			country_event = {
+				id = flavour_amacimst.103
+			}
+		}
+	}
 }
 
 # country
@@ -2739,6 +2785,14 @@ on_siege_won_country = {
 	random_events = {
 		10 = army_professionalism_events.1 #City Sacked
 		100 = 0
+	}
+	
+	if = {
+		limit = {
+			FROM = { fort_level = 1 }
+			has_church_aspect = white_dragon_1
+		}
+		add_church_power = 10
 	}
 }
 
@@ -2904,17 +2958,17 @@ on_new_monarch = {
 		}
 		country_event = { id = eunuchs_estate_events.13 }
 	}
-	#ONLY TRIGGER THIS VIA GOVERNMENT REFORMS
-	# if = {
-	# 	limit = {
-	# 		OR = {
-	# 			has_reform = isolated_kingdom_reform
-	# 			has_reform = compact_of_menjaeng_reform
-	# 			# has_reform = huli_jing_reform
-	# 		}
-	# 	}
-	# 	country_event = { id = patrons_on_action.1 }
-	# }
+	#Patrons On Succession
+	if = {
+		limit = {
+			OR = {
+				has_reform = isolated_kingdom_reform
+				has_reform = compact_of_menjaeng_reform
+				tag = Y26
+			}
+		}
+		country_event = { id = patrons_on_action.1 }
+	}
 	# ambrosian_republic_effect = yes
 	succession_culture_religion_effect = yes
 	# sheik_ul_islam_effect = yes
@@ -3421,6 +3475,8 @@ on_monarch_death = {
 		flavour_tluukt.50 #Death of Tluukt
 		flavor_luciande.38 #death of lucian
 		medasi.1			#Medasi Succession
+		flavour_amacimst.55	#Amacimst ruler dies jousting
+		flavour_amacimst.57 #Foreign ruler dies jousting in Amacimst
 	}
 	if = {
 		limit = { has_government_attribute = no_stability_loss_on_monarch_death }
@@ -3642,6 +3698,7 @@ on_death_election = {
 		flavor_newshire.12
 		flavor_newshire.41
 		flavor_cestirmark.2 #United Trollsbay death election
+		flavour_yinquan.0	#Land of Thousand Shrines election event
 	}
 
 	if = {
@@ -4542,76 +4599,14 @@ on_adm_development = {
 		limit = { owner = { has_estate_privilege = estate_wolf_command_war_room_rights } }
 		owner = { add_legitimacy = 1 }
 	}
-	if = {
-		limit = { has_province_modifier = jaddari_blessed_land }
-		random = {
-			chance = 25
-			add_base_tax = 1
-		}
-	}
 	jaddari_deioderan_dev_counter_update = yes
 	# if = {
 		# limit = { owner = { has_country_flag = federation_state_council } }
 		# governing_point_adm = yes
 	# }
-	if = {
-		limit = {
-			owner = { has_estate = estate_castonath_patricians }
-			OR = {
-				province_id = 831
-				province_id = 832
-				province_id = 833
-			}
-		}
-		add_province_modifier = {
-			name = devved_castonath_recently_dummy
-			duration = 1825
-			hidden = yes
-		}
-	}
-	# Castanor stuff
-	if = {
-		limit = { owner = { tag = B32 } }
-		if = {
-			limit = {
-				OR = {
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = west_castanor_region
-				}
-				owner = { mission_completed = castanor_home_of_humanity }
-			}
-			random = {
-				chance = 25
-				add_base_tax = 1
-			}
-		}
-		if = {
-			limit = {
-				area = castonath_area
-				owner = { mission_completed = castanor_modernizing_castonath }
-			}
-			change_variable = {
-				which = numTimesCastonathDevved
-				value = 1
-			}
-		}
-	}
-
-	# Ancient Dwarven Knowledge
-	if = {
-		limit = {
-			OR = {
-				has_terrain = dwarven_hold
-				has_terrain = dwarven_hold_surface
-			}
-		}
-		if = {
-			limit = { owner = { check_variable = { ancientDwarvenKnowledge = 1 } } }
-			owner = { subtract_variable = { ancientDwarvenKnowledge = 1 } }
-			add_base_tax = 1
-			add_next_institution_embracement_scaled = 5
-		}
+	
+	anb_on_development_effect = {
+		development = tax
 	}
 }
 
@@ -4631,76 +4626,14 @@ on_dip_development = {
 		flavour_mulen.1
 		flavour_mulen.2
 	}
-	if = {
-		limit = { has_province_modifier = jaddari_blessed_land }
-		random = {
-			chance = 25
-			add_base_production = 1
-		}
-	}
 	jaddari_deioderan_dev_counter_update = yes
 	# if = {
 		# limit = { owner = { has_country_flag = federation_state_council } }
 		# governing_point_dip = yes
 	# }
-	if = {
-		limit = {
-			owner = { has_estate = estate_castonath_patricians }
-			OR = {
-				province_id = 831
-				province_id = 832
-				province_id = 833
-			}
-		}
-		add_province_modifier = {
-			name = devved_castonath_recently_dummy
-			duration = 1825
-			hidden = yes
-		}
-	}
-	# Castanor stuff
-	if = {
-		limit = { owner = { tag = B32 } }
-		if = {
-			limit = {
-				OR = {
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = west_castanor_region
-				}
-				owner = { mission_completed = castanor_home_of_humanity }
-			}
-			random = {
-				chance = 25
-				add_base_production = 1
-			}
-		}
-		if = {
-			limit = {
-				area = castonath_area
-				owner = { mission_completed = castanor_modernizing_castonath }
-			}
-			change_variable = {
-				which = numTimesCastonathDevved
-				value = 1
-			}
-		}
-	}
-
-	# Ancient Dwarven Knowledge
-	if = {
-		limit = {
-			OR = {
-				has_terrain = dwarven_hold
-				has_terrain = dwarven_hold_surface
-			}
-		}
-		if = {
-			limit = { owner = { check_variable = { ancientDwarvenKnowledge = 1 } } }
-			owner = { subtract_variable = { ancientDwarvenKnowledge = 1 } }
-			add_base_production = 1
-			add_next_institution_embracement_scaled = 5
-		}
+	
+	anb_on_development_effect = {
+		development = production
 	}
 }
 
@@ -4724,76 +4657,9 @@ on_mil_development = {
 		limit = { owner = { has_estate_privilege = estate_boar_command_war_room_rights } }
 		owner = { add_legitimacy = 1 }
 	}
-	if = {
-		limit = { has_province_modifier = jaddari_blessed_land }
-		random = {
-			chance = 25
-			add_base_manpower = 1
-		}
-	}
-	jaddari_deioderan_dev_counter_update = yes
-	# if = {
-		# limit = { owner = { has_country_flag = federation_state_council } }
-		# governing_point_mil = yes
-	# }
-	if = {
-		limit = {
-			owner = { has_estate = estate_castonath_patricians }
-			OR = {
-				province_id = 831
-				province_id = 832
-				province_id = 833
-			}
-		}
-		add_province_modifier = {
-			name = devved_castonath_recently_dummy
-			duration = 1825
-			hidden = yes
-		}
-	}
-	# Castanor stuff
-	if = {
-		limit = { owner = { tag = B32 } }
-		if = {
-			limit = {
-				OR = {
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = west_castanor_region
-				}
-				owner = { mission_completed = castanor_home_of_humanity }
-			}
-			random = {
-				chance = 25
-				add_base_manpower = 1
-			}
-		}
-		if = {
-			limit = {
-				area = castonath_area
-				owner = { mission_completed = castanor_modernizing_castonath }
-			}
-			change_variable = {
-				which = numTimesCastonathDevved
-				value = 1
-			}
-		}
-	}
-
-	# Ancient Dwarven Knowledge
-	if = {
-		limit = {
-			OR = {
-				has_terrain = dwarven_hold
-				has_terrain = dwarven_hold_surface
-			}
-		}
-		if = {
-			limit = { owner = { check_variable = { ancientDwarvenKnowledge = 1 } } }
-			owner = { subtract_variable = { ancientDwarvenKnowledge = 1 } }
-			add_base_manpower = 1
-			add_next_institution_embracement_scaled = 5
-		}
+	
+	anb_on_development_effect = {
+		development = manpower
 	}
 }
 
@@ -4874,6 +4740,49 @@ on_monthly_pulse = {
 }
 on_yearly_pulse = {
 	if = { limit = { tag = I03 } country_event = { id = flavor_vazhatun.100 } }
+
+	#if = { #it would be nice if paradox fixes had_global_flag because the UI would be better leaving this in case I figure out a workaround
+	#	limit = {		
+	#		had_global_flag = {
+	#			flag = beast_memory_mongoose
+	#			days = 2920
+	#		}
+	#	}
+    #    set_global_flag = beast_memory_leopard
+    #    clr_global_flag = beast_memory_elephant
+    #    clr_global_flag = beast_memory_mongoose
+	#	country_event = { 
+    #        id = beast_memory.5
+    #    }
+	#}
+	#if = {
+	#	limit = {		
+	#		had_global_flag = {
+	#			flag = beast_memory_leopard
+	#			days = 2920
+	#		}
+	#	}
+    #    clr_global_flag = beast_memory_leopard
+    #    set_global_flag = beast_memory_elephant
+    #    clr_global_flag = beast_memory_mongoose
+	#	country_event = { 
+    #        id = beast_memory.6
+    #    }
+	#}
+	#if = {
+	#	limit = {		
+	#		had_global_flag = {
+	#			flag = beast_memory_elephant
+	#			days = 2920
+	#		}
+	#	}
+    #    clr_global_flag = beast_memory_leopard
+    #    clr_global_flag = beast_memory_elephant
+    #    set_global_flag = beast_memory_mongoose
+	#	country_event = { 
+    #        id = beast_memory.4
+    #    }
+	#}
 }
 on_yearly_pulse_2 = {
 }
@@ -5524,6 +5433,10 @@ on_bi_yearly_pulse_3 = {
 		200 = verkalozovar_events.32
 		200 = verkalozovar_events.33
 		200 = verkalozovar_events.34
+		
+		# Yinquan events
+		50 = flavour_yinquan.23
+		50 = flavour_yinquan.24
 
 		200 = 0 #was 200
 	}
@@ -6960,8 +6873,8 @@ on_four_year_pulse_2 = {
 
 		# racial_modifiers.6		#just in case
 
-		#Ynn Pulse Events, moved to 4 years due to being too frequent, will move back to 3 or 2 once we have more events for variety
-		ynn_events.100
+
+		flavour_amacimst.300 #Amacimst event for converting rzentur
 	}
 	#country_event = { id = race_setup_events.3 days = 1 } #Unmatching Tolerances - Fixes level of tolerance towards other races
 	#I moved this to be more frequent.
@@ -7554,6 +7467,35 @@ on_five_year_pulse = {
 			}
 		}
 	}
+
+	#flip zyujyut bokai province if occupied by yan nation for 10+ years
+	if = {
+		limit = {
+			culture_group = yan
+			zyujyut_bokai_provinces = {
+				type = any
+				owned_by = ROOT
+				culture = bokai
+				had_province_flag = {
+					flag = zyujyut_integrating_bokai_flag
+					days = 3650
+				}
+			}
+		}
+		random_owned_province = {
+			limit = {
+				province_group = zyujyut_bokai_provinces
+				culture = bokai
+				had_province_flag = {
+					flag = zyujyut_integrating_bokai_flag
+					days = 3650
+				}
+			}
+			clr_province_flag = zyujyut_integrating_bokai_flag
+			province_event = { id = flavour_zyujyut.900 }
+		}
+	}
+
 }
 
 # Estates pulse
@@ -7912,6 +7854,13 @@ on_explore_coast = {
 		10 = exploration_events.14
 		10 = exploration_events.15
 	}
+	
+	if = {
+		limit = {
+			has_church_aspect = green_dragon_1
+		}
+		add_church_power = 4
+	}
 }
 
 on_conquistador_empty = {
@@ -8041,6 +7990,13 @@ on_conquistador_empty = {
 
 		1800 = 0
 	}
+	
+	if = {
+		limit = {
+			has_church_aspect = green_dragon_1
+		}
+		add_church_power = 4
+	}
 }
 
 on_conquistador_native = {
@@ -8057,7 +8013,14 @@ on_conquistador_native = {
 		# 10 = seven_cities_events.310
 
 		# 250 = 0
-	# }
+	# 
+	
+	if = {
+		limit = {
+			has_church_aspect = green_dragon_1
+		}
+		add_church_power = 4
+	}
 }
 
 on_buy_religious_reform = {
@@ -8433,6 +8396,19 @@ on_province_religion_converted = {
 		limit = { owner = { religion_group = fey_religion NOT = { religion = vechnogejzn } } }
 		owner = { add_piety = 0.1 }
 	}
+	# Yinquan
+	if = {
+		limit = { owner = { tag = Y26 religion = righteous_path } }
+		set_province_flag = Y26_converted_province
+	}
+	owner = {
+		if = {
+			limit = {
+				has_church_aspect = brass_dragon_1
+			}
+			add_church_power = 10
+		}
+	}
 }
 
 # province
@@ -8524,6 +8500,47 @@ on_province_culture_converted = {
 
 	#Ynn
 	province_event = { id = ynn_events.23 }	#Pomentere Estates modifier
+	# Amacimst Culture converting
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					has_country_flag = G26_lordly_oversight_flag
+					overlord = {
+						has_country_flag = G26_lordly_oversight_flag
+					}
+				}
+			}
+			OR = {
+				culture = dolindhan
+				culture = sarda
+			}
+		}
+		add_province_modifier = {
+			name = G26_lordly_oversight
+			duration = -1
+		}	
+	}
+	else_if = {
+		limit = {
+			owner = {
+				OR = {
+					has_country_flag = G26_traditional_ynnic_values_flag
+					overlord = {
+						has_country_flag = G26_traditional_ynnic_values_flag
+					}
+				}
+			}
+			OR = {
+				culture = dolindhan
+				culture = sarda
+			}
+		}
+		add_province_modifier = {
+			name = G26_traditional_ynnic_values
+			duration = -1
+		}	
+	}
 
 	#Ameion
 	if = {
@@ -8665,6 +8682,21 @@ on_province_owner_change = {
 	if = {
 		limit = { has_blorc_trophy_pile = yes }
 		owner = { country_event = { id = blorc.104 } }
+	}
+	
+	#Anbennar
+	if = {
+		limit = {
+			owner = { has_church_aspect = black_dragon_1 }
+			is_city = yes
+		}
+		if = {
+			limit = {
+				culture_group = kobold
+			}
+			owner = { add_church_power = 5 }
+		}
+		owner = { add_church_power = 3 }
 	}
 
 	if = {
@@ -9282,6 +9314,76 @@ on_province_owner_change = {
 	owner = { country_event = { id = ynn_events.2 } }
 	FROM = { country_event = { id = ynn_events.2 } }
 	province_event = { id = ynn_events.23 }	#Pomentere Estates modifier
+	
+	#Amacimst Prov Modifiers
+	if = {
+		limit = {
+			FROM = {
+				OR = {
+					has_country_flag = G26_lordly_oversight_flag
+					overlord = {
+						has_country_flag = G26_lordly_oversight_flag
+					}
+				}
+			}
+			has_province_modifier = G26_lordly_oversight
+		}
+		remove_province_modifier = G26_lordly_oversight
+	}
+	else_if = {
+		limit = {
+			owner = {
+				OR = {
+					has_country_flag = G26_lordly_oversight_flag
+					overlord = {
+						has_country_flag = G26_lordly_oversight_flag
+					}
+				}
+			}
+			OR = {
+				culture = sarda
+				culture = dolindhan
+			}
+		}
+		add_province_modifier = {
+			name = G26_lordly_oversight
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			FROM = {
+				OR = {
+					has_country_flag = G26_traditional_ynnic_values_flag
+					overlord = {
+						has_country_flag = G26_traditional_ynnic_values_flag
+					}
+				}
+			}
+			has_province_modifier = G26_traditional_ynnic_values
+		}
+		remove_province_modifier = G26_traditional_ynnic_values
+	}
+	else_if = {
+		limit = {
+			owner = {
+				OR = {
+					has_country_flag = G26_traditional_ynnic_values_flag
+					overlord = {
+						has_country_flag = G26_traditional_ynnic_values_flag
+					}
+				}
+			}
+			OR = {
+				culture = sarda
+				culture = dolindhan
+			}
+		}
+		add_province_modifier = {
+			name = G26_traditional_ynnic_values
+			duration = -1
+		}
+	}
 
 	#reduced dev cost in capital state, adds modifier when gaining provinces in capital state
 	if = {
@@ -9482,6 +9584,21 @@ on_province_owner_change = {
 
 		province_event = { id = disaster_vampire_masquerade.99 days = 7}
 	}
+
+	#zyujyut culture flip after 10 years tracker
+	if = {
+		limit = {
+			province_group = zyujyut_bokai_provinces
+		}
+		
+		if = {
+			limit = { owner = { culture_group = yan } }
+			set_province_flag = zyujyut_integrating_bokai_flag
+		}
+		else = {
+			clr_province_flag = zyujyut_integrating_bokai_flag	
+		}
+	}
 }
 
 # country
@@ -9679,6 +9796,7 @@ on_general_recruited = {
 		}
 	}
 
+	#Anbennar
 	if = {
 		limit = { has_government_attribute = dwarovar_emulate_warriors_effect }
 		change_estate_land_share = {
@@ -9690,6 +9808,13 @@ on_general_recruited = {
 	if = {
 		limit = { has_estate_privilege = estate_lion_command_war_room_rights }
 		add_legitimacy = 1
+	}
+	
+	if = {
+		limit = {
+			has_church_aspect = blue_dragon_1
+		}
+		add_church_power = 15
 	}
 }
 
@@ -9707,6 +9832,14 @@ on_admiral_recruited = {
 			}
 		}
 		add_navy_tradition = 1
+	}
+	
+	#Anbennar
+	if = {
+		limit = {
+			has_church_aspect = blue_dragon_1
+		}
+		add_church_power = 15
 	}
 }
 
@@ -9729,7 +9862,7 @@ on_explorer_recruited = {
 
 # THIS = Province, FROM = Country
 on_regiment_recruited = {
-	FROM = {
+	FROM = { #Anbennar
 		if = {
 			limit = { has_estate_privilege = estate_lion_command_war_room_rights }
 			add_legitimacy = 0.2
@@ -9932,8 +10065,6 @@ on_reform_enacted = {
 		}
 	}
 	update_artifice_points = yes
-	
-	add_mil_power = 100
 }
 
 on_reform_changed = {
@@ -9996,8 +10127,6 @@ on_reform_changed = {
 			add_faction = hob_tiger_command
 		}
 	}
-	
-	add_dip_power = 100
 }
 
 on_trade_company_investment = {
@@ -11188,6 +11317,35 @@ on_conquest = {
     		desc = hag_conquest_tooltip
 		}
 	}
+	
+	# Yinquan
+	if = {
+		limit = {
+			owner = {
+				tag = Y26
+			}
+			OR = {
+				province_id = 4871
+				province_id = 4907
+				province_id = 4837
+				province_id = 4813
+				province_id = 4826
+				province_id = 4559
+				province_id = 4703
+				province_id = 4955
+				province_id = 4565
+				province_id = 4633
+				province_id = 4630
+				province_id = 4411
+				province_id = 4963
+				province_id = 4828
+				province_id = 4859
+				province_id = 4500
+				province_id = 5424
+			}
+		}
+		province_event = { id = flavour_yinquan.25 }
+	}
 }
 
 on_country_creation = {
@@ -11583,7 +11741,7 @@ on_institution_embracement = {
 		add_dip_power = 100
 		add_mil_power = 100
 	}
-	if = {
+	if = { #Anbennar
 		limit = {
 			has_estate = estate_dragon_command
 			has_institution = manufactories
