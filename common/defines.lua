@@ -490,8 +490,8 @@ NCountry = {
 
 	CHANGE_COLONIAL_TYPE_COOLDOWN_DURATION = 10,
 	CONCENTRATE_DEVELOPMENT_COOLDOWN_DURATION = 400, -- (Anbennar) pdx: 50
-	SIBERIAN_FRONTIER_DAILY_BASE = 1,		-- (Anbennar) pdx: 5
-	SIBERIAN_FRONTIER_DAILY_RANGE = 3,		-- (Anbennar) pdx: 11
+	SIBERIAN_FRONTIER_DAILY_BASE = 5,
+	SIBERIAN_FRONTIER_DAILY_RANGE = 11,
 	CONTRIBUTE_TO_CAPITAL_MIN_DEV_RATIO = 0.5,		-- Overlord's development times this value must be smaller than Subject's development.
 	FORCE_SEPPUKU_POWER_MULTIPLIER = 5,				-- Times victim's stats
 	SHOGUN_INTERACTIONS_DURATION = 10,				-- Years
@@ -774,7 +774,7 @@ NCountry = {
 	PS_REMOVE_ACCEPTED_CULTURE_UNREST_DURATION = 5,
 	PS_STRENGTHEN_GOVERNMENT = 100,
 	PS_BOOST_MILITARIZATION = 50,
-	PS_ESTABLISH_SIBERIAN_FRONTIER = 90, -- (Anbennar) pdx: 20
+	PS_ESTABLISH_SIBERIAN_FRONTIER = 20, -- (Anbennar) pdx: 20
 
 
 	STRENGTHEN_GOVERNMENT_LEGITIMACY = 10,
@@ -1423,7 +1423,7 @@ NMilitary = {
 	RESERVE_DAILY_MORALE_DAMAGE = 0.02,				-- Reserve troops take this fraction of their maximum morale as damage (modified by reserves_organisation)
 	CREATE_JANISSARIES_MIL_COST = 10,				-- Cost to create janissaries (per unit)
 	CREATE_CAWA_MIL_COST = 5,						-- Cost to create Cawa (per unit)
-	CREATE_HUSSARS_MIL_COST = 0;					-- Cost to create Hussars (per unit)
+	CREATE_HUSSARS_MIL_COST = 10;					-- (Anbennar) pdx: 0 (Mythical Riders) Cost to create Hussars (per unit) 
 	COSSACKS_MAXIMUM_RATIO = 1.0,					-- Maximum number of Cossacks regiments, relative to force limit
 	REVOLUTIONARY_GUARD_MAXIMUM_RATIO = 1.0,			-- Maximum number of Revolutionary Guard regiments, relative to force limit
 	RAJPUT_MAXIMUM_RATIO = 1.0,						-- Maximum number of Rajput regiments, relative to force limit
