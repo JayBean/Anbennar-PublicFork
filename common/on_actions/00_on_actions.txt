@@ -2125,6 +2125,7 @@ on_battle_lost_country = {
 		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		centaur_battle_count_lost = yes
 		aelnar_battle_count_lost = yes
+		FROM = { country_event = { id = magic_on_action.3 } } #Undead manpower gain, moved from on_battle_won_country due to on_action order
 	}
 	if = { limit = { has_country_flag = has_nsc_disaster }
 		change_variable = { which = nscDisasterBattleLostScoreVar value = 1 }
@@ -2255,10 +2256,14 @@ on_battle_won_unit = {
 	if = {
 		limit = {
 			unit_owner = { has_country_modifier = undead_military }
-			# enemy_unit = { unit_owner = { NOT = { tag = REB } } }
+			NOT = { check_variable = { raiseUndeadBase = 1 } } # prevent multiple recalculations if multiple units involved
 		}
-		unit_owner = { change_variable = { raiseUndead = 1 } }
-
+		unit_owner = { save_event_target_as = undead_unit_owner }
+		location = { 
+			export_num_of_units_in_province_01_effect = { which = raiseUndeadBase who = event_target:undead_unit_owner }
+			save_event_target_as = undead_battle_province
+		}
+		unit_owner = { set_variable = { which = raiseUndeadBase which = event_target:undead_battle_province } }
 	}
     if = {
         limit = {
@@ -2524,7 +2529,6 @@ on_battle_won_country = {
 	if = {
 		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		centaur_battle_count_win = yes
-		country_event = { id = magic_on_action.3 } #Undead manpower gain
 		ogre_battle_count_win = yes
 		#Anbennar
 		if = {
