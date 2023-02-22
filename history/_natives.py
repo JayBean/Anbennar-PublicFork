@@ -128,26 +128,24 @@ for pr in listProvinces :
         natives = culturesDict.get(pr.culture).get(pr.terrain).natives
         hostility = culturesDict.get(pr.culture).get(pr.terrain).hostility
         ferocity = culturesDict.get(pr.culture).get(pr.terrain).ferocity
-        if natives[-1] == "0" and natives[-2] == "0" :
-            natives = int(natives)/100
-        else :
-            natives = float(natives)/100
         data = []
         with open(directory + "provinces/" + pr.pathName, "r") as file:
             for line in file :
                 content = line.split("=")
-                if content[0].strip() == "native_size" :
-                    content = content[0] + "= " + str(natives)
-                    data.append(content)
-                elif content[0].strip() == "native_ferocity" :
-                    content = content[0] + "= " + ferocity
-                    data.append(content)
-                elif content[0].strip() == "native_hostileness" :
-                    content = content[0] + "= " + hostility
-                    data.append(content)
-                else :
+                if content[0].strip() == "native_size" or content[0].strip() == "native_size" or content[0].strip() == "native_size" : 
+                    if content[0].strip() == "native_size" :
+                        content = content[0] + "= " + natives
+                        data.append(content)
+                    if content[0].strip() == "native_ferocity" :
+                        content = content[0] + "= " + ferocity
+                        data.append(content)
+                    if content[0].strip() == "native_hostileness" :
+                        content = content[0] + "= " + hostility
+                        data.append(content)
+                else : 
                     data.append('='.join(content))
         with open(directory + "provinces/" + pr.pathName, "w") as file:
             file.writelines(data)
-            #print("\n".join(data))
+            print("\n".join(data))
+    break
         
