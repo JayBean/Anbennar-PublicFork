@@ -134,13 +134,13 @@ for pr in listProvinces :
                 content = line.split("=")
                 if content[0].strip() == "native_size" or content[0].strip() == "native_size" or content[0].strip() == "native_size" : 
                     if content[0].strip() == "native_size" :
-                        content = content[0] + "= " + natives
+                        content = content[0] + "= " + natives.strip() + "\n"
                         data.append(content)
                     if content[0].strip() == "native_ferocity" :
-                        content = content[0] + "= " + ferocity
+                        content = content[0] + "= " + ferocity.strip() + "\n"
                         data.append(content)
                     if content[0].strip() == "native_hostileness" :
-                        content = content[0] + "= " + hostility
+                        content = content[0] + "= " + hostility.strip() + "\n"
                         data.append(content)
                 else : 
                     data.append('='.join(content))
