@@ -37,17 +37,17 @@ class Province:
         self.terrain = terrain
         self.provinceID = provinceID
         self.pathName = pathName
-        self.isTribal = False
+        self.isOwned = False
         encoding = GetEncoding(directory + "provinces/" + pathName)
         with open(directory + "provinces/" + pathName, "r", encoding=encoding) as file:
             for line in file :
                 if line.split(" ")[0] == "culture" :
                     self.culture = line.split(" ")[-1].strip()
-                if line.split(" ")[0] == "tribal_owner" or line.split(" ")[0] == "owner":
-                    self.isTribal = True
+                if line.split(" ")[0] == "owner":
+                    self.isOwned = True
 
     def printSelf(self):
-        print(self.pathName + " | Terrain = " + self.terrain + " | Culture = " + self.culture + " | Tribal or Owned = " + str(self.isTribal))
+        print(self.pathName + " | Terrain = " + self.terrain + " | Culture = " + self.culture + " | Owned = " + str(self.isOwned))
 
 class CultureTerrain:
     def __init__(self, culture, terrain, natives, hostility, ferocity):
@@ -117,7 +117,7 @@ with open(directory + "_provincesNew.txt", "r", encoding=encoding) as file:
 
 for pr in listProvinces :
     #pr.printSelf()
-    if pr.isTribal == True :
+    if pr.isOwned == True :
         continue
     else :
         natives = culturesDict.get(pr.culture).get(pr.terrain).natives
@@ -127,7 +127,7 @@ for pr in listProvinces :
         with open(directory + "provinces/" + pr.pathName, "r") as file:
             for line in file :
                 content = line.split("=")
-                if content[0].strip() == "native_size" or content[0].strip() == "native_size" or content[0].strip() == "native_size" : 
+                if content[0].strip() == "native_size" or content[0].strip() == "native_ferocity" or content[0].strip() == "native_hostileness" : 
                     if content[0].strip() == "native_size" :
                         content = content[0] + "= " + natives.strip() + "\n"
                         data.append(content)
@@ -141,5 +141,4 @@ for pr in listProvinces :
                     data.append('='.join(content))
         with open(directory + "provinces/" + pr.pathName, "w") as file:
             file.writelines(data)
-            print("\n".join(data))
         
