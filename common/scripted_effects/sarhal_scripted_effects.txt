@@ -4,8 +4,12 @@ night_coven_collapse = {
 		value = -1
 	}
     set_variable = {
-        which = NightReformProv
+        which = NightReformTagCult
         value = 1
+    }
+    set_variable = {
+        which = NightReformLoop
+        value = 0
     }
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
     every_owned_province = {
@@ -15,32 +19,64 @@ night_coven_collapse = {
             }
         }
         remove_core = FROM
-        random_core_country = {
-            FROM = {
-                Release = PREV
-            }
-        }
     }
-    while = {
+    every_owned_province = {
         limit = {
-            all_owned_province = {
-                NOT = {
-                    region = yezel_mora_region
+            NOT = {
+                    region = yezel_mora_region #fuck custom nations. Don't need to account for spawning ones or converts either cause they don't get reforms
                 }
             }
         }
-        random_owned_province = {
-            NOT = {
-                region = yezel_mora_region
+    	#remove_core = S70 #done above
+        random_core_country = {
+            save_event_target_as = night_reform_tag_select
+        }
+        random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
+            20 = { ##no way to check if there is a core core country unfortunately, just if one exist on the map or doesn't exist. But if there is no valid one, it is fixed later
+                random_core_country = {
+                    save_event_target_as = night_reform_tag_select
+                }
+                cede_province = event_target:night_reform_tag_select
             }
-            random_core_country = {
-                export_to_variable = {
-                    which = NightReformProv
-                    value = trigger_value:tag
-                    who = FROM
+            30 = { #30% we give to a neighbor
+                trigger = {
+                    any_neighbor_province = {
+                        is_city = yes
+                        NOT = { owned_by = S70 }
+                    }
+                }
+                random_neighbor_province = {
+                    limit = {
+                        NOT = {
+                            owned_by = S70
+                        }
+                    }
+                    owner = { save_event_target_as = night_reform_tag_select }
+                }
+                add_claim = event_target:night_reform_tag_select
+                cede_province = event_target:night_reform_tag_select
+            }
+    		5 = {
+                cede_province = previous_owner
+    		}
+            5 = { ##
+                random_core_country = {
+                    S70 = {
+                        Release = PREV
+                    }
                 }
             }
-            cede_province = NightReformProv:FROM::tag
+        }
+        #in case we can't give some away
+        if = {
+            limit = {
+                owned_by = S70
+            }
+            cede_province = previous_owner
+        }
+        ####inform the player
+        owner = {
+            country_event = { id = shadow.3 }
         }
     }
 }
