@@ -100,6 +100,7 @@ on_startup = {
 		flavour_tluukt.64		#Adds Rule of Tluukt to Tluukt
 		flavour_haraagtseda.01  #Adds Haraagtseda intro
 		flavour_amacimst.0		#Amacimst Intro
+		eneion_events.13        #Eneion Intro
 
 		medasi.1			#Medasi Succession
 		
@@ -557,33 +558,34 @@ on_startup = {
 			add_faction = hob_tiger_command
 		}
 	}
-
-	if = {
-		limit = {
-			OR = {
-				has_reform = newshire_stewardship
-				has_reform = newshire_high_stewardship
-			}
-		}
-		every_owned_province = {
-			limit = {
-				OR = {
-					trade_goods = grain
-					trade_goods = livestock
-				}
-			}
-			add_province_modifier = {
-				name = newshire_stewardship_boost
-				duration = -1
-				hidden = yes
-			}
-		}
-	}
 	
 	# Yinquan
 	if = {
 		limit = { tag = Y26 NOT = { check_variable = { yinquanBattlesWon = 1 } } }
 		set_variable = { yinquanBattlesWon = 0 }
+	}
+
+	# Nekheis less LD
+	if = {
+		limit = {
+			OR = {
+				tag = G53
+				tag = G54
+				tag = G55
+				tag = G56
+				tag = G57
+				tag = G58
+				tag = G59
+			}
+			overlord = {
+				ai = yes
+			}
+		}
+		add_country_modifier = {
+			name = nekheis_less_LD
+			duration = 7300
+			hidden = yes
+		}
 	}
 }
 
@@ -1818,6 +1820,18 @@ on_war_won = {
 		country_event = { id = zokka_jaddari_war.13 }
 	}
 
+	if = {
+		limit = {
+			ai = no
+			tag = Y00 #Sunrise Empire
+			any_owned_province = {
+				culture_group = wuhyun
+				continent = asia
+			}
+		}
+		country_event = { id = azkare.240 days = 7 }
+	} # die wuhyun die
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -2125,6 +2139,7 @@ on_battle_lost_country = {
 		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		centaur_battle_count_lost = yes
 		aelnar_battle_count_lost = yes
+		FROM = { country_event = { id = magic_on_action.3 } } #Undead manpower gain, moved from on_battle_won_country due to on_action order
 	}
 	if = { limit = { has_country_flag = has_nsc_disaster }
 		change_variable = { which = nscDisasterBattleLostScoreVar value = 1 }
@@ -2255,10 +2270,15 @@ on_battle_won_unit = {
 	if = {
 		limit = {
 			unit_owner = { has_country_modifier = undead_military }
-			# enemy_unit = { unit_owner = { NOT = { tag = REB } } }
+			NOT = { check_variable = { raiseUndeadBase = 1 } } # prevent multiple recalculations if multiple units involved
+			enemy_unit = { unit_owner = { NOT = { tag = REB tag = NAT } } } # No mnapower from natives / rebels
 		}
-		unit_owner = { change_variable = { raiseUndead = 1 } }
-
+		unit_owner = { save_event_target_as = undead_unit_owner }
+		location = { 
+			export_num_of_units_in_province_01_effect = { which = raiseUndeadBase who = event_target:undead_unit_owner }
+			save_event_target_as = undead_battle_province
+		}
+		unit_owner = { set_variable = { which = raiseUndeadBase which = event_target:undead_battle_province } }
 	}
     if = {
         limit = {
@@ -2524,7 +2544,6 @@ on_battle_won_country = {
 	if = {
 		limit = { NOT = { FROM = { OR = { tag = REB tag = NAT } } } }
 		centaur_battle_count_win = yes
-		country_event = { id = magic_on_action.3 } #Undead manpower gain
 		ogre_battle_count_win = yes
 		#Anbennar
 		if = {
@@ -3133,7 +3152,7 @@ on_new_monarch = {
 		limit = {
 			has_government_attribute = always_mage
 		}
-		country_event = { id = anb_misc.1 days = 30 }
+		country_event = { id = magic_ruler.110 }
 	}
 	if = {
 		limit = {
@@ -3321,7 +3340,11 @@ on_new_monarch = {
 	#Death of Jaddar
 	if = {
 		limit = {
-			tag = F46
+			ai = no
+			OR = {
+				tag = F46
+				was_tag = F46
+			}
 			not = { has_ruler_flag = is_jaddar }
 		}
 		country_event = { id = jaddari_missions.1002 days = 1 }
@@ -4924,6 +4947,8 @@ on_bi_yearly_pulse = {
 		ynn_events.22 #Cannorian traders reach Adbrabohvi
 		blorc.101 #blorc plunder management
 		diggy.406 #dwarovar-marrhold tunnel maintenance
+		flavor_nuugdan_tsarai.82 # TODO temporary until 1.35 fixes culture on_action, see event for more details
+		flavor_nuugdan_tsarai.78 # TODO temporary until 1.35 fixes religion on_action, see event for more details
 	}
 	if = { limit = { ruler_can_revive = yes } save_ruler_stats = yes }
 	if = { limit = { capital = 4411 has_reform = raja_reform } country_event = { id = rahenraj.2000 days = 365 } }
@@ -6423,6 +6448,9 @@ on_thri_yearly_pulse_2 = {
 		#Ynn Pulse Events, moved back to 3 year since there should be more events for variety
 		ynn_events.100
 
+		#Buycev events, testing them being on 3 years
+		ynn_buycev_events.999
+
 		#Mulen institution spread
 		flavour_mulen.26
 	}
@@ -7032,6 +7060,29 @@ on_four_year_pulse_3 = {
 		100 = diggy.576 #lantern oil
 		100 = diggy.577 #serpents gift
 		100 = diggy.578 #serpents curse
+
+		100 = ancestor_worship.1	#Discover Krummul
+		100 = ancestor_worship.2	#Discover Balgar
+		100 = ancestor_worship.3	#Discover Murri
+		100 = ancestor_worship.100	#New Ancestor
+		100 = ancestor_worship.101	#Ancient Knowledge unearthed
+		100 = ancestor_worship.102	#Conflicting Records lead to conflict
+		100 = ancestor_worship.103	#Krummul Stories Inspire Warriors
+		100 = ancestor_worship.104	#Balgar stories inspire architects
+		100 = ancestor_worship.105	#Quila Stories inspire farming
+		100 = ancestor_worship.106	#Urist Stories inspire spelunkers
+		100 = ancestor_worship.107	#Mellegar stories inspire inventors
+		100 = ancestor_worship.108	#Hehogrim Stories inspire joy
+		100 = ancestor_worship.109	#Gimron Stories inspire justice
+		100 = ancestor_worship.110	#Murri Stories inspire adventurers
+		100 = ancestor_worship.111	#Dagrin stories inspire missionaries
+		100 = ancestor_worship.112	#Outsider stories become popular
+		100 = ancestor_worship.113	#Grave of local ancestor
+		100 = ancestor_worship.114	#Ancestor Holiday Celebration
+		100 = ancestor_worship.115	#Clan leader is making a shrine before even dying
+		100 = ancestor_worship.116	#Tales of a noble foreigner
+		100 = ancestor_worship.117	#Celebrate the ancestors
+		100 = ancestor_worship.118	#Monsters destroy ancestor's grave
 	}
 }
 
@@ -7440,6 +7491,7 @@ on_five_year_pulse = {
 		ynnsman_events.105 #Poachers Kill Patrol
 
 		blorc.101 #blorc plunder management, yes again
+		flavor_newhavoral.14
 	}
 
 	#Shadowmoon handler
@@ -7956,6 +8008,15 @@ on_five_year_pulse_4 = {
 
 		1000 = 0
 	}
+	random_events = {
+		5 = precursor_relics.1
+		110 = precursor_relics.2
+
+		800 = 0
+	}
+	country_event = { id = precursor_relics.4 }
+	country_event = { id = precursor_relics.5 }
+	country_event = { id = precursor_relics.6 }
 }
 
 # El Dorado
@@ -8750,6 +8811,7 @@ on_province_owner_change = {
 		unraveling.10
 		spirits.006 #Temple restoration/corruption/purification cleanup
 		spirits.010 #More temple stuff
+		flavor_nuugdan_tsarai.84 #fanwang system
 	}
 	on_province_owner_change_government_effect = yes
 	on_province_owner_change_estate_privileges_effect = yes
@@ -9673,6 +9735,26 @@ on_province_owner_change = {
 			name = B34_board_of_chains_boost
 			duration = -1
 			hidden = yes #hide
+		}
+	}
+	#Newshire
+	if = {
+		limit = {
+			OR = {
+				trade_goods = grain
+				trade_goods = livestock
+			}
+			owner = { 
+				OR = {
+					has_reform = newshire_stewardship
+					has_reform = newshire_high_stewardship
+				}
+			}
+		}
+		add_province_modifier = {
+			name = newshire_stewardship_boost
+			duration = -1
+			hidden = yes
 		}
 	}
 
@@ -10850,8 +10932,7 @@ on_country_released = {
 			capital_scope = {
 				OR = {
 					region = xianjie_region
-					province_id = 4608
-					province_id = 4609
+					area = rangadevi_area
 				}
 			}
 			FROM = {
@@ -10865,8 +10946,7 @@ on_country_released = {
 			capital_scope = {
 				OR = {
 					region = xianjie_region
-					province_id = 4608
-					province_id = 4609
+					area = rangadevi_area
 				}
 			}
 			FROM = {
@@ -11186,6 +11266,40 @@ on_trade_good_changed = {
 				}
 				add_province_modifier = { name = B34_board_of_chains_boost duration = -1 hidden = yes }
 			}
+		}
+		#newshire
+		if = {
+			limit = {
+				OR = {
+					trade_goods = grain
+					trade_goods = livestock
+				}
+				FROM = { 
+					OR = {
+						has_reform = newshire_stewardship
+						has_reform = newshire_high_stewardship
+					}
+				}
+			}
+			add_province_modifier = {
+				name = newshire_stewardship_boost
+				duration = -1
+				hidden = yes
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { 
+					FROM = { 
+						OR = {
+							has_reform = newshire_stewardship
+							has_reform = newshire_high_stewardship
+						}
+					} 
+				}
+				has_province_modifier = newshire_stewardship_boost
+			}
+			remove_province_modifier = newshire_stewardship_boost
 		}
     }
 }
