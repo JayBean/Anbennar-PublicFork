@@ -101,6 +101,8 @@ on_startup = {
 		flavour_haraagtseda.01  #Adds Haraagtseda intro
 		flavour_amacimst.0		#Amacimst Intro
 		eneion_events.13        #Eneion Intro
+		haraf_events.1			#Haraf House system Intro
+		lake.0					#Lake Federation Cohesion Setup
 
 		medasi.1			#Medasi Succession
 		
@@ -193,6 +195,14 @@ on_startup = {
 		country_event = {
 			id = flavour_mulen.3
 			days = 3650
+		}
+	}
+	
+	#company of thorns high stability
+	B11 = {
+		country_event = {
+			id = flavor_luciande.54
+			days = 30
 		}
 	}
 
@@ -1715,12 +1725,12 @@ on_war_won = {
 				}
 			}
 		}
-			every_country = {
-				remove_country_modifier = A90_bardic_influence_1
-				remove_country_modifier = A90_bardic_influence_2
-				remove_country_modifier = A90_bardic_influence_3
-				remove_country_modifier = A90_bardic_influence_4
-				remove_country_modifier = A90_bardic_influence_5
+		every_country = {
+			remove_country_modifier = A90_bardic_influence_1
+			remove_country_modifier = A90_bardic_influence_2
+			remove_country_modifier = A90_bardic_influence_3
+			remove_country_modifier = A90_bardic_influence_4
+			remove_country_modifier = A90_bardic_influence_5
 		}
 	}
 
@@ -1832,6 +1842,34 @@ on_war_won = {
 		}
 		country_event = { id = azkare.240 days = 7 }
 	} # die wuhyun die
+
+	#Ends Wars with Allies of an Iosahar when peacing out their overlord
+	if = {
+		limit = {
+			# winner = root, loser = from
+			FROM = {
+				any_subject_country = {
+					is_subject_of_type = ynnic_iosahar
+					any_ally = {
+						war_with = ROOT
+					}
+				}
+			}
+		}
+		FROM = {
+			every_subject_country = {
+				limit = {
+					is_subject_of_type = ynnic_iosahar
+				}
+				every_ally = {
+					limit = {
+						war_with = ROOT 
+					}
+					white_peace = ROOT
+				}
+			}
+		}
+	}
 
 	update_artifice_points = yes #needs to be last
 }
@@ -1964,12 +2002,12 @@ on_war_lost = {
 				}
 			}
 		}
-			every_country = {
-				remove_country_modifier = A90_bardic_influence_1
-				remove_country_modifier = A90_bardic_influence_2
-				remove_country_modifier = A90_bardic_influence_3
-				remove_country_modifier = A90_bardic_influence_4
-				remove_country_modifier = A90_bardic_influence_5
+		every_country = {
+			remove_country_modifier = A90_bardic_influence_1
+			remove_country_modifier = A90_bardic_influence_2
+			remove_country_modifier = A90_bardic_influence_3
+			remove_country_modifier = A90_bardic_influence_4
+			remove_country_modifier = A90_bardic_influence_5
 		}
 	}
 	if = {
@@ -3362,17 +3400,17 @@ on_new_monarch = {
 	}
 	#event for Bianfang to change tyranny value based on new ruler's trait
 	if = {
-    limit = {
-		OR = {
-			tag = Y09
-			AND = {
-				tag = Z66
-				was_tag = Y09
+		limit = {
+			OR = {
+				tag = Y09
+				AND = {
+					tag = Z66
+					was_tag = Y09
+				}
 			}
+			has_regency = no
 		}
-        has_regency = no
-    }
-    country_event = { id = bianfang.1000 days = 50 }
+		country_event = { id = bianfang.1000 days = 50 }
 	}
 
 	# If your guy dies during the whaling expedition
@@ -8040,11 +8078,13 @@ on_explore_coast = {
 		10 = exploration_events.15
 	}
 	
-	if = {
-		limit = {
-			has_church_aspect = green_dragon_1
+	owner = {
+		if = {
+			limit = {
+				has_church_aspect = green_dragon_1
+			}
+			add_church_power = 4
 		}
-		add_church_power = 4
 	}
 }
 
@@ -8176,11 +8216,13 @@ on_conquistador_empty = {
 		1800 = 0
 	}
 	
-	if = {
-		limit = {
-			has_church_aspect = green_dragon_1
+	owner = {
+		if = {
+			limit = {
+				has_church_aspect = green_dragon_1
+			}
+			add_church_power = 4
 		}
-		add_church_power = 4
 	}
 }
 
@@ -8198,13 +8240,15 @@ on_conquistador_native = {
 		# 10 = seven_cities_events.310
 
 		# 250 = 0
-	# 
+	# }
 	
-	if = {
-		limit = {
-			has_church_aspect = green_dragon_1
+	owner = {
+		if = {
+			limit = {
+				has_church_aspect = green_dragon_1
+			}
+			add_church_power = 4
 		}
-		add_church_power = 4
 	}
 }
 
@@ -8876,6 +8920,13 @@ on_province_owner_change = {
 	}
 	if = {
 		limit = { has_blorc_trophy_pile = yes }
+		clr_province_flag = blorc_plunder_capital_@FROM
+		FROM = {
+			if = {
+				limit = { NOT = { any_owned_province = { has_province_flag = blorc_plunder_capital_@PREV } } }
+				clr_country_flag = blorc_plunder_capital_set
+			}
+		}
 		owner = { country_event = { id = blorc.104 } }
 	}
 	
@@ -9812,6 +9863,25 @@ on_province_owner_change = {
 		}
 		else = {
 			clr_province_flag = zyujyut_integrating_bokai_flag	
+		}
+	}
+
+	#Haraf finished integration event 
+	if = {
+		limit = {
+			owner = {
+				ai = no
+				tag = G43
+				owns_all_provinces = {
+					region = haraf_region
+					culture = harafe
+				}
+			}
+		}
+		owner = {
+			country_event = {
+				id = haraf_events.6
+			}
 		}
 	}
 }
@@ -12056,45 +12126,52 @@ on_national_focus_change = {}
 
 #ROOT = new capital province, FROM = old capital province
 on_capital_moved = {
-	if = { #removes/sets dev cost bonus on capital state for government reforms
-		limit = {
-			owner = {
-				has_government_attribute = lower_dev_cost_in_capital_state
-			}
-			NOT = { has_province_modifier = lower_dev_cost_in_capital_state_modifier }
-		}
-		FROM = {
-			area = {
-				remove_province_modifier = lower_dev_cost_in_capital_state_modifier
-			}
-		}
-		area = {
-			add_province_modifier = {
-				name = lower_dev_cost_in_capital_state_modifier
-				duration = -1
-				hidden = yes
-			}
-		}
+	
+	if = { limit = { has_province_modifier = cant_colonize }	#Anbennar
+		province_event = { id = migration_force_settle.3 days = 1 }
 	}
+	else = {
+		#Not Anbennar
+		if = { #removes/sets dev cost bonus on capital state for government reforms
+			limit = {
+				owner = {
+					has_government_attribute = lower_dev_cost_in_capital_state
+				}
+				NOT = { has_province_modifier = lower_dev_cost_in_capital_state_modifier }
+			}
+			FROM = {
+				area = {
+					remove_province_modifier = lower_dev_cost_in_capital_state_modifier
+				}
+			}
+			area = {
+				add_province_modifier = {
+					name = lower_dev_cost_in_capital_state_modifier
+					duration = -1
+					hidden = yes
+				}
+			}
+		}
 
-	#Anbennar
-	if = { #removes/sets gov cost bonus on capital region for government reforms
-		limit = {
-			owner = {
-				has_government_attribute = lower_gov_cost_in_home_region
+		#Anbennar
+		if = { #removes/sets gov cost bonus on capital region for government reforms
+			limit = {
+				owner = {
+					has_government_attribute = lower_gov_cost_in_home_region
+				}
+				NOT = { has_province_modifier = lower_gov_cost_in_home_region_modifier }
 			}
-			NOT = { has_province_modifier = lower_gov_cost_in_home_region_modifier }
-		}
-		FROM = {
-			region = {
-				remove_province_modifier = lower_gov_cost_in_home_region_modifier
+			FROM = {
+				region = {
+					remove_province_modifier = lower_gov_cost_in_home_region_modifier
+				}
 			}
-		}
-		area = {
-			add_province_modifier = {
-				name = lower_gov_cost_in_home_region_modifier
-				duration = -1
-				hidden = yes
+			area = {
+				add_province_modifier = {
+					name = lower_gov_cost_in_home_region_modifier
+					duration = -1
+					hidden = yes
+				}
 			}
 		}
 	}
