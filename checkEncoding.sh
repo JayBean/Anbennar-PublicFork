@@ -8,6 +8,8 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 set -o noclobber
 
+has_bom() { head -c3 "$1" | grep -q $'\xef\xbb\xbf'; }
+
 function validate_localization(){
 
 	echo "--------------------------------------------------------------------------------------------------------------------------------"
@@ -17,7 +19,7 @@ function validate_localization(){
 	
 	for f in ./localisation/*.yml
 	do
-		if [ "$(file -b --mime-encoding "$f")" = utf-8 ];then
+		if [[ "$( has_bom "$f" && file -b --mime-encoding "$f")" = utf-8 ]];then
 			# echo -e "${GREEN}{$f} encoding is good.${NC}"
 			GOOD+=1
 		else
