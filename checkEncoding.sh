@@ -25,7 +25,7 @@ function validate_localization(){
 			file -i $f
 			BAD+=1
 		fi
-		  TOTAL+=1
+		TOTAL+=1
 	done
 	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}localization files encoding validated.${NC}\n"
 	if [[ $BAD > 0 ]]; then
@@ -61,7 +61,7 @@ function validate_events(){
 			file -i $f
 			BAD+=1
 		fi
-		  TOTAL+=1
+		TOTAL+=1
 	done
 	
 	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}event files encoding validated.${NC}\n"
@@ -102,7 +102,7 @@ function validate_decisions(){
 			file -i $f
 			BAD+=1
 		fi
-		  TOTAL+=1
+		TOTAL+=1
 	done
 	
 	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}decision files encoding validated.${NC}\n"
@@ -122,24 +122,10 @@ function validate_indentation(){
 	declare -i BAD=0
 	declare -i TOTAL=0
 	
-	for f in ./*/*.txt
+	for f in ./*/*.txt ./common/*/*.txt
 	do
-		LEFT=$(grep -o '{' "$f" | wc -l)
-		RIGHT=$(grep -o '}' "$f" | wc -l)
-		TOTAL+=1
-		
-		if [ $LEFT != $RIGHT ]; then
-			echo "${f}"
-			echo -e "${BLUE}${LEFT}${NC}/${CYAN}${RIGHT}${NC} ${RED}Broken syntax, inequal number of brackets.${NC}\n"
-			BAD+=1
-		else
-			GOOD+=1
-		fi
-	done
-	for f in ./common/*/*.txt
-	do
-		LEFT=$(grep -o '{' "$f" | wc -l)
-		RIGHT=$(grep -o '}' "$f" | wc -l)
+		LEFT=$(LC_ALL=windows-1252 grep -o '^[^#]*' "$f" | grep  -o '{' | wc -l)
+		RIGHT=$(LC_ALL=windows-1252 grep -o '^[^#]*' "$f" | grep  -o '}' | wc -l)
 		TOTAL+=1
 		
 		if [ $LEFT != $RIGHT ]; then
@@ -159,13 +145,13 @@ function validate_indentation(){
 
 function help_function()
 {
-   echo ""
-   echo "Usage: $0 -e -l -d -u"
-   echo -e "\t-e Check events folder files encoding"
-   echo -e "\t-l Check localization folder files encoding"
-   echo -e "\t-d Check decisions folder files encoding"
-   echo -e "\t-i Check text file for broken indentation"
-   exit 1
+	echo ""
+	echo "Usage: $0 -e -l -d -u"
+	echo -e "\t-e Check events folder files encoding"
+	echo -e "\t-l Check localization folder files encoding"
+	echo -e "\t-d Check decisions folder files encoding"
+	echo -e "\t-i Check text file for broken indentation(bracket counting)"
+	exit 1
 }
 
 while getopts "eldi" opt
