@@ -1,0 +1,141 @@
+#relics exist as variables in provinces counting the number of charges and their status. The province id of the province used for relic_init acts as the relic's identifier
+
+#RelicStatus values 
+# -1 = inactive  0 = depleted  1 = ready to use  2  =  on cooldown
+
+#relic intialize, run this in the initialize event
+
+relic_init = {
+	$ID$ = {
+		set_variable = {
+			which = RelicStatus
+			value = -1
+		}
+		set_variable = {
+			which = RelicCharge
+			value = 0
+		}
+	}
+}
+
+#the following functions should be run in the scope of the province used for relic_init.
+#These are for quickly writing the code to handle the relics.
+#You should largely ignore these and use the ones under #internal functions when trying to do stuff in flavor events or missions
+
+relic_set_holder = {
+	set_variable = {
+		which = RelicStatus
+		value = 0
+	}
+	$TAG$ = {
+		save_global_event_target_as = $RELIC$
+	}
+}
+#relic_set_holder = { TAG = PREV RELIC = MyRelic }
+
+
+relic_change_charge = {
+	change_variable = {
+		which = RelicCharge
+		value = $CHARGES$
+	}
+}
+#relic_change_charge = { CHARGES = -1 }
+
+
+relic_repair_func = {
+	add_treasury = $DUCATS$
+	add_adm_power = $ADM$
+	add_dip_power = $DIP$
+	add_mil_power = $MIL$
+	relic_change_charge = { CHARGES = $CHARGES$ }
+}
+#relic_repair_func = { DUCATS = -800 ADM = -10 DIP = -10 MIL = -10 CHARGES = 3 }
+
+relic_activate_func = {
+	add_treasury = $DUCATS$
+	add_adm_power = $ADM$
+	add_dip_power = $DIP$
+	add_mil_power = $MIL$
+	relic_change_charge = { CHARGES = -1 }
+	if = {
+		limit = {
+			check_variable = {
+				which = RelicCharge
+				value = 1
+			}
+		}
+		set_variable = {
+			which = RelicStatus
+			value = 0
+		}
+	}
+	else = {
+		change_variable = {  #sets the status to on cooldown
+			which = RelicStatus
+			value = 1
+		}
+		province_event = { 
+    		id = relic.2 #ends cooldown in 5 years
+    		days = 1825 # five years
+		}
+	}
+}
+#relic_activate_func = { DUCATS = -800 ADM = -10 DIP = -10 MIL = -10 }
+
+
+#internal functions
+#these are intended to take place in the country scope
+
+relic_new_owner = {
+	$ID$ = {
+		relic_set_holder = { TAG = PREV RELIC = $RELIC$ }
+	}
+}
+#relic_new_owner = { ID = 1 RELIC = MyRelic }
+
+sarhal_country_relic_setup = {
+	if = {
+		limit = {
+			capital_scope = {
+				OR = {
+					superregion = west_salahad_superregion
+					superregion = south_salahad_superregion
+				}
+			}
+		}
+		set_country_flag = relic_flag_allow_salahad
+	}
+	else = {
+		limit = {
+			capital_scope = {
+				superregion = fangaula_superregion
+			}
+		}
+		set_country_flag = relic_flag_allow_fangaula
+	}
+	else = {
+		limit = {
+			capital_scope = {
+				superregion = west_sarhal_superregion
+			}
+		}
+		set_country_flag = relic_flag_allow_tanibDa
+	}
+	else = {
+		limit = {
+			capital_scope = {
+				superregion = south_sarhal_superregion
+			}
+		}
+		set_country_flag = relic_flag_allow_southSa
+	}
+	else = {
+		limit = {
+			capital_scope = {
+				superregion = south_sarhal_superregion
+			}
+		}
+		set_country_flag = relic_flag_allow_eastSa
+	}
+}
