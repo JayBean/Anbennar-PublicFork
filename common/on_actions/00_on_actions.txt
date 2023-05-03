@@ -3063,6 +3063,10 @@ on_new_monarch = {
 	}
 
 	#Anbennar
+	close_single_menu = yes
+	# for edge cases with swapping to existing mage rulers (i.e. jaddareesa for jaddar succession)
+	# if they have the menu open when you do this you cannot use the magic menu
+	# so make sure the magic menu opening flag is not set for new ruler
 	set_runelink_level = yes
 	events = {
 		flavor_sca.2				# Education Focus of the new Ruler
@@ -4990,8 +4994,6 @@ on_bi_yearly_pulse = {
 		ynn_events.22 #Cannorian traders reach Adbrabohvi
 		blorc.101 #blorc plunder management
 		diggy.406 #dwarovar-marrhold tunnel maintenance
-		flavor_nuugdan_tsarai.82 # TODO temporary until 1.35 fixes culture on_action, see event for more details
-		flavor_nuugdan_tsarai.78 # TODO temporary until 1.35 fixes religion on_action, see event for more details
 	}
 	if = { limit = { ruler_can_revive = yes } save_ruler_stats = yes }
 	if = { limit = { capital = 4411 has_reform = raja_reform } country_event = { id = rahenraj.2000 days = 365 } }
@@ -8591,6 +8593,13 @@ on_province_religion_changed = {
 
 	if = {
 		limit = {
+			owner = { has_country_modifier = Y91_conquered_spirit_cavern }
+		} # nuugdan levaajan loyalty
+		province_event = { id = flavor_nuugdan_tsarai.78 }
+	}
+
+	if = {
+		limit = {
 			owner = { has_country_flag = jaddari_the_western_beacon_flag }
 			has_province_modifier = jaddari_the_western_beacon
 			religion = the_jadd
@@ -8836,6 +8845,20 @@ on_province_culture_changed = {
 		}
 		remove_province_modifier = B34_orc_hunting_grounds
 	}
+
+	if = {
+		limit = {
+			owner = { has_country_flag = Y98_daxug_administrators_flag }
+			culture = daxug
+		}
+		add_province_modifier = {
+			name = Y98_daxug_administrators
+			duration = -1
+			hidden = yes
+		}
+	}
+
+
 }
 
 # THIS = Province, FROM = Country who Propogated
@@ -8883,7 +8906,6 @@ on_province_owner_change = {
 	on_province_owner_change_government_effect = yes
 	on_province_owner_change_estate_privileges_effect = yes
 	#imperial_modifiers_on_province_change_culture_or_change_owner_effect  = yes #Anbennar
-
 	#Anbennar
 	#Krakazol/Rahen initial friendship, formerly rahen.1
 	if = {
@@ -9128,10 +9150,13 @@ on_province_owner_change = {
 		}
 	}
 
-	if = {
+	if = { #this was "multiply_colonysize = 0", moved to an event to prevent a race condition crash 1.35
 		limit = { owner = { NOT = { num_of_colonists = 1 } ai = yes } is_colony = yes }
-		multiply_colonysize = 0
+		province_event = {
+			id = deletecolony.1
+		}
 	}
+
 	if = {
 		limit = {
 			owner = { has_country_flag = phoenix_empire_the_sun_outshines_the_moon }
