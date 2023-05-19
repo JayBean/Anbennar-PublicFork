@@ -105,6 +105,23 @@ embargoaction = {
 			}
 			#add_prestige = 100
 		}
+		
+		#Amgremos Embargo
+		if = {
+			limit = {
+				tag = G62
+				2732 = {
+					owner = { trade_embargo_by = G62 }
+				}
+			}
+			2732 = {
+				owner = {
+						clr_country_flag = amgremos_embargo
+						set_country_flag = amgremos_embargo
+				}
+			}
+			add_prestige = 100
+		}
 
 		##Seghdihr free embargos
 		if = {
@@ -154,7 +171,7 @@ transfer_trade_power = {
 			clr_country_flag = trade_power_count_3
 		}
 		if = {
-			limit = { exists = event_target:feiten_or_was_feiten_target }
+			limit = { has_saved_global_event_target = feiten_or_was_feiten_target }
 			if = {
 				limit = { tag = event_target:feiten_or_was_feiten_target }
 				FROM = { set_country_flag = transfers_trade_to_feiten }
@@ -193,6 +210,35 @@ declarewar = {
 #			}
 #		}
 #	}
+	condition = { #1.35
+		tooltip = AI_CANNOT_DECLARE_WHEN_STABILITY_LOSS
+		potential = {
+			ai = yes
+		}
+		allow = {
+			ai = yes
+			NOT = {
+				has_global_modifier_value = {
+					which = stability_cost_to_declare_war
+					value = 1
+				}
+			}
+		}
+	}
+	condition = { #1.35
+		tooltip = CANNOT_DECLARE_WARS_OTHER_THAN_INDEPENDENCE_WARS
+		potential = {
+			has_country_modifier = revoked_war_rights
+			FROM = { NOT = { overlord_of = ROOT } }
+		}
+		allow = {
+			OR = {
+				NOT = { has_country_modifier = revoked_war_rights }
+				FROM = { overlord_of = ROOT }
+			}
+		}
+	}
+
 	condition = {
 		tooltip = FEDERATION_MILITARY
 		potential = {
@@ -566,8 +612,10 @@ declarewar = {
 			}
 		}
 	}
-	
+
 	effect = {
+		on_war_declaration_effect = yes #1.35
+
 		if = {
 			limit = { 
 				has_country_modifier = federation_war_mandat
@@ -845,16 +893,36 @@ allianceaction = {
 			is_revolutionary = no
 		}
 		allow = {
-			OR = {
-				OR = {
-					government = republic 
-					is_revolutionary = yes
-				}
+			OR = { #1.35
+				government = republic 
+				is_revolutionary = yes
 				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics_or_non_rev } }
 			}
 		}
 	}
-	
+
+	condition = { #1.35
+		tooltip = CANNOT_MAKE_ALLIANCES
+		potential = {
+			has_government_attribute = cannot_form_alliances
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_form_alliances }
+		}
+	}
+
+	condition = { #1.35
+		tooltip = FROM_CANNOT_MAKE_ALLIANCES
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_form_alliances
+			}
+		}
+		allow = {
+			NOT = { FROM = { has_government_attribute = cannot_form_alliances } }
+		}
+	}
+
 	# Anbennar
 	condition = {
 		tooltip = ONLY_ADV_ESCANN
@@ -1033,6 +1101,24 @@ allianceaction = {
 		}
 		allow = {
 			FROM = { has_country_modifier = ruinborn_administration }
+		}
+	}
+
+	condition = {
+		tooltip = dakinshi_warlords_no_ally
+		potential = { 
+		}
+		allow = { 
+			FROM = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
+			ROOT = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
 		}
 	}
 }
@@ -1582,6 +1668,51 @@ annexationaction = {
 	#		}
 	#	}
 	#}
+	condition = { #1.35
+		tooltip = CANNOT_ANNEX
+		potential = {
+			FROM = {
+				has_country_modifier = tur_mamlukian_administration
+			}
+		}
+		allow = {
+			FROM = {
+				NOT = { has_country_modifier = tur_mamlukian_administration }
+			}
+		}
+	}
+
+	condition = { #1.35
+		tooltip = NEEDS_50_CROWNLAND_TT
+		potential = {
+			has_government_attribute = need_crownland_to_annex
+			NOT = { crown_land_share = 50 }
+		}
+		allow = {
+			crown_land_share = 50
+		}
+	}
+	
+    condition = { #lets you annex angel tributaries at 190 relations. angelic host
+        tooltip = ANNEX_TOO_LOW
+        potential = {
+            FROM = {
+                AND = {
+                    is_subject_of = ROOT
+                    is_subject_of_type = angel_tributary_state
+                }
+            }                
+        }
+        allow = {
+			FROM = {
+				has_opinion = {
+					who = ROOT
+					value = 190	
+				}
+			}
+		}
+	}
+	
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
 		potential = {
@@ -1733,6 +1864,17 @@ vassalaction = {
 			FROM = { is_at_war = no }
 		}
 	}
+	condition = {
+		tooltip = SPAWNABLE_INDEPENDENT_SPIRIT
+		potential = {
+			FROM = {
+				has_country_modifier = strong_colonial_rush
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 	effect = {
 		if = { # this makes it visible i using it on someone who would lose it
 			limit = {
@@ -1749,7 +1891,7 @@ vassalaction = {
 	}
 }
 
-abandon_union_action = {
+abandon_union = {
 	condition = {
 		potential = {
 		}
@@ -2013,6 +2155,26 @@ callaction = {
 			always = no
 		}
 	}
+
+	condition = { #Degakheion cant go to war against eneion when its an autovassal
+		potential = {
+			ROOT = { 
+				war_with = G55
+			}
+			FROM = { 
+				tag = G46
+				G55 = {
+					is_subject_of_type_with_overlord = {
+						who = G46
+						type = autonomous_vassal
+					}
+				}
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 }
 
 designate_march = {
@@ -2065,6 +2227,66 @@ insultaction = {
 			}
 			FROM = { add_opinion = { who = I20 modifier = opinion_krakazol_drunk_insult } }
 		}
+		if = {
+			limit = {
+				tag = H89
+			}
+			ROOT = { change_variable = { insult_counter = 1 } }
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_1
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_1
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_1
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_2
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_2
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_2
+					}
+				}
+				add_prestige = -10
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_3
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_3
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_3
+					}
+				}
+				add_prestige = -25
+				add_legitimacy_equivalent = { amount = -10 republican_tradition = -5 }
+			}
+		}
 	}
 }
 
@@ -2103,13 +2325,7 @@ requestpeace = {
         }
     }
 	condition = {
-		if = {
-			limit = { ROOT = { tag = B34 } }
-			tooltip = B34_CANT_PEACE_tt
-		}
-		else = {
-			tooltip = B34_CANT_PEACE_2_tt
-		}
+		tooltip = B34_CANT_PEACE_tt
 		potential = {
 			ROOT = {
 				has_country_flag = B34_great_war_flag
@@ -2121,27 +2337,8 @@ requestpeace = {
 	}
 }
 
-#amgremos embargoaction
-
-embargoaction = {
-	
-	condition = {  }
-
+break_alliance = {
 	effect = {
-		if = {
-			limit = {
-				tag = G62
-				2732 = {
-					owner = { trade_embargo_by = G62 }
-				}
-			}
-			2732 = {
-				owner = {
-						clr_country_flag = amgremos_embargo
-						set_country_flag = amgremos_embargo
-				}
-			}
-			#add_prestige = 100
-		}
+		on_alliance_broken_effect = yes
 	}
 }
