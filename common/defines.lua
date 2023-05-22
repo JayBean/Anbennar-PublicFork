@@ -351,8 +351,8 @@ NDiplomacy = {
 	MIN_RELATIONS_TO_ALLY = -25,						-- Alliances not possible if either country has an opinion of the other lower than this
 	MIN_RELATIONS_TO_SUPPORT_INDEPENDENCE = -25,	-- Support Independence not possible if either country has an opinion of the other lower than this
 
-	ELECTIVE_VICTORY_PRESTIGE = 25,				-- Prestige for getting a heir from your country onto the throne of an elective nation
-	ELECTIVE_VICTORY_LEGITIMACY = 10,				-- Legitimacy for getting a heir from your country onto the throne of an elective nation
+	ELECTIVE_VICTORY_PRESTIGE = 30,				-- Prestige for getting a heir from your country onto the throne of an elective nation
+	ELECTIVE_VICTORY_LEGITIMACY = 5,				-- Legitimacy for getting a heir from your country onto the throne of an elective nation
 
 	INTEGRATE_UNION_MIN_YEARS = 50,					-- Number of years before a union can be integrated
 	INTEGRATE_VASSAL_MIN_YEARS = 10,				-- Number of years before a vassal can be integrated
@@ -509,9 +509,9 @@ NCountry = {
 	MONARCH_MIN_SKILL = 0,						-- Probably bad idea to reduce this
 	MONARCH_MAX_SKILL = 6,						-- Monarch skills will be chosen between MONARCH_MIN_SKILL and MONARCH_MAX_SKILL
 	ELECTIVE_LOCAL_MONARCH_MIN_BONUS = 0,		-- The minimum change that is applied to non-foreign heirs in elective monarchy
-	ELECTIVE_LOCAL_MONARCH_MAX_BONUS = 1,		-- The maximum change that is applied to non-foreign heirs in elective monarchy
-	ELECTIVE_FOREIGN_MONARCH_MIN_BONUS = 0,		-- The minimum change that is applied to foreigns heirs in elective monarchy
-	ELECTIVE_FOREIGN_MONARCH_MAX_BONUS = 0,		-- The maximum change that is applied to foreigns heirs in elective monarchy
+	ELECTIVE_LOCAL_MONARCH_MAX_BONUS = 0,		-- The maximum change that is applied to non-foreign heirs in elective monarchy
+	ELECTIVE_FOREIGN_MONARCH_MIN_BONUS = 1,		-- The minimum change that is applied to foreigns heirs in elective monarchy
+	ELECTIVE_FOREIGN_MONARCH_MAX_BONUS = 1,		-- The maximum change that is applied to foreigns heirs in elective monarchy
 	ABDICATE_LEGITIMACY_THRESHOLD = 50,
 	ABDICATE_AGE_THRESHOLD = 60,
 	ABDICATE_RULING_LENGTH_THRESHOLD = 20,
@@ -656,7 +656,7 @@ NCountry = {
 
 	SUPPORT_OWN_HEIR_PRESTIGE_COST = 10,
 	SUPPORT_OWN_HEIR_SUPPORT_BONUS = 5,
-	ELECTIVE_HEIR_CLAIM_STRENGTH = 80,
+	ELECTIVE_HEIR_CLAIM_STRENGTH = 100,
 	MAX_ACTIVE_POLICIES = 5,						-- how many active policies at once.
 	MINIMUM_POLICY_TIME = 10,						-- how many years minimum for a policy
 	POLICY_COST = 1,								-- Monthly cost per policy
