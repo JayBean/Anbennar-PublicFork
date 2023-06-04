@@ -33,6 +33,13 @@ on_startup = {
 		}
 		save_global_event_target_as = feiten_or_was_feiten_target
 	}
+	
+	if = {
+		limit = {
+			tag = A06
+		}
+		A06 = { country_event = { id = gnomish.4 days = 1830 } }
+	}
 
 
 	#fires only once
@@ -122,11 +129,14 @@ on_startup = {
 		flavour_amacimst.0		#Amacimst Intro
 		flavor_gemradcurt.1 	#Gemradcurt Immariel Intro
 		eneion_events.13        #Eneion Intro
+		keyolion_events.2		#Keyolion Intro
 		haraf_events.1			#Haraf House system Intro
 		lake.0					#Lake Federation Cohesion Setup
 		diggy_spawnable.5	#Blackbeard Cartel intro
 		diggy_spawnable.6	#Asra Expedition intro
-		diggy_spawnable.7		#Ruby Company intro
+		diggy_spawnable.7	#Ruby Company intro
+		diggy_spawnable.12	#Duran Blueshield intro
+		diggy_spawnable.13	#Forgemaster Union intro
 
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -191,6 +201,26 @@ on_startup = {
 			}
 			add_province_modifier = {
 				name = wine_lord_wine
+				duration = -1
+				hidden = yes
+			}
+		}
+	}
+
+	# Add sugar bonus to Keyolion (From Gov Reform)
+	if = {
+		limit = {
+			NOT = { is_year = 1445 }
+			OR = {
+				has_reform = G58_agronomers_association_reform
+			}
+		}
+		every_owned_province = {
+			limit = {
+				trade_goods = sugar
+			}
+			add_province_modifier = {
+				name = G58_sugar_province_goods
 				duration = -1
 				hidden = yes
 			}
@@ -622,6 +652,19 @@ on_startup = {
 			hidden = yes
 		}
 	}
+	
+	#Effelai Worship Startup
+	if = {
+		limit = {
+			religion = chahinanito
+			NOT = {
+				num_of_cities = 2
+			}
+		}
+		country_event = {
+			id = effelai_worship.2
+		}
+	}
 
 	if = {
 		limit = {
@@ -630,9 +673,7 @@ on_startup = {
 		}
 		country_event = { id = medasi.1 }
 		# medasi succession setup event
-        }
-
-
+    }
 }
 
 # country
@@ -1674,6 +1715,35 @@ on_war_won = {
 			country_event = {
 				id = free_cities.7
 				days = 7
+			}
+		}
+	}
+
+	#Keyolion Independence war
+	if = {
+		limit = {
+			OR = {
+				#Keyolion has won the war
+				AND = {
+					tag = G58
+					has_country_flag = independence_war_started_flag
+					FROM = {
+						tag = G47
+					}
+				}
+				#Keyolion has lost the war
+				AND = {
+					FROM = {
+						tag = G58
+						has_country_flag = independence_war_started_flag
+					}
+					tag = G47
+				}
+			}
+		}
+		G58 = {
+			country_event = {
+				id = keyolion_events.200
 			}
 		}
 	}
@@ -3497,6 +3567,27 @@ on_new_monarch = {
 			id = flavor_truedagger.11
 		}
 	}
+
+	#ynnic iosahar mald about republics
+	if = {
+		limit = {
+			culture_group = ynnic_ruinborn_elf
+			government = republic
+			ynnic_iosahar = 1
+		}
+		random_list = {
+			2 = {
+				country_event = {
+					id = ynn_authority_events.301
+					days = 5
+					random = 5
+				}
+			}
+			8 = {
+				#nothing
+			}
+		}
+	}
 }
 
 on_new_consort = {
@@ -3677,6 +3768,7 @@ on_monarch_death = {
 		flavor_gemradcurt.2 # Immariel dies without achieving shit
 		government_events.3 #1.35
 		blorc.300 #blorc monarchy
+		rag_government_events.1 #Raghamidesh Monarchy
 	}
 	if = {
 		limit = { has_government_attribute = no_stability_loss_on_monarch_death }
@@ -3704,6 +3796,7 @@ on_monarch_death = {
 				government = tribal
 				government = monarchy
 			}
+			NOT = { has_country_flag = lich_ruler }
 		}
 		add_stability = 1
 	}
@@ -8725,6 +8818,7 @@ on_province_religion_changed = {
 			add_church_power = 10
 		}
 	}
+	
 }
 
 # province
@@ -9088,6 +9182,30 @@ on_province_owner_change = {
 			}
 		}
 	}
+
+	#ANBENNAR
+	#Keyolion goods produced bonus (From Gov Reform)
+	if = {
+		limit = {
+			NOT = { has_province_modifier = G58_sugar_province_goods }
+			OR = {
+				owner = { has_reform = G58_agronomers_association_reform }
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					trade_goods = sugar
+				}
+				add_province_modifier = {
+					name = G58_sugar_province_goods
+					duration = -1
+					hidden = yes
+				}
+			}
+		}
+	}
+
 	if = {
 		limit = {
 			trade_goods = slaves
@@ -9985,6 +10103,48 @@ on_province_owner_change = {
 			}
 		}
 	}
+	
+	#Effelai Worship holy sites event manager trigger
+	if = {
+		limit = {
+			owner = {
+				religion = chahinanito
+				NOT = {
+					num_of_cities = 2
+				}
+				NOT = {
+					check_variable = {
+						which = effelai_holy_sites_visited
+						value = 7
+					}
+				}
+			}
+		}
+		owner = {
+			country_event = {
+				id = effelai_worship.1
+				days = 1
+			}
+			country_event = {
+				id = effelai_worship.3
+				days = 140
+			}
+			
+		}
+	}
+	if = {
+		limit = {
+			has_province_modifier = nakavy_avo_shrine
+			owner = {
+				has_reform = shrine_guardians_reform
+			}
+		}
+		add_province_modifier = { 
+			name = shrine_guard_garisson
+			duration = -1
+
+		}
+	}
 }
 
 # country 1.35
@@ -10668,7 +10828,12 @@ on_primary_culture_changed = {
 	# imperial_modifiers_on_primary_culture_change_effect = yes #Anbennar
 
 	#Anbennar
-	country_event = { id = racial_modifiers.5 }	#Racial Admin and Military - on primary culture change
+	events = {
+		racial_modifiers.5 #Racial Admin and Military - on primary culture change
+		escanni_wars.3 # Escanni wars bypass
+		escanni_wars.200 # Joined Escanni wars
+	}
+	
 	if = {
 		limit = { NOT = { primary_culture = black_orc } }
 		remove_country_modifier = black_orc_trophy_khugdihr
@@ -10740,65 +10905,6 @@ on_primary_culture_changed = {
 		}
 		change_primary_culture = black_demesner
 	}
-	#Escanni wars
-	if = {
-		limit = {
-			OR = {
-				culture_group = escanni
-				primary_culture = marrodic
-				primary_culture = stone_dwarf
-				primary_culture = iron_dwarf
-				primary_culture = newfoot_halfling
-			}
-			OR = {
-				capital_scope = {
-					OR  = {
-						region = south_castanor_region
-						region = west_castanor_region
-						region = inner_castanor_region
-						area = cursewood_area
-						area = whistlevale_area
-					}
-				}
-				has_country_flag = luciande_escanni_wars_flag
-			}
-			current_age = age_of_absolutism
-			has_global_flag = escanni_wars_global_flag
-			total_development = 150
-			is_subject = no
-		}
-		country_event = { id = escanni_wars.100 }
-	}
-	#Escanni bypass
-	if = {
-		limit = {
-			OR = {
-				culture_group = escanni
-				primary_culture = marrodic
-				primary_culture = stone_dwarf
-				primary_culture = iron_dwarf
-				primary_culture = newfoot_halfling
-			}
-			OR = {
-				capital_scope = {
-					OR  = {
-						region = south_castanor_region
-						region = west_castanor_region
-						region = inner_castanor_region
-						area = cursewood_area
-						area = whistlevale_area
-					}
-				}
-				has_country_flag = luciande_escanni_wars_flag
-			}
-			current_age = age_of_absolutism
-			has_global_flag = escanni_wars_bypass_flag
-			total_development = 150
-			is_subject = no
-		}
-		country_event = { id = escanni_wars.200 }
-	}
-	
 }
 
 # FROM = Previous Country, ROOT = Province
@@ -10949,7 +11055,10 @@ on_dependency_gained = {
 	# Anbennar CNs gotta follow overlord culture for races. Religion is a bonus.
 	FROM = {
 		if = {
-			limit = { is_colonial_nation = yes }
+			limit = { 
+				is_colonial_nation = yes
+				NOT = { overlord = { tag = G52 } } #Ameion
+			}
 			export_to_variable  = { variable_name = majorityCulture value = dominant_culture }
 			export_to_variable  = { variable_name = overlordCulture value = primary_culture who = ROOT } 
 			export_to_variable  = { variable_name = overlordReligion value = religion who = ROOT } 
@@ -11499,6 +11608,7 @@ on_trade_good_changed = {
 				has_province_modifier = artifice_growthbeans_bonus
 				has_province_modifier = artifice_pearl_cultivator_bonus
 				has_province_modifier = wine_lord_wine
+				has_province_modifier = G58_sugar_province_goods
 				has_province_modifier = eordan_expedition_site
 				has_province_modifier = damestear_rich_deposit
 				has_province_modifier = huge_damestear
@@ -11517,6 +11627,7 @@ on_trade_good_changed = {
 		remove_province_modifier = artifice_growthbeans_bonus
 		remove_province_modifier = artifice_pearl_cultivator_bonus
 		remove_province_modifier = wine_lord_wine
+		remove_province_modifier = G58_sugar_province_goods
 		remove_province_modifier = eordan_expedition_site
 		remove_province_modifier = damestear_rich_deposit
 		remove_province_modifier = huge_damestear
@@ -11566,6 +11677,22 @@ on_trade_good_changed = {
 				hidden = yes
 			}
 		}
+
+		#Keyolion add sugar goods bonus (From Gov Reform)
+		if = {
+			limit = {
+				trade_goods = wine
+				OR = {
+					FROM = { has_reform = G58_agronomers_association_reform }
+				}
+			}
+			add_province_modifier = {
+				name = G58_sugar_province_goods
+				duration = -1
+				hidden = yes
+			}
+		}
+
 		if = {
 			limit = {
 				trade_goods = wine
@@ -12321,6 +12448,7 @@ on_estate_removed = {
 
 ##scope = colony province, FROM = owner country or province if there's a minority expulsion source, fires when the colony is created 1.35
 on_colony_established = {
+
 }
 
 #scope = new country, FROM = parent country 1.35
@@ -12452,77 +12580,15 @@ on_capital_moved = {
 			}
 		}
 	}
-	#Escanni wars
-	if = {
-		limit = {
-			owner = {
-				AND = {
-					OR = {
-						culture_group = escanni
-						primary_culture = marrodic
-						primary_culture = stone_dwarf
-						primary_culture = iron_dwarf
-						primary_culture = newfoot_halfling
-					}
-					OR = {
-						capital_scope = {
-							OR  = {
-								region = south_castanor_region
-								region = west_castanor_region
-								region = inner_castanor_region
-								area = cursewood_area
-								area = whistlevale_area
-							}
-						}
-						has_country_flag = luciande_escanni_wars_flag
-					}
-					current_age = age_of_absolutism
-					has_global_flag = escanni_wars_global_flag
-					total_development = 150
-					is_subject = no
-				}
-			}
-		}
-		owner = { country_event = { id = escanni_wars.100 } }
-	}
-	#Escanni bypass
-	if = {
-		limit = {
-			owner = {
-				AND = {
-					OR = {
-						culture_group = escanni
-						primary_culture = marrodic
-						primary_culture = stone_dwarf
-						primary_culture = iron_dwarf
-						primary_culture = newfoot_halfling
-					}
-					OR = {
-						capital_scope = {
-							OR  = {
-								region = south_castanor_region
-								region = west_castanor_region
-								region = inner_castanor_region
-								area = cursewood_area
-								area = whistlevale_area
-							}
-						}
-						has_country_flag = luciande_escanni_wars_flag
-					}
-					current_age = age_of_absolutism
-					has_global_flag = escanni_wars_bypass_flag
-					total_development = 150
-					is_subject = no
-				}
-			}
-		}
-		owner = { country_event = { id = escanni_wars.200 } }
+	
+	events = {
+		escanni_wars.3 # Escanni wars bypass
+		escanni_wars.200 # Joined Escanni wars
 	}
 }
 
 #ROOT = province that was expanded in, FROM = country that did it
 on_expanded_infrastructure = {
-	change_variable = { infrastructure_level = 1 }
 }
 
 #ROOT = province that was centralized in
@@ -12609,107 +12675,11 @@ on_hre_dismantled = {
 
 on_new_age = {
 	remove_all_age_timed_modifiers = yes
-	#Bypass event
-	if = {
-		limit = {
-			current_age = age_of_absolutism
-			OR = {
-				culture_group = escanni
-				primary_culture = marrodic
-				primary_culture = stone_dwarf
-				primary_culture = iron_dwarf
-				primary_culture = newfoot_halfling
-			}
-			OR = {
-				capital_scope = {
-					OR  = {
-						region = south_castanor_region
-						region = west_castanor_region
-						region = inner_castanor_region
-						area = cursewood_area
-						area = whistlevale_area
-					}
-				}
-				has_country_flag = luciande_escanni_wars_flag
-			}
-			total_development = 150
-			is_subject = no
-			NOT = {
-				any_known_country = {
-					OR = {
-						culture_group = escanni
-						primary_culture = marrodic
-						primary_culture = stone_dwarf
-						primary_culture = iron_dwarf
-						primary_culture = newfoot_halfling
-					}
-					capital_scope = {
-						OR  = {
-							region = south_castanor_region
-							region = west_castanor_region
-							region = inner_castanor_region
-							area = cursewood_area
-							area = whistlevale_area
-						}
-					}
-					total_development = 150
-					is_subject = no
-				}
-			}
-		}
-		country_event = { id = escanni_wars.200 }
-	}
-	#Consolidation wars event
-	if = {
-		limit = {
-			OR = {
-				culture_group = escanni
-				primary_culture = marrodic
-				primary_culture = stone_dwarf
-				primary_culture = iron_dwarf
-				primary_culture = newfoot_halfling
-			}
-			OR = {
-				capital_scope = {
-					OR  = {
-						region = south_castanor_region
-						region = west_castanor_region
-						region = inner_castanor_region
-						area = cursewood_area
-						area = whistlevale_area
-					}
-				}
-				has_country_flag = luciande_escanni_wars_flag
-			}
-			current_age = age_of_absolutism
-			calc_true_if = {
-				all_countries_including_self = {
-					OR = {
-						capital_scope = {
-							OR  = {
-								region = south_castanor_region
-								region = west_castanor_region
-								region = inner_castanor_region
-								area = cursewood_area
-								area = whistlevale_area
-							}
-						}
-						has_country_flag = luciande_escanni_wars_flag
-					}
-					OR = {
-						culture_group = escanni
-						primary_culture = marrodic
-						primary_culture = stone_dwarf
-						primary_culture = iron_dwarf
-						primary_culture = newfoot_halfling
-					}
-					total_development = 150
-					is_subject = no
-				}
-				amount = 2
-			}
-		}
-		country_event = { id = escanni_wars.100 }
+
+	#Consolidation wars events
+	events = {
+		escanni_wars.1 # Fire the war
+		escanni_wars.3 # Bypass the war
 	}
 }
 
