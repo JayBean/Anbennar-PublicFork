@@ -142,9 +142,11 @@ G58_1_missions = {
 				AND = {
 					development = 20
 					has_trade_building_trigger = yes
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_dock_building_trigger = yes
-					has_shipyard_building_trigger = yes
 				}
 			}
 		}
@@ -153,9 +155,11 @@ G58_1_missions = {
 			2669 = { #Keyolion
 				development = 20
 				has_trade_building_trigger = yes
-				has_production_building_trigger = yes
+				OR = {
+					has_production_building_trigger = yes
+					trade_goods = gold
+				}
 				has_dock_building_trigger = yes
-				has_shipyard_building_trigger = yes
 			}
 			trade_goods_produced_amount = {
 				trade_goods = sugar
@@ -202,22 +206,43 @@ G58_1_missions = {
 		position = 5
 		required_missions = {
 			G58_1_4_the_sugar_port
+			G58_2_4_the_institute_of_agronomy
 		}
 
 		provinces_to_highlight = {
-			region = devand_region
-			trade_goods = sugar
-			NOT = {
-				OR = {
-					owned_by = G53
-					AND = {
+			OR = {
+				AND = {
+					region = devand_region
+					trade_goods = sugar
+					NOT = {
+						OR = {
+							owned_by = G53
+							AND = {
+								owned_by = ROOT
+								is_core = ROOT
+								base_production = 5
+								has_production_building_trigger = yes
+							}
+						}
+					}	
+				}
+				AND = {
+					region = alecand_region
+					has_terrain = city_terrain
+					NOT = {
 						owned_by = ROOT
-						is_core = ROOT
-						base_production = 5
-						has_production_building_trigger = yes
+					}
+					NOT = {
+						ROOT = {
+							num_of_owned_provinces_with = {
+								value = 2
+								region = alecand_region
+								has_terrain = city_terrain
+							}
+						}
 					}
 				}
-			}	
+			}
 		}
 
 		trigger = {
@@ -239,25 +264,50 @@ G58_1_missions = {
 					}
 				}
 			}
+			OR = {
+				any_known_country = {
+					capital_scope = {
+						region = alecand_region
+					}
+					culture_group = kheionai_ruinborn_elf
+					alliance_with = ROOT
+					has_opinion = {
+						who = ROOT
+						value = 150
+					}
+				}
+				num_of_owned_provinces_with = {
+					value = 2
+					region = alecand_region
+					has_terrain = city_terrain
+				}
+			}
 		}
 
 		effect = {
-			2669 = {
-				if = {
-					limit = {
-						province_has_center_of_trade_of_level = 2
-					}
-					add_base_production = 2
-					add_permanent_province_modifier = {
-						name = G58_trade_boom_modifier
-						duration = 9125
-					}
-				}
-				else = {
-					add_center_of_trade_level = 1
+			1741 = { #Kheionai Trade Node
+				add_trade_modifier = {
+					who = ROOT
+					duration = 18250
+					power = 10
+					key = G58_sugar_monopoly
 				}
 			}
-			
+			hidden_effect = {
+				every_owned_province = {
+					if = {
+						limit = {
+							OR = {
+								has_province_modifier = G58_sugar_experimental_modifier
+								has_province_modifier = G58_sugar_cold_resistant_modifier
+								has_province_modifier = G58_sugar_cold_immune_modifier
+							}
+						}
+					}
+					add_base_production = 1
+				}
+			}
+			custom_tooltip = G58_the_sugar_must_flow_reward_tt
 		}
 	}
 
@@ -270,31 +320,35 @@ G58_1_missions = {
 		}
 
 		provinces_to_highlight = {
-			owned_by = ROOT
-			NOT = {
-				trade_goods = sugar
-			}
-			has_terrain = mountain
 			OR = {
-				has_winter = mild_winter
-				has_winter = normal_winter
-			}
-			NOT = {
 				AND = {
-					base_production = 6
-					has_production_building_trigger = yes
-					OR = {
-						ROOT = {
-							custom_trigger_tooltip = {
-								tooltip = is_transmutation_2_tt
-								has_ruler_flag = transmutation_2
-							}
+					owned_by = ROOT
+					NOT = {
+						OR = {
+							trade_goods = gold
+							trade_goods = sugar
 						}
+					}
+					has_terrain = mountain
+					OR = {
+						has_winter = mild_winter
+						has_winter = normal_winter
+					}
+					NOT = {
 						AND = {
-							ROOT = {
-								advisor = court_mage
-							}
+							base_production = 6
+							has_production_building_trigger = yes
 							has_building = mage_tower
+						}
+					}
+				}
+				AND = {
+					owned_by = ROOT
+					has_province_modifier = G58_sugar_cold_resistant_modifier
+					NOT = {
+						AND = {
+							base_production = 6
+							has_production_building_trigger = yes
 						}
 					}
 				}
@@ -311,17 +365,21 @@ G58_1_missions = {
 					trade_goods = sugar
 				}
 			}
-			estate_loyalty = {
-				estate = estate_mages
-				loyalty = 60
-			}
-			estate_influence = {
-				estate = estate_mages
-				influence = 30
-			}
+			# estate_loyalty = {
+			# 	estate = estate_mages
+			# 	loyalty = 60
+			# }
+			# estate_influence = {
+			# 	estate = estate_mages
+			# 	influence = 30
+			# }
+			advisor = court_mage
 			any_owned_province = {
 				NOT = {
-					trade_goods = sugar
+					OR = {
+						trade_goods = sugar
+						trade_goods = gold
+					}
 				}
 				has_terrain = mountain
 				OR = {
@@ -330,25 +388,24 @@ G58_1_missions = {
 				}
 				base_production = 6
 				has_production_building_trigger = yes
-				OR = {
-					ROOT = {
-						custom_trigger_tooltip = {
-							tooltip = is_transmutation_2_tt
-							has_ruler_flag = transmutation_2
+				has_building = mage_tower
+			}
+			custom_trigger_tooltip = {
+				tooltip = G58_mastering_the_craft_req_1_tt
+				all_owned_province = {
+					if = {
+						limit = {
+							has_province_modifier = G58_sugar_cold_resistant_modifier
 						}
-					}
-					AND = {
-						ROOT = {
-							advisor = court_mage
-						}
-						has_building = mage_tower
+						base_production = 6
+						has_production_building_trigger = yes
 					}
 				}
 			}
 		}
 
 		effect = {
-			custom_tooltip = G58_mastering_the_craft_tt
+			custom_tooltip = G58_mastering_the_craft_reward_tt
 			hidden_effect = {
 				keyolion_mastering_the_craft_se = yes
 				keyolion_mastering_the_craft_se = yes
@@ -356,37 +413,6 @@ G58_1_missions = {
 			country_event = {
 				id = keyolion_events.7
 			}
-		}
-	}
-}
-
-G58_1_hidden_mission = {
-	slot = 1
-	generic = no
-	ai = yes 
-	has_country_shield = yes
-	potential = { 
-		tag = G58 
-		NOT = {
-			has_country_flag = harvest_failure
-		}
-	}
-
-	G58_1_2_fund_magical_research_hidden ={
-		icon = mission_unknown_mission
-		position = 2
-		required_missions = {
-			G58_1_1_the_new_plantations
-		}
-		
-		trigger = {
-			custom_trigger_tooltip = {
-				tooltip = G58_fund_magical_research_tt
-				has_country_flag = harvest_failure
-			}
-		}
-
-		effect = {
 		}
 	}
 }
@@ -556,7 +582,10 @@ G58_2_missions = {
 			NOT = {
 				AND = {
 					has_trade_building_trigger = yes
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					base_production = 8
 				}
 			}
@@ -565,7 +594,10 @@ G58_2_missions = {
 		trigger = {
 			2670 = { #Poroga
 				has_trade_building_trigger = yes
-				has_production_building_trigger = yes
+				OR = {
+					has_production_building_trigger = yes
+					trade_goods = gold
+				}
 				base_production = 8
 			}
 		}
@@ -690,10 +722,7 @@ G58_2_missions = {
 		provinces_to_highlight = {  
 			OR = {
 				AND = {
-					OR = {
-						province_id = 2669 #Keyolion
-						province_id = 2670 #Poroga
-					}
+					province_id = 2669 #Keyolion
 					NOT = {
 						development = 20
 					}
@@ -743,16 +772,7 @@ G58_2_missions = {
 		}
 
 		trigger = {
-			num_of_owned_provinces_with = {
-				value = 3
-				trade_goods = sugar
-				has_building = mage_tower
-				base_production = 6
-			}
 			2669 = { #Keyolion
-				development = 20
-			}
-			2670 = { #Poroga
 				development = 20
 			}
 			num_of_owned_provinces_with = {
@@ -985,11 +1005,22 @@ G58_3_missions = {
         }
 
 		effect = {
-			add_country_modifier = {
-				name = G58_war_support_tax_modifier
-				duration = 3650
+			if = {
+				limit = {
+					is_year = 1470
+				}
+				add_country_modifier = {
+					name = G58_war_support_tax_2_modifier
+					duration = 3650
+				}
 			}
-			custom_tooltip = G58_independence_war_support2_tt
+			else = {
+				add_country_modifier = {
+					name = G58_war_support_tax_modifier
+					duration = 3650
+				}
+				custom_tooltip = G58_find_supporter_tt
+			}
 		}	
 	}
 
@@ -1071,7 +1102,7 @@ G58_3_missions = {
 					NOT = {
 						AND = {
 							has_dock_building_trigger = yes
-							has_shipyard_building_trigger = yes
+							development = 20
 						}
 					}
 				}
@@ -1092,7 +1123,7 @@ G58_3_missions = {
 			}
 			2670 = { #Poroga
 				has_dock_building_trigger = yes
-				has_shipyard_building_trigger = yes
+				development = 20
 			}
 		}
 
@@ -1135,11 +1166,13 @@ G58_3_missions = {
 						AND = {
 							development = 30
 							has_trade_building_trigger = yes
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_dock_building_trigger = yes
 							has_shipyard_building_trigger = yes
 							has_manpower_building_trigger = yes
-							is_prosperous = yes
 						}
 					}
 				}
@@ -1149,11 +1182,13 @@ G58_3_missions = {
 						AND = {
 							development = 30
 							has_trade_building_trigger = yes
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_dock_building_trigger = yes
 							has_shipyard_building_trigger = yes
 							has_manpower_building_trigger = yes
-							is_prosperous = yes
 							NOT = {
 								has_construction = building
 							}
@@ -1170,20 +1205,24 @@ G58_3_missions = {
 			2669 = { #Keyolion
 				development = 30
 				has_trade_building_trigger = yes
-				has_production_building_trigger = yes
+				OR = {
+					has_production_building_trigger = yes
+					trade_goods = gold
+				}
 				has_dock_building_trigger = yes
 				has_shipyard_building_trigger = yes
 				has_manpower_building_trigger = yes
-				is_prosperous = yes
 			}
 			2670 = { #Poroga
 				development = 30
 				has_trade_building_trigger = yes
-				has_production_building_trigger = yes
+				OR = {
+					has_production_building_trigger = yes
+					trade_goods = gold
+				}
 				has_dock_building_trigger = yes
 				has_shipyard_building_trigger = yes
 				has_manpower_building_trigger = yes
-				is_prosperous = yes
 				NOT = {
 					has_construction = building
 				}
@@ -1243,9 +1282,11 @@ G58_3_missions = {
 				AND = {
 					development = 30
 					has_trade_building_trigger = yes
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_manpower_building_trigger = yes
-					is_prosperous = yes
 				}
 			}
 		}
@@ -1268,9 +1309,11 @@ G58_3_missions = {
 						}
 						development = 30
 						has_trade_building_trigger = yes
-						has_production_building_trigger = yes
+						OR = {
+							has_production_building_trigger = yes
+							trade_goods = gold
+						}
 						has_manpower_building_trigger = yes
-						is_prosperous = yes
 					}
 				}
 			}
@@ -1695,13 +1738,16 @@ G58_4_missions = {
 			OR = {
 				AND = {
 					area = eneion_area
-					devastation = 1
+					devastation = 0.01
 				}
 				AND = {
 					province_id = 2674 #Eneion
 					NOT = {
 						AND = {
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_trade_building_trigger = yes
 							has_manpower_building_trigger = yes
 						}
@@ -1709,13 +1755,16 @@ G58_4_missions = {
 				}
 				AND = {
 					area = besolaki_area
-					devastation = 1
+					devastation = 0.01
 				}
 				AND = {
 					province_id = 2677 #Besolaki
 					NOT = {
 						AND = {
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_trade_building_trigger = yes
 							has_manpower_building_trigger = yes
 						}
@@ -1729,11 +1778,14 @@ G58_4_missions = {
 				eneion_area = {
 					type = all
 					NOT = {
-						devastation = 1
+						devastation = 0.01
 					}
 				}
 				2674 = { #Eneion
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_trade_building_trigger = yes
 					has_manpower_building_trigger = yes
 				}
@@ -1742,11 +1794,14 @@ G58_4_missions = {
 				besolaki_area = {
 					type = all
 					NOT = {
-						devastation = 1
+						devastation = 0.01
 					}
 				}
 				2677 = { #Besolaki
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_trade_building_trigger = yes
 					has_manpower_building_trigger = yes
 				}
@@ -2077,19 +2132,13 @@ G58_5_missions = {
 				AND = {
 					area = eneion_area
 					NOT = {
-						AND ={
-							owned_by = ROOT
-							is_core = ROOT
-						}
+						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 				AND = {
 					area = besolaki_area
 					NOT = {
-						AND ={
-							owned_by = ROOT
-							is_core = ROOT
-						}
+						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 			}
@@ -2098,13 +2147,11 @@ G58_5_missions = {
 		trigger = {
 			eneion_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			besolaki_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 		}
 
@@ -2116,6 +2163,9 @@ G58_5_missions = {
 				add_permanent_claim = ROOT
 			}
 			amgremos_area = {
+				add_permanent_claim = ROOT
+			}
+			eiongremos_area = {
 				add_permanent_claim = ROOT
 			}
 			deyeion_area = {
@@ -2137,28 +2187,19 @@ G58_5_missions = {
 				AND = {
 					area = apikhoxi_area
 					NOT = {
-						AND ={
-							owned_by = ROOT
-							is_core = ROOT
-						}
+						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 				AND = {
 					area = amgremos_area
 					NOT = {
-						AND ={
-							owned_by = ROOT
-							is_core = ROOT
-						}
+						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 				AND = {
 					area = deyeion_area
 					NOT = {
-						AND ={
-							owned_by = ROOT
-							is_core = ROOT
-						}
+						country_or_non_sovereign_subject_holds = ROOT
 					}
 				}
 				AND = {
@@ -2171,18 +2212,15 @@ G58_5_missions = {
 		trigger = {
 			apikhoxi_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			amgremos_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			deyeion_area = {
 				type = all
-				owned_by = ROOT
-				is_core = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 			}
 			treasury = 50
 			2684 = { #Amgremos
@@ -2222,13 +2260,16 @@ G58_5_missions = {
 			OR = {
 				AND = {
 					area = apikhoxi_area
-					devastation = 1
+					devastation = 0.01
 				}
 				AND = {
 					province_id = 2680 #Apikhoxi
 					NOT = {
 						AND = {
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_trade_building_trigger = yes
 							has_manpower_building_trigger = yes
 						}
@@ -2236,13 +2277,16 @@ G58_5_missions = {
 				}
 				AND = {
 					area = deyeion_area
-					devastation = 1
+					devastation = 0.01
 				}
 				AND = {
 					province_id = 2625 #Deyeion
 					NOT = {
 						AND = {
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_trade_building_trigger = yes
 							has_manpower_building_trigger = yes
 						}
@@ -2250,13 +2294,16 @@ G58_5_missions = {
 				}
 				AND = {
 					area = deyeion_area
-					devastation = 1
+					devastation = 0.01
 				}
 				AND = {
 					province_id = 2684 #Amgremos
 					NOT = {
 						AND = {
-							has_production_building_trigger = yes
+							OR = {
+								has_production_building_trigger = yes
+								trade_goods = gold
+							}
 							has_dock_building_trigger = yes
 							has_shipyard_building_trigger = yes
 						}
@@ -2274,11 +2321,14 @@ G58_5_missions = {
 				apikhoxi_area = {
 					type = all
 					NOT = {
-						devastation = 1
+						devastation = 0.01
 					}
 				}
 				2680 = { #Apikhoxi
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_trade_building_trigger = yes
 					has_manpower_building_trigger = yes
 				}
@@ -2287,11 +2337,14 @@ G58_5_missions = {
 				deyeion_area = {
 					type = all
 					NOT = {
-						devastation = 1
+						devastation = 0.01
 					}
 				}
 				2625 = { #Deyeion
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_trade_building_trigger = yes
 					has_manpower_building_trigger = yes
 				}
@@ -2300,11 +2353,14 @@ G58_5_missions = {
 				amgremos_area = {
 					type = all
 					NOT = {
-						devastation = 1
+						devastation = 0.01
 					}
 				}
 				2684 = { #Amgremos
-					has_production_building_trigger = yes
+					OR = {
+						has_production_building_trigger = yes
+						trade_goods = gold
+					}
 					has_dock_building_trigger = yes
 					has_shipyard_building_trigger = yes
 				}
