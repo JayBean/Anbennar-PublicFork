@@ -1,4 +1,4 @@
-name="Anbennar-fork-lordabaddon"
+name="Anbennar-PublicFork"
 tags={
 	"Alternative History"
 	"Total Conversion"
