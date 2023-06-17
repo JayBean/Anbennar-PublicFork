@@ -45,6 +45,23 @@ country_event = {
 			set_country_flag = wesdam_lorent_path
 			swap_non_generic_missions = yes
 		}
+		
+		ai_chance = {
+			factor = 1
+			#Don't pick if you lost your foothold in Lencenor
+			modifier = {
+				factor = 0
+				NOT = { A14 = { is_subject_of = ROOT } }
+				NOT = {
+					any_owned_province = {
+						OR = {
+							culture = high_lorentish
+							culture = low_lorentish
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	#Embrace the culture of my ancestors
@@ -67,6 +84,9 @@ country_event = {
 		hidden_effect = { 
 			set_country_flag = wesdam_dameria_path
 			swap_non_generic_missions = yes
+		}
+		ai_chance = {
+			factor = 1
 		}
 	}
 
@@ -500,5 +520,255 @@ country_event = {
 			}
 		}
 		hidden_effect = { clr_country_flag = refuse_vas }
+	}
+}
+
+#The sucession of Wesdam
+country_event = {
+	id = flavor_wesdam.11
+	title = flavor_wesdam.11.t
+	desc = flavor_wesdam.11.d
+	picture = BAD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		A14 = { # Madelaire
+			is_subject_of = A04
+			is_subject_of_type = personal_union
+			is_part_of_hre = no
+		}
+		is_part_of_hre = yes
+		government = monarchy
+		exists = A01
+	}
+	
+	#Honour the will
+	option = {
+		name = flavor_wesdam.11.a
+		A14 = {
+			grant_independence = yes
+			every_core_province = {
+				limit = { owned_by = A04 }
+				cede_province = A14
+			}
+		}
+		add_prestige = 5
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				A14 = {
+					liberty_desire = 50
+				}
+			}
+		}
+	}
+	#Petition the emperor for a correction
+	option = {
+		name = flavor_wesdam.11.b
+		add_legitimacy = -10
+		if = {
+			limit = {
+				has_dlc = "Emperor"
+			}
+			set_imperial_incident = incident_sucession_of_wesdam_madelaire
+		}
+		else = {
+			emperor = {
+				country_event = {
+					id = flavor_wesdam.12
+				}
+			}
+		}
+		A14 = {
+			add_liberty_desire = 10
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				has_country_flag = wesdam_lorent_path
+			}
+		}
+	}
+}
+
+#The sucession of Wesdam - Emperor
+country_event = {
+	id = flavor_wesdam.12
+	title = flavor_wesdam.12.t
+	desc = flavor_wesdam.12.d
+	picture = BAD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	#The will stands
+	option = {
+		name = flavor_wesdam.12.a
+		A14 = {
+			grant_independence = yes
+			every_core_province = {
+				limit = { owned_by = A04 }
+				cede_province = A14
+			}
+		}
+		A01 = {
+			create_subject = {
+				subject = A14
+				subject_type = vassal
+			}
+		}
+		A04 = {
+			add_casus_belli = {
+				type = cb_restore_personal_union
+				months = 120
+				target = A14
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				A14 = {
+					liberty_desire = 50
+				}
+			}
+		}
+	}
+	
+	#Wesdam and Madelaire are insperable
+	option = {
+		name = flavor_wesdam.12.b
+		
+		custom_tooltip = wesdam_madelaire_union_remains_tt
+		custom_tooltip = lorent_may_enforce_split_tt
+		
+		A04 = {
+			add_legitimacy = 5
+		}
+		hidden_effect = {
+			A01 = {
+				country_event = {
+					id = flavor_wesdam.13
+					days = 7
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 10
+				has_country_flag = wesdam_lorent_path
+			}
+		}
+	}
+}
+
+#Lorent can DoW Madelaire
+country_event = {
+	id = flavor_wesdam.13
+	title = flavor_wesdam.13.t
+	desc = flavor_wesdam.13.d
+	picture = DEATH_OF_HEIR_eventPicture
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		A14 = { # Madelaire
+			is_subject_of = A04
+			is_subject_of_type = personal_union
+			is_part_of_hre = no
+			exists = yes
+		}
+	}
+	
+	#We must right this wrong!
+	option = {
+		name = flavor_wesdam.13.a
+		ai_chance = {
+			factor = 90
+			modifier = {
+				factor = 0.01
+				OR = {
+					emperor = {
+						OR = {
+							army_size = ROOT
+							total_own_and_non_tributary_subject_development = ROOT
+							num_of_allies = 5
+						}
+					}
+					A04 = {
+						OR = {
+							army_size = ROOT
+							total_own_and_non_tributary_subject_development = ROOT
+							num_of_allies = 5
+						}
+					}
+				}
+			}
+			modifier = { #Is already at war with the overlord of Madelaire
+				factor = 0
+				A14 = {
+					is_subject = yes
+					overlord = {
+						war_with = ROOT
+					}
+				}
+			}
+		}
+		#Makes the emperor join the war
+		hidden_effect = {
+			A14 = {
+				every_owned_province = {
+					set_in_empire = yes
+				}
+			}
+		}
+		declare_war_with_cb = {
+			who = A14
+			casus_belli = cb_vassalize_mission
+		}
+		lower_bloodwine_area = {
+			limit = {
+				owned_by = A14
+			}
+			change_controller = A01
+		}
+		darom_area = {
+			limit = {
+				owned_by = A14
+			}
+			change_controller = A01
+		}
+		#Makes the emperor join the war
+		hidden_effect = {
+			A14 = {
+				every_owned_province = {
+					set_in_empire = no
+				}
+			}
+		}
+	}
+	
+	#Imperial politics are of no concern to [Root.GetName].
+	option = {
+		name = flavor_wesdam.13.b
+		ai_chance = {
+			factor = 10
+		}
+		add_legitimacy = -20
+		add_prestige = -5
+		A14 = {
+			capital_scope = {
+				spawn_rebels = {
+					type = pretender_rebels
+					size = 1
+				}
+			}
+		}
 	}
 }

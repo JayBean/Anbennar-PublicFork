@@ -2,16 +2,10 @@ country_decisions = {
 
 
 	start_dig_deeper = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
-			capital_scope = {
-				OR = {
-					has_terrain = dwarven_hold
-					has_terrain = dwarven_hold_surface
-				}
-				has_subterranean_race = yes
-			}
-			NOT = { has_country_flag = debug_digging_flag }
+			capital_scope = { province_group = hold_province }
 		}
 		
 		provinces_to_highlight = {
@@ -20,45 +14,42 @@ country_decisions = {
 		}
 		
 		allow = {
+			hidden_trigger = { capital_scope = { province_group = hold_province } }
 			custom_trigger_tooltip = {
 				tooltip = building_diggy_tooltip
 				NOT = { has_country_flag = building_diggy }
 			}
 			if = {
-				limit = { OR = { has_country_modifier = dwarven_administration adm_tech = 10 } }
+				limit = { OR = { has_country_modifier = dwarven_administration adm_tech = 7 } }
 				capital_scope = { has_subterranean_race = yes }
 			}
+			else_if = {
+				limit = { OR = { dwarovar_goblin_culture_primary = yes primary_culture = darkscale_kobold } }
+				capital_scope = { has_subterranean_race = yes }
+				adm_tech = 5
+			}
 			else = {
-				OR = {
-					AND = {
-						capital_scope = { has_subterranean_race = yes }
-						adm_tech = 10
-					}
-					AND = {
-						capital_scope = { has_integrated_dwarven_pop_trigger = yes }
-						capital_scope = { has_subterranean_race = yes }
-						adm_tech = 7
-					}
-				}
+				capital_scope = { has_subterranean_race = yes }
+				adm_tech = 7
+			}
+			if = {
+				limit = { has_disaster = remnant_stagnation_disaster }
+				NOT = { has_disaster = remnant_stagnation_disaster }
 			}
 			capital_scope = { 
 				is_state_core = ROOT
-				#is_capital = yes
-				#OR = {
-				#	has_terrain = dwarven_hold
-				#	has_terrain = dwarven_hold_surface
-				#}
-				
+				controlled_by = ROOT
 				custom_trigger_tooltip = {
 					tooltip = diggy_no_building #This includes armies and such
 					NOT = { has_construction = any }
 				}
 				NOT = { has_construction = army } #For clarity
 				NOT = { has_construction = navy } #For clarity
-				NOT = { has_province_modifier = incomplete_hold }
-				hidden_trigger = {
-					NOT = { has_province_modifier = incomplete_hold_0 }
+				if = {
+					limit = { has_province_modifier = incomplete_hold }
+					NOT = { has_province_modifier = incomplete_hold }
 				}
+				hidden_trigger = { NOT = { has_province_modifier = incomplete_hold_0 } }
 				custom_trigger_tooltip = {
 					tooltip = diggy_max_deepness_tooltip
 					if = {
@@ -125,6 +116,7 @@ country_decisions = {
 	}
 	
 	start_hold_restoration = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			hold_province = {
@@ -135,13 +127,10 @@ country_decisions = {
 					has_province_modifier = damaged_hold
 				}
 				if = {
-					limit = { ROOT = { ai = yes } }
-					OR = {
-						is_capital_of = ROOT
-						ROOT = { NOT = { has_country_modifier = orcish_administration } }
-					}
+					limit = { ROOT = { primary_culture = black_orc ai = yes } }
+					is_capital_of = ROOT
 				}
-				NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_modifier = blorc_plunder_camp }
+				NOT = { has_construction = any }
 				is_city = yes
 			}
 			NOT = { has_country_flag = open_repair_hold_menu }
@@ -154,18 +143,35 @@ country_decisions = {
 				has_province_modifier = damaged_hold
 			}
 			owned_by = ROOT
+			ROOT = { NOT = { primary_culture = black_orc } }
 		}
 		
 		allow = {
-			hold_province = {
-				OR = {
-					has_province_modifier = ruined_hold
-					has_province_modifier = partially_ruined_hold
-					has_province_modifier = damaged_hold
+			if = {
+				limit = { ROOT = { primary_culture = black_orc } }
+				capital_scope = {
+					OR = {
+						has_province_modifier = ruined_hold
+						has_province_modifier = partially_ruined_hold
+						has_province_modifier = damaged_hold
+					}
+					NOT = { has_construction = any }
+					is_city = yes
+					is_core = ROOT
 				}
-				NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_modifier = blorc_plunder_camp }
-				is_city = yes
-				is_core = ROOT
+			}
+			else = {
+				hold_province = {
+					owned_by = ROOT
+					OR = {
+						has_province_modifier = ruined_hold
+						has_province_modifier = partially_ruined_hold
+						has_province_modifier = damaged_hold
+					}
+					NOT = { has_construction = any }
+					is_city = yes
+					is_core = ROOT
+				}
 			}
 			NOT = { num_of_rebel_armies = 1 }
 			is_at_war = no
@@ -181,21 +187,31 @@ country_decisions = {
 		effect = {
 			if = {
 				limit = { ai = yes }
-				add_adm_power = -75
-				add_mil_power = -75
-				add_dip_power = -75
-				random_owned_province = {
-					limit = {
-						OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold }
-						NOT = { has_construction = building has_province_modifier = blorc_plunder_camp }
-						is_city = yes
-						is_core = ROOT
-					}
-					repair_hold_ai = yes
-				}
 				if = {
-					limit = { culture_is_orcish = yes } #AI orcs are horrible at this
-					add_treasury = 100
+					limit = { culture = black_orc }
+					add_treasury = 100 #yes positive
+					add_adm_power = -75
+					add_mil_power = -75
+					add_dip_power = -75
+					capital_scope = {
+						remove_province_modifier = blorc_plunder_camp
+						remove_province_modifier = blorc_war_camp
+						repair_hold_ai = yes 
+					}
+				}
+				else = {
+					add_adm_power = -75
+					add_mil_power = -75
+					add_dip_power = -75
+					random_owned_province = {
+						limit = {
+							OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold }
+							NOT = { has_construction = any }
+							is_city = yes
+							is_core = ROOT
+						}
+						repair_hold_ai = yes
+					}
 				}
 			}
 			else = {
@@ -205,19 +221,11 @@ country_decisions = {
 		}
 		ai_will_do = {
 			factor = 400
-			modifier = {
-				factor = 0
-				culture_is_orcish = yes
-				num_of_loans = 3
-			}
-			modifier = {
-				factor = 0.5
-				culture_is_orcish = yes
-			}
 		}
 	}
 	
 	clear_infested_hold = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			hold_province = {
@@ -289,6 +297,7 @@ country_decisions = {
 	}
 	
 	build_magma_forge = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { has_province_modifier = hold_foundry }
@@ -307,6 +316,10 @@ country_decisions = {
 			capital_scope = {
 				has_province_modifier = hold_foundry
 				development = 90
+				if = {
+					limit = { trade_goods = damestear }
+					NOT = { trade_goods = damestear }
+				}
 			}
 			adm_power = 100
 			dip_power = 100
@@ -340,6 +353,7 @@ country_decisions = {
 	}
 	
 	build_artificier_hall = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { has_province_modifier = hold_city }
@@ -358,6 +372,10 @@ country_decisions = {
 			capital_scope = {
 				has_province_modifier = hold_city
 				development = 90
+				if = {
+					limit = { trade_goods = damestear }
+					NOT = { trade_goods = damestear }
+				}
 			}
 			adm_power = 100
 			dip_power = 100
@@ -391,6 +409,7 @@ country_decisions = {
 	}
 	
 	build_engineer_manufactory = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { has_province_modifier = hold_artisan }
@@ -409,6 +428,10 @@ country_decisions = {
 			capital_scope = {
 				has_province_modifier = hold_artisan
 				development = 90
+				if = {
+					limit = { trade_goods = damestear }
+					NOT = { trade_goods = damestear }
+				}
 			}
 			adm_power = 100
 			dip_power = 100
@@ -442,6 +465,7 @@ country_decisions = {
 	}
 	
 	build_high_gardens = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { has_province_modifier = hold_farm }
@@ -460,6 +484,10 @@ country_decisions = {
 			capital_scope = {
 				has_province_modifier = hold_farm
 				development = 90
+				if = {
+					limit = { trade_goods = damestear }
+					NOT = { trade_goods = damestear }
+				}
 			}
 			adm_power = 100
 			dip_power = 100
@@ -493,6 +521,7 @@ country_decisions = {
 	}
 	
 	build_military_academy = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { has_province_modifier = hold_military }
@@ -511,6 +540,10 @@ country_decisions = {
 			capital_scope = {
 				has_province_modifier = hold_military
 				development = 90
+				if = {
+					limit = { trade_goods = damestear }
+					NOT = { trade_goods = damestear }
+				}
 			}
 			adm_power = 100
 			dip_power = 100
@@ -543,83 +576,8 @@ country_decisions = {
 		}
 	}
 	
-	explore_special_cavern = {
-		major = yes
-		potential = {
-			NOT = { is_year = 1600 }
-			any_owned_province = {
-				has_terrain = cavern
-				has_province_modifier = special_cave
-				NOT = { has_province_modifier = exploring_cave }
-			}
-		}
-		
-		provinces_to_highlight = {
-			has_province_modifier = special_cave
-			NOT = { has_province_modifier = exploring_cave }
-			owned_by = ROOT
-		}
-		
-		allow = {
-			any_owned_province = {
-				has_province_modifier = special_cave
-				NOT = { has_province_modifier = exploring_cave }
-				is_city = yes
-			}
-			dip_power = 20
-			treasury = 50
-		}
-		
-		effect = {
-			if = {
-				limit = { NOT = { total_development = 100 } }
-				add_treasury = -50
-			}
-			else_if = {
-				limit = { NOT = { total_development = 300 } }
-				add_treasury = -100
-			}
-			else_if = {
-				limit = { NOT = { total_development = 600 } }
-				add_treasury = -150
-			}
-			else_if = {
-				limit = { NOT = { total_development = 1000 } }
-				add_treasury = -200
-			}
-			else = {
-				add_treasury = -300
-			}
-			add_dip_power = -20
-			random_owned_province = {
-				limit = {
-					has_province_modifier = special_cave
-					NOT = { has_province_modifier = exploring_cave }
-					is_city = yes
-				}
-				add_province_modifier = {
-					name = exploring_cave
-					duration = -1
-				}
-			}
-			hidden_effect = { 
-				if = {
-					limit = { NOT = { has_country_flag = cavern_ini } }
-					set_variable = { exploringCave = 1 }
-					set_country_flag = cavern_ini
-				}
-				else = {
-					change_variable = { exploringCave = 1 }
-				}
-			}
-		}
-		
-		ai_will_do = {
-			factor = 400
-		}
-	}
-	
 	rebuild_road = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			adm_tech = 12
@@ -641,7 +599,6 @@ country_decisions = {
 				OR = {
 					has_province_modifier = restored_rail
 					has_province_modifier = advanced_rail
-					has_province_modifier = rocket_rail #allclan
 					AND = {
 						OR = {
 							has_terrain = dwarven_hold
@@ -659,7 +616,7 @@ country_decisions = {
 		
 		allow = {
 			adm_tech = 16
-			treasury = 15
+			treasury = 30
 			any_owned_province = {
 				has_terrain = dwarven_road
 				has_province_modifier = dwarovar_rail
@@ -671,7 +628,6 @@ country_decisions = {
 					OR = {
 						has_province_modifier = restored_rail
 						has_province_modifier = advanced_rail
-						has_province_modifier = rocket_rail #allclan
 						AND = {
 							OR = {
 								has_terrain = dwarven_hold
@@ -688,35 +644,37 @@ country_decisions = {
 		}
 		
 		effect = {
-			random_owned_province = {
-				limit = {
-					has_province_modifier = dwarovar_rail
-					NOT = { has_construction = any }
-					NOT = { has_colonist = yes }
-					is_city = yes
-					is_state = yes
-					any_neighbor_province = {
-						OR = {
-							has_province_modifier = restored_rail
-							has_province_modifier = advanced_rail
-							has_province_modifier = rocket_rail #allclan
-							AND = {
-								OR = {
-									has_terrain = dwarven_hold
-									has_terrain = dwarven_hold_surface
-								}
-								NOT = { has_province_modifier = ruined_hold }
-								NOT = { has_province_modifier = infested_hold }
-							}
-						}
+			custom_tooltip = rebuild_road_tooltip
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_modifier = dwarovar_rail
+						NOT = { has_construction = any }
+						NOT = { has_colonist = yes }
+						is_city = yes
 						is_state = yes
-						owned_by = ROOT
+						any_neighbor_province = {
+							OR = {
+								has_province_modifier = restored_rail
+								has_province_modifier = advanced_rail
+								AND = {
+									OR = {
+										has_terrain = dwarven_hold
+										has_terrain = dwarven_hold_surface
+									}
+									NOT = { has_province_modifier = ruined_hold }
+									NOT = { has_province_modifier = infested_hold }
+								}
+							}
+							is_state = yes
+							owned_by = ROOT
+						}
 					}
-				}
-				add_building_construction = {
-					building = railway_work
-					speed = 1
-					cost = 1
+					add_building_construction = {
+						building = railway_work
+						speed = 1
+						cost = 1
+					}
 				}
 			}
 		}
@@ -727,6 +685,7 @@ country_decisions = {
 	}
 	
 	upgrade_road = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			adm_tech = 18
@@ -747,7 +706,6 @@ country_decisions = {
 			any_neighbor_province = {
 				OR = {
 					has_province_modifier = advanced_rail
-					has_province_modifier = rocket_rail #allclan
 					AND = {
 						OR = {
 							has_terrain = dwarven_hold
@@ -765,7 +723,7 @@ country_decisions = {
 		
 		allow = {
 			adm_tech = 21
-			treasury = 30
+			treasury = 60
 			any_owned_province = {
 				has_terrain = dwarven_road
 				has_province_modifier = restored_rail
@@ -776,7 +734,6 @@ country_decisions = {
 				any_neighbor_province = {
 					OR = {
 						has_province_modifier = advanced_rail
-						has_province_modifier = rocket_rail #allclan
 						AND = {
 							OR = {
 								has_terrain = dwarven_hold
@@ -793,34 +750,36 @@ country_decisions = {
 		}
 		
 		effect = {
-			random_owned_province = {
-				limit = {
-					has_province_modifier = restored_rail
-					NOT = { has_construction = any }
-					NOT = { has_colonist = yes }
-					is_city = yes
-					is_state = yes
-					any_neighbor_province = {
-						OR = {
-							has_province_modifier = advanced_rail
-							has_province_modifier = rocket_rail #allclan
-							AND = {
-								OR = {
-									has_terrain = dwarven_hold
-									has_terrain = dwarven_hold_surface
-								}
-								NOT = { has_province_modifier = ruined_hold }
-								NOT = { has_province_modifier = infested_hold }
-							}
-						}
+			custom_tooltip = upgrade_road_tooltip
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						has_province_modifier = restored_rail
+						NOT = { has_construction = any }
+						NOT = { has_colonist = yes }
+						is_city = yes
 						is_state = yes
-						owned_by = ROOT
+						any_neighbor_province = {
+							OR = {
+								has_province_modifier = advanced_rail
+								AND = {
+									OR = {
+										has_terrain = dwarven_hold
+										has_terrain = dwarven_hold_surface
+									}
+									NOT = { has_province_modifier = ruined_hold }
+									NOT = { has_province_modifier = infested_hold }
+								}
+							}
+							is_state = yes
+							owned_by = ROOT
+						}
 					}
-				}
-				add_building_construction = {
-					building = railway_work
-					speed = 1.3
-					cost = 2
+					add_building_construction = {
+						building = railway_work
+						speed = 1.3
+						cost = 2
+					}
 				}
 			}
 		}
@@ -831,6 +790,7 @@ country_decisions = {
 	}
 	
 	destroy_old_gate = {
+		color = { 161 43 32 }
 		major = yes
 		potential = {
 			has_disaster = goblin_tide
@@ -880,17 +840,19 @@ country_decisions = {
 	}
 
 	purge_warband = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
-			NOT = { num_of_cities = 3 }
+			capital_scope = { continent = serpentspine }
+			OR = {
+				NOT = { num_of_cities = 3 }
+				has_reform = dwarovar_righting_the_oldest_grudge
+			}
 			OR = {
 				culture_group = dwarven
 				primary_culture = black_orc
-				primary_culture = cave_goblin
+				dwarovar_goblin_culture_primary = yes
 				culture_group = kobold
-			}
-			capital_scope = {
-				continent = serpentspine
 			}
 		}
 		
@@ -905,23 +867,23 @@ country_decisions = {
 				OR = {
 					culture_group = kobold
 					culture = black_orc
-					culture = cave_goblin
+					dwarovar_goblin_culture = yes
 				}
 			}
 			else_if = {
 				limit = { ROOT = { culture_group = kobold } }
 				OR = {
 					culture = black_orc
-					culture = cave_goblin
+					dwarovar_goblin_culture = yes
 					culture_group = dwarven
 				}
 			}
 			else_if = {
-				limit = { ROOT = { OR = { primary_culture = black_orc primary_culture = cave_goblin } } }
+				limit = { ROOT = { OR = { primary_culture = black_orc dwarovar_goblin_culture_primary = yes } } }
 				OR = {
 					culture_group = kobold
 					culture = black_orc
-					culture = cave_goblin
+					dwarovar_goblin_culture = yes
 					culture_group = dwarven
 				}
 			}
@@ -931,7 +893,10 @@ country_decisions = {
 		}
 		
 		allow = {
-			NOT = { num_of_cities = 3 }
+			if = {
+				limit = { NOT = { has_reform = dwarovar_righting_the_oldest_grudge } }
+				NOT = { num_of_cities = 3 }
+			}
 			any_owned_province = {
 				is_capital = no
 				NOT = {
@@ -943,23 +908,23 @@ country_decisions = {
 					OR = {
 						culture_group = kobold
 						culture = black_orc
-						culture = cave_goblin
+						dwarovar_goblin_culture = yes
 					}
 				}
 				else_if = {
 					limit = { ROOT = { culture_group = kobold } }
 					OR = {
 						culture = black_orc
-						culture = cave_goblin
+						dwarovar_goblin_culture = yes
 						culture_group = dwarven
 					}
 				}
 				else_if = {
-					limit = { ROOT = { OR = { primary_culture = black_orc primary_culture = cave_goblin } } }
+					limit = { ROOT = { OR = { primary_culture = black_orc dwarovar_goblin_culture_primary = yes } } }
 					OR = {
 						culture_group = kobold
 						culture = black_orc
-						culture = cave_goblin
+						dwarovar_goblin_culture = yes
 						culture_group = dwarven
 					}
 				}
@@ -968,9 +933,48 @@ country_decisions = {
 		}
 		
 		effect = {
-			add_prestige = 15
-			add_mil_power = 75
-			add_dip_power = 50
+			if = {
+				limit = {
+					has_reform = dwarovar_righting_the_oldest_grudge
+					num_of_cities = 2
+				}
+				add_prestige = 15
+				add_mil_power = 30
+				add_dip_power = 30
+			}
+			else = {
+				add_prestige = 15
+				add_mil_power = 75
+				add_dip_power = 50
+			}
+			hidden_effect = {
+				if = {
+					limit = {
+						tag = H85
+						ai = no
+						any_owned_province = {
+							NOT = {
+								is_core = ROOT
+							}
+							culture = black_orc
+							area = amldihr_area
+						}
+						NOT = {
+							mission_completed = H85_seizing_amldihr
+						}
+						amldihr_area = {
+							OR = {
+								owned_by = H85
+								is_city = no
+							}
+						}
+					}
+					country_event = {
+						id = flavor_truedagger.2
+					}
+					set_country_flag = flag_truedagger_purged_warband
+				}
+			}
 			random_owned_province = {
 				limit = {
 					NOT = {
@@ -982,23 +986,23 @@ country_decisions = {
 						OR = {
 							culture_group = kobold
 							culture = black_orc
-							culture = cave_goblin
+							dwarovar_goblin_culture = yes
 						}
 					}
 					else_if = {
 						limit = { ROOT = { culture_group = kobold } }
 						OR = {
 							culture = black_orc
-							culture = cave_goblin
+							dwarovar_goblin_culture = yes
 							culture_group = dwarven
 						}
 					}
 					else_if = {
-						limit = { ROOT = { OR = { primary_culture = black_orc primary_culture = cave_goblin } } }
+						limit = { ROOT = { OR = { primary_culture = black_orc dwarovar_goblin_culture_primary = yes } } }
 						OR = {
 							culture_group = kobold
 							culture = black_orc
-							culture = cave_goblin
+							dwarovar_goblin_culture = yes
 							culture_group = dwarven
 						}
 					}
@@ -1017,6 +1021,7 @@ country_decisions = {
 	}
 	
 	restore_irrigation = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			NOT = { has_global_flag = serpent_vale_irrigation }
@@ -1052,7 +1057,14 @@ country_decisions = {
 			else = {
 				treasury = 500
 			}
-			adm_tech = 13
+
+			if = { 
+				limit = { has_country_flag = flag_truedagger_irrigation }
+				adm_tech = 10
+			}
+			else = {
+				adm_tech = 13
+			}
 			adm_power = 200
 		}
 		
@@ -1068,10 +1080,11 @@ country_decisions = {
 	}
 	
 	the_great_dam = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			capital_scope = { continent = serpentspine }
-			adm_tech = 14
+			adm_tech = 10
 			OR = {
 				has_country_modifier = dwarven_administration
 				has_country_modifier = goblin_administration
@@ -1088,9 +1101,23 @@ country_decisions = {
 		
 		allow = {
 			owns = 676
-			adm_tech = 16
+			if = {
+				limit = {
+					has_global_flag = dd_dimlherd
+					any_owned_province = { has_great_project = { type = dd_dimlherd tier = 3 } }
+				}
+				adm_tech = 12
+			}
+			else = { adm_tech = 16 }
+			if = {
+				limit = { 
+					has_global_flag = dd_dimlherd
+					any_owned_province = { has_great_project = { type = dd_dimlherd tier = 2 } } 
+				}
+				treasury = 10000
+			}
+			else = { treasury = 12500 }
 			adm_power = 100
-			treasury = 12500
 		}
 		
 		effect = {
@@ -1104,29 +1131,38 @@ country_decisions = {
 	}
 	
 	centralize_hold_administration = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			ai = no
-			has_country_modifier = dwarven_administration
+			capital_scope = { continent = serpentspine }
+			NOT = { primary_culture = black_orc }
 			adm_tech = 10
 			NOT = { has_country_flag = hold_operation }
-		}
-		
-		provinces_to_highlight = {
-			OR = {
-				has_terrain = dwarven_hold
-				has_terrain = dwarven_hold_surface
+			num_of_owned_provinces_with = {
+				value = 2
+				province_group = hold_province
 			}
 		}
 		
+		provinces_to_highlight = {
+			province_group = hold_province
+		}
+		
 		allow = {
-			adm_tech = 12
+			hidden_trigger = { ai = no }
+			if = {
+				limit = { culture_group = dwarven }
+				adm_tech = 12
+			}
+			else_if = {
+				limit = { OR = { dwarovar_goblin_culture_primary = yes primary_culture = darkscale_kobold } }
+				adm_tech = 14
+			}
+			else = { adm_tech = 16 }
 			num_of_owned_provinces_with = {
 				value = 5
-				OR = {
-					has_terrain = dwarven_hold
-					has_terrain = dwarven_hold_surface
-				}
+				province_group = hold_province
 			}
 			treasury = 12500
 		}
@@ -1146,6 +1182,7 @@ country_decisions = {
 	}
 	
 	hold_operation = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			ai = no
@@ -1161,60 +1198,6 @@ country_decisions = {
 		allow = {
 			any_owned_province = { 
 				can_upgrade_hold = yes
-				# OR = {
-					# has_terrain = dwarven_hold
-					# has_terrain = dwarven_hold_surface
-				# }
-				# has_subterranean_race = yes
-				# is_capital = no
-				# is_core = ROOT
-				# NOT = { has_construction = building }
-				# NOT = { has_construction = great_project }
-				# NOT = { has_construction = canal }
-				# NOT = { has_construction = culture }
-				# NOT = { has_construction = missionary }
-				# NOT = { has_province_modifier = ruined_hold }
-				# NOT = { has_province_modifier = infested_hold }
-				# if = {
-					# limit = { has_province_modifier = dig_1 }
-					# development = 40
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_2 }
-					# development = 50
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_3 }
-					# development = 60
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_4 }
-					# development = 70
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_5 }
-					# development = 80
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_6 }
-					# development = 90
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_7 }
-					# development = 100
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_8 }
-					# development = 110
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_9 }
-					# development = 120
-				# }
-				# else_if = {
-					# limit = { has_province_modifier = dig_10 OR = { province_id = 4119 province_id = 4311 } }
-					# development = 130
-				# }
 			}
 		}
 		
@@ -1233,6 +1216,7 @@ country_decisions = {
 	}
 	
 	amlharaz = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			tag = I24
@@ -1357,8 +1341,181 @@ country_decisions = {
 			}
 		}
 	}
+	reforge_dwarovkron = {
+		color = { 33 64 96 }
+		major = yes
+		potential = {
+			NOT = { has_global_flag = reforged_dwarovkron }
+			capital_scope = { continent = serpentspine }
+		}
+		
+		provinces_to_highlight = {
+		}
+		
+		allow = {
+			if = {
+				limit = { ai = yes }
+				has_country_modifier = dwarovkron_crown
+				has_country_modifier = dwarovkron_amethyst
+				has_country_modifier = dwarovkron_diamond
+				has_country_modifier = dwarovkron_citrine
+				has_country_modifier = dwarovkron_ruby
+				has_country_modifier = dwarovkron_jade
+				has_country_modifier = dwarovkron_sapphire
+				has_country_modifier = dwarovkron_agate
+			}
+			else = {
+				OR = {
+					AND = {
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_tooltip
+							has_country_modifier = dwarovkron_crown
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_amethyst_tooltip
+							has_country_modifier = dwarovkron_amethyst
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_diamond_tooltip
+							has_country_modifier = dwarovkron_diamond
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_citrine_tooltip
+							has_country_modifier = dwarovkron_citrine
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_ruby_tooltip
+							has_country_modifier = dwarovkron_ruby
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_jade_tooltip
+							has_country_modifier = dwarovkron_jade
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_sapphire_tooltip
+							has_country_modifier = dwarovkron_sapphire
+						}
+						custom_trigger_tooltip = {
+							tooltip = has_dwarovkron_agate_tooltip
+							has_country_modifier = dwarovkron_agate
+						}
+					}
+					hidden_trigger = { always = yes }
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = { ai = yes }
+				country_event = { id = diggy.200 }
+			}
+			else = {
+				if = {
+					limit = {
+						has_country_modifier = dwarovkron_crown
+						has_country_modifier = dwarovkron_amethyst
+						has_country_modifier = dwarovkron_diamond
+						has_country_modifier = dwarovkron_citrine
+						has_country_modifier = dwarovkron_ruby
+						has_country_modifier = dwarovkron_jade
+						has_country_modifier = dwarovkron_sapphire
+						has_country_modifier = dwarovkron_agate
+					}
+					country_event = { id = diggy.200 }
+				}
+				else = {
+					custom_tooltip = reforge_dwarovkron_tooltip
+					hidden_effect = {
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_crown }
+							save_global_event_target_as = global_kron_crown
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_amethyst }
+							save_global_event_target_as = global_kron_amethyst
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_diamond }
+							save_global_event_target_as = global_kron_diamond
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_citrine }
+							save_global_event_target_as = global_kron_citrine
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_ruby }
+							save_global_event_target_as = global_kron_ruby
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_jade }
+							save_global_event_target_as = global_kron_jade
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_sapphire }
+							save_global_event_target_as = global_kron_sapphire
+						}
+						random_known_country = {
+							limit = { has_country_modifier = dwarovkron_agate }
+							save_global_event_target_as = global_kron_agate
+						}
+					}
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 400
+		}
+	}
 	
-	black_orc_trophies_decisions = {
+	ask_asra_agate = {
+		color = { 33 64 96 }
+		major = yes
+		potential = {
+			NOT = { has_global_flag = dwarovkron_agate_found }
+			capital_scope = { continent = serpentspine }
+			has_country_modifier = dwarven_administration
+		}
+		
+		provinces_to_highlight = {
+			province_id = 2863
+		}
+		
+		allow = {
+			2863 = { country_or_subject_holds = ROOT }
+			is_subject = no
+			if = {
+				limit = { ai = yes }
+				OR = {
+					prestige = 80
+					is_year = 1600
+				}
+			}
+			else = {
+				prestige = 100
+				years_of_income = 1
+			}
+		}
+		
+		effect = {
+			hidden_effect = { set_global_flag = dwarovkron_agate_found }
+			if = {
+				limit = { ai = no }
+				add_years_of_income = -1
+			}
+			country_event = { id = diggy.202 }
+		}
+		
+		
+		ai_will_do = {
+			factor = 400
+		}
+	}
+
+
+
+	blorc_hold_trophies = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			ai = no
@@ -1369,6 +1526,14 @@ country_decisions = {
 			province_group = hold_province
 			continent = serpentspine
 			NOT = { owned_by = ROOT }
+			NOT = { #subholds don't have trophies
+				OR = {
+					province_id = 4122 #verkal vazkron
+					province_id = 4128 #hall of ancestors
+					province_id = 4149 #amlharaz
+					province_id = 4313 #vurdiz andriz
+				}
+			}
 		}
 		
 		allow = {
@@ -1382,40 +1547,28 @@ country_decisions = {
 		ai_will_do = { factor = 0 }
 	}
 	
-	duel_infested_blorc_hold = {
+	blorc_duel_infested_hold = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			primary_culture = black_orc
-			NOT = {
-				OR = {
-					has_reform = roadwarrior_great_convoy
-					government = republic
-					government = dictatorship
-					government = theocracy
-				}
-			}
+			NOT = { has_reform = roadwarrior_great_convoy }
 			hold_province = {
 				owned_by = ROOT
 				has_province_modifier = infested_hold
-				NOT = { province_id = 4218 } #this is a goblin infested hold
-				NOT = { province_id = 4147 } #this is a goblin infested hold
 			}
 			NOT = { has_country_flag = open_duel_hold_menu }
 		}
 		
 		provinces_to_highlight = {
 			has_province_modifier = infested_hold
-			NOT = { province_id = 4218 }
-			NOT = { province_id = 4147 }
 			owned_by = ROOT
 		}
 		
 		allow = {
-			NOT = {
-				has_spawned_rebels = cave_goblin_rebel
-				has_spawned_rebels = cave_orc_rebel
-				is_at_war = yes
-				has_ruler_modifier = diggy_blorc_recovering_from_ozarm
+			OR = {
+				government = monarchy
+				government = tribal
 			}
 			ruler_culture = black_orc
 			has_regency = no
@@ -1423,11 +1576,20 @@ country_decisions = {
 			stability = 0
 			years_of_income = 0.1
 			mil_power = 50
-			
+			NOT = {
+				has_spawned_rebels = cave_goblin_rebel
+				has_spawned_rebels = cave_orc_rebel
+				is_at_war = yes
+				has_ruler_modifier = blorc_recovering_from_ozarm
+			}
+			hold_province = {
+				owned_by = ROOT
+				has_province_modifier = infested_hold
+			}
 		}
 		
 		effect = {
-			country_event = { id = diggy.125 }
+			country_event = { id = blorc.50 }
 			hidden_effect = { set_country_flag = open_duel_hold_menu }
 		}
 		ai_will_do = {
@@ -1435,231 +1597,89 @@ country_decisions = {
 		}
 	}
 	
-	plunder_blorc_hold = {
+	blorc_plunder_hold = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
 			primary_culture = black_orc
 			NOT = { has_reform = roadwarrior_great_convoy }
-			hold_province = {
-				owned_by = ROOT
-				NOT = { has_province_modifier = blorc_plunder_camp }
-				is_capital = no
-			}
 			NOT = { has_country_flag = open_hold_plunder_menu }
 		}
 		
 		provinces_to_highlight = {
-			owned_by = ROOT
-			is_core = ROOT
-			OR = {
-				has_terrain = dwarven_hold
-				has_terrain = dwarven_hold_surface
-			}
-			NOT = {
-				has_province_modifier = blorc_plunder_camp
-				has_province_modifier = infested_hold
-				has_construction = any
-			}
-			is_capital = no
+			blorc_can_be_plundered = yes
 		}
 		
 		allow = {
-			NOT = {
-				has_spawned_rebels = cave_goblin_rebel
-				has_spawned_rebels = cave_orc_rebel
-				is_at_war = yes
-				has_regency = yes
-			}
-			hold_province = {
-				owned_by = ROOT
-				is_core = ROOT
-				NOT = {
-					has_province_modifier = blorc_plunder_camp
-					has_province_modifier = infested_hold
-				}
-				NOT = { has_construction = any }
-				is_capital = no
+			any_owned_province = {
+				blorc_can_be_plundered = yes
 			}
 			adm_power = 50
+			dip_power = 50
 			mil_power = 50
-			treasury = 50
 		}
 		
 		effect = {
-			country_event = { id = diggy.131 }
+			if = {
+				limit = { NOT = { has_country_flag = blorc_plunder_capital_set } }
+				custom_tooltip = blorc_plunder_hold_tooltip
+				hidden_effect = {
+					set_country_flag = blorc_plunder_capital_set
+					capital_scope = { set_province_flag = blorc_plunder_capital_@ROOT }
+				}
+			}
+			country_event = { id = blorc.100 }
 			hidden_effect = { set_country_flag = open_hold_plunder_menu }
 		}
 		ai_will_do = {
 			factor = 400
 		}
 	}
-	
-	# reforge_dwarovkron = {
-	# 	major = yes
-	# 	potential = {
-	# 		NOT = { has_global_flag = reforged_dwarovkron }
-	# 		capital_scope = { continent = serpentspine }
-	# 	}
+
+	blorc_upgrade_fort = {
+		color = { 33 64 96 }
+		major = yes
+		potential = {
+			primary_culture = black_orc
+			has_country_flag = blorc_plunder_capital_set
+			NOT = { has_reform = roadwarrior_great_convoy }
+			NOT = { has_country_flag = open_plunder_fort_menu }
+		}
 		
-	# 	provinces_to_highlight = {
-	# 	}
+		provinces_to_highlight = {
+			province_group = hold_province
+			owned_by = ROOT
+			OR = {
+				has_province_modifier = blorc_plunder_camp
+				has_province_modifier = blorc_war_camp
+			}
+			NOT = { province_has_current_tech_fort_trigger = yes }
+		}
 		
-	# 	allow = {
-	# 		if = {
-	# 			limit = { ai = yes }
-	# 			has_country_modifier = dwarovkron_crown
-	# 			has_country_modifier = dwarovkron_amethyst
-	# 			has_country_modifier = dwarovkron_diamond
-	# 			has_country_modifier = dwarovkron_citrine
-	# 			has_country_modifier = dwarovkron_ruby
-	# 			has_country_modifier = dwarovkron_jade
-	# 			has_country_modifier = dwarovkron_sapphire
-	# 			has_country_modifier = dwarovkron_agate
-	# 		}
-	# 		else = {
-	# 			OR = {
-	# 				AND = {
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_tooltip
-	# 						has_country_modifier = dwarovkron_crown
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_amethyst_tooltip
-	# 						has_country_modifier = dwarovkron_amethyst
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_diamond_tooltip
-	# 						has_country_modifier = dwarovkron_diamond
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_citrine_tooltip
-	# 						has_country_modifier = dwarovkron_citrine
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_ruby_tooltip
-	# 						has_country_modifier = dwarovkron_ruby
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_jade_tooltip
-	# 						has_country_modifier = dwarovkron_jade
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_sapphire_tooltip
-	# 						has_country_modifier = dwarovkron_sapphire
-	# 					}
-	# 					custom_trigger_tooltip = {
-	# 						tooltip = has_dwarovkron_agate_tooltip
-	# 						has_country_modifier = dwarovkron_agate
-	# 					}
-	# 				}
-	# 				hidden_trigger = { always = yes }
-	# 			}
-	# 		}
-	# 	}
+		allow = {
+			if = {
+				limit = { ai = yes }
+				treasury = 200
+			}
+			hold_province = {
+				owned_by = ROOT
+				is_core = ROOT
+				OR = {
+					has_province_modifier = blorc_plunder_camp
+					has_province_modifier = blorc_war_camp
+				}
+				NOT = { has_construction = any }
+				is_capital = no
+				NOT = { province_has_current_tech_fort_trigger = yes }
+			}
+		}
 		
-	# 	effect = {
-	# 		if = {
-	# 			limit = { ai = yes }
-	# 			country_event = { id = diggy.61 }
-	# 		}
-	# 		else = {
-	# 			if = {
-	# 				limit = {
-	# 					has_country_modifier = dwarovkron_crown
-	# 					has_country_modifier = dwarovkron_amethyst
-	# 					has_country_modifier = dwarovkron_diamond
-	# 					has_country_modifier = dwarovkron_citrine
-	# 					has_country_modifier = dwarovkron_ruby
-	# 					has_country_modifier = dwarovkron_jade
-	# 					has_country_modifier = dwarovkron_sapphire
-	# 					has_country_modifier = dwarovkron_agate
-	# 				}
-	# 				country_event = { id = diggy.61 }
-	# 			}
-	# 			else = {
-	# 				custom_tooltip = reforge_dwarovkron_tooltip
-	# 				hidden_effect = {
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_crown }
-	# 						save_global_event_target_as = global_kron_crown
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_amethyst }
-	# 						save_global_event_target_as = global_kron_amethyst
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_diamond }
-	# 						save_global_event_target_as = global_kron_diamond
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_citrine }
-	# 						save_global_event_target_as = global_kron_citrine
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_ruby }
-	# 						save_global_event_target_as = global_kron_ruby
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_jade }
-	# 						save_global_event_target_as = global_kron_jade
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_sapphire }
-	# 						save_global_event_target_as = global_kron_sapphire
-	# 					}
-	# 					random_known_country = {
-	# 						limit = { has_country_modifier = dwarovkron_agate }
-	# 						save_global_event_target_as = global_kron_agate
-	# 					}
-	# 				}
-	# 			}
-	# 		}
-	# 	}
-	# 	ai_will_do = {
-	# 		factor = 400
-	# 	}
-	# }
-	
-	# ask_asra_agate = {
-	# 	major = yes
-	# 	potential = {
-	# 		NOT = { has_global_flag = claimed_agate }
-	# 		capital_scope = { continent = serpentspine }
-	# 		has_country_modifier = dwarven_administration
-	# 	}
-		
-	# 	provinces_to_highlight = {
-	# 		province_id = 2863
-	# 	}
-		
-	# 	allow = {
-	# 		2863 = { country_or_subject_holds = ROOT }
-	# 		is_subject = no
-	# 		if = {
-	# 			limit = { ai = yes }
-	# 			OR = {
-	# 				prestige = 80
-	# 				is_year = 1600
-	# 			}
-	# 		}
-	# 		else = {
-	# 			prestige = 100
-	# 			years_of_income = 1
-	# 		}
-	# 	}
-		
-	# 	effect = {
-	# 		hidden_effect = { set_global_flag = claimed_agate }
-	# 		if = {
-	# 			limit = { ai = no }
-	# 			add_years_of_income = -1
-	# 		}
-	# 		country_event = { id = diggy.63 }
-	# 	}
-		
-		
-	# 	ai_will_do = {
-	# 		factor = 400
-	# 	}
-	# }
+		effect = {
+			country_event = { id = blorc.102 }
+			hidden_effect = { set_country_flag = open_plunder_fort_menu }
+		}
+		ai_will_do = {
+			factor = 400
+		}
+	}
 }

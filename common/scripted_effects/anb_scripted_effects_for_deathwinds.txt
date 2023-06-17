@@ -1,0 +1,457 @@
+#Setup deathwinds according to the rules for the given region, calls a second scripted effect with a random list, currently only takes alecand = yes as argument, can be expanded to other regions
+setup_deathwinds = {
+	[[alecand]
+		if = {
+			limit = { is_year = 1650 }
+			get_deathwinds_level_for_region = {
+				low_level = 6
+				mid_level = 7
+				high_level = 8
+				affected_region = alecand_region
+			}
+		}
+		else_if = {
+			limit = { is_year = 1600 }
+			get_deathwinds_level_for_region = {
+				low_level = 5
+				mid_level = 6
+				high_level = 7
+				affected_region = alecand_region
+			}
+		}
+		else_if = {
+			limit = { is_year = 1550 }
+			get_deathwinds_level_for_region = {
+				low_level = 4
+				mid_level = 5
+				high_level = 6
+				affected_region = alecand_region
+			}
+		}
+		else_if = {
+			limit = { is_year = 1500 }
+			get_deathwinds_level_for_region = {
+				low_level = 2
+				mid_level = 3
+				high_level = 4
+				affected_region = alecand_region
+			}
+		}
+		else_if = {
+			limit = { is_year = 1450 }
+			get_deathwinds_level_for_region = {
+				low_level = 2
+				mid_level = 3
+				high_level = 4
+				affected_region = alecand_region
+			}
+		}
+		#An easy one to start with
+		else = {
+			get_deathwinds_level_for_region = {
+				low_level = 1
+				mid_level = 1
+				high_level = 1
+				affected_region = alecand_region
+			}
+		}
+	]
+}
+
+#Ends the deathwinds in the specified region, removing the effects on every province and etc..
+end_deathwinds = {
+	[[alecand]
+		alecand_region = {
+			set_variable = {
+				which = localWindLevel
+				value = 0
+			}
+			clr_province_flag = deathwinds_active
+			remove_province_modifier = extreme_deathwinds_effects
+			remove_province_modifier = high_deathwinds_effects
+			remove_province_modifier = medium_deathwinds_effects
+			remove_province_modifier = low_deathwinds_effects
+			remove_province_modifier = no_deathwinds_effects
+		}
+		random_province = {
+			limit = { region = alecand_region is_city = yes }
+			add_base_tax = 1
+			add_province_triggered_modifier = kheios_deathwind_manager
+			set_province_flag = deathwinds_flag
+		}
+	]
+}
+
+#Find the deathwinds level and checks it against each province in the region, take low_level, mid_level and high_level as level, and affected_region as region
+get_deathwinds_level_for_region = {
+	random_list = {
+		2 = {
+			$affected_region$ = {
+				set_variable = {
+					which = localWindLevel
+					value = $low_level$
+				}
+				set_province_flag = deathwinds_active
+				update_deathwinds_difference = yes
+			}
+		}
+		2 = {
+			$affected_region$ = {
+				set_variable = {
+					which = localWindLevel
+					value = $mid_level$
+				}
+				set_province_flag = deathwinds_active
+				update_deathwinds_difference = yes
+			}
+		}
+		1 = {
+			$affected_region$ = {
+				set_variable = {
+					which = localWindLevel
+					value = $high_level$
+				}
+				set_province_flag = deathwinds_active
+				update_deathwinds_difference = yes
+			}
+		}
+	}
+}
+
+#Updates the effects 
+update_deathwinds_difference = {
+	hidden_effect = {
+		set_variable = {
+			which = windWardEffectsLevel
+			which = localWindLevel
+		}
+		subtract_variable = {
+			which = windWardEffectsLevel
+			which = localWindWardLevel
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = windWardEffectsLevel
+				value = 7
+			}
+		}
+		remove_province_modifier = high_deathwinds_effects
+		remove_province_modifier = medium_deathwinds_effects
+		remove_province_modifier = low_deathwinds_effects
+		remove_province_modifier = no_deathwinds_effects
+		add_permanent_province_modifier = {
+			name = extreme_deathwinds_effects
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				which = windWardEffectsLevel
+				value = 4
+			}
+		}
+		remove_province_modifier = extreme_deathwinds_effects
+		remove_province_modifier = medium_deathwinds_effects
+		remove_province_modifier = low_deathwinds_effects
+		remove_province_modifier = no_deathwinds_effects
+		add_permanent_province_modifier = {
+			name = high_deathwinds_effects
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				which = windWardEffectsLevel
+				value = 2
+			}
+		}
+		remove_province_modifier = high_deathwinds_effects
+		remove_province_modifier = extreme_deathwinds_effects
+		remove_province_modifier = low_deathwinds_effects
+		remove_province_modifier = no_deathwinds_effects
+		add_permanent_province_modifier = {
+			name = medium_deathwinds_effects
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				which = windWardEffectsLevel
+				value = 1
+			}
+		}
+		remove_province_modifier = high_deathwinds_effects
+		remove_province_modifier = medium_deathwinds_effects
+		remove_province_modifier = extreme_deathwinds_effects
+		remove_province_modifier = no_deathwinds_effects
+		add_permanent_province_modifier = {
+			name = low_deathwinds_effects
+			duration = -1
+		}
+	}
+	else = {
+		remove_province_modifier = high_deathwinds_effects
+		remove_province_modifier = medium_deathwinds_effects
+		remove_province_modifier = low_deathwinds_effects
+		remove_province_modifier = extreme_deathwinds_effects
+		add_permanent_province_modifier = {
+			name = no_deathwinds_effects
+			duration = -1
+		}
+	}
+}
+
+#Updates windward level from forts
+create_deathwind_ward_level_from_fort = {
+	#Reset bonus from neighbours
+	hidden_effect = {
+		set_variable = {
+			which = neighbourFortWindWardLevel
+			value = 0
+		}
+		if = {
+			limit = {
+				fort_level = 8
+			}
+			set_variable = {
+				which = fortWindWardLevel
+				value = 4
+			}
+		}
+		else_if = {
+			limit = {
+				fort_level = 6
+			}
+			set_variable = {
+				which = fortWindWardLevel
+				value = 3
+			}
+		}
+		else_if = {
+			limit = {
+				fort_level = 4
+			}
+			set_variable = {
+				which = fortWindWardLevel
+				value = 2
+			}
+		}
+		else_if = {
+			limit = {
+				fort_level = 2
+			}
+			set_variable = {
+				which = fortWindWardLevel
+				value = 1
+			}
+		}
+		else = {
+			set_variable = {
+				which = fortWindWardLevel
+				value = 0
+			}
+			if = {
+				limit = {
+					any_neighbor_province = {
+						fort_level = 4
+					}
+				}
+				#Get neighbour bonus if neighbours have forts (and you don't)
+				set_variable = {
+					which = neighbourFortWindWardLevel
+					value = 1
+				}
+			}
+		}
+	}
+	calculate_windward_level = yes
+}
+
+#Updates the windward level from mage towers and adjacent mage towers
+create_deathwind_ward_level_from_mage_tower = {
+	hidden_effect = {
+		set_variable = {
+			which = magetowerWindWardLevel
+			value = 0
+		}
+		if = {
+			limit = { has_building = mage_tower }
+			set_variable = {
+				which = magetowerWindWardLevel
+				value = 3
+			}
+		}
+		else_if = {
+			limit = {
+				any_neighbor_province = {
+					has_building = mage_tower
+				}
+			}
+			set_variable = {
+				which = magetowerWindWardLevel
+				value = 2
+			}
+		}
+	}
+	calculate_windward_level = yes
+}
+
+#Updates the windward level from local development, you get 1 per 10 development
+create_deathwind_ward_level_from_development = {
+	hidden_effect = {
+		if = {
+			limit = {
+				development = 40
+			}
+			set_variable = {
+				which = developmentWindWardLevel
+				value = 4
+			}
+		}
+		else_if = {
+			limit = {
+				development = 30
+			}
+			set_variable = {
+				which = developmentWindWardLevel
+				value = 3
+			}
+		}
+		else_if = {
+			limit = {
+				development = 20
+			}
+			set_variable = {
+				which = developmentWindWardLevel
+				value = 2
+			}
+		}
+		else_if = {
+			limit = {
+				development = 10
+			}
+			set_variable = {
+				which = developmentWindWardLevel
+				value = 1
+			}
+		}
+		else = {
+			set_variable = {
+				which = developmentWindWardLevel
+				value = 0
+			}
+		}
+	}
+	calculate_windward_level = yes
+}
+
+#Adds $level$ windward levels PERMANENTLY, TODO needs a custom tooltip to show any effects
+add_permanent_windward_level = {
+	custom_tooltip = gain_$level$_windward_level
+	hidden_effect = {
+		change_variable = {
+			which = baseWindWardLevel
+			value = $level$
+		}
+	}
+	calculate_windward_level = yes
+}
+
+#Reduces the windward level in a province by $damage$ levels for $length$ in days
+add_temporary_windward_damage = {
+	if = {
+		limit = {
+			NOT = { has_province_flag = has_temporary_windward_damage }
+		}
+		set_province_flag = has_temporary_windward_damage
+		hidden_effect = {
+			set_variable = {
+				which = temporaryWindWardDamage
+				value = $damage$
+			}
+		}
+		add_permanent_province_modifier = {
+			name = damaged_warding
+			duration = $length$
+		}
+		custom_tooltip = lose_$damage$_windward_level
+		province_event = { id = kheionai.7 days = $length$ }
+	}
+	calculate_windward_level = yes
+}
+
+#Resets temporary windward damage
+reset_temporary_damage = {
+	clr_province_flag = has_temporary_windward_damage
+	hidden_effect = {
+		set_variable = {
+			which = temporaryWindWardDamage
+			value = 0
+		}
+	}
+	remove_province_modifier = damaged_warding
+	calculate_windward_level = yes
+}
+
+calculate_windward_level = {
+	hidden_effect = {
+		set_variable = {
+			which = localWindWardLevel
+			value = 0
+		}
+		change_variable = {
+			which = localWindWardLevel
+			which = temporaryWindWardDamage
+		}
+		change_variable = {
+			which = localWindWardLevel
+			which = developmentWindWardLevel
+		}
+		change_variable = {
+			which = localWindWardLevel
+			which = fortWindWardLevel
+		}
+		change_variable = {
+			which = localWindWardLevel
+			which = neighbourFortWindWardLevel
+		}
+		change_variable = {
+			which = localWindWardLevel
+			which = magetowerWindWardLevel
+		}
+		#From missions and effects and stuff
+		change_variable = {
+			which = localWindWardLevel
+			which = baseWindWardLevel
+		}
+	}
+	#If the winds are active in the province check the new effect of the winds
+	if = {
+		limit = {
+			has_province_flag = deathwinds_active
+		}
+		update_deathwinds_difference = yes
+	}
+}
+
+#Setup the values for windwards for use in tts
+setup_for_deathwinds = {
+	hidden_effect = {
+		create_deathwind_ward_level_from_fort = yes
+		create_deathwind_ward_level_from_mage_tower = yes
+		create_deathwind_ward_level_from_development = yes
+		set_variable = {
+			which = baseWindWardLevel
+			which = 0
+		}
+		set_variable = {
+			which = temporaryWindWardDamage
+			which = 0
+		}
+	}
+}

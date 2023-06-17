@@ -1,0 +1,1252 @@
+#Preachers of Rzentur and Guardianship of Varlengeilt - Occupies slot 1
+pomvasonn_preachers_of_rzentur_1 = {
+	slot = 1
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Preachers of Rzenta
+	G21_preachers_rzenta = {
+		required_missions = {}
+		icon = mission_hands_praying
+		position = 1
+		
+		provinces_to_highlight = {
+			province_id = 1815
+		}
+		
+		trigger = {
+			estate_loyalty = {
+				estate = estate_church
+				loyalty = 50
+			}
+			1815 = {
+				has_building = temple
+			}
+			#Has clergy privilege: Religious Culture
+			has_estate_privilege = estate_church_one_faith_one_culture
+		}
+		
+		effect = {
+			#Give modifier for 20 years: Preachers of Rzenta
+			add_country_modifier = {
+				name = pomvasonn_rzenta_preachers
+				duration = 7300
+			}
+			#Returns 5 crownland
+			change_estate_land_share = {
+					estate = estate_church
+					share = -5
+				}
+		}
+	}
+	
+	#An Heir to Drozmagog?
+	G21_drozmagog_heir = {
+		required_missions = {
+			G21_preachers_rzenta
+		}
+		icon = mission_restore_faith_in_the_throne
+		position = 2
+		
+		provinces_to_highlight = {
+			#On locating Varlengeilt, highlights resident state
+			#Temporary Location: Gomosengha
+			area = munapeim_area
+		}
+		
+		trigger = {
+			#Has located Varlengeilt
+			#Varlengeilt is in a territory owned by Pomvasonn or a non-tributary subject
+			munapeim_area = {
+				country_or_non_sovereign_subject_holds = ROOT
+				type = all
+			}
+			
+			OR = {
+				1194 = { # Gomosengha
+					infantry_in_province = 10
+				}
+				1193 = { # Sengha Urthid
+					infantry_in_province = 10
+				}
+			}
+		}
+		
+		effect = {
+			#Clergy lose 30 loyalty
+			add_estate_loyalty = {
+				estate = estate_church
+				loyalty = -30
+			}
+			#Either:
+			#	The tag in which Varlengeilt resides rebels agaist Pomvasonn
+			#	Drozma Tur zealots rise up in the state Varlengeilt resides in, occupying all provinces
+			#Upon winning, gets guardianship of Varlengeilt
+			country_event = {
+				id = flavor_pomvasonn.10
+			}
+		}
+	}
+
+	#Guardianship Seized
+	G21_guardianship_seized = {
+		required_missions = {
+			G21_drozmagog_heir
+		}
+		icon = holy_state
+		position = 3
+		
+		trigger = {
+			#Is at peace
+			is_at_war = no
+			#Has no rebels
+			NOT = { num_of_rebel_armies = 1 }
+			NOT = { num_of_rebel_controlled_provinces = 1 }
+			
+			#Has guardianship of Varlengeilt
+		}
+		
+		effect = {
+			#Clergy get permanent 10% loyalty equilibrium: Guardianship of Varlengeilt
+			add_country_modifier = {
+				name = drozma_tur_varlengeilt_guardianship
+				duration = -1
+			}
+			add_stability = 3
+		}
+	}
+}
+
+#Unification of Rzenta - Occupies slots 2, 3, and 4
+#Central Branch - Slot 3
+pomvasonn_unification_rzenta_3 = {
+	slot = 3
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Rzentur Clan Feuds
+	G21_clan_feuds = {
+		required_missions = {}
+		icon = mission_rb_unite_the_clans
+		position = 1
+		
+		trigger = {
+			#Have 90% force limit
+			army_size_percentage = 0.9
+			#Either rival at least one other Drozma Tur nation, or no other Drozma Tur nations exist
+			OR = {
+				any_rival_country = {
+					religion = drozma_tur
+				}
+				all_known_country = {
+					NOT = {
+						religion = drozma_tur
+					}
+				}
+			}
+		}
+		
+		effect = {
+			#Gain modifier Thriving Arms industry for 25 years
+			add_country_modifier = {
+				name = thriving_arms_industry
+				duration = 9125
+			}
+		}
+	}
+	
+	#Unification of Rzenta
+	G21_rzenta_unified = {
+		required_missions = {
+			G21_subjugate_gomosengha
+			G21_subjugate_juzondezan
+		}
+		icon = mission_rb_conquer_the_highlands
+		position = 3
+		
+		trigger = {
+			NOT = {
+				has_country_modifier = ynn_diplo
+			}
+		}
+		
+		effect = {
+			add_prestige = 25
+			set_government_rank = 2
+		}
+	}
+	
+	#The Crown and the Clans
+	G21_crown_and_clans = {
+		required_missions = {
+			G21_rzenta_unified
+		}
+		icon = mission_rb_rein_in_the_highland_clans
+		position = 4
+		
+		trigger = {
+			estate_loyalty = {
+				estate = estate_nobles
+				loyalty = 50
+			}
+			
+			has_estate_privilege = estate_nobles_levies
+			
+			# If there are enough subjects for Strong Duchies to be active, then you must have royal marriages with all of them and have the Strong Duchies Privilege
+			IF = {
+				limit = {
+					num_of_subjects = 2
+				}
+				
+				AND = {
+					has_estate_privilege = estate_nobles_strong_duchies 
+					
+					all_subject_country = {
+						OR = {
+							NOT = { government = monarchy }
+							marriage_with = ROOT
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			every_subject_country = {
+				limit = {
+					government = monarchy
+				}
+				
+				#All such countries with marriages become more loyal
+				if = {
+					limit = {
+						marriage_with = ROOT
+					}
+					
+					add_liberty_desire = -10
+				}
+			}
+			
+			add_country_modifier = {
+				name = pomvasonn_loyal_clans
+				duration = 10950 # 30 years
+			}
+		}
+	}
+}
+
+#Left Branch - Slot 2
+pomvasonn_unification_rzenta_2 = {
+	slot = 2
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Foothills of the West
+	G21_subjugate_gomosengha = {
+		required_missions = {
+			G21_clan_feuds
+		}
+		icon = claim_the_borderlands
+		position = 2
+		
+		provinces_to_highlight = {
+			country_or_non_sovereign_subject_holds = G24
+		}
+		
+		trigger = {
+			#Either:
+			#	Gomosengha is a subject of Pomvasonn
+			#	Gomosengha does not exist
+			OR = {
+				G24 = {
+					is_subject_of = ROOT
+				}
+				NOT = { exists = G24 }
+			}
+		}
+		
+		effect = {
+			add_power_projection = {
+				type = mission_rewards_power_projection
+				amount = 10
+			}
+			#Either:
+			#	Gomosengha loses 10 liberty desire
+			#	Pomvasonn gains 50 admin mana
+			if = {
+				limit = {
+					exists = G24
+				}
+				
+				G24 = {
+					add_liberty_desire = -10
+				}
+			}
+			else = {
+				add_adm_power = 50
+			}
+		}
+	}
+	
+	#A Show of Force
+	G21_show_of_force = {
+		required_missions = {
+			G21_rzenta_unified
+			G21_guardianship_seized
+		}
+		icon = mission_break_the_tatar_yoke
+		position = 4
+		
+		trigger = {
+			OR = {
+				any_subject_country = {
+					ROOT = {
+						has_won_war_against = {
+							who = PREV
+						}
+					}
+				}
+				NOT = { num_of_subjects = 1 }
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					num_of_subjects = 1
+				}
+				every_subject_country = {
+					add_liberty_desire = -20
+				}
+			}
+			else = {
+				every_owned_province = {
+					limit = {
+						culture = rzentur
+					}
+					
+					add_local_autonomy = -10
+					add_nationalism = -5
+				}
+			}
+		}
+	}
+}
+
+# Right Branch - Slot 4
+pomvasonn_unification_rzenta_4 = {
+	slot = 4
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Forests of the East
+	G21_subjugate_juzondezan = {
+		required_missions = {
+			G21_clan_feuds
+		}
+		icon = mission_sovereign_principality
+		position = 2
+		
+		provinces_to_highlight = {
+			country_or_non_sovereign_subject_holds = G23
+		}
+		
+		trigger = {
+			#Either:
+			#	Juzondezan is a subject of Pomvasonn
+			#	Juzondezan does not exist
+			OR = {
+				G23 = {
+					is_subject_of = ROOT
+				}
+				NOT = { exists = G23 }
+			}
+		}
+		
+		effect = {
+			add_power_projection = {
+				type = mission_rewards_power_projection
+				amount = 10
+			}
+			#Either:
+			#	Juzondezan loses 10 liberty desire
+			#	Pomvasonn gains 50 admin mana
+			if = {
+				limit = {
+					exists = G23
+				}
+				
+				G23 = {
+					add_liberty_desire = -10
+				}
+			}
+			else = {
+				add_adm_power = 50
+			}
+		}
+	}
+}
+
+#Revival of Svemel - Slot 4
+pomvasonn_svemel_revival = {
+	slot = 4
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Free City of Svemel
+	G21_free_city_svemel = {
+		required_missions = {}
+		icon = mission_eastern_european_city
+		position = 3
+		
+		provinces_to_highlight = {
+			province_id = 1191
+		}
+		
+		trigger = {
+			NOT = {
+				has_country_modifier = ynn_diplo
+			}
+			OR = {
+				G22 = {
+					is_subject_of_type = autonomous_vassal
+					NOT = { liberty_desire = 50 }
+				}
+				1191 = {
+					owned_by = ROOT
+				}
+			}
+		}
+		
+		effect = {
+			#Svemel gets modifier Growth of Capital
+			1191 = {
+				add_province_modifier = {
+					name = growth_of_capital
+					duration = 7300
+				}
+			}
+		}
+	}
+	
+	#Repair the Scaled Walls
+	G21_repair_scaled_walls = {
+		required_missions = {
+			G21_free_city_svemel
+		}
+		icon = defend_the_city
+		position = 4
+		
+		provinces_to_highlight = {
+			province_id = 1191
+		}
+		
+		trigger = {
+			treasury = 100
+			G22 = { #Svemel
+				NOT = { liberty_desire = 50 }
+			}
+		}
+		
+		effect = {
+			#Starts building a castle in Svemel for 50% cost at 100% time
+			add_treasury = -100
+			1191 = {
+				add_building_construction = {
+					building = fort_15th 
+					speed = 1
+					cost = 0
+				}
+			}
+		}
+	}
+	
+	#Svemel's Rzentur Revival
+	G21_svemel_rzentur_revival = {
+		required_missions = {
+			G21_repair_scaled_walls
+			#Commented out for time being - may be re-added
+			#G21_gozhar_urthid_glassworks
+		}
+		icon = mission_establish_the_prikazy
+		position = 4
+		
+		provinces_to_highlight = {
+			province_id = 1191
+		}
+		
+		trigger = {
+			1191 = { #Svemel
+				development = 20
+				has_building = temple
+				has_building = marketplace
+				has_building = fort_15th
+			}
+		}
+		
+		effect = {
+			#Svemel:
+			#	Loses modifier Urban Decline
+			#	Gains 20 support for Renaissance
+			
+			1191 = {
+				remove_province_modifier = ynn_urban_decline 
+				add_institution_embracement = {
+					which = renaissance
+					value = 20
+				}
+			}
+		}
+	}
+}
+
+#Craftsmen and Glassworks - Slot 5
+pomvasonn_craftsmen_and_glassworks_5 = {
+	slot = 5
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Craftsmen of Pomvasonn
+	G21_pomvasonn_craftsmen = {
+		required_missions = {}
+		icon = florentine_renaissance
+		position = 1
+		
+		provinces_to_highlight = {
+			province_id = 1815
+		}
+		
+		trigger = {
+			1815 = { #Pomvasonn
+				base_production = 8
+				has_building = marketplace
+			}
+		}
+		
+		effect = {
+			#Gain a skill 1 Natural Scientist.  This advisor is 75% cheaper
+			define_advisor = {
+				type = natural_scientist
+				skill = 1
+				cost_multiplier = 0.25
+			}
+		}
+	}
+	
+	#Glassworks of Gozhar Urthid
+	G21_gozhar_urthid_glassworks = {
+		required_missions = {
+			G21_pomvasonn_craftsmen
+		}
+		icon = bohemian_crystal
+		position = 4
+		
+		provinces_to_highlight = {
+			province_id = 1758
+		}
+		
+		trigger = {
+			1758 = { #Gozhar Urthid
+				base_production = 6
+				has_building = workshop
+			}
+		}
+		
+		effect = {
+			1758 = { #Gozhar Urthid
+				add_province_modifier = {
+					name = pomvasonn_glassworks
+					duration = -1
+				}
+			}
+			#Gozhar Urthid gets modifier Glassworks of Gozhar Urthid
+			#+0.50 local goods produced
+		}
+	}
+	
+	#Great Glassworks of Gozhar Urthid
+	G21_great_glassworks = {
+		required_missions = {
+			G21_gozhar_urthid_glassworks
+			G21_svemel_rzentur_revival
+		}
+		icon = mission_seize_north_sea_trade
+		position = 6
+		
+		provinces_to_highlight = {
+			province_id = 1758
+		}
+		
+		trigger = {
+			1758 = { #Gozhar Urthid
+				base_production = 10
+				has_building = workshop
+				renaissance = 100
+			}
+		}
+		
+		effect = {
+			#Upgrades Glassworks of Gozhar Urthid
+			#+1.00 Goods Produced, -0.5% Prestige Decay
+			1758 = { #Gozhar Urthid
+				remove_province_modifier = pomvasonn_glassworks
+				add_province_modifier = {
+					name = pomvasonn_great_glassworks
+					duration = -1
+				}
+			}
+		}
+	}
+	
+	#Dolindhan Glass Trade
+	G21_dolindhan_glass_trade = {
+		required_missions = {
+			G21_great_glassworks
+		}
+		icon = mission_advance_to_the_dnieper
+		position = 9
+		
+		provinces_to_highlight = {
+			province_id = 1166
+		}
+		
+		trigger = {
+			#Pomvasonn owns and has a core on Grebshalas
+			#Grebshalas:
+			#	Has less than 50% local autonomy
+			#	Has a marketplace built
+			1166 = {
+				owned_by = ROOT
+				is_core = ROOT
+				NOT = { local_autonomy = 50 }
+				has_building = marketplace
+			}
+		}
+	
+		effect = {
+			1166 = { #Grebshalas
+				center_of_trade = 1
+			}
+		}
+	}
+}
+
+
+#Second Great Dragon Host - Occupies Slots 1-4
+#Core branch - Slot 3
+pomvasonn_great_dragon_host_core_3 = {
+	slot = 3
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#The Second Great Dragon Host
+	G21_great_dragon_host = {
+		required_missions = {
+			G21_crown_and_clans
+		}
+		icon = protect_against_austria
+		position = 5
+		
+		trigger = {
+			#Has Guardianship of Varlengeilt
+			has_country_modifier = drozma_tur_varlengeilt_guardianship
+			#All vassals are loyal
+			all_subject_country = {
+				NOT = { liberty_desire = 50 }
+			}
+			#Have at least 100% of force limit
+			army_size_percentage = 1
+		}
+		
+		effect = {
+			#Gain claims on Dolindha region
+			dolindha_region = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_claim = ROOT
+			}
+			
+			#Event: The Second Great Dragon Host
+			country_event = {
+				id = flavor_pomvasonn.1
+			}
+		}
+	}
+	
+	#Ynnic Retaliation
+	G21_ynnic_retaliation = {
+		required_missions = {
+			G21_great_dragon_host
+		}
+		icon = mission_teutonic_knights
+		position = 6
+		
+		trigger = {
+			#Pomvasonn is at war with a coalition or is at war with 5 nations at once
+			OR = {
+				is_in_coalition_war = yes
+				calc_true_if = {
+					all_known_country = {
+						war_with = ROOT
+					}
+					amount = 5
+				}
+			}
+		}
+		
+		effect = {
+			#Give modifier for 20 years: Drozmagog, Bear Witness!
+			add_country_modifier = {
+				name = pomvasonn_drozmagog_bear_witness
+				duration = 7300
+			}
+		}
+	}
+	
+	#Our Might Proven
+	G21_might_proven = {
+		required_missions = {
+			G21_ynnic_retaliation
+		}
+		icon = mission_conquer_romania
+		position = 7
+		
+		trigger = {
+			is_at_war = no
+			#Pomvasonn has a truce with all neighboring nations
+			all_neighbor_country = {
+				OR = {
+					is_subject_of = ROOT
+					AND = {
+						truce_with = ROOT
+						
+						# Has not won a war against Pomvasonn in the last 10 years
+						NOT = {
+							has_won_war_against = {
+								who = G21
+								max_years_since = 10
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		effect = {
+			#Gain permanent claims on Dolindha region
+			dolindha_region = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = ROOT
+			}
+			add_prestige = 50
+			#Inherit all regular vassals
+			every_subject_country = {
+				limit = {
+					NOT = { is_subject_of_type = autonomous_vassal }
+				}
+				
+				ROOT = {
+					inherit = PREV
+				}
+			}
+		}
+	}
+	
+	#Crush the Ynnic Clergy
+	G21_crush_ynnic_clergy = {
+		required_missions = {
+			G21_dragonslayer_lineage
+			G21_vareynn_conquest
+		}
+		icon = mission_kon_repel_the_missionaries
+		position = 8
+		
+		provinces_to_highlight = {
+			OR = {
+				province_id = 1165
+				province_id = 1186
+			}
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			#Pomvasonn or a non-tributary subject:
+			#	Owns Bosancovac
+			1165 = {
+				country_or_non_sovereign_subject_holds = ROOT
+			}
+			#	Owns Mocbarja
+			1186 = {
+				country_or_non_sovereign_subject_holds = ROOT
+			}
+		}
+		
+		effect = {
+			country_event = {
+				id = flavor_pomvasonn.6
+			}
+		}
+	}
+}
+
+#Great Dragon Host Malacnar Branch - Slot 1
+pomvasonn_great_dragon_host_malacnar_1 = {
+	slot = 1
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Battling the Battleking
+	G21_battling_battleking = {
+		required_missions = {
+			G21_great_dragon_host
+		}
+		icon = league_of_the_public_weal
+		position = 6
+		
+		provinces_to_highlight = {
+			area = malacnar_area
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			OR = {
+				has_won_war_against = {
+					who = G32
+					max_years_since = 50
+				}
+				NOT = { exists = G32 }
+			}
+			malacnar_area = {
+				country_or_non_sovereign_subject_holds = ROOT
+				type = all
+			}
+		}
+		
+		effect = {
+			#All provinces in Malacnar region:
+			malacnar_area = {
+				#	Gains 10 devastation
+				#	Loses 1 development of each kind
+				add_devastation = 10
+				add_base_tax = -1
+				add_base_production = -1
+				add_base_manpower = -1
+			}
+			add_treasury = 100
+		}
+	}
+	
+	#The Battleking's Companions
+	G21_malacnar_companions = {
+		required_missions = {
+			G21_battling_battleking
+		}
+		icon = mission_consolidate_the_state
+		position = 7
+		
+		trigger = {
+			#Has Dolindhan as an accepted culture
+			accepted_culture = dolindhan
+			#Has at least 90% war score against 3 nations
+			calc_true_if = {
+				all_known_country = {
+					war_with = ROOT
+					NOT = {
+						war_score_against = {
+							who = ROOT
+							value = -90
+						}
+					}
+				}
+				amount = 3
+			}
+		}
+		
+		effect = {
+			#Nobility gain 10 influence and loyalty equilibrium for 20 years (Malacnari Clans)
+			add_estate_loyalty_modifier = {
+				estate = estate_nobles
+				desc = G21_Malacnari_Clans
+				loyalty = 10
+				duration = 7300
+			}
+			add_estate_influence_modifier = {
+				estate = estate_nobles
+				desc = G21_Malacnari_Clans
+				influence = 10
+				duration = 7300
+			}
+			add_yearly_manpower = 2
+			malacnar_area = {
+				add_nationalism = -5
+				add_local_autonomy = -10
+			}
+		}
+	}
+}
+
+#Great Dragon Host Western Branch - Slot 2
+pomvasonn_great_dragon_host_west_2 = {
+	slot = 2
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#The Great Marsh of Dolindha
+	G21_great_marsh = {
+		required_missions = {
+			G21_great_dragon_host
+		}
+		icon = mission_conquer_50_development
+		position = 6
+		
+		provinces_to_highlight = {
+			area = mocvare_area
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			mocvare_area = {
+				country_or_non_sovereign_subject_holds = ROOT
+				type = all
+			}
+		}
+		
+		effect = {
+			1188 = { #Mocvare
+				add_devastation = 20
+				add_base_tax = -2
+				add_base_production = -2
+				add_base_manpower = -2
+				
+				#Destroys the fort in Mocvare
+				remove_building = fort_15th
+			}
+			#Event: Foundation of Drozma Mors
+			country_event = {
+				id = flavor_pomvasonn.2
+			}
+		}
+	}
+	
+	#The Dragonslayer's Lineage
+	G21_dragonslayer_lineage = {
+		required_missions = {
+			G21_great_marsh
+		}
+		icon = mission_impaled_soldies
+		position = 7
+		
+		provinces_to_highlight = {
+			area = arganjuzorn_area
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			#Pomvasonn or a non-tributary subject:
+			#	Own all of Arganjuzorn state
+			arganjuzorn_area = {
+				country_or_non_sovereign_subject_holds = ROOT
+				type = all
+			}
+		}
+		
+		effect = {
+			#Event: Vengeance for Drozmagog
+			country_event = {
+				id = flavor_pomvasonn.4
+			}
+		}
+	}
+	
+	#Post-Conquest Mission: Enlighten Dolindha
+	G21_enlighten_dolindha = {
+		required_missions = {
+			G21_drozma_tur_dolindha
+		}
+		icon = mission_conquer_moscow
+		position = 10
+		
+		provinces_to_highlight = {
+			OR = {
+				province_id = 1186
+				province_id = 1171
+				province_id = 1165
+			}
+		}
+		
+		trigger = {
+			1186 = { #Mocvare
+				owned_by = ROOT
+				has_owner_religion = yes
+			}
+			1171 = { #Vareynn
+				owned_by = ROOT
+				has_owner_religion = yes
+			}
+			1165 = { #Bosancovac
+				owned_by = ROOT
+				has_owner_religion = yes
+			}
+		}
+		
+		effect = {
+			#All Dolindhan Drozma Tur provinces lose 10% autonomy and 5 years of separatism
+			every_owned_province = {
+				limit = {
+					culture = dolindhan
+					has_owner_religion = yes
+				}
+				
+				add_nationalism = -5
+				add_local_autonomy = -10
+			}
+			
+			#Mocbarja and Grebniesth become Rzentur culture
+			1186 = {
+				change_culture = rzentur
+			}
+			1182 = {
+				change_culture = rzentur
+			}
+		}
+	}
+}
+
+#Great Dragon Host Eastern Branch - Slot 4
+pomvasonn_great_dragon_host_east_4 = {
+	slot = 4
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Gardens of Grebniesth
+	G21_grebniesth_gardens = {
+		required_missions = {
+			G21_great_dragon_host
+		}
+		icon = austria_prospers
+		position = 6
+		
+		provinces_to_highlight = {
+			area = grebniesth_area
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			grebniesth_area = {
+				country_or_non_sovereign_subject_holds = ROOT
+				type = all
+			}
+		}
+		
+		effect = {
+			grebniesth_area = {
+				#	Gains 10 devastation
+				#	Loses 1 development of each kind
+				add_devastation = 10
+				add_base_tax = -1
+				add_base_production = -1
+				add_base_manpower = -1
+			}
+			# Event: Gardens for the Dragon?
+			country_event = {
+				id = flavor_pomvasonn.3
+			}
+		}
+	}
+	
+	#Old Capital of the Empire
+	G21_vareynn_conquest = {
+		required_missions = {
+			G21_grebniesth_gardens
+		}
+		icon = boh_humiliate_austria
+		position = 7
+		
+		provinces_to_highlight = {
+			province_id = 1171
+			NOT = {country_or_non_sovereign_subject_holds = ROOT}
+		}
+		
+		trigger = {
+			1171 = { #Vareynn
+				owned_by = ROOT
+			}
+		}
+		
+		effect = {
+			#Event: Sacking of Vareynn
+			country_event = {
+				id = flavor_pomvasonn.5
+			}
+		}
+	}
+	
+	#Post-Conquest Mission: Resettlement of Dolindha
+	G21_resettle_dolindha = {
+		required_missions = {
+			G21_drozma_tur_dolindha
+		}
+		icon = mission_rb_conquer_wales
+		position = 10
+		
+		trigger = {
+			estate_loyalty = {
+				estate = estate_nobles
+				loyalty = 60
+			}
+			manpower_percentage = 0.2
+			treasury = 200
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					has_estate_privilege = estate_nobles_levies
+				}
+				
+				remove_estate_privilege = estate_nobles_levies
+				change_estate_land_share = {
+					estate = estate_nobles
+					share = 5
+				}
+				
+				#1 year of manpower
+				add_yearly_manpower = 1
+			}
+			#Event: Resettlement of Dolindha
+			country_event = {
+				id = flavor_pomvasonn.7
+			}
+		}
+	}
+}
+
+#Drozma Tur Dolindha - End of Mission Tree
+#Core - Slot 3
+pomvasonn_drozma_tur_dolindha_3 = {
+	slot = 3
+	generic = no
+	ai = yes
+	potential = {
+		tag = G21
+	}
+	has_country_shield = yes
+	
+	#Drozma Tur Dolindha
+	G21_drozma_tur_dolindha = {
+		required_missions = {
+			G21_crush_ynnic_clergy
+		}
+		icon = mission_weather_the_troubles
+		position = 9
+		
+		provinces_to_highlight = {
+			region = dolindha_region
+			is_city = yes
+			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+		}
+		
+		trigger = {
+			dolindha_region = {
+				type = all
+				OR = {
+					country_or_non_sovereign_subject_holds = ROOT
+					is_city = no
+				}
+			}
+			is_at_war = no
+		}
+		
+		effect = {
+			#Grant permanent modifier: Legacy of the Second Great Dragon Host
+			add_country_modifier = {
+				name = pomvasonn_legacy_of_great_host
+				duration = -1
+			}
+		}
+	}
+	
+	#Home of the Dragon
+	G21_dragons_home = {
+		required_missions = {
+			G21_enlighten_dolindha
+			G21_resettle_dolindha
+		}
+		icon = mission_empire
+		position = 11
+		
+		provinces_to_highlight = {
+			province_id = 1191
+		}
+		
+		trigger = {
+			#Has favor of Varlengeilt
+			OR = {
+				AND = {
+					NOT = { exists = G22 }
+					1191 = {
+						owned_by = ROOT
+					}
+				}
+				G22 = { #Svemel
+					NOT = { liberty_desire = 50} # Is loyal
+				}
+			}
+			1191 = {
+				is_prosperous = yes
+			}
+		}
+		
+		effect = {
+			#Event: Pomvasonn's Dominion
+			country_event = {
+				id = flavor_pomvasonn.8
+			}
+		}
+	}
+}

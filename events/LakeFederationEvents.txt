@@ -1,6 +1,31 @@
 
 namespace = lake
 
+#Federation Cohesion Begin
+country_event = {
+	id = lake.0
+	title = lake.0.t
+	desc = lake.0.d
+	picture = STREET_SPEECH_eventPicture
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		tag = J02
+	}
+	immediate = {
+		federation_reset_cohesion = yes
+	}
+	
+	option = {
+		name = lake.0.a
+		ai_chance = { factor = 100 }
+		5253 = { add_province_triggered_modifier = federation_cohesion_triggers }
+	}
+}
+
 #Federation - Linguistic Academy
 country_event = {
 	id = lake.1
@@ -282,9 +307,7 @@ country_event = {
 						region = southern_isles_region
 						region = northern_isles_region
 					}
-					OR = {
-						trade_goods = fish
-					}
+					trade_goods = fish
 				}
 				add_base_production = 1
 				add_base_tax = 1
@@ -382,6 +405,7 @@ country_event = {
 		name = lake.11.a
 		ai_chance = { factor = 100 }
 		swap_non_generic_missions = yes
+		federation_increase_cohesion = yes
 	}
 }
 
@@ -1097,10 +1121,20 @@ country_event = {
 			currency_effect = { currency=treasury takeFrom=ROOT addTo=J33 which=treasuryAvailable }
 			currency_effect = { currency=manpower takeFrom=ROOT addTo=J33 which=manpowerAvailable }
 		}
-		every_owned_province = {
-			add_core = J33
-			cede_province = J33
+		J33 = { 
+			inherit = ROOT
+			hidden_effect = {
+				change_estate_land_share = {
+					estate = all
+					share = -10
+				}
+			}
 		}
+		# every_owned_province = {
+			# add_core = J33
+			# cede_province = J33
+		# }
+		custom_tooltip = lakefed_integrates_you
 	}
 	
 	#No
@@ -1133,6 +1167,10 @@ country_event = {
 		name = lake.28.a
 		ai_chance = { factor = 100 }
 		reduce_stability_or_adm_power = yes
+		if = {
+			limit = { has_global_flag = lake_cohesion_bad }
+			clr_global_flag = lake_cohesion_bad
+		}
 	}
 }
 
@@ -1153,9 +1191,16 @@ country_event = {
 		name = lake.29.a
 		ai_chance = { factor = 100 }
 		add_stability_or_adm_power = yes
-		random = {
-			chance = 50
-			add_stability_or_adm_power = yes
+		if = {
+			limit = { has_global_flag = lake_cohesion_bad }
+			federation_decrease_cohesion = yes
+		}
+		else = { 
+			federation_increase_cohesion = yes
+			random = {
+				chance = 50
+				add_stability_or_adm_power = yes
+			}
 		}
 	}
 }
@@ -1546,8 +1591,17 @@ country_event = {
 	
 	option = {
 		name = lake.39.a
+		trigger = { NOT = { federation_cohesion_formed_tag = yes } }
 		ai_chance = { factor = 100 }
 		add_prestige = -20
+		swap_non_generic_missions = yes
+		hidden_effect = { clear_federation_global_flag = yes }
+	}
+	option = {
+		name = lake.39.b
+		trigger = { federation_cohesion_formed_tag = yes }
+		ai_chance = { factor = 100 }
+		add_prestige = 15
 		swap_non_generic_missions = yes
 		hidden_effect = { clear_federation_global_flag = yes }
 	}
@@ -1563,9 +1617,6 @@ country_event = {
 	is_triggered_only = yes
 	
 	major_trigger = { has_country_modifier = lake_federation_member }
-	trigger = {
-		always = yes
-	}
 	
 	option = {
 		name = lake.40.a
@@ -1619,195 +1670,12 @@ country_event = {
         ai_chance = { factor = 100 }
         5304 = {
             rename_capital = "The Sky Walk"
-			hidden_effect = { set_province_flag = zabyos_flag }
-			hidden_effect = { 
-				add_great_project = {
-					type = zabyos_canal
-					instant = yes
-				}
-				add_great_project = {
-					type = tlar_canal
-					instant = yes
-				}
+			add_great_project_tier = {
+				type = zabyostlar_canal
+				tier = 1
 			}
         }
     }
-}
-
-#Federal Capital
-country_event = {
-	id = lake.104
-	title = lake.104.t
-	desc = {
-		trigger = { 
-			capital_scope = {
-				NOT = { 
-					province_id = 5290
-					province_id = 5304
-					province_id = 5256
-					province_id = 5226
-					province_id = 5239
-				}
-			}
-		}
-		desc = lake.104.d.1
-	}
-	desc = {
-		trigger = { 
-			capital_scope = {
-				OR = {
-					province_id = 5290
-					province_id = 5304
-					province_id = 5256
-					province_id = 5226
-					province_id = 5239
-				}
-			}
-		}
-		desc = lake.104.d.2
-	}
-	picture = BIG_BOOK_eventPicture
-	
-	fire_only_once = yes
-	mean_time_to_happen = {
-		years = 50
-		
-		modifier = {
-			factor = 0.75
-			stability = 1
-		}
-		modifier = {
-			factor = 0.5
-			stability = 2
-		}
-		modifier = {
-			factor = 0.3
-			stability = 3
-		}
-	}
-	trigger = {
-		tag = J33
-		NOT = { has_country_flag = federal_capital_chosen }
-	}
-	
-	#Raattakod
-	option = {
-		name = lake.104.a
-		ai_chance = { factor = 100 }
-		trigger = { owns = 5290 }
-		set_country_flag = federal_capital_chosen
-		5290 = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = halls_of_valor
-				duration = -1
-			}
-			rename_capital = "The Halls of Valor"
-			add_base_tax = 2
-			add_base_production = 2
-			add_base_manpower = 3
-		}
-	}
-	#Zabyos'tlar
-	option = {
-		name = lake.104.b
-		ai_chance = { factor = 100 }
-		trigger = { owns = 5304 }
-		set_country_flag = federal_capital_chosen
-		5304 = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = castle_in_the_sky
-				duration = -1
-			}
-			rename_capital = "Castle in the Sky"
-			add_base_tax = 2
-			add_base_production = 3
-			add_base_manpower = 2
-		}
-	}
-	#Qarshtuluu
-	option = {
-		name = lake.104.c
-		ai_chance = { factor = 100 }
-		trigger = { owns = 5256 }
-		set_country_flag = federal_capital_chosen
-		5256 = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = gem_of_the_islands
-				duration = -1
-			}
-			rename_capital = "Gem of the Isles"
-			add_base_tax = 3
-			add_base_production = 2
-			add_base_manpower = 2
-		}
-	}
-	#Zurkanrek
-	option = {
-		name = lake.104.d
-		ai_chance = { factor = 100 }
-		trigger = { owns = 5226 }
-		set_country_flag = federal_capital_chosen
-		5226 = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = star_of_the_east
-				duration = -1
-			}
-			rename_capital = "Star of the East"
-			add_base_tax = 3
-			add_base_production = 3
-			add_base_manpower = 1
-		}
-	}
-	#Ultakal
-	option = {
-		name = lake.104.e
-		ai_chance = { factor = 100 }
-		trigger = { owns = 5239 }
-		set_country_flag = federal_capital_chosen
-		5239 = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = city_of_gold_and_smog
-				duration = -1
-			}
-			rename_capital = "City of Gold and Smog"
-			add_base_tax = 1
-			add_base_production = 5
-			add_base_manpower = 1
-		}
-	}
-	#Don't Move It
-	option = {
-		name = lake.104.f
-		ai_chance = { factor = 100 }
-		trigger = {
-			capital_scope = {
-				NOT = { 
-					province_id = 5290
-					province_id = 5304
-					province_id = 5256
-					province_id = 5226
-					province_id = 5239
-				}	
-			}
-		}
-		set_country_flag = federal_capital_chosen
-		capital_scope = {
-			move_capital_effect = yes 
-			add_permanent_province_modifier = {
-				name = pride_of_the_federation
-				duration = -1
-			}
-			rename_capital = "Capital of the Federation"
-			add_base_tax = 3
-			add_base_production = 2
-			add_base_manpower = 2
-		}
-	}
 }
 
 #Explain the Ultakal Decree
@@ -2496,7 +2364,7 @@ country_event = {
 	option = {
 		name = lake.58.a
 		ai_chance = { factor = 100 }
-		add_years_of_income = 0.8
+		add_years_of_income = 0.9
 	}
 }
 
@@ -2506,10 +2374,19 @@ country_event = {
 	title = lake.59.t
 	desc = lake.59.d
 	picture = RELIGIOUS_CONVERSION_eventPicture
+	goto = capital
 	
 	is_triggered_only = yes
 	
 	trigger = { always = yes }
+	
+	immediate = {
+		hidden_effect = {
+			capital_scope = {
+				save_event_target_as = capital
+			}
+		}
+	}
 	
 	option = {
 		name = lake.59.a
@@ -2520,6 +2397,7 @@ country_event = {
 				33 = { add_base_manpower = -1 }
 				33 = { add_base_production = -1 }
 			}
+			add_devastation = 5
 		}
 		reduce_stability_or_adm_power = yes
 	}
@@ -2540,6 +2418,7 @@ country_event = {
 		name = lake.60.a
 		ai_chance = { factor = 100 }
 		kill_ruler = yes
+		add_prestige = -10
 	}
 }
 
@@ -2619,7 +2498,7 @@ country_event = {
 	title = lake.63.t
 	desc = lake.63.d
 	picture = RELIGIOUS_CONVERSION_eventPicture
-	
+	goto = target_province
 	
 	mean_time_to_happen = {
 		years = 15
@@ -2643,13 +2522,24 @@ country_event = {
 		}
 	}
 	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					is_capital = no
+					development = 15
+				}
+				save_event_target_as = target_province
+			}
+		}
+	}
+	
 	option = {
 		name = lake.63.a
 		ai_chance = { factor = 100 }
 		add_stability_or_adm_power = yes
 		remove_country_modifier = the_ascension
-		random_owned_province = {
-			limit = { is_capital = no development = 15 }
+		event_target:target_province = {
 			add_base_tax = -2
 			add_base_production = -2
 			add_base_manpower = -2
@@ -2795,6 +2685,1296 @@ country_event = {
 	}
 }
 
+################
+##SOVKELQUR MT##
+################
+
+#Discover Haless
+country_event = {
+	id = lake.66
+	title = lake.66.t
+	desc = { # Road Not Built, Pirates no Int
+        trigger = { 
+			2913 = { NOT = { has_province_modifier = golden_highway } } 
+			NOT = { mission_completed = J33_a_pirate_dealing  }
+		}
+        desc = lake.66.d
+    }
+    desc = { # Road Built, Pirates no Int
+        trigger = { 
+			2913 = { has_province_modifier = golden_highway } 
+			NOT = { mission_completed = J33_a_pirate_dealing } 
+		}
+        desc = lake.66.d2
+    }
+	desc = { # Road Not Built, Pirates Killed
+        trigger = { 
+			2913 = { NOT = { has_province_modifier = golden_highway } } 
+			has_country_flag = Sovkelqur_dreadfleet_destroyed 
+		}
+        desc = lake.66.d3
+    }
+    desc = { # Road Built, Pirates Killed
+        trigger = { 
+			2913 = { has_province_modifier = golden_highway } 
+			has_country_flag = Sovkelqur_dreadfleet_destroyed
+		}
+        desc = lake.66.d4
+    }
+	desc = { # Road Not Built, Pirates Treaty
+        trigger = { 
+			2913 = { NOT = { has_province_modifier = golden_highway } }  
+			has_country_flag = Sovkelqur_dreadfleet_treaty 
+		}
+        desc = lake.66.d5
+    }
+    desc = { # Road Built, Pirates Treaty
+        trigger = { 
+			2913 = { has_province_modifier = golden_highway } 
+			has_country_flag = Sovkelqur_dreadfleet_treaty
+		}
+        desc = lake.66.d6
+    }
+	picture = COASTLINE_MAP_eventPicture
+	
+	is_triggered_only = yes
+	option = {
+		name = lake.66.a
+		ai_chance = {
+			factor = 100
+		}
+		asia = {
+			limit = {
+				has_port = yes
+				is_wasteland = no
+				NOT = {
+					province_id = 6511
+					province_id = 6512
+				}
+			}
+			discover_country = ROOT
+			sea_zone = {
+				discover_country = ROOT
+			}
+		}
+		2913 = {
+			discover_country = ROOT
+		}
+		set_country_flag = haless_mapped
+		4226 = {
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+			heavy_ship = ROOT
+		}
+	}
+}
+
+#Treasure Fleet Expansion
+country_event = {
+	id = lake.67
+	title = lake.67.t
+    desc = { # Never used this menu
+        trigger = { # Check all the provinces if we have created a port.
+			NOT = {
+				5356 = { has_province_modifier = JY_LF_port }
+				4962 = { has_province_modifier = JY_LF_port }
+				4701 = { has_province_modifier = JY_LF_port }
+				4570 = { has_province_modifier = JY_LF_port }
+				4420 = { has_province_modifier = JY_LF_port }
+				4380 = { has_province_modifier = JY_LF_port }
+				4367 = { has_province_modifier = JY_LF_port }
+				4362 = { has_province_modifier = JY_LF_port }
+				2913 = { has_province_modifier = JY_LF_port }
+			}
+		}
+		desc = lake.67.d
+    }
+    desc = { # Has upgraded once
+        trigger = { 
+			
+		}
+       	desc = lake.67.d2
+    }
+	picture = TOLLS_SHIP_CARGO_eventPicture
+
+	is_triggered_only = yes
+
+	#Close the event
+	option = {
+		name = lake.67.a
+		ai_chance = {
+			factor = 25
+		}
+	}
+	
+	#Buogoj (Doubled for Daengun)
+	option = {
+		name = lake.67.b
+		goto = 5356
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			5356 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				5356 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+						NOT = {
+							tag = Y93
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else_if = {
+			limit = {
+				5356 = {
+					owner = {
+						OR = {
+							NOT ={
+								tag = Y93
+							}
+							AND = {
+								tag = Y93
+								has_opinion = {
+									who = ROOT
+									value = 100
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = -5000
+		}
+		else = {
+			add_treasury = -10000
+		}
+		5356 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Hasiksibou
+	option = {
+		name = lake.67.c
+		goto = 4962
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4962 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4962 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4962 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Cay Cam Sinh
+	option = {
+		name = lake.67.e
+		goto = 4701
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4701 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4701 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4701 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Prukakhin
+	option = {
+		name = lake.67.f
+		goto = 4570
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4570 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4570 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4570 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Sramaya
+	option = {
+		name = lake.67.g
+		goto = 4420
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4420 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4420 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4420 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Sardika
+	option = {
+		name = lake.67.h
+		goto = 4380
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4380 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4380 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4380 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Sarkhashabid
+	option = {
+		name = lake.67.i
+		goto = 4367
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4367 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4367 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4367 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Avhavubhiya
+	option = {
+		name = lake.67.j
+		goto = 4362
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			4362 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				4362 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		4362 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+
+	#Davharral
+	option = {
+		name = lake.67.k
+		goto = 2913
+		ai_chance = {
+			factor = 25
+		}
+		trigger = {
+			2913 = {
+				NOT = {
+					has_province_modifier = JY_LF_port
+				}
+			}
+		}
+		if = {
+			limit = {
+				2913 = {
+					owner = {
+						has_opinion = {
+							who = ROOT
+							value = 100
+						}
+					}
+				}
+			}
+			add_treasury = -2500
+		}
+		else = {
+			add_treasury = -5000
+		}
+		2913 = {
+			add_permanent_province_modifier = {
+				name = JY_LF_port
+				duration = -1
+			}
+			hidden_effect = {
+				province_event = {
+					id = lake.69
+				}
+			}
+		}
+	}
+}
+
+#Modifiers From Fleet
+country_event = {
+	id = lake.68
+	title = lake.68.t
+	desc = lake.68.d
+	picture = TRADEGOODS_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = lake.68.a
+		custom_tooltip = J33_boons_from_the_fleet_tooltip
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = treasure_fleet_level_3
+				}
+				random_list = {
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_unrest_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_trade_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_republic_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_prestige_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tech_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tax_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_goods_3
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_merchant
+							duration = 1825
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = treasure_fleet_level_2
+				}
+				random_list = {
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_unrest_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_trade_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_republic_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_prestige_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tech_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tax_2
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_goods_2
+							duration = 1825
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = treasure_fleet_level_1
+				}
+				random_list = {
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_unrest_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_trade_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_republic_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_prestige_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tech_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_tax_1
+							duration = 1825
+						}
+					}
+					25 = {
+						add_country_modifier = {
+							name = federation_boons_goods_1
+							duration = 1825
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+#Notifies Country of New Treasure Port
+province_event = {
+	id = lake.69
+	title = lake.69.t
+	desc = lake.69.d
+	picture = TRIBUTARY_FLEET_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = lake.69.a
+	}
+}
+
+###############
+##Kasuknisat MT
+###############
+
+country_event = { #Ask Beik to become vassal
+	id = lake.70
+	title = lake.70.t
+	desc = lake.70.d
+	picture = DIPLOMACY_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Accept
+		name = lake.70.a
+		ai_chance = {
+			factor = 100
+		}
+		J33 = {
+			country_event = {
+				id = lake.71
+				days = 1
+			}
+		}
+		tooltip = {
+			J33 = {
+				create_subject = {
+					subject_type = march
+					subject = Y15
+				}
+				add_treasury = -2500
+				add_trust = {
+					who = Y15
+					value = 35
+					mutual = yes
+				}
+			}
+			Y15 = {
+				add_treasury = 2500
+			}
+		}
+		add_historical_friend = J33
+		north_yanshen_region = {
+			add_permanent_claim = Y15
+		}
+	}
+
+	option = { #Decline
+		name = lake.70.b
+		ai_chance = {
+			factor = 0
+		}
+		J33 = {
+			country_event = {
+				id = lake.72
+				days = 1
+			}
+		}
+		add_prestige = 5
+		tooltip = {
+			J33 = {
+				add_casus_belli = {
+					type = cb_vassalize_mission
+					target = Y15
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Beik accepts
+	id = lake.71
+	title = lake.71.t
+	desc = lake.71.d
+	picture = DIPLOMACY_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = lake.71.a
+		ai_chance = {
+			factor = 100
+		}
+		create_subject = {
+			subject_type = march
+			subject = Y15
+		}
+		add_treasury = -2500
+		add_historical_friend = Y15
+		add_trust = {
+			who = Y15
+			value = 35
+			mutual = yes
+		}
+		Y15 = {
+			add_treasury = 2500
+		}
+		tooltip = {
+			north_yanshen_region = {
+				add_permanent_claim = Y15
+			}
+		}
+	}
+}
+
+country_event = { #Beik declines
+	id = lake.72
+	title = lake.72.t
+	desc = lake.72.d
+	picture = DIPLOMACY_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = lake.72.a
+		ai_chance = {
+			factor = 100
+		}
+		add_casus_belli = {
+			type = cb_vassalize_mission
+			target = Y15
+		}
+	}
+}
+
+country_event = { #Treaty of Beikdugang
+	id = lake.73
+	title = lake.73.t
+	desc = lake.73.d
+	picture = DIET_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Accept
+		name = lake.73.a
+		ai_chance = {
+			factor = 75
+		}
+		Y15 = {
+			add_country_modifier = {
+				name = federation_treaty_of_beikdugang
+				duration = -1
+			}
+		}
+		yanshen_superregion = {
+			add_permanent_claim = Y15
+		}
+		custom_tooltip = lake.73.a.tt
+		hidden_effect = {
+			capital_scope = {
+				add_province_triggered_modifier = federation_treaty_of_beikdugang_triggered
+			}
+		}
+	}
+
+	option = { #Refuse
+		name = lake.73.b
+		ai_chance = {
+			factor = 25
+		}
+		Y15 = {
+			add_country_modifier = {
+				name = federation_refused_treaty_of_beikdugang
+				duration = -1
+			}
+			remove_historical_friend = J33
+		}
+		yanshen_superregion = {
+			add_permanent_claim = J33
+		}
+	}
+}
+
+country_event = { #Exceptional Soldier
+	id = lake.74
+	title = lake.74.t
+	desc = lake.74.d
+	picture = GENERALS_DISCUSSING_eventPicture
+
+	mean_time_to_happen = {
+		years = 40
+	}
+
+	trigger = {
+		tag = J33
+		has_country_flag = fedeartion_allow_exceptional
+	}
+
+	option = {
+		name = lake.74.a
+		ai_chance = {
+			factor = 100
+		}
+		if = {
+			limit = {
+				army_tradition = 95
+			}
+			random_list = {
+				85 = {
+					create_general = {
+						tradition = 100
+					}
+				}
+				15 = {
+					create_general = {
+						tradition = 80
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				army_tradition = 70
+			}
+			random_list = {
+				35 = {
+					create_general = {
+						tradition = 100
+					}
+				}
+				50 = {
+					create_general = {
+						tradition = 80
+					}
+				}
+				15 = {
+					create_general = {
+						tradition = 60
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				army_tradition = 45
+			}
+			random_list = {
+				5 = {
+					create_general = {
+						tradition = 100
+					}
+				}
+				30 = {
+					create_general = {
+						tradition = 80
+					}
+				}
+				50 = {
+					create_general = {
+						tradition = 60
+					}
+				}
+				15 = {
+					create_general = {
+						tradition = 40
+					}
+				}
+			}
+		}
+		else = {
+			random_list = {
+				20 = {
+					create_general = {
+						tradition = 80
+					}
+				}
+				30 = {
+					create_general = {
+						tradition = 60
+					}
+				}
+				50 = {
+					create_general = {
+						tradition = 40
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Exceptional Sailor
+	id = lake.75
+	title = lake.75.t
+	desc = lake.75.d
+	picture = GENERALS_DISCUSSING_eventPicture
+
+	mean_time_to_happen = {
+		years = 40
+	}
+
+	trigger = {
+		tag = J33
+		has_country_flag = fedeartion_allow_exceptional
+	}
+
+	option = {
+		name = lake.75.a
+		ai_chance = {
+			factor = 100
+		}
+		if = {
+			limit = {
+				navy_tradition = 95
+			}
+			random_list = {
+				85 = {
+					create_admiral = {
+						tradition = 100
+					}
+				}
+				15 = {
+					create_admiral = {
+						tradition = 80
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				navy_tradition = 70
+			}
+			random_list = {
+				35 = {
+					create_admiral = {
+						tradition = 100
+					}
+				}
+				50 = {
+					create_admiral = {
+						tradition = 80
+					}
+				}
+				15 = {
+					create_admiral = {
+						tradition = 60
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				navy_tradition = 45
+			}
+			random_list = {
+				5 = {
+					create_admiral = {
+						tradition = 100
+					}
+				}
+				30 = {
+					create_admiral = {
+						tradition = 80
+					}
+				}
+				50 = {
+					create_admiral = {
+						tradition = 60
+					}
+				}
+				15 = {
+					create_admiral = {
+						tradition = 40
+					}
+				}
+			}
+		}
+		else = {
+			random_list = {
+				20 = {
+					create_admiral = {
+						tradition = 80
+					}
+				}
+				30 = {
+					create_admiral = {
+						tradition = 60
+					}
+				}
+				50 = {
+					create_admiral = {
+						tradition = 40
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Restore Besholgi Culture
+	id = lake.76
+	title = lake.76.t
+	desc = lake.76.d
+	picture = NATIVES_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Accept
+		name = lake.76.a
+		ai_chance = {
+			factor = 100
+		}
+		custom_tooltip = lake.76.tt
+		hidden_effect = {
+			tuusbulak_area = {
+				change_culture = tuugalak
+			}
+			bagdagerin_area = {
+				change_culture = mogirga
+			}
+			mogomorin_area = {
+				change_culture = mogirga
+			}
+			dolshob_area = {
+				change_culture = tuugalak
+			}
+			kokevdan_area = {
+				change_culture = ulukungu
+			}
+			nurboesig_area = {
+				change_culture = ulukungu
+			}
+		}
+		add_accepted_culture = tuugalak
+		add_accepted_culture = mogirga
+		add_accepted_culture = ulukungu
+		add_country_modifier = {
+			name = federation_come_to_accept_1
+			duration = -1
+		}
+		custom_tooltip = federation_remove_citizen_accept_1_tt
+		add_dip_power = -200
+	}
+
+	option = { #Decline
+		name = lake.76.b
+		ai_chance = {
+			factor = 0
+		}
+		moduk_region = {
+			add_province_modifier = {
+				name = federation_repressed_besholgi
+				duration = 18250
+			}
+		}
+	}
+}
+
+country_event = { #Runsukhi want help against facestealers
+	id = lake.77
+	title = lake.77.t
+	desc = lake.77.d
+	picture = NATIVES_LOW_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Accept
+		name = lake.77.a
+		ai_chance = {
+			factor = 85
+		}
+		add_adm_power = -50
+		add_dip_power = -50
+		add_mil_power = -50
+		add_manpower = -25
+		add_country_modifier = {
+			name = federation_helping_runsukhi
+			duration = 1825
+		}
+		hidden_effect = {
+			country_event = {
+				id = lake.78
+				days = 365
+				random = 365
+			}
+		}
+	}
+
+	option = { #Decline
+		name = lake.77.b
+		ai_chance = {
+			factor = 15
+		}
+		custom_tooltip = lake.77.b.tt
+		hidden_effect = {
+			every_owned_province = {
+					limit = {
+						region = khaashalg_region
+					}
+					add_province_modifier = {
+						name = federation_refused_to_help
+						duration = -1
+					}
+			}
+		}
+	}
+}
+
+country_event = { #Facestealers attack - only occurs if accepted previous event
+	id = lake.78
+	title = lake.78.t
+	desc = lake.78.d
+	picture = BATTLE_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = lake.78.a
+		ai_chance = {
+			factor = 100
+		}
+		every_owned_province = {
+			limit = {
+				has_province_modifier = Y91_plagued_by_face_eaters
+			}
+			spawn_rebels = {
+				type = face_stealers_rebels
+				size = 1
+			}
+		}
+	}
+	after = {
+		set_country_flag = federation_facestealers_attack
+	}
+}
+
+country_event = { #Facestealers dwindling after attack
+	id = lake.79
+	title = lake.79.t
+	desc = lake.79.d
+	picture = CITY_DEVELOPMENT_eventPicture
+
+	mean_time_to_happen = {
+		days = 30
+	}
+
+	trigger = {
+		tag = J33
+		has_country_flag = federation_facestealers_attack
+		NOT = {
+			num_of_rebel_armies = 1
+		}
+		NOT = {
+			num_of_rebel_controlled_provinces = 1
+		}
+	}
+
+	option = {
+		name = lake.79.a
+		ai_chance = {
+			factor = 100
+		}
+		every_owned_province = {
+			limit = {
+				has_province_modifier = Y91_plagued_by_face_eaters
+			}
+			remove_province_modifier = Y91_plagued_by_face_eaters
+			add_province_modifier = {
+				name = federation_roaming_facestealers
+				duration = -1
+			}
+		}
+		clr_country_flag = federation_facestealers_attack
+	}
+}
+
 ###################
 ##TEST and DEBUG events
 ###################
@@ -2851,6 +4031,7 @@ country_event = {
 			name = guns_of_the_lake
 			duration = -1
 		}
+		override_country_name = GUNS_LAKE
 		swap_non_generic_missions = yes
 	}
 	#Childrens
@@ -2867,9 +4048,10 @@ country_event = {
 			name = childrens_of_the_lake
 			duration = -1
 		}
+		override_country_name = CHILDRENS_LAKE
 		swap_non_generic_missions = yes
 	}
-	#workers
+	#Workers
 	option = {
 		name = lake.101.c
 		ai_chance = { factor = 100 }
@@ -2883,6 +4065,7 @@ country_event = {
 			name = workers_of_the_lake
 			duration = -1
 		}
+		override_country_name = WORKERS_LAKE
 		swap_non_generic_missions = yes
 	}
 	#Soldiers
@@ -2899,16 +4082,51 @@ country_event = {
 			name = soldiers_of_the_lake
 			duration = -1
 		}
+		override_country_name = SOLDIERS_LAKE
 		swap_non_generic_missions = yes
-	}
-	
-	#I'm fine
+	} 
+	#Traders
 	option = {
 		name = lake.101.f
+		ai_chance = { factor = 100 }
+		remove_country_modifier = traders_of_the_lake
+		remove_country_modifier = guns_of_the_lake
+		remove_country_modifier = citizens_of_the_lake
+		remove_country_modifier = childrens_of_the_lake
+		remove_country_modifier = workers_of_the_lake
+		remove_country_modifier = soldiers_of_the_lake
+		add_country_modifier = {
+			name = traders_of_the_lake
+			duration = -1
+		}
+		override_country_name = TRADERS_LAKE
+		swap_non_generic_missions = yes
+	}
+	#Citizens
+	option = {
+		name = lake.101.g
+		ai_chance = { factor = 100 }
+		remove_country_modifier = traders_of_the_lake
+		remove_country_modifier = guns_of_the_lake
+		remove_country_modifier = citizens_of_the_lake
+		remove_country_modifier = childrens_of_the_lake
+		remove_country_modifier = workers_of_the_lake
+		remove_country_modifier = soldiers_of_the_lake
+		add_country_modifier = {
+			name = citizens_of_the_lake
+			duration = -1
+		}
+		override_country_name = CITIZENS_LAKE
+		swap_non_generic_missions = yes
+	}
+	#I'm fine
+	option = {
+		name = lake.101.h
 		ai_chance = { factor = 100 }
 	}
 }
 
+#Federation President Election
 country_event = {
 	id = lake.102
 	title = lake.102.t
@@ -2920,6 +4138,13 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = lake_federation_member
+	}
+	
+	immediate = {
+		if = {
+			limit = { has_country_flag = federation_leader }
+			country_event = { id = lake.105 days = 7 }
+		}
 	}
 	
 	option = {
@@ -2983,6 +4208,246 @@ country_event = {
 		name = lake.103.a
 		ai_chance = { factor = 100 }
 		remove_country_modifier = ultakal_decree
+	}
+}
+
+#Federal Capital
+country_event = {
+	id = lake.104
+	title = lake.104.t
+	desc = {
+		trigger = { 
+			capital_scope = {
+				NOT = { 
+					province_id = 5290
+					province_id = 5304
+					province_id = 5256
+					province_id = 5226
+					province_id = 5239
+				}
+			}
+		}
+		desc = lake.104.d.1
+	}
+	desc = {
+		trigger = { 
+			capital_scope = {
+				OR = {
+					province_id = 5290
+					province_id = 5304
+					province_id = 5256
+					province_id = 5226
+					province_id = 5239
+				}
+			}
+		}
+		desc = lake.104.d.2
+	}
+	picture = BIG_BOOK_eventPicture
+	
+	fire_only_once = yes
+	mean_time_to_happen = {
+		years = 50
+		
+		modifier = {
+			factor = 0.75
+			stability = 1
+		}
+		modifier = {
+			factor = 0.5
+			stability = 2
+		}
+		modifier = {
+			factor = 0.3
+			stability = 3
+		}
+	}
+	trigger = {
+		tag = J33
+		NOT = { has_country_flag = federal_capital_chosen }
+	}
+	
+	#Raattakod
+	option = {
+		name = lake.104.a
+		ai_chance = { factor = 100 }
+		trigger = { owns = 5290 }
+		set_country_flag = federal_capital_chosen
+		5290 = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = halls_of_valor
+				duration = -1
+			}
+			rename_capital = "The Halls of Valor"
+			add_base_tax = 2
+			add_base_production = 2
+			add_base_manpower = 3
+		}
+	}
+	#Zabyos'tlar
+	option = {
+		name = lake.104.b
+		ai_chance = { factor = 100 }
+		trigger = { owns = 5304 }
+		set_country_flag = federal_capital_chosen
+		5304 = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = castle_in_the_sky
+				duration = -1
+			}
+			rename_capital = "Castle in the Sky"
+			add_base_tax = 2
+			add_base_production = 3
+			add_base_manpower = 2
+		}
+	}
+	#Qarshtuluu
+	option = {
+		name = lake.104.c
+		ai_chance = { factor = 100 }
+		trigger = { owns = 5256 }
+		set_country_flag = federal_capital_chosen
+		5256 = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = gem_of_the_islands
+				duration = -1
+			}
+			rename_capital = "Gem of the Isles"
+			add_base_tax = 3
+			add_base_production = 2
+			add_base_manpower = 2
+		}
+	}
+	#Zurkanrek
+	option = {
+		name = lake.104.d
+		ai_chance = { factor = 100 }
+		trigger = { owns = 5226 }
+		set_country_flag = federal_capital_chosen
+		5226 = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = star_of_the_east
+				duration = -1
+			}
+			rename_capital = "Star of the East"
+			add_base_tax = 3
+			add_base_production = 3
+			add_base_manpower = 1
+		}
+	}
+	#Ultakal
+	option = {
+		name = lake.104.e
+		ai_chance = { factor = 100 }
+		trigger = { owns = 5239 }
+		set_country_flag = federal_capital_chosen
+		5239 = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = city_of_gold_and_smog
+				duration = -1
+			}
+			rename_capital = "City of Gold and Smog"
+			add_base_tax = 1
+			add_base_production = 5
+			add_base_manpower = 1
+		}
+	}
+	#Don't Move It
+	option = {
+		name = lake.104.f
+		ai_chance = { factor = 100 }
+		trigger = {
+			capital_scope = {
+				NOT = { 
+					province_id = 5290
+					province_id = 5304
+					province_id = 5256
+					province_id = 5226
+					province_id = 5239
+				}	
+			}
+		}
+		set_country_flag = federal_capital_chosen
+		capital_scope = {
+			move_capital_effect = yes 
+			add_permanent_province_modifier = {
+				name = pride_of_the_federation
+				duration = -1
+			}
+			rename_capital = "Capital of the Federation"
+			add_base_tax = 3
+			add_base_production = 2
+			add_base_manpower = 2
+		}
+	}
+}
+
+#Federation President Election Tie-Breaker (Current Wins)
+country_event = {
+	id = lake.105
+	title = lake.105.t
+	desc = lake.105.d
+	picture = STREET_SPEECH_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	option = {
+		name = lake.105.a
+		ai_chance = { factor = 100 }
+		if = {
+			limit = { 
+				NOT = { 
+					any_known_country = { has_country_flag = federation_leader }
+					has_country_flag = federation_leader
+				}
+			}
+			set_country_flag = federation_leader
+			country_event = { id = lake.40 }
+		}
+	}
+}
+
+#[Root] Triumps Over Centaurs
+country_event = {
+	id = lake.106
+	title = lake.106.t
+	desc = lake.106.d
+	picture = STREET_SPEECH_eventPicture
+	major = yes
+	is_triggered_only = yes
+	
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	option = {
+		name = lake.106.a
+		ai_chance = { factor = 100 }
+		add_prestige = 5
+		federation_increase_cohesion_all = yes
+	}
+}
+
+#[Root] Doomsays Over Centaurs
+country_event = {
+	id = lake.107
+	title = lake.107.t
+	desc = lake.107.d
+	picture = STREET_SPEECH_eventPicture
+	major = yes
+	is_triggered_only = yes
+	
+	major_trigger = { has_country_modifier = lake_federation_member }
+	
+	option = {
+		name = lake.107.a
+		ai_chance = { factor = 100 }
+		add_prestige = -5
+		federation_decrease_cohesion = yes
 	}
 }
 
@@ -3146,77 +4611,5 @@ country_event = {
 			infantry = PIR
 			infantry = PIR
 		}
-	}
-}
-
-#Federation - Change View
-country_event = {
-	id = lake.1002
-	title = lake.1002.t
-	desc = lake.1002.d
-	picture = STREET_SPEECH_eventPicture
-	
-	is_triggered_only = yes
-	
-	trigger = {
-		always = yes
-	}
-	
-	#Go Back
-	option = {
-		name = lake.1002.f
-	}
-	#Colourblind mode ON
-	option = {
-		name = lake.1002.a
-		trigger = { has_country_flag = colorblind_standing NOT = { has_country_flag = simple_standing }}
-		custom_tooltip = make_standing_colorblind_tooltip
-		hidden_effect = { clr_country_flag = colorblind_standing 
-		country_event = { id = lake.1003 } }
-	}
-	#Colourblind mode OFF
-	option = {
-		name = lake.1002.b
-		trigger = { NOT = { has_country_flag = colorblind_standing } NOT = { has_country_flag = simple_standing } }
-		custom_tooltip = remove_standing_colorblind_tooltip
-		hidden_effect = { set_country_flag = colorblind_standing 
-		country_event = { id = lake.1003 } }
-	}
-	#Simplistic view ON
-	option = {
-		name = lake.1002.c
-		trigger = { has_country_flag = simple_standing }
-		custom_tooltip = make_standing_simplistic_tooltip
-		hidden_effect = { clr_country_flag = simple_standing 
-		country_event = { id = lake.1003 } }
-	}
-	#Simplistic view OFF
-	option = {
-		name = lake.1002.e
-		trigger = { NOT = { has_country_flag = simple_standing } }
-		custom_tooltip = remove_standing_simplistic_tooltip
-		hidden_effect = { set_country_flag = simple_standing 
-		country_event = { id = lake.1003 } }
-	}
-}
-
-#Federation - Change View Recursion
-country_event = {
-	id = lake.1003
-	title = lake.1003.t
-	desc = lake.1003.d
-	picture = STREET_SPEECH_eventPicture
-	
-	is_triggered_only = yes
-	hidden = yes
-	
-	trigger = {
-		always = yes
-	}
-	
-	#Colourblind mode ON
-	option = {
-		name = lake.1003.a 
-		country_event = { id = lake.1002 }
 	}
 }

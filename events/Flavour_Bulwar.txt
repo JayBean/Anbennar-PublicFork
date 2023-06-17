@@ -16,16 +16,12 @@ country_event = {
     trigger = {
         owns = 601    #province id doesn't matter, it just to make is so the event fire only once per yearly pulse
         NOT = { is_year = 1500 }
-		calc_true_if = {
-			all_province = {
-				superregion = bulwar_superregion
-				or = {
-					has_province_modifier = surani_refugee_large
-					has_province_modifier = surani_refugee_medium
-					has_province_modifier = surani_refugee_small
-				}
+		bulwar_superregion = {
+			OR = {
+				has_province_modifier = surani_refugee_large
+				has_province_modifier = surani_refugee_medium
+				has_province_modifier = surani_refugee_small
 			}
-			amount = 1
 		}
     }
     
@@ -34,14 +30,15 @@ country_event = {
         far_bulwar_region = {
             limit = {
                 NOT = {
+					area = xhurgrum_area
                     area = sareyand_area
-                    area = ardu_area
                     area = garpix_zokka_area
                     area = avamezan_area
+					area = eastern_krahway_area
                 }
-                or = { 
+                OR = { 
 					culture_group = gnollish
-					and = { 
+					AND = { 
 						has_province_flag = bulwar_accepted_refugees
 						culture_group = bulwari
 					}
@@ -115,10 +112,8 @@ province_event = {
 			}
 			else_if = {
 				limit = {
-					and = { 
-						NOT = { culture_group = bulwari }
-						has_large_human_minority_trigger = yes
-					}
+					NOT = { culture_group = bulwari }
+					has_large_human_minority_trigger = yes
 				}
 				if = { 
 					limit = { area = jikarzax_area }
@@ -178,7 +173,7 @@ province_event = {
 			factor = 0
 			modifier = {
 				factor = 50
-				low_tolerance_human_race_trigger = yes
+				owner = { low_tolerance_human_race_trigger = yes }
 			}
 		}
 		custom_tooltip = rejected_surani_refugees_tooltip
@@ -736,29 +731,32 @@ province_event = {
 }
 
 #The People of [ROOT.GetName] See the Light!
-province_event = {
-	id =  bulwar_flavour.10
+country_event = {
+	id = bulwar_flavour.10
 	title = bulwar_flavour.10.t
 	desc = bulwar_flavour.10.d
 	picture = STREET_SPEECH_eventPicture
-	goto = root
+	goto = target_province
+	
+	is_triggered_only = yes
 	
 	trigger = {
-		NOT = { religion = the_jadd }
-		owner = { religion = the_jadd }
-		NOT = { has_any_oppressed_pop_trigger = yes }
-	}
-
-	mean_time_to_happen = {
-		days = 18250
-		modifier = {
-			factor = 0.5
-			owner = { ai = yes }
+		religion = the_jadd
+		any_owned_province = {
+			NOT = { religion = the_jadd }
+			NOT = { has_any_oppressed_pop_trigger = yes }
 		}
-		modifier = {
-			factor = 0.5
-			religion = bulwari_sun_cult
-			NOT = { culture = sun_elf }
+	}
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					NOT = { religion = the_jadd }
+					NOT = { has_any_oppressed_pop_trigger = yes }
+				}
+				save_event_target_as = target_province
+			}
 		}
 	}
 
@@ -767,35 +765,33 @@ province_event = {
 		ai_chance = {
 			factor = 1
 		}
-		change_religion = the_jadd
+		event_target:target_province = { change_religion = the_jadd }
 	}
 }
 
 #The People of [ROOT.GetName] embrace the Jadd
-province_event = {
-	id =  bulwar_flavour.11
+country_event = {
+	id = bulwar_flavour.11
 	title = bulwar_flavour.11.t
 	desc = bulwar_flavour.11.d
 	picture = STREET_SPEECH_eventPicture
-	goto = root
+	goto = target_province
 	
 	trigger = {
-		NOT = { religion = the_jadd }
-		owner = { has_country_modifier = jaddari_visiting_jaddari_missionaries }
+		has_country_modifier = jaddari_visiting_jaddari_missionaries
+		any_owned_province = { NOT = { religion = the_jadd } }
 	}
-
-	mean_time_to_happen = {
-		days = 730
-		modifier = {
-			factor = 0.5
-			religion = bulwari_sun_cult
-		}
-		modifier = {
-			factor = 5
-			culture = sun_elf
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { NOT = { religion = the_jadd } }
+				save_event_target_as = target_province
+			}
 		}
 	}
-	is_mtth_scaled_to_size = 1
 	
 	option = { #That's not what I wanted!
 		name = bulwar_flavour.11.a
@@ -813,27 +809,29 @@ province_event = {
 			}
 			modifier = {
 				factor = 3
-				owner = { ruler_has_personality = malevolent_personality }
+				ruler_has_personality = malevolent_personality
 			}
 			modifier = {
 				factor = 3
-				owner = { ruler_has_personality = strict_personality }
+				ruler_has_personality = strict_personality
 			}
 			modifier = {
 				factor = 20
-				owner = { ruler_has_personality = zealot_personality }
+				ruler_has_personality = zealot_personality
 			}
 			modifier = {
 				factor = 20
-				owner = { ruler_has_personality = pious_personality }
+				ruler_has_personality = pious_personality 
 			}
 		}
-		change_religion = the_jadd
-		add_permanent_province_modifier = {
-			name = religious_zeal_at_conv 
-			duration = 3650
+		event_target:target_province = {
+			change_religion = the_jadd
+			add_permanent_province_modifier = {
+				name = religious_zeal_at_conv 
+				duration = 3650
+			}
 		}
-		owner = { remove_country_modifier = jaddari_visiting_jaddari_missionaries }
+		remove_country_modifier = jaddari_visiting_jaddari_missionaries
 	}
 
 	option = { #This was to be expected
@@ -842,67 +840,65 @@ province_event = {
 			factor = 5
 			modifier = {
 				factor = 3
-				owner = { ruler_has_personality = tolerant_personality }
+				ruler_has_personality = tolerant_personality
 			}
 			modifier = {
 				factor = 3
-				owner = { ruler_has_personality = free_thinker_personality }
+				ruler_has_personality = free_thinker_personality
 			}
 			modifier = {
 				factor = 2
-				owner = { ruler_has_personality = sinner_personality }
+				ruler_has_personality = sinner_personality 
 			}
 			modifier = {
 				factor = 0
-				owner = {
-					num_of_religion = {
-						religion = the_jadd
-						value = 0.9
-					}
+				num_of_religion = {
+					religion = the_jadd
+					value = 0.9
 				}
 			}
 		}
-		change_religion = the_jadd
-		add_permanent_province_modifier = {
-			name = religious_zeal_at_conv 
-			duration = 3650
+		event_target:target_province = {
+			change_religion = the_jadd
+			add_permanent_province_modifier = {
+				name = religious_zeal_at_conv 
+				duration = 3650
+			}
 		}
 	}
 
 	option = { #They're really onto something!
 		name = bulwar_flavour.11.c
 		trigger = {
-			owner = { dominant_religion = the_jadd }
+			dominant_religion = the_jadd
 		}
 		ai_chance = {
 			factor = 1
 			modifier = {
 				factor = 0
-				owner = { ruler_has_personality = zealot_personality }
+				ruler_has_personality = zealot_personality
 			}
 			modifier = {
 				factor = 0
-				owner = { ruler_has_personality = pious_personality }
+				ruler_has_personality = pious_personality
 			}
 			modifier = {
 				factor = 40
-				owner = {
-					num_of_religion = {
-						religion = the_jadd
-						value = 0.9
-					}
+				num_of_religion = {
+					religion = the_jadd
+					value = 0.9
 				}
 			}
 		}
-		change_religion = the_jadd
-		add_permanent_province_modifier = {
-			name = religious_zeal_at_conv
-			duration = 3650
-		}
-		owner = {
+		event_target:target_province = {
 			change_religion = the_jadd
-			reduce_stability_or_adm_power = yes
+			add_permanent_province_modifier = {
+				name = religious_zeal_at_conv 
+				duration = 3650
+			}
 		}
+		change_religion = the_jadd
+		reduce_stability_or_adm_power = yes
 	}
 }
 
@@ -1241,7 +1237,7 @@ country_event = {
 			type = natural_scientist
 			skill = 3
 			culture = citrine_dwarf
-			religion = ancestor_worship
+			religion = H78
 			location = 601
             cost_multiplier = 0.5
 		}
@@ -1263,7 +1259,7 @@ country_event = {
 			type = natural_scientist
 			skill = 3
 			culture = citrine_dwarf
-			religion = ancestor_worship
+			religion = H78
 			location = 601
             cost_multiplier = 0.25
 		}
@@ -2114,7 +2110,7 @@ province_event = {
 				duration = -1
 			}
 		}
-		else = {
+		else_if = {
 			limit = { 
 				has_province_modifier = surani_refugee_small
 			}
@@ -2673,7 +2669,7 @@ country_event = {
 				type = artist
 				name = half_elf_advisor
 				skill = 2
-				culture = half_elf
+				culture = bulwari_half_elf
 				religion = old_bulwari_sun_cult
 				discount = yes
 			}
@@ -2683,7 +2679,7 @@ country_event = {
 				type = statesman
 				name = half_elf_advisor
 				skill = 2
-				culture = half_elf
+				culture = bulwari_half_elf
 				religion = old_bulwari_sun_cult
 				discount = yes
 			}
@@ -2693,7 +2689,7 @@ country_event = {
 				type = army_reformer
 				name = half_elf_advisor
 				skill = 2
-				culture = half_elf
+				culture = bulwari_half_elf
 				religion = old_bulwari_sun_cult
 				discount = yes
 			}
@@ -2792,6 +2788,7 @@ country_event = {
 	trigger = {
 		owns = 556
 		is_year = 1650
+		NOT = { tag = F26 }	#Gelkalis
 	}
 	
 	option = {
@@ -2800,7 +2797,7 @@ country_event = {
 			type = artist
 			name = "Burat Kazaš"
 			skill = 2
-			culture = bahari
+			culture = kuzarami
 			religion = ROOT
 			discount = yes
 		}
@@ -2858,6 +2855,192 @@ country_event = {
 		add_estate_loyalty = { estate = estate_mages loyalty = 20 }
 	}
 }
+####################
+#OSC Centralization#
+####################
+
+#The Council Begins
+country_event = {
+	id = bulwar_flavour.44
+    title = bulwar_flavour.44.t
+    desc = bulwar_flavour.44.d
+    picture = REFORM_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Start the Council!
+		name = bulwar_flavour.44.a
+		
+		add_legitimacy = 10
+		add_republican_tradition = 3
+		add_devotion = 10
+		hidden_effect = { country_event = { id = bulwar_flavour.45 days = 182 random = 50 } }
+	}
+}
+
+#First Debate
+country_event = {
+	id = bulwar_flavour.45
+    title = bulwar_flavour.45.t
+    desc = bulwar_flavour.45.d
+    picture = DEBATE_REPUBLICAN_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Sects
+		name = bulwar_flavour.45.a
+		
+		custom_tooltip = osc_centralization_first_debate_1_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_first_debate_1 }
+	}
+
+	option = { #State
+		name = bulwar_flavour.45.b
+		
+		custom_tooltip = osc_centralization_first_debate_2_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_first_debate_2 }
+	}
+
+	after = {
+		hidden_effect = { country_event = { id = bulwar_flavour.46 days = 182 random = 50 } }
+	}
+}
+
+#Second Debate
+country_event = {
+	id = bulwar_flavour.46
+    title = bulwar_flavour.46.t
+    desc = bulwar_flavour.46.d
+    picture = DEBATE_REPUBLICAN_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #People
+		name = bulwar_flavour.46.a
+		
+		custom_tooltip = osc_centralization_second_debate_1_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_second_debate_1 }
+	}
+
+	option = { #Temples
+		name = bulwar_flavour.46.b
+		
+		custom_tooltip = osc_centralization_second_debate_2_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_second_debate_2 }
+	}
+
+	option = { #State
+		name = bulwar_flavour.46.c
+		
+		custom_tooltip = osc_centralization_second_debate_3_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_second_debate_3 }
+	}
+
+	after = {
+		hidden_effect = { country_event = { id = bulwar_flavour.47 days = 182 random = 50 } }
+	}
+}
+
+#Third Debate
+country_event = {
+	id = bulwar_flavour.47
+    title = bulwar_flavour.47.t
+    desc = bulwar_flavour.47.d
+    picture = DEBATE_REPUBLICAN_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #Synod
+		name = bulwar_flavour.47.a
+		trigger = { has_country_flag = osc_centralization_second_debate_1 }
+
+		custom_tooltip = osc_centralization_third_debate_1_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_synod_flag }
+	}
+
+	option = { #High Council
+		name = bulwar_flavour.47.b
+		
+		custom_tooltip = osc_centralization_third_debate_2_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_high_coucil_flag }
+	}
+
+	option = { #Elected High Kasra
+		name = bulwar_flavour.47.c
+		
+		custom_tooltip = osc_centralization_third_debate_3_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_elected_kasra_flag }
+	}
+
+	option = { #Nominated High Kasra
+		name = bulwar_flavour.47.e
+		trigger = { has_country_flag = osc_centralization_second_debate_3 }
+
+		custom_tooltip = osc_centralization_third_debate_4_tooltip
+		hidden_effect = { set_country_flag = osc_centralization_nominated_kasra_flag }
+	}
+
+	after = {
+		hidden_effect = { country_event = { id = bulwar_flavour.48 days = 50 random = 50 } }
+	}
+}
+
+#OSC Centralization End
+country_event = {
+	id = bulwar_flavour.48
+    title = bulwar_flavour.48.t
+    desc = bulwar_flavour.48.d
+    picture = RELIGIOUS_CONVERSION_eventPicture
+
+	is_triggered_only = yes
+
+	option = { #End
+		name = bulwar_flavour.48.a
+		
+		if = {
+			limit = { has_country_flag = osc_centralization_synod_flag }
+			set_estate_privilege = estate_clergy_osc_centralization_synod
+		}
+		else_if = {
+			limit = { has_country_flag = osc_centralization_high_coucil_flag }
+			set_estate_privilege = estate_clergy_osc_centralization_high_council
+		}
+		else_if = {
+			limit = { has_country_flag = osc_centralization_elected_kasra_flag }
+			set_estate_privilege = estate_clergy_osc_centralization_elected_kasra
+		}
+		else = {
+			set_estate_privilege = estate_clergy_osc_centralization_nominated_kasra
+		}
+		hidden_effect = {
+			set_country_flag = osc_centralization_completed
+			clr_country_flag = osc_centralization_started
+		}
+	}
+}
+
+###########
+#Zamukaras#
+###########
+
+#Enable Zamukaras
+country_event = {
+	id = bulwar_flavour.49
+    title = bulwar_flavour.49.t
+    desc = bulwar_flavour.49.d
+    picture = RELIGIOUS_CONVERSION_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = bulwar_flavour.49.a
+		
+		custom_tooltip = enable_zamukaras_tooltip
+		enable_mythical_cavalry = { mount = zamukaras }
+		set_country_flag = established_zamukaras_flag
+		clr_country_flag = established_zamukaras_start
+	}
+}
 
 #Resettling Far Bulwar
 province_event = {
@@ -2906,10 +3089,8 @@ province_event = {
 		}
 		else_if = {
 			limit = {
-				and = { 
-					NOT = { culture_group = bulwari }
-					has_large_human_minority_trigger = yes
-				}
+				NOT = { culture_group = bulwari }
+				has_large_human_minority_trigger = yes
 			}
 			if = { 
 				limit = { area = jikarzax_area }
@@ -3215,6 +3396,9 @@ country_event = {
 	
 	option = {
 		name = bulwar_flavour.106.a #Accept the warriors
+		trigger = {
+			NOT = { has_country_modifier = harpy_military }
+		}
 		ai_chance = { factor = 50 }
 		2909 = {
 			add_unit_construction = {
@@ -3265,30 +3449,30 @@ country_event = {
 	option = {
 		name = bulwar_flavour.107.a #ADM
 		ai_chance = { factor = 33 }
-		add_adm_power = -150
+		add_mil_power = -50
 		add_country_modifier = {
 			name = szal_fazil_adm
-			duration = 1825
+			duration = 3650
 		}
 	}
 	
 	option = {
 		name = bulwar_flavour.107.b #DIP
 		ai_chance = { factor = 33 }
-		add_dip_power = -150
+		add_adm_power = -50
 		add_country_modifier = {
 			name = szal_fazil_dip
-			duration = 1825
+			duration = 3650
 		}
 	}
 	
 	option = {
 		name = bulwar_flavour.107.c #MIL
 		ai_chance = { factor = 33 }
-		add_mil_power = -150
+		add_dip_power = -50
 		add_country_modifier = {
 			name = szal_fazil_mil
-			duration = 1825
+			duration = 3650
 		}
 	}
 	
@@ -3659,7 +3843,7 @@ country_event = {
 			}
 			clr_country_flag = ulmisbar_medium_treasure_flag
 		}
-		else = {
+		else_if = {
 			limit = { has_country_flag = ulmisbar_large_treasure_flag }
 			add_country_modifier = {
 				name = ulmisbar_treasure_large
@@ -3675,7 +3859,7 @@ country_event = {
 			}
 			clr_country_flag = ulmisbar_palace_reward_normal
 		}
-		else = {
+		else_if = {
 			limit = { has_country_flag = ulmisbar_palace_reward_rare }
 			add_country_modifier = {
 				name = ulmisbar_ulmis_regalia
@@ -3691,7 +3875,7 @@ country_event = {
 			}
 			clr_country_flag = ulmisbar_temple_reward_normal
 		}
-		else = {
+		else_if = {
 			limit = { has_country_flag = ulmisbar_temple_reward_rare }
 			add_country_modifier = {
 				name = ulmisbar_incantation_bowls
@@ -3707,7 +3891,7 @@ country_event = {
 			}
 			clr_country_flag = ulmisbar_library_reward_normal
 		}
-		else = {
+		else_if = {
 			limit = { has_country_flag = ulmisbar_library_reward_rare }
 			add_country_modifier = {
 				name = ulmisbar_spell_tablets
@@ -3723,5 +3907,96 @@ country_event = {
 			}
 			clr_country_flag = ulmisbar_better_punitive
 		}	
+	}
+}
+
+#Monstrous Rule event
+country_event = {
+	id = bulwar_flavour.200
+	title = bulwar_flavour.200.t
+	desc = bulwar_flavour.200.d
+	picture = HORDE_ON_HORSEBACK_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {	days = 1 }
+
+	trigger = {	
+		has_country_flag = age_ability_monstrous_rule_flag
+		OR = {
+			had_country_flag = { flag = age_ability_monstrous_rule_cooldown_flag days = 1825 }
+			NOT = { has_country_flag = age_ability_monstrous_rule_cooldown_flag }
+		}
+	}
+	
+	option = {
+		name = bulwar_flavour.200.a 
+		ai_chance = { factor = 50 }
+		if = {
+			limit = {
+				development_in_provinces = {
+					culture_is_human = yes
+					value = 100
+				}
+				NOT = {
+					development_in_provinces = {
+						culture_is_human = yes
+						value = 200
+					}
+				}
+			}
+			add_treasury = 25
+			add_adm_power = 15
+			add_dip_power = 15
+			add_mil_power = 15
+		}
+		if = {
+			limit = {
+				development_in_provinces = {
+					culture_is_human = yes
+					value = 200
+				}
+				NOT = {
+					development_in_provinces = {
+						culture_is_human = yes
+						value = 300
+					}
+				}
+			}
+			add_treasury = 50
+			add_adm_power = 20
+			add_dip_power = 20
+			add_mil_power = 20
+		}
+		if = {
+			limit = {
+				development_in_provinces = {
+					culture_is_human = yes
+					value = 300
+				}
+				NOT = {
+					development_in_provinces = {
+						culture_is_human = yes
+						value = 400
+					}
+				}
+			}
+			add_treasury = 100
+			add_adm_power = 30
+			add_dip_power = 30
+			add_mil_power = 30
+		}
+		if = {
+			limit = {
+				development_in_provinces = {
+					culture_is_human = yes
+					value = 400
+				}
+			}
+			add_treasury = 150
+			add_adm_power = 40
+			add_dip_power = 40
+			add_mil_power = 40
+		}
 	}
 }
