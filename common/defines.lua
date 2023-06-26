@@ -916,6 +916,12 @@ NCountry = {
 	LIBERTY_DESIRE_SCUTAGE_OFF = 25,				-- Liberty desire from turning off scutage
 	LOST_INDEPENDANCE_WAR_LIBERTY_DESIRE = -50,		-- How much liberty desire is decreased when an independance war ends
 
+	REQUEST_EXTRA_LEVIES_MAX_LIBERTY_DESIRE = 25,
+	REQUEST_EXTRA_LEVIES_COOLDOWN_MONTHS = 60,
+
+	SEIZE_COURT_RESOURCES_MAX_LIBERTY_DESIRE = 25,
+	SEIZE_COURT_RESOURCES_COOLDOWN_MONTHS = 60,
+
 	MIN_LIBERTY_DESIRE = 0,							-- Min total (effective) liberty desire
 	MAX_LIBERTY_DESIRE = 100,						-- Max total (effective) liberty desire
 	MIN_LIBERTY_DESIRE_INFLUENCE = -100,			-- Min influence of a single modifier (e.g. paid of debt)
