@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-druplesnubb"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -27,5 +27,10 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
+<<<<<<< Updated upstream:Anbennar-PublicFork.mod
 supported_version="1.35.5"
 path="mod/Anbennar-PublicFork"
+=======
+supported_version="1.35.1*"
+path="C:/Users/Oscar/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-fork-druplesnubb"
+>>>>>>> Stashed changes:anbennar-eu4-fork-druplesnubb.mod
