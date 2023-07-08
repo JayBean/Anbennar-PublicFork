@@ -1,0 +1,103 @@
+night_coven_collapse = {
+	if = {		#1. Reform Done
+		limit = {
+			NOT = {
+				OR = {
+					has_country_flag = night_coven_reform_prog_1
+					has_country_flag = night_coven_reform_prog_2
+					has_country_flag = night_coven_reform_prog_3
+					has_country_flag = night_coven_reform_prog_4
+					has_country_flag = night_coven_reform_prog_5
+				}
+			}
+		}
+		set_country_flag = night_coven_reform_prog_1
+	}
+	else_if = {		#2. Reform Done
+		limit = { has_country_flag = night_coven_reform_prog_1 }
+		set_country_flag = night_coven_reform_prog_2
+		clr_country_flag = night_coven_reform_prog_1
+	}
+	else_if = {		#3. Reform Done
+		limit = { has_country_flag = night_coven_reform_prog_2 }
+		set_country_flag = night_coven_reform_prog_3
+		clr_country_flag = night_coven_reform_prog_2
+	}
+	else_if = {		#4. Reform Done
+		limit = { has_country_flag = night_coven_reform_prog_3 }
+		set_country_flag = night_coven_reform_prog_4
+		clr_country_flag = night_coven_reform_prog_3
+	}
+	else_if = {		#5. Reform Done
+		limit = { has_country_flag = night_coven_reform_prog_4 }
+		set_country_flag = night_coven_reform_prog_5
+		clr_country_flag = night_coven_reform_prog_4
+	}
+    release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
+    every_owned_province = {
+        limit = {
+            NOT = {
+                region = yezel_mora_region
+            }
+        }
+        remove_core = FROM
+    }
+    every_owned_province = {
+        limit = {
+            NOT = {
+				region = yezel_mora_region #fuck custom nations. Don't need to account for spawning ones or converts either cause they don't get reforms
+            }
+        }
+    	#remove_core = S70 #done above
+        random_core_country = {
+            save_event_target_as = night_reform_tag_select
+        }
+        random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
+            20 = { ##no way to check if there is a core core country unfortunately, just if one exist on the map or doesn't exist. But if there is no valid one, it is fixed later
+                random_core_country = {
+                    save_event_target_as = night_reform_tag_select
+                }
+                cede_province = event_target:night_reform_tag_select
+            }
+            5 = { #30% we give to a neighbor #decreasing this from 30 to 5
+                trigger = {
+                    any_neighbor_province = {
+                        is_city = yes
+                        NOT = { owned_by = S70 }
+                    }
+                }
+                random_neighbor_province = {
+                    limit = {
+                        NOT = {
+                            owned_by = S70
+                        }
+                    }
+                    owner = { save_event_target_as = night_reform_tag_select }
+                }
+                add_claim = event_target:night_reform_tag_select
+                cede_province = event_target:night_reform_tag_select
+            }
+    		30 = { #increasing  this from 5 to 30 to help the angel and players getting attacked by the troll
+                cede_province = previous_owner
+    		}
+            5 = { ##
+                random_core_country = {
+                    S70 = {
+                        Release = PREV
+                    }
+                }
+            }
+        }
+        #in case we can't give some away
+        if = {
+            limit = {
+                owned_by = S70
+            }
+            cede_province = previous_owner
+        }
+        ####inform the player
+        owner = {
+            country_event = { id = shadow.3 }
+        }
+    }
+}
