@@ -171,7 +171,7 @@ transfer_trade_power = {
 			clr_country_flag = trade_power_count_3
 		}
 		if = {
-			limit = { exists = event_target:feiten_or_was_feiten_target }
+			limit = { has_saved_global_event_target = feiten_or_was_feiten_target }
 			if = {
 				limit = { tag = event_target:feiten_or_was_feiten_target }
 				FROM = { set_country_flag = transfers_trade_to_feiten }
@@ -210,6 +210,35 @@ declarewar = {
 #			}
 #		}
 #	}
+	condition = { #1.35
+		tooltip = AI_CANNOT_DECLARE_WHEN_STABILITY_LOSS
+		potential = {
+			ai = yes
+		}
+		allow = {
+			ai = yes
+			NOT = {
+				has_global_modifier_value = {
+					which = stability_cost_to_declare_war
+					value = 1
+				}
+			}
+		}
+	}
+	condition = { #1.35
+		tooltip = CANNOT_DECLARE_WARS_OTHER_THAN_INDEPENDENCE_WARS
+		potential = {
+			has_country_modifier = revoked_war_rights
+			FROM = { NOT = { overlord_of = ROOT } }
+		}
+		allow = {
+			OR = {
+				NOT = { has_country_modifier = revoked_war_rights }
+				FROM = { overlord_of = ROOT }
+			}
+		}
+	}
+
 	condition = {
 		tooltip = FEDERATION_MILITARY
 		potential = {
@@ -585,6 +614,8 @@ declarewar = {
 	}
 
 	effect = {
+		on_war_declaration_effect = yes #1.35
+
 		if = {
 			limit = { 
 				has_country_modifier = federation_war_mandat
@@ -762,6 +793,14 @@ declarewar = {
 			}
 			H77 = { country_event = { id = flavor_lodhum.150 days = 20 } }
 		}
+		#kamniel stuff
+		if = {
+			limit = {
+				NOT = { has_global_flag = kamniel_descended_flag }
+				FROM = { culture_group = mengi }
+			}
+			FROM = { country_event = { id = mengi_events.0 days = 0 } }
+		}
 #		if = {
 #			limit = {
 #				tag = A73
@@ -777,6 +816,73 @@ declarewar = {
 #          			value = 1
 #        		}
 #		}
+
+		#Keyolion Independence War
+		if = {
+			limit = {
+				tag = G58
+				NOT = {
+					has_country_flag = independence_war_started_flag
+				}
+			}
+			set_country_flag = independence_war_started_flag
+			#Clear Keyolion Triggered Province Modifier
+			2669 = { #Keyolion
+				if = {
+					limit = {
+							has_province_modifier = G58_stability_to_dec_modifier
+					}
+					remove_province_triggered_modifier = G58_stability_to_dec_modifier
+				}
+			}
+			#Clear Keyolion Stab to Declare war if present
+			if = {
+				limit = {
+					has_country_modifier = G58_keyolion_empk_truce_modifier
+				}
+				remove_country_modifier = G58_keyolion_empk_truce_modifier
+			}
+			if = {
+				limit = {
+					mission_completed = G58_4_2_independence_plot
+				}
+				#Get the .10% morale and 0.05% disc
+				add_country_modifier = {
+					name = G58_independence_war_quality_modifier
+					duration = 1825
+				}
+			}
+			if = {
+				limit = {
+					mission_completed = G58_5_2_soldiers_by_law
+				}
+				#Get the three free infantry units
+				2669 = { #Keyolion
+					G58 = {
+						infantry = PREV
+						infantry = PREV
+						infantry = PREV
+					}
+				}
+			}
+			if = {
+				#Empkeios and Arpedifer join the battle
+				limit = {
+					G53 = {
+						has_country_flag = G58_accepted_independence_deal_flag
+						NOT = {
+							truce_with = G47
+						}
+					}
+				}
+				G53 = {
+					join_all_offensive_wars_of = G58
+				}
+				G51 = {
+					join_all_defensive_wars_of = G47
+				}
+			}
+		}
 	}
 }
 
@@ -862,16 +968,36 @@ allianceaction = {
 			is_revolutionary = no
 		}
 		allow = {
-			OR = {
-				OR = {
-					government = republic 
-					is_revolutionary = yes
-				}
+			OR = { #1.35
+				government = republic 
+				is_revolutionary = yes
 				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics_or_non_rev } }
 			}
 		}
 	}
-	
+
+	condition = { #1.35
+		tooltip = CANNOT_MAKE_ALLIANCES
+		potential = {
+			has_government_attribute = cannot_form_alliances
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_form_alliances }
+		}
+	}
+
+	condition = { #1.35
+		tooltip = FROM_CANNOT_MAKE_ALLIANCES
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_form_alliances
+			}
+		}
+		allow = {
+			NOT = { FROM = { has_government_attribute = cannot_form_alliances } }
+		}
+	}
+
 	# Anbennar
 	condition = {
 		tooltip = ONLY_ADV_ESCANN
@@ -1050,6 +1176,24 @@ allianceaction = {
 		}
 		allow = {
 			FROM = { has_country_modifier = ruinborn_administration }
+		}
+	}
+
+	condition = {
+		tooltip = dakinshi_warlords_no_ally
+		potential = { 
+		}
+		allow = { 
+			FROM = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
+			ROOT = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
 		}
 	}
 }
@@ -1599,6 +1743,51 @@ annexationaction = {
 	#		}
 	#	}
 	#}
+	condition = { #1.35
+		tooltip = CANNOT_ANNEX
+		potential = {
+			FROM = {
+				has_country_modifier = tur_mamlukian_administration
+			}
+		}
+		allow = {
+			FROM = {
+				NOT = { has_country_modifier = tur_mamlukian_administration }
+			}
+		}
+	}
+
+	condition = { #1.35
+		tooltip = NEEDS_50_CROWNLAND_TT
+		potential = {
+			has_government_attribute = need_crownland_to_annex
+			NOT = { crown_land_share = 50 }
+		}
+		allow = {
+			crown_land_share = 50
+		}
+	}
+	
+    condition = { #lets you annex angel tributaries at 190 relations. angelic host
+        tooltip = ANNEX_TOO_LOW
+        potential = {
+            FROM = {
+                AND = {
+                    is_subject_of = ROOT
+                    is_subject_of_type = angel_tributary_state
+                }
+            }                
+        }
+        allow = {
+			FROM = {
+				has_opinion = {
+					who = ROOT
+					value = 190	
+				}
+			}
+		}
+	}
+	
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
 		potential = {
@@ -1750,6 +1939,17 @@ vassalaction = {
 			FROM = { is_at_war = no }
 		}
 	}
+	condition = {
+		tooltip = SPAWNABLE_INDEPENDENT_SPIRIT
+		potential = {
+			FROM = {
+				has_country_modifier = strong_colonial_rush
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 	effect = {
 		if = { # this makes it visible i using it on someone who would lose it
 			limit = {
@@ -1766,7 +1966,7 @@ vassalaction = {
 	}
 }
 
-abandon_union_action = {
+abandon_union = {
 	condition = {
 		potential = {
 		}
@@ -2209,5 +2409,14 @@ requestpeace = {
 		allow = {
 			always = no
         }
+	}
+}
+
+support_heir = {
+}
+
+break_alliance = {
+	effect = {
+		on_alliance_broken_effect = yes
 	}
 }
