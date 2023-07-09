@@ -7875,6 +7875,7 @@ on_five_year_pulse = {
 		flavor_cestirmark.4 #Random Trollsbayer Advisors
 		flavour_zongji.1 #Li�ngzhu examination
 		flavor_cestirmark.300 #Special Cases events
+		flavour_orldhum.53 #Enables Aml-az-Orlz random events
 
 		ynnsman_events.242	#Iess�l, we need to cook
 		ynnsman_events.105 #Poachers Kill Patrol
@@ -9397,6 +9398,17 @@ on_province_owner_change = {
 	if = {
 		limit = {
 			trade_goods = slaves
+			has_country_flag = orldhum_indenture_flag
+			NOT = { has_province_modifier = orldhum_indentured_masses }
+			NOT = { has_province_modifier = orldhum_major_slave_depot }
+			NOT = { has_province_modifier = orldhum_the_chainyard }
+		}
+		add_province_modifier = { name = orldhum_indentured_masses duration = -1 }
+	}
+
+	if = {
+		limit = {
+			trade_goods = slaves
 		}
 		if = {
 			limit = {
@@ -9924,7 +9936,16 @@ on_province_owner_change = {
 			limit = { province_group = segbandal_hold_province }
 			add_province_modifier = { name = seghdihr_reform_holds duration = -1 hidden = yes }
 		}
-		else = { add_province_modifier = { name = seghdihr_reform_non_holds duration = -1 hidden = yes } }
+		else_if = {
+			limit = {
+				OR = {
+					has_terrain = dwarven_road
+					province_group = hold_province
+				}
+			}
+			add_province_modifier = { name = seghdihr_reform_secondary duration = -1 hidden = yes }
+		}
+		else = { add_province_modifier = { name = seghdihr_reform_other duration = -1 hidden = yes } }
 	}
 
 	#azjakuma events
@@ -10314,7 +10335,7 @@ on_province_owner_change = {
 	}
 	if = {
 		limit = {
-			has_province_modifier = nakavy_avo_shrine
+			province_group = shrine_provinces
 			owner = {
 				has_reform = shrine_guardians_reform
 			}
@@ -11992,6 +12013,42 @@ on_trade_good_changed = {
 				province_event = { id = flavor_honderaak.6 days = 30 random = 60 }
 			}
 		}
+		#Orldhum
+		if = {
+			limit = {
+				trade_goods = slaves
+				owner = { has_country_flag = orldhum_slaves }
+			}
+			set_province_flag = current_indenture
+		}
+		if = {
+			limit = {
+				trade_goods = slaves
+				owner = { has_country_flag = orldhum_indenture_flag }
+			}
+			if = {
+				limit = {
+					NOT = { has_province_modifier = orldhum_indentured_masses }
+					NOT = { has_province_modifier = orldhum_major_slave_depot }
+					NOT = { has_province_modifier = orldhum_the_chainyard }
+				}
+				add_province_modifier = {
+					name = orldhum_indentured_masses
+					duration = -1
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = { owner = { tag = I08 } }
+				OR = {
+					has_province_modifier = orldhum_indentured_masses
+					has_province_modifier = orldhum_major_slave_depot
+				}
+			}
+			remove_province_modifier = orldhum_indentured_masses
+			remove_province_modifier = orldhum_major_slave_depot
+		}
 		#Orlghelovar
 		if = {
 			limit = {
@@ -12782,7 +12839,7 @@ on_capital_moved = {
 	# stupidly, when it triggers this on_action it's both a colony and your capital
 	if = {
 		limit = { is_colony = yes }
-		update_racial_province_majority = yes
+		province_event = { id = race_setup_events.15 }
 	}
 
 	if = { limit = { has_province_modifier = cant_colonize }	#Anbennar
@@ -13004,7 +13061,7 @@ on_colony_finished = { #ROOT - Province
 	on_colony_finished_effect = yes
 
 	# Anbennar
-	update_racial_province_majority = yes
+	province_event = { id = race_setup_events.15 }	
 	# colonies do not get their pops updated to match the owners (even though the culture is the owners primary)
 	# until the colony is complete
 }
