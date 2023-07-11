@@ -155,6 +155,8 @@ on_startup = {
 		diggy_spawnable.13	#Forgemaster Union intro
 		flavor_skewered_drake.1 #temp skewered drake drakons
 		flavour_hillgnolls.1	#Xanzerbexis general
+		simegasa_events.1 #simegasa intro
+		lake.500				#Lake Federation Mages Intro
 		
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -263,6 +265,15 @@ on_startup = {
 		}
 	}
 
+	#Simegasa discovers its king is a hag slave
+	if = {
+		limit = { tag = L66 }
+		country_event = {
+			id = simegasa_events.2
+			days = 3
+		}
+	}
+	
 	#Mulen goblin setup
 	if = {
 		limit = { tag = F50 }
@@ -3364,7 +3375,7 @@ on_new_monarch = {
 
 		rahenraj.2099 	#Raja Death
 
-		shadow.2	#makes troll leader into good general
+		#shadow.2	#makes troll leader into good general
 		flavor_melakmengi.1	#spawns angel if dead
 		flavor_melakmengi.3	#liberates aegis tributary prompt
 		
@@ -3717,6 +3728,15 @@ on_new_monarch = {
 			has_regency = no			
 		}
 		country_event = { id = flavor_chien.12 days = 1 }
+	}
+	
+	#Gotiriei Religious Aspects Wipe
+	if = {
+		limit = {
+			religion = gotiriei
+			has_regency = no			
+		}
+		country_event = { id = gotiriei_pilgrimage.15 days = 1 }
 	}
 }
 
@@ -7865,6 +7885,7 @@ on_five_year_pulse = {
 		flavor_cestirmark.4 #Random Trollsbayer Advisors
 		flavour_zongji.1 #Li�ngzhu examination
 		flavor_cestirmark.300 #Special Cases events
+		flavour_orldhum.53 #Enables Aml-az-Orlz random events
 
 		ynnsman_events.242	#Iess�l, we need to cook
 		ynnsman_events.105 #Poachers Kill Patrol
@@ -9387,6 +9408,17 @@ on_province_owner_change = {
 	if = {
 		limit = {
 			trade_goods = slaves
+			has_country_flag = orldhum_indenture_flag
+			NOT = { has_province_modifier = orldhum_indentured_masses }
+			NOT = { has_province_modifier = orldhum_major_slave_depot }
+			NOT = { has_province_modifier = orldhum_the_chainyard }
+		}
+		add_province_modifier = { name = orldhum_indentured_masses duration = -1 }
+	}
+
+	if = {
+		limit = {
+			trade_goods = slaves
 		}
 		if = {
 			limit = {
@@ -9914,7 +9946,16 @@ on_province_owner_change = {
 			limit = { province_group = segbandal_hold_province }
 			add_province_modifier = { name = seghdihr_reform_holds duration = -1 hidden = yes }
 		}
-		else = { add_province_modifier = { name = seghdihr_reform_non_holds duration = -1 hidden = yes } }
+		else_if = {
+			limit = {
+				OR = {
+					has_terrain = dwarven_road
+					province_group = hold_province
+				}
+			}
+			add_province_modifier = { name = seghdihr_reform_secondary duration = -1 hidden = yes }
+		}
+		else = { add_province_modifier = { name = seghdihr_reform_other duration = -1 hidden = yes } }
 	}
 
 	#azjakuma events
@@ -10304,7 +10345,7 @@ on_province_owner_change = {
 	}
 	if = {
 		limit = {
-			has_province_modifier = nakavy_avo_shrine
+			province_group = shrine_provinces
 			owner = {
 				has_reform = shrine_guardians_reform
 			}
@@ -11982,6 +12023,42 @@ on_trade_good_changed = {
 				province_event = { id = flavor_honderaak.6 days = 30 random = 60 }
 			}
 		}
+		#Orldhum
+		if = {
+			limit = {
+				trade_goods = slaves
+				owner = { has_country_flag = orldhum_slaves }
+			}
+			set_province_flag = current_indenture
+		}
+		if = {
+			limit = {
+				trade_goods = slaves
+				owner = { has_country_flag = orldhum_indenture_flag }
+			}
+			if = {
+				limit = {
+					NOT = { has_province_modifier = orldhum_indentured_masses }
+					NOT = { has_province_modifier = orldhum_major_slave_depot }
+					NOT = { has_province_modifier = orldhum_the_chainyard }
+				}
+				add_province_modifier = {
+					name = orldhum_indentured_masses
+					duration = -1
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = { owner = { tag = I08 } }
+				OR = {
+					has_province_modifier = orldhum_indentured_masses
+					has_province_modifier = orldhum_major_slave_depot
+				}
+			}
+			remove_province_modifier = orldhum_indentured_masses
+			remove_province_modifier = orldhum_major_slave_depot
+		}
 		#Orlghelovar
 		if = {
 			limit = {
@@ -12419,6 +12496,21 @@ on_conquest = {
 		}
 		change_trade_goods = unknown
 	}
+	#Itinerant Capital Mechanic - Give modifier to new province
+	if = { 
+		limit = {
+			owner = { has_government_attribute = has_itinerant_capital }
+			area_for_scope_province = { is_capital = yes }
+		}
+		add_province_modifier = {
+			name = itinerant_capital_area
+			duration = -1
+		}
+	}
+	if = {
+		limit = { has_province_flag = is_itinerent_capital }
+		clr_province_flag = is_itinerent_capital
+	}
 }
 
 on_country_creation = {
@@ -12750,7 +12842,16 @@ on_national_focus_change = {}
 
 #ROOT = new capital province, FROM = old capital province
 on_capital_moved = {
-	
+
+	# if your capital is moved to a colony (i.e. by losing all your other provinces)
+	# this colony auto-completes to a province without triggering on_colony_finished
+	# so catch this edge case here to fix the pop modifiers
+	# stupidly, when it triggers this on_action it's both a colony and your capital
+	if = {
+		limit = { is_colony = yes }
+		province_event = { id = race_setup_events.15 }
+	}
+
 	if = { limit = { has_province_modifier = cant_colonize }	#Anbennar
 		province_event = { id = migration_force_settle.3 days = 1 }
 	}
@@ -12803,6 +12904,7 @@ on_capital_moved = {
 	owner = {	
 		country_event = { id = escanni_wars.3 } # Escanni wars bypass
 		country_event = { id = escanni_wars.200 } # Joined Escanni wars
+		country_event = { id = flavour_splinter.2 } # Itinerant Capital
 	}
 }
 
@@ -12969,8 +13071,8 @@ on_colony_finished = { #ROOT - Province
 	on_colony_finished_effect = yes
 
 	# Anbennar
-	update_racial_province_majority = yes
-	# colonies do not get their majorities replaced by the owners (even though the culture is the owners primary)
+	province_event = { id = race_setup_events.15 }	
+	# colonies do not get their pops updated to match the owners (even though the culture is the owners primary)
 	# until the colony is complete
 }
 
