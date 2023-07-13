@@ -381,7 +381,7 @@ VertexShader =
 			vHeight = VertexIn.height.y * vUseAltHeight - vHeight;
 
 			vHeight *= 0.01f;
-			vHeight -= 0.40f;
+			vHeight -= 0.30f;
 			VertexOut.prepos = float3( pos.x, vHeight, pos.y );
 			VertexOut.position = mul( ViewProjectionMatrix, float4( VertexOut.prepos, 1.0f ) );
 		#endif // USE_VERTEX_TEXTURE
