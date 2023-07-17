@@ -321,6 +321,17 @@ on_startup = {
 		country_event = { id = greentide.0 days = 1 }
 	}
 
+	#Prevent Gawed killing Nimscodd
+	if = {
+		limit = {
+			NOT = { is_year = 1445 }
+			tag = A13 #Gawed
+		}
+		country_event = {
+			id = flavor_gawed.200
+		}
+	}
+
 	# AI need this event on day 1 or they release shit
 	if = {
 		limit = {
@@ -1386,6 +1397,7 @@ on_religion_change = {
 	if = {
 		limit = { 
 			NOT = { tag = H66 } #Jaherian Exemplars
+			NOT = { tag = H67 } #Rezankand
 			OR = {
 				religion_group = bulwari
 				has_country_flag = updating_isolationism_window
@@ -1394,6 +1406,8 @@ on_religion_change = {
 		}
 		add_government_reform = bulwari_temple_reform
 	}
+	#Nakavy Avo shrine reset
+	shrine_cleanup_effect = yes
 }
 
 # country.
@@ -3738,6 +3752,13 @@ on_new_monarch = {
 		}
 		country_event = { id = gotiriei_pilgrimage.15 days = 1 }
 	}
+	#Nakavy Avo shrine reset
+	if = {
+		limit = {
+			religion = avo_nakavy	
+		}
+		shrine_cleanup_effect = yes
+	}
 }
 
 on_new_consort = {
@@ -4062,6 +4083,13 @@ on_regent = {
 		limit = { religion = kheionism }
 		country_event = { id = kheionism.3 }
 	}
+	#Nakavy Avo shrine reset
+	if = {
+		limit = {
+			religion = avo_nakavy	
+		}
+		shrine_cleanup_effect = yes
+	}
 }
 
 # country
@@ -4152,6 +4180,13 @@ on_death_election = {
 	if = {
 		limit = { religion = kheionism }
 		country_event = { id = kheionism.3}
+	}
+	#Nakavy Avo shrine reset
+	if = {
+		limit = {
+			religion = avo_nakavy	
+		}
+		shrine_cleanup_effect = yes
 	}
 }
 
@@ -7393,7 +7428,7 @@ on_four_year_pulse_3 = {
 
 	random_events = {
 		#dwarovar flavor events, don't put anything else here
-		800 = 0
+		1000 = 0
 
 		#100 = diggy.552 #cave goblin technocracy mil reform
 		100 = diggy.553 #venombrew surplus
@@ -9032,10 +9067,10 @@ on_province_culture_converted = {
 on_province_culture_changed = {
 	on_province_culture_converted_estate_privilges_effect = yes
 	on_province_culture_change_effect = yes
-
-	#Anbennar
-	province_event = { id = race_setup_events.15 }
+	
+	province_event = { id = race_setup_events.18 }
 	# handle the majority to minority and cleanup on this province
+	# has special handling for migratory tribes migrating in/out of provinces
 	
 	if = {
 		limit = {
@@ -9251,7 +9286,35 @@ on_province_owner_change = {
 	on_province_owner_change_estate_privileges_effect = yes
 	#imperial_modifiers_on_province_change_culture_or_change_owner_effect  = yes #Anbennar
 	#Anbennar
+
+	if = {
+		limit = {
+			FROM = {
+				is_migratory_tribe = yes
+				NOT = { num_of_cities = 2 } # be extra safe - check they're an OPM
+			}
+			is_empty = yes
+			NOT = { has_province_flag = someone_migrated_here_dawg }
+		}
+		# note this province was migrated out of so the culture change event handles it properly
+		
+		set_province_flag = someone_migrated_here_dawg
+		#we have the define that clears province flags on becoming unowned AIYEEEE, surely i can set it on uncolonised provinces
+
+		if = { limit = { FROM = { has_country_flag = migratory_small_minority } }
+			set_province_flag = migratory_small_minority
+			FROM = { clr_country_flag = migratory_small_minority }
+		}
+		else_if = { limit = { FROM = { has_country_flag = migratory_large_minority } }
+			set_province_flag = migratory_large_minority
+			FROM = { clr_country_flag = migratory_large_minority }
+		}
+		# oh the clunkiness, transfer the flags from country to province
+		# now when the culture update is called, it will save whether there was a small or large minority, so it can be restored later
+	}
+
 	#Krakazol/Rahen initial friendship, formerly rahen.1
+
 	if = {
 		limit = {
 			province_id = 4266
@@ -10356,6 +10419,408 @@ on_province_owner_change = {
 
 		}
 	}
+	#Halflings
+	if = {
+		limit = {
+			province_id = 6599
+			owner = {
+				has_personal_deity = lel
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = lel_shrine			
+			}
+		}
+		6599 = {
+			remove_province_modifier = lel_shrine_province
+			add_province_modifier = { 
+				name = lel_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5710
+			owner = {
+				has_personal_deity = kolo
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = kolo_shrine 				
+			}
+		}
+		5710 = {
+			remove_province_modifier = kolo_shrine_province
+			add_province_modifier = { 
+				name = kolo_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5823
+			owner = {
+				has_personal_deity = the_nakazy
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = the_nakazy_shrine		
+			}
+		}
+		5823 = {
+			remove_province_modifier = the_nakazy_shrine_province
+			add_province_modifier = { 
+				name = the_nakazy_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6634
+			owner = {
+				has_personal_deity = turozi
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = turozi_shrine			
+			}
+		}
+		6634 = {
+			remove_province_modifier = turozi_shrine_province
+			add_province_modifier = { 
+				name = turozi_shrine_province_active
+				duration = -1  
+			}
+		}
+		
+	}
+	
+	if = {
+		limit = {
+			province_id = 5829
+			owner = {
+				has_personal_deity = yuye
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = yuye_shrine				
+			}
+		}
+		5899 = {
+			remove_province_modifier = yuye_shrine_province
+			add_province_modifier = { 
+				name = yuye_shrine_province_active
+				duration = -1  
+			}
+		}
+		
+	}
+	
+	if = {
+		limit = {
+			province_id = 5825
+			owner = {
+				has_personal_deity = ozamdi
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = ozamdi_shrine		
+			}
+		}
+		5825 = {
+			remove_province_modifier = ozamdi_shrine_province
+			add_province_modifier = { 
+				name = ozamdi_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6626
+			owner = {
+				has_personal_deity = jyva
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = jyva_shrine			
+			}
+		}
+		6626 = {
+			remove_province_modifier = jyva_shrine_province
+			add_province_modifier = { 
+				name = jyva_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6610
+			owner = {
+				has_personal_deity = ytrai
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = ytrai_shrine	
+			}
+		}
+		6610 = {
+			remove_province_modifier = ytrai_shrine_province
+			add_province_modifier = { 
+				name = ytrai_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6632
+			owner = {
+				has_personal_deity = drongray
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = drongray_shrine			
+			}
+		}
+		6632 = {
+			remove_province_modifier = drongray_shrine_province
+			add_province_modifier = { 
+				name = drongray_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6608
+			owner = {
+				has_personal_deity = elinao
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = elinao_shrine				
+			}
+		}
+		6608 = {
+			remove_province_modifier = elinao_shrine_province
+			add_province_modifier = { 
+				name = elinao_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6612
+			owner = {
+				has_personal_deity = begga2
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = begga2_shrine			
+			}
+		}
+		6612 = {
+			remove_province_modifier = begga2_shrine_province
+			add_province_modifier = { 
+				name = begga2_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5821
+			owner = {
+				has_personal_deity = nakinta
+			}
+		}
+		owner = {
+			add_ruler_modifier = { 
+				name = nakinta_shrine			
+			}
+		}
+		5821 = {
+			remove_province_modifier = nakinta_shrine_province
+			add_province_modifier = { 
+				name = nakinta_shrine_province_active
+				duration = -1  
+			}
+		}
+	}
+	
+	#cleanup
+	if = {
+		limit = {
+			province_id = 6599
+			NOT = { owner = { has_personal_deity = lel } }			
+		}
+		remove_province_modifier = lel_shrine_province_active
+		6599 = {
+			add_province_modifier = { 
+				name = lel_shrine_province
+				duration = -1  
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5710
+			NOT = { owner = { has_personal_deity = kolo } }			
+		}
+		remove_province_modifier = kolo_shrine_province_active
+		add_province_modifier = { 
+			name = kolo_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5823
+			NOT = { owner = { has_personal_deity = the_nakazy } }			
+		}
+		remove_province_modifier = the_nakazy_shrine_province_active
+		add_province_modifier = { 
+			name = the_nakazy_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6634
+			NOT = { owner = { has_personal_deity = turozi } }			
+		}
+		remove_province_modifier = turozi_shrine_province_active
+		add_province_modifier = { 
+			name = turozi_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5825
+			NOT = { owner = { has_personal_deity = ozamdi } }			
+		}
+		remove_province_modifier = ozamdi_shrine_province_active
+		add_province_modifier = { 
+			name = ozamdi_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5829
+			NOT = { owner = { has_personal_deity = yuye } }			
+		}
+		remove_province_modifier = yuye_shrine_province_active
+		add_province_modifier = { 
+			name = yuye_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6626
+			NOT = { owner = { has_personal_deity = jyva } }			
+		}
+		remove_province_modifier = jyva_shrine_province_active
+		add_province_modifier = { 
+			name = jyva_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6610
+			NOT = { owner = { has_personal_deity = ytrai } }			
+		}
+		remove_province_modifier = ytrai_shrine_province_active
+		add_province_modifier = { 
+			name = ytrai_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6632
+			NOT = { owner = { has_personal_deity = drongray } }			
+		}
+		remove_province_modifier = drongray_shrine_province_active
+		add_province_modifier = { 
+			name = drongray_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6608
+			NOT = { owner = { has_personal_deity = elinao } }			
+		}
+		remove_province_modifier = elinao_shrine_province_active
+		add_province_modifier = { 
+			name = elinao_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 6612
+			NOT = { owner = { has_personal_deity = begga2 } }			
+		}
+		remove_province_modifier = begga2_shrine_province_active
+		add_province_modifier = { 
+			name = begga2_shrine_province
+			duration = -1  
+		}
+	}
+	
+	if = {
+		limit = {
+			province_id = 5821
+			NOT = { owner = { has_personal_deity = nakinta } }			
+		}
+		remove_province_modifier = nakinta_shrine_province_active
+		add_province_modifier = { 
+			name = nakinta_shrine_province
+			duration = -1  
+		}
+	}
+	
 	# Aelantir culture conversion event
 	province_event = { id = marcher.5 }
 	
@@ -11050,11 +11515,16 @@ on_culture_demoted = {
 	if = {
 		limit = {
 			has_country_modifier = jaddari_masnsih_culture_modifier
-			OR = {
-				NOT = { accepted_culture = masnsih }
-			}
+			NOT = { accepted_culture = masnsih }
 		}
 		remove_country_modifier = jaddari_masnsih_culture_modifier
+	}
+	if = {
+		limit = {
+			has_country_modifier = landshark_gnoll_culture
+			NOT = { accepted_culture = flamemarked_gnoll }
+		}
+		remove_country_modifier = landshark_gnoll_culture
 	}
 	if = {
 		limit = {
@@ -12764,6 +13234,17 @@ on_colony_established = {
 
 #scope = new country, FROM = parent country 1.35
 on_colonial_nation_established = {
+	if = {
+		limit = {
+			FROM = {
+				has_country_modifier = orcish_slaves_in_colonies
+			}
+		}
+		add_country_modifier = {
+			name = orcish_slaves_in_colonies
+			duration = -1
+		}
+	}
 }
 
 on_colonist_boosting_colony = {
