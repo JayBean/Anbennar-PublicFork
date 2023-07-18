@@ -1,0 +1,424 @@
+namespace = taychendi
+
+# New Monarch
+country_event = {
+	id = taychendi.0
+	title = taychendi.0.t
+	desc = taychendi.0.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		religion = gods_of_the_taychend
+	}
+	
+	immediate = {
+		set_variable = {
+			which = TaychendGlory
+			value = 0
+		}
+		every_ally = {
+			break_alliance = ROOT
+			add_trust = {
+				who = ROOT
+				value = -10
+				mutual = yes
+			}
+			if = {
+				limit = { ai = no }
+				country_event = { id = taychendi.1 }
+			}
+		}
+	}
+	
+	option = {
+		name = taychendi.0.a
+		if = {
+			limit = { any_subject_country = { liberty_desire = 50 } }
+			random_subject_country = { 
+				limit = { liberty_desire = 50 }
+				save_event_target_as = taychend_revolt_leader
+				overlord = { country_event = { id = taychendi.2 } }
+			}
+		}
+		else = {
+			country_event = { id = taychendi.3 }
+		}
+	}
+}
+
+#Inform Player
+country_event = {
+	id = taychendi.1
+	title = taychendi.1.t
+	desc = taychendi.1.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		ai = no
+	}
+	
+	option = {
+		name = taychendi.1.a #RIP Bozo
+		tooltip = {
+			break_alliance = FROM
+			add_trust = {
+				who = FROM
+				value = -10
+				mutual = yes
+			}
+		}
+	}
+}
+
+#Subject Revolt
+country_event = {
+	id = taychendi.2
+	title = taychendi.2.t
+	desc = taychendi.2.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			every_subject_country = {
+				limit = { 
+					liberty_desire = 50
+					NOT = { tag = event_target:taychend_revolt_leader }
+				}
+				create_alliance = event_target:taychend_revolt_leader
+			}
+			every_subject_country = {
+				limit = { NOT = { liberty_desire = 50 } }
+				add_country_modifier = {
+					name = taychend_helpless_subject
+					duration = 3650
+				}
+			}
+			event_target:taychend_revolt_leader = {
+				declare_war_with_cb = {
+					who = ROOT
+					casus_belli = cb_independence_war
+				}
+			}
+			update_taychend_glory = yes
+		}
+	}
+	
+	option = {
+		name = taychendi.2.a
+		custom_tooltip = break_alliances
+		tooltip = {
+			event_target:taychend_revolt_leader = {
+				declare_war_with_cb = {
+					who = ROOT
+					casus_belli = cb_independence_war
+				}
+			}
+			change_personal_deity = taychend_glory_1
+		}
+		if = {
+			limit = { NOT = { is_monarch_leader = yes } }
+			if = {
+				limit = { is_female = yes }
+				convert_female_ruler_to_general = yes
+			}
+			else = { convert_ruler_to_general = yes }
+		}
+	}
+	
+	after = {
+		if = {
+			limit = { 
+				governing_capacity_percentage = 1.01
+				NOT = { has_country_flag = taychend_player_managed }
+			}
+			country_event = { id = taychendi.4 days = 1 }
+		}
+	}
+}
+
+#Normal Outcome
+country_event = {
+	id = taychendi.3
+	title = taychendi.3.t
+	desc = taychendi.3.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = taychendi.3.a
+		custom_tooltip = break_alliances
+		tooltip = { change_personal_deity = taychend_glory_1 }
+		if = {
+			limit = { NOT = { is_monarch_leader = yes } }
+			if = {
+				limit = { is_female = yes }
+				convert_female_ruler_to_general = yes
+			}
+			else = { convert_ruler_to_general = yes }
+		}
+	}
+	
+	after = {
+		if = {
+			limit = { 
+				governing_capacity_percentage = 1.01
+				NOT = { has_country_flag = taychend_player_managed }
+			}
+			country_event = { id = taychendi.4 days = 1 }
+		}
+	}
+}
+
+#Over Capacity
+country_event = {
+	id = taychendi.4
+	title = taychendi.4.t
+	desc = taychendi.4.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	immediate = { hidden_effect = { capital_scope = { area = { set_province_flag = taychend_capital_area } } } }
+	
+	option = {
+		name = taychendi.4.a
+		trigger = { any_owned_province = { any_core_country = { exists = no } } }
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 0
+				is_at_war = yes
+			}
+			modifier = {
+				factor = 0
+				taychend_has_vassals = yes
+			}
+		}
+		taychend_capacity_release = yes
+	}
+	option = {
+		name = taychendi.4.b
+		trigger = { num_of_subjects = 1 }
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				is_at_war = yes
+			}
+			modifier = {
+				factor = 0
+				NOT = { taychend_has_vassals = yes }
+			}
+		}
+		taychend_capacity_feed = yes
+	}
+	option = {
+		name = taychendi.4.c
+		ai_chance = { factor = 1 }
+	}
+	option = {
+		name = taychendi.4.d
+		trigger = { has_dlc = "The Cossacks" }
+		ai_chance = { factor = 0 }
+		custom_tooltip = taychend_do_it_yourself
+		set_country_flag = taychend_player_managed
+	}
+	after = {
+		hidden_effect = { capital_scope = { area = { clr_province_flag = taychend_capital_area } } }
+	}
+}
+
+#Buying Ships
+country_event = {
+	id = taychendi.5
+	title = taychendi.5.t
+	desc = taychendi.5.d
+	picture = SIEGE_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = taychendi.5.a
+		ai_chance = { 
+			factor = 25
+			modifier = {
+				factor = 0
+				navy_size_percentage = 1
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 20 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = light_ship
+				amount = 1
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 365
+		}
+	}
+	option = {
+		name = taychendi.5.b
+		ai_chance = { 
+			factor = 50
+			modifier = {
+				factor = 0
+				navy_size_percentage = 0.9
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 60 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = light_ship
+				amount = 3
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 1095
+		}
+	}
+	option = {
+		name = taychendi.5.c
+		ai_chance = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				navy_size_percentage = 0.8
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 100 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = light_ship
+				amount = 5
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 1835
+		}
+	}
+	option = {
+		name = taychendi.5.e
+		ai_chance = { 
+			factor = 30
+			modifier = {
+				factor = 0
+				navy_size_percentage = 1
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 10 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = galley
+				amount = 1
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 365
+		}
+	}
+	option = {
+		name = taychendi.5.f
+		ai_chance = { 
+			factor = 60
+			modifier = {
+				factor = 0
+				navy_size_percentage = 0.9
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 30 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = galley
+				amount = 3
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 1095
+		}
+	}
+	option = {
+		name = taychendi.5.g
+		ai_chance = { 
+			factor = 120
+			modifier = {
+				factor = 0
+				navy_size_percentage = 0.8
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 50 }
+			}
+		}
+		random_owned_province = {
+			limit = { has_port = yes }
+			add_unit_construction = {
+				type = galley
+				amount = 5
+				speed = 0.5
+				cost = 1
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 1835
+		}
+	}
+	option = {
+		name = taychendi.5.h
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				NOT = { treasury = 20 }
+			}
+		}
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 365
+		}
+	}
+	after = { clr_country_flag = taychend_shipping }
+}
