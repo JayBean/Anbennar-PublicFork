@@ -12154,3 +12154,77 @@ province_event = {
                 update_racial_province_modifier_tolerance = yes
         }
 }
+
+# handles updating culture in on_culture_changed,
+# different to .15 because it needs to reset state of provinces when a tribe migrates through them rather than treating them like other provinces
+province_event = {
+	id = race_setup_events.18
+	title = race_setup_events.18.t
+	desc = race_setup_events.18.d
+	picture = CITY_VIEW_eventPicture
+
+	trigger = {
+		always = yes
+	}
+
+	is_triggered_only = yes
+
+	hidden = yes
+	option = {
+		name = race_setup_events.17.a
+
+		if = {
+			limit = {
+				has_province_flag = someone_migrated_here_dawg
+				is_empty = yes
+			}
+			# restore the majority to their previous state - unlike with a normal province, if there was no minority before don't make one, just remove the majority
+			
+			if = {
+				limit = { has_province_flag = migratory_small_minority }
+				convert_majority_to_minority = { size = small }
+				clr_province_flag = migratory_small_minority
+			}
+			else_if = {
+				limit = { has_province_flag = migratory_large_minority }
+				convert_majority_to_minority = { size = large }
+				clr_province_flag = migratory_large_minority
+			}
+			else = {
+				remove_racial_majority = yes
+			}
+			
+			add_majority_of_current_culture = yes
+			cleanup_racial_province_minority_into_majority = yes
+			remove_province_modifier = minority_into_majority
+    
+			clr_province_flag = someone_migrated_here_dawg
+		}
+		
+		else = {
+			if = {
+				limit = {
+					owner = {
+						is_migratory_tribe = yes
+						NOT = { num_of_cities = 2 } # be extra safe - check they're an OPM
+					}
+					is_colony = no
+					NOT = { has_province_flag = someone_migrated_here_dawg }
+				}
+				# note this province was migrated out of so the culture change event handles it properly
+		
+				owner = { set_country_flag = save_minorities_for_migration }
+
+				# oh the clunkiness, we can't save flags in provinces because we need the define that clears flags on province decolonise for other things
+				# so these must be saved as country flags, then turned into province flags in the on_province_owner_change immediately before the on_culture_change later
+		
+				# now when the culture update is called, it will save whether there was a small or large minority, so it can be restored later
+			}
+		
+    		update_racial_province_majority = yes
+    		owner = { clr_country_flag = save_minorities_for_migration }
+		}
+	}
+}
+
+
