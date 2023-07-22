@@ -1,99 +1,3 @@
-#relics exist as variables in provinces counting the number of charges and their status. The province id of the province used for relic_init acts as the relic's identifier
-
-#RelicStatus values 
-# -1 = inactive  0 = depleted  1 = ready to use  2  =  on cooldown
-
-#relic intialize, run this in the initialize event
-
-relic_init = {
-	$ID$ = {
-		set_variable = {
-			which = RelicStatus
-			value = -1
-		}
-		set_variable = {
-			which = RelicCharge
-			value = 0
-		}
-	}
-}
-
-#the following functions should be run in the scope of the province used for relic_init.
-#These are for quickly writing the code to handle the relics.
-#You should largely ignore these and use the ones under #internal functions when trying to do stuff in flavor events or missions
-
-relic_set_holder = {
-	set_variable = {
-		which = RelicStatus
-		value = 0
-	}
-	$TAG$ = {
-		save_global_event_target_as = $RELIC$
-	}
-}
-#relic_set_holder = { TAG = PREV RELIC = MyRelic }
-
-
-relic_change_charge = {
-	change_variable = {
-		which = RelicCharge
-		value = $CHARGES$
-	}
-}
-#relic_change_charge = { CHARGES = -1 }
-
-
-relic_repair_func = {
-	add_treasury = $DUCATS$
-	add_adm_power = $ADM$
-	add_dip_power = $DIP$
-	add_mil_power = $MIL$
-	relic_change_charge = { CHARGES = $CHARGES$ }
-}
-#relic_repair_func = { DUCATS = -800 ADM = -10 DIP = -10 MIL = -10 CHARGES = 3 }
-
-relic_activate_func = {
-	add_treasury = $DUCATS$
-	add_adm_power = $ADM$
-	add_dip_power = $DIP$
-	add_mil_power = $MIL$
-	relic_change_charge = { CHARGES = -1 }
-	if = {
-		limit = {
-			check_variable = {
-				which = RelicCharge
-				value = 1
-			}
-		}
-		set_variable = {
-			which = RelicStatus
-			value = 0
-		}
-	}
-	else = {
-		change_variable = {  #sets the status to on cooldown
-			which = RelicStatus
-			value = 1
-		}
-		province_event = { 
-    		id = relic.2 #ends cooldown in 5 years
-    		days = 1825 # five years
-		}
-	}
-}
-#relic_activate_func = { DUCATS = -800 ADM = -10 DIP = -10 MIL = -10 }
-
-
-#internal functions
-#these are intended to take place in the country scope
-
-relic_new_owner = {
-	$ID$ = {
-		relic_set_holder = { TAG = PREV RELIC = $RELIC$ }
-	}
-}
-#relic_new_owner = { ID = 1 RELIC = MyRelic }
-
 sarhal_country_relic_setup = {
 	if = {
 		limit = {
@@ -101,12 +5,21 @@ sarhal_country_relic_setup = {
 				OR = {
 					superregion = west_salahad_superregion
 					superregion = south_salahad_superregion
+					superregion = bulwar_superregion
 				}
 			}
 		}
 		set_country_flag = relic_flag_allow_salahad
 	}
-	else = {
+	#else_if = {
+	#	limit = {
+	#		capital_scope = {
+	#			superregion = bulwar_superregion
+	#		}
+	#	}
+	#	set_country_flag = relic_flag_allow_bulwar
+	#}
+	else_if = {
 		limit = {
 			capital_scope = {
 				superregion = fangaula_superregion
@@ -114,7 +27,7 @@ sarhal_country_relic_setup = {
 		}
 		set_country_flag = relic_flag_allow_fangaula
 	}
-	else = {
+	else_if = {
 		limit = {
 			capital_scope = {
 				superregion = west_sarhal_superregion
@@ -122,7 +35,7 @@ sarhal_country_relic_setup = {
 		}
 		set_country_flag = relic_flag_allow_tanibDa
 	}
-	else = {
+	else_if = {
 		limit = {
 			capital_scope = {
 				superregion = south_sarhal_superregion
@@ -130,7 +43,7 @@ sarhal_country_relic_setup = {
 		}
 		set_country_flag = relic_flag_allow_southSa
 	}
-	else = {
+	else_if = {
 		limit = {
 			capital_scope = {
 				superregion = south_sarhal_superregion
@@ -138,4 +51,149 @@ sarhal_country_relic_setup = {
 		}
 		set_country_flag = relic_flag_allow_eastSa
 	}
+
+	F65 = {
+		relic_setup_emerald_rattle = yes
+	}
+
+	L21 = {
+		relic_setup_pyre_flame = yes
+	}
+
+	S16 = {
+		relic_setup_ring_of_baashi = yes
+	}
+
+	F72 = {
+		relic_setup_hammer_of_kvanga = yes
+	}
+}
+
+relic_setup_dark_chains = {
+	set_variable = {
+		which = DarkChainsCharges
+		value = 1
+	}
+	set_country_flag = has_relic_dark_chains
+	save_global_event_target_as = relic_target_dark_chains_holder
+}
+
+relic_setup_emerald_rattle = {
+	set_variable = {
+		which = EmeraldRattleCharges
+		value = 3
+	}
+	set_country_flag = has_relic_emerald_rattle
+	save_global_event_target_as = relic_target_emerald_rattle_holder
+}
+
+relic_setup_pyre_flame = {
+	set_variable = {
+		which = PyreFlameCharges
+		value = 3
+	}
+	set_country_flag = has_relic_pyre_flame
+	save_global_event_target_as = relic_target_pyre_flame_holder
+}
+
+relic_setup_samias_anklet = {
+	set_variable = {
+		which = SamiasAnkletCharges
+		value = 3
+	}
+	set_country_flag = has_relic_samias_anklet
+	save_global_event_target_as = relic_target_samias_anklet
+}
+
+relic_setup_baladi_hookah = {
+	set_variable = {
+		which = BaladiHookahCharges
+		value = 3
+	}
+	set_country_flag = has_relic_baladi_hookah
+	save_global_event_target_as = relic_target_baladi_hookah_holder
+}
+
+relic_setup_wondrous_oven = {
+	set_variable = {
+		which = WondrousOvenCharges
+		value = 4
+	}
+	set_country_flag = has_relic_wondrous_oven
+	save_global_event_target_as = relic_target_wondrous_oven_holder
+}
+
+relic_setup_haingo_valiha = {
+	set_variable = {
+		which = HaingoValihaCharges
+		value = 3
+	}
+	set_country_flag = has_relic_haingo_valiha
+	save_global_event_target_as = relic_target_haingo_valiha_holder
+}
+
+relic_setup_ardim_qarast = {
+	set_country_flag = has_relic_ardim_qarast
+	save_global_event_target_as = relic_target_ardim_qarast_holder
+	#set_country_flag = relic_broken_ardim_qarast
+}
+
+relic_setup_pillar_of_gates = {
+	set_country_flag = has_relic_pillar_of_gates
+	save_global_event_target_as = relic_target_pillar_of_gates_holder
+	#set_country_flag = relic_broken_pillar_of_gates
+}
+
+relic_setup_ring_of_baashi = {
+	set_variable = {
+		which = RingOfBaashiCharges
+		value = 3
+	}
+	set_country_flag = has_relic_ring_of_baashi
+	save_global_event_target_as = relic_target_ring_of_baashi_holder
+}
+
+relic_setup_nail_of_the_damned = {
+	set_variable = {
+		which = NailOfTheDamnedCharges
+		value = 1
+	}
+	set_country_flag = has_relic_nail_of_the_damned
+	save_global_event_target_as = relic_target_nail_of_the_damned
+}
+
+relic_setup_silver_mirror = {
+	set_variable = {
+		which = SilverMirrorCharges
+		value = 2
+	}
+	set_country_flag = has_relic_silver_mirror
+	save_global_event_target_as = relic_target_silver_mirror_holder
+}
+
+relic_setup_tablet_of_myths = {
+	set_variable = {
+		which = TabletOfMythsCharges
+		value = 3
+	}
+	set_country_flag = has_relic_tablet_of_myths
+	save_global_event_target_as = relic_target_tablet_of_myths_holder
+}
+
+relic_setup_mantle_of_dominance = {
+	set_variable = {
+		which = MantleOfDominanceCharges
+		value = 2
+	}
+	set_country_flag = has_relic_mantle_of_dominance
+	save_global_event_target_as = relic_target_mantle_of_dominance_holder
+}
+
+relic_setup_hammer_of_kvanga = {
+	set_variable = {
+		which = HammerOfKvangaCharges
+		value = 3
+	}
+	set_country_flag = has_relic_hammer_of_kvanga
+	save_global_event_target_as = relic_target_hammer_of_kvanga_holder
 }
