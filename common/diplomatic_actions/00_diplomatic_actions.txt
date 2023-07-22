@@ -171,7 +171,7 @@ transfer_trade_power = {
 			clr_country_flag = trade_power_count_3
 		}
 		if = {
-			limit = { exists = event_target:feiten_or_was_feiten_target }
+			limit = { has_saved_global_event_target = feiten_or_was_feiten_target }
 			if = {
 				limit = { tag = event_target:feiten_or_was_feiten_target }
 				FROM = { set_country_flag = transfers_trade_to_feiten }
@@ -793,6 +793,14 @@ declarewar = {
 			}
 			H77 = { country_event = { id = flavor_lodhum.150 days = 20 } }
 		}
+		#kamniel stuff
+		if = {
+			limit = {
+				NOT = { has_global_flag = kamniel_descended_flag }
+				FROM = { culture_group = mengi }
+			}
+			FROM = { country_event = { id = mengi_events.0 days = 0 } }
+		}
 #		if = {
 #			limit = {
 #				tag = A73
@@ -808,6 +816,73 @@ declarewar = {
 #          			value = 1
 #        		}
 #		}
+
+		#Keyolion Independence War
+		if = {
+			limit = {
+				tag = G58
+				NOT = {
+					has_country_flag = independence_war_started_flag
+				}
+			}
+			set_country_flag = independence_war_started_flag
+			#Clear Keyolion Triggered Province Modifier
+			2669 = { #Keyolion
+				if = {
+					limit = {
+							has_province_modifier = G58_stability_to_dec_modifier
+					}
+					remove_province_triggered_modifier = G58_stability_to_dec_modifier
+				}
+			}
+			#Clear Keyolion Stab to Declare war if present
+			if = {
+				limit = {
+					has_country_modifier = G58_keyolion_empk_truce_modifier
+				}
+				remove_country_modifier = G58_keyolion_empk_truce_modifier
+			}
+			if = {
+				limit = {
+					mission_completed = G58_4_2_independence_plot
+				}
+				#Get the .10% morale and 0.05% disc
+				add_country_modifier = {
+					name = G58_independence_war_quality_modifier
+					duration = 1825
+				}
+			}
+			if = {
+				limit = {
+					mission_completed = G58_5_2_soldiers_by_law
+				}
+				#Get the three free infantry units
+				2669 = { #Keyolion
+					G58 = {
+						infantry = PREV
+						infantry = PREV
+						infantry = PREV
+					}
+				}
+			}
+			if = {
+				#Empkeios and Arpedifer join the battle
+				limit = {
+					G53 = {
+						has_country_flag = G58_accepted_independence_deal_flag
+						NOT = {
+							truce_with = G47
+						}
+					}
+				}
+				G53 = {
+					join_all_offensive_wars_of = G58
+				}
+				G51 = {
+					join_all_defensive_wars_of = G47
+				}
+			}
+		}
 	}
 }
 
@@ -1117,6 +1192,24 @@ allianceaction = {
 			ROOT = { 
 				NOT = {
 					has_reform = dakinshi_warlord_reform
+				}
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = taychend_warlords
+		potential = {
+		}
+		allow = {
+			OR = {
+				AND = {
+					ROOT = { religion = gods_of_the_taychend }
+					FROM = { religion = gods_of_the_taychend }
+				}
+				AND = {
+					ROOT = { NOT = { religion = gods_of_the_taychend } }
+					FROM = { NOT = { religion = gods_of_the_taychend } }
 				}
 			}
 		}
@@ -1693,7 +1786,7 @@ annexationaction = {
 		}
 	}
 	
-    condition = {
+    condition = { #lets you annex angel tributaries at 190 relations. angelic host
         tooltip = ANNEX_TOO_LOW
         potential = {
             FROM = {
@@ -1862,6 +1955,17 @@ vassalaction = {
 				}
 			}
 			FROM = { is_at_war = no }
+		}
+	}
+	condition = {
+		tooltip = SPAWNABLE_INDEPENDENT_SPIRIT
+		potential = {
+			FROM = {
+				has_country_modifier = strong_colonial_rush
+			}
+		}
+		allow = {
+			always = no
 		}
 	}
 	effect = {
@@ -2324,6 +2428,9 @@ requestpeace = {
 			always = no
         }
 	}
+}
+
+support_heir = {
 }
 
 break_alliance = {
