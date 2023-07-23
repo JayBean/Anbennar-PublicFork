@@ -144,6 +144,11 @@ province_event = { # Province dev boost due to slaves
 			factor = 0.8
 			is_prosperous = yes
 		}
+		modifier = {
+			factor = 0.5
+			owned_by = B34
+			owner = { has_country_flag = B34_slave_economy }
+		}
 	}
 	is_mtth_scaled_to_size = 1
 
@@ -412,6 +417,12 @@ province_event = {
 				}
 			}
 		}
+		
+		modifier = {
+			factor = 0.25
+			owned_by = B34
+			owner = { has_country_flag = B34_slave_economy }
+		}
 	}
 	is_mtth_scaled_to_size = 1
 
@@ -499,7 +510,10 @@ province_event = {
 		province_with_urban_goods = no
 		
 		NOT = { has_global_flag = orcish_slave_trade_banned_in_cannor }
-		owner = { NOT = { has_country_modifier = the_abolish_slavery_act } }
+		owner = { 
+			NOT = { has_country_modifier = the_abolish_slavery_act } 
+			NOT = { has_country_flag = mountainshark_abolished_slavery } 
+		}
 	}
 
 	mean_time_to_happen = {
@@ -528,6 +542,11 @@ province_event = {
 					value = 10
 				}
 			}
+		}
+		modifier = {
+			factor = 0.8
+			owned_by = B34
+			owner = { has_country_flag = B34_slave_economy }
 		}
 	}
 	is_mtth_scaled_to_size = 1
@@ -974,28 +993,33 @@ country_event = {
 
 		ai = no 
 		
-		any_owned_province = {
-			OR = {
-				continent = north_america
-				continent = south_america
+		OR = {
+			any_subject_country = {
+				is_colonial_nation = yes
+				capital_scope = {
+					OR = {
+						continent = north_america
+						continent = south_america
+					}
+				}
 			}
-			is_city = yes
+			any_owned_province = {
+				OR = {
+					continent = north_america
+					continent = south_america
+				}
+			}
 		}
 		
-			#cannorian and bulwari origin as they do the slave trade
+		#cannorian and bulwari origin as they do the slave trade
 		OR = {
-			technology_group = tech_cannorian
-			technology_group = tech_halfling
-			technology_group = tech_gerudian
-			technology_group = tech_elven
+			has_cannorian_tech_group = yes #scripted trigger so that new groups aren't forgotten
 			technology_group = tech_east_elven
-			technology_group = tech_gnomish
 			technology_group = tech_salahadesi
 			technology_group = tech_bulwari
 			technology_group = tech_gnollish
 			technology_group = tech_goblin
-			technology_group = tech_dwarven
-			#technology_group = tech_halfling
+			technology_group = tech_east_dwarven
 		}
 	}
 
@@ -1024,6 +1048,13 @@ country_event = {
 		add_country_modifier = {
 			name = orcish_slaves_in_colonies
 			duration = -1
+		}
+		every_subject_country = {
+			limit = { is_colonial_nation = yes }
+			add_country_modifier = {
+				name = orcish_slaves_in_colonies
+				duration = -1
+			}
 		}
 		custom_tooltip = tooltip_orcish_slaves_in_colonies
 	}
@@ -1179,5 +1210,226 @@ province_event = {
 		owner = { add_prestige = 20 }
 		
 		change_trade_goods = paper
+	}
+}
+
+country_event = {
+	id = orc_slavery.13
+	title = orc_slavery.13.t
+	desc = orc_slavery.13.d
+	picture = TRADE_GOODS_PLANTATION_GOODS_IN_WAREHOUSE_eventPicture
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				save_event_target_as = luciande_slavery_target
+			}
+		}			
+	}
+	
+	trigger = {
+	}
+	
+	option = {
+		name = orc_slavery.13.a
+		ai_chance = {
+			factor = 50
+		}
+		event_target:luciande_slavery_target = {
+			add_orcish_minority_size_effect = yes		
+			if = {
+				limit = { trade_goods = slaves }
+				add_base_production = 1
+			}
+		}
+		medium_decrease_of_orcish_tolerance_effect = yes
+	}
+	option = {
+		name = orc_slavery.13.b
+		ai_chance = {
+			factor = 50
+		}
+		trigger = {
+			event_target:luciande_slavery_target = {
+				has_province_modifier = orcish_minority_oppressed_large
+				NOT = { trade_goods = slaves }
+			}
+		}
+		highlight = yes
+		event_target:luciande_slavery_target = {
+				change_trade_goods = slaves
+		}
+		medium_decrease_of_orcish_tolerance_effect = yes
+	}
+}
+
+province_event = { # Aelantiri plantations keep getting more orcs
+	id = orc_slavery.14
+	title = orc_slavery.14.t
+	desc = orc_slavery.14.d
+	picture = ENCOMIENDA_eventPicture
+	goto = root
+	
+	trigger = {
+		owner = {
+			has_country_modifier = orcish_slaves_in_colonies
+		}
+		has_orcish_minority_trigger = yes
+		has_orcish_majority_trigger = no
+		
+		OR = {
+			continent = south_america
+			continent = north_america
+		}
+
+		NOT = {
+			is_capital = yes
+		}
+		
+		OR = {
+			#restricted to cash crops
+			trade_goods = spices
+			trade_goods = tea
+			trade_goods = coffee
+			trade_goods = cocoa
+			trade_goods = cotton
+			trade_goods = sugar
+			trade_goods = tobacco
+			trade_goods = silk
+		}
+
+		NOT = {
+			#Trollsbayer coast is urban, not enough plantations to get overtaken by orcs
+			AND = {
+				region = trollsbay_region
+				has_port = yes
+			}
+		}
+		
+		is_city = yes
+	}
+
+	mean_time_to_happen = {
+		years = 5
+		
+		modifier = {
+			factor = 2
+			owner = {
+				OR = {	#these guys didnt do it as much
+					technology_group = tech_salahadesi
+					technology_group = tech_bulwari
+					technology_group = tech_elven
+					technology_group = tech_east_elven
+				}
+			}
+		}
+		
+		modifier = {
+			factor = 0.9
+			current_age = age_of_reformation
+		}
+		modifier = {
+			factor = 0.75
+			is_prosperous = yes
+		}
+		modifier = {
+			factor = 0.75
+			development = 10
+		}
+		
+		modifier = {
+			factor = 2
+			has_large_orcish_minority_trigger = yes
+		}
+		
+		modifier = {
+			factor = 2
+			unrest = 2
+		}
+		modifier = {
+			factor = 2
+			unrest = 4
+		}
+		modifier = {
+			factor = 2
+			unrest = 6
+		}
+		modifier = {
+			factor = 2
+			unrest = 8
+		}
+		modifier = {
+			factor = 5
+			unrest = 10
+		}
+	}
+	is_mtth_scaled_to_size = 1
+
+	option = { # Make minority grow
+		name = orc_slavery.14.a
+		trigger = {
+			has_small_orcish_minority_trigger = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		add_permanent_province_modifier = {
+			name = orcish_slave_boom
+			duration = 9125
+		}
+		random_list = {
+			33 = {  }
+			33 = { add_base_tax = 1 }
+			33 = { add_base_production = 1 }
+		}
+		add_orcish_minority_size_effect = yes
+		owner = {
+			small_decrease_of_orcish_tolerance_effect = yes
+		}
+	}
+
+	option = { # Make minority into majority
+		name = orc_slavery.14.b
+		trigger = {
+			has_large_orcish_minority_trigger = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		add_permanent_province_modifier = {
+			name = orcish_slave_boom
+			duration = 9125
+		}
+		random_list = {
+			33 = {  }
+			33 = { add_base_tax = 1 }
+			33 = { add_base_production = 1 }
+		}
+		change_culture = green_orc
+		if = {
+			limit = {
+				OR = {
+					colonial_region = colonial_endralliande
+					colonial_region = colonial_isles
+					colonial_region = colonial_soruin
+				}
+			}
+			random = {
+				chance = 50
+				change_religion = great_dookan
+			}
+		}
+	}
+
+	option = { #for debug purposes
+		name = orc_slavery.14.c
+		trigger = {
+			has_orcish_minority_trigger = no
+		}
+		ai_chance = {
+			factor = 1
+		}
 	}
 }

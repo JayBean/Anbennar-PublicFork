@@ -99,10 +99,8 @@ adventurer_hold_formation = {
 	hidden_effect = { restore_country_name = yes }
 	remove_non_electors_emperors_from_empire_effect = yes
 
-
 	#legacy buff and gov reforms
 	add_country_modifier = { name = legacy_of_adventurers_modifier duration = 14600 }
-	#reform_on_level is -1 because the first lvl isn't counted
 	custom_tooltip = adventurer_hold_formation_tooltip
 	#so players see
 	tooltip = {
@@ -151,8 +149,12 @@ adventurer_hold_formation = {
 	add_prestige = 25
 	set_country_flag = adventurer_derived_government
 	set_country_flag = formed_diggy_formable
-	clr_country_flag = knightly_order_adventurer
 	country_event = { id = marcher.1 days = 1 }
+	hidden_effect = { 
+		country_event = { id = estate_organization.1 days = 2 } #mages
+		country_event = { id = estate_organization.4 days = 2 } #adventurers
+		country_event = { id = diggy.46 days = 4 } #AW conversion event
+	}
 	if = {
 		limit = { has_custom_ideas = no }
 		country_event = { id = ideagroups.1 } #Swap Ideas
@@ -179,6 +181,7 @@ adventurer_hold_formation = {
 	}
 	change_primary_culture = $culture$_dwarf
 	custom_tooltip = adventurer_hold_formation_tooltip2
+	set_capital = $capital_id$
 }
 dwarovar_republic_generic_election_effect = {
 	if = {
@@ -371,6 +374,146 @@ set_province_historical_culture = {
 		verkal_gulan_area = {  add_core = F47  change_culture = gold_dwarf }
 		kanzad_area = {  add_core = H79  change_culture = amber_dwarf }
 		seghdihr_area = {  add_core = H78  change_culture = citrine_dwarf }
+	}
+}
+
+spawn_dwarovar_goblin_rebels = {
+	#undergrowth
+	if = {
+		limit = { superregion = east_serpentspine_superregion }
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = undergrowth_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#coldcave
+	else_if = {
+		limit = { 
+			OR = {
+				area = lonely_mountains_area
+				area = dead_end_tunnel_area
+				area = krakdhum_area
+				area = anvils_horn_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = coldcave_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#rustroad
+	else_if = {
+		limit = { 
+			OR = {
+				area = mithradhum_area
+				area = dwarovrod_10_12_area
+				area = railyard_exchange_area
+				area = railyard_area
+				area = skulkers_lair_area
+				area = goblins_bypass_area
+				area = broken_dagger_pass_area
+				area = dagrinrod_4_6_area
+				area = dagrite_depths_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = rustroad_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#crawler
+	else_if = {
+		limit = { 
+			OR = {
+				area = westnest_area
+				area = eastnest_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = crawler_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#skinburner
+	else_if = {
+		limit = { 
+			OR = {
+				area = argrod_14_16_area
+				area = gor_burad_area
+				area = zarn_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = skinburner_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#straggler
+	else_if = {
+		limit = { 
+			OR = {
+				area = ovdal_lodhum_area
+				area = thievesbane_area
+				area = argrod_6_8_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = straggler_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#goldtooth
+	else_if = {
+		limit = { 
+			OR = {
+				area = diggers_road_area
+				area = goblin_grotto_area
+				area = dwarovrod_33_35_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = goldtooth_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#trolltamer
+	else_if = {
+		limit = { 
+			OR = {
+				area = greatcavern_area
+				area = xazor_area
+				area = ulagom_area
+			}
+		}
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = trolltamer_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
+	}
+	#cave
+	else = {
+		spawn_rebels = {
+			type = cave_goblin_rebel
+			culture = cave_goblin
+			size = $size$
+			[[win]win = $win$]
+		}
 	}
 }
 
@@ -799,92 +942,110 @@ infested_hold_clearing = {
 
 
 cap_digging_speed = { #caps the speed to -90% local build time
+	export_to_variable = {
+		value = modifier:local_build_time
+		variable_name = digcap_variable
+	}
+	export_to_variable = {
+		value = modifier:build_time
+		variable_name = digcap_variable_country
+		who = owner
+	}
+	change_variable = { which = digcap_variable which = digcap_variable_country }
 	if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -2 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.95 } } }
+		limit = { NOT = { check_variable = { digcap_variable = 0.01 } } }
+		multiply_variable = { which = digcap_variable value = -1 }
+	}
+	if = {
+		limit = { check_variable = { digcap_variable = 2 } }
+		add_province_modifier = { name = digging_speedcap_100 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
+	}
+	else_if = {
+		limit = { check_variable = { digcap_variable = 1.95 } }
 		add_province_modifier = { name = digging_speedcap_100 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.95 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.90 } } }
-		add_province_modifier = { name = digging_speedcap_100 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
+		limit = { check_variable = { digcap_variable = 1.9 } }
+		add_province_modifier = { name = digging_speedcap_100 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.90 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.85 } } }
+		limit = { check_variable = { digcap_variable = 1.85 } }
 		add_province_modifier = { name = digging_speedcap_100 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.85 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.80 } } }
+		limit = { check_variable = { digcap_variable = 1.8 } }
 		add_province_modifier = { name = digging_speedcap_50 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.80 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.75 } } }
+		limit = { check_variable = { digcap_variable = 1.75 } }
 		add_province_modifier = { name = digging_speedcap_50 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.75 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.70 } } }
-		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
+		limit = { check_variable = { digcap_variable = 1.7 } }
+		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40_2 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.70 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.65 } } }
-		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes }
+		limit = { check_variable = { digcap_variable = 1.65 } }
+		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_40_2 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.65 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.60 } } }
+		limit = { check_variable = { digcap_variable = 1.6 } }
 		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_30 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.60 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.55 } } }
+		limit = { check_variable = { digcap_variable = 1.55 } }
 		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_30 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.55 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.50 } } }
+		limit = { check_variable = { digcap_variable = 1.5 } }
 		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_20 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.50 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.45 } } }
-		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_20 duration = 1 hidden = yes }
+		limit = { check_variable = { digcap_variable = 1.45 } }
+		add_province_modifier = { name = digging_speedcap_50 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.45 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.40 } } }
+		limit = { check_variable = { digcap_variable = 1.4 } }
 		add_province_modifier = { name = digging_speedcap_50 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.40 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.35 } } }
+		limit = { check_variable = { digcap_variable = 1.35 } }
 		add_province_modifier = { name = digging_speedcap_50 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.35 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.30 } } }
+		limit = { check_variable = { digcap_variable = 1.3 } }
 		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.30 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.25 } } }
+		limit = { check_variable = { digcap_variable = 1.25 } }
 		add_province_modifier = { name = digging_speedcap_40 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.25 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.20 } } }
+		limit = { check_variable = { digcap_variable = 1.2 } }
 		add_province_modifier = { name = digging_speedcap_30 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.20 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.15 } } }
+		limit = { check_variable = { digcap_variable = 1.15 } }
 		add_province_modifier = { name = digging_speedcap_30 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.15 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.1 } } }
+		limit = { check_variable = { digcap_variable = 1.1 } }
 		add_province_modifier = { name = digging_speedcap_20 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.10 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.05 } } }
+		limit = { check_variable = { digcap_variable = 1.05 } }
 		add_province_modifier = { name = digging_speedcap_20 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.05 } NOT = { has_local_modifier_value = { which = local_build_time value = -1.00 } } }
+		limit = { check_variable = { digcap_variable = 1.0 } }
 		add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes } add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -1.00 } NOT = { has_local_modifier_value = { which = local_build_time value = -0.95 } } }
+		limit = { check_variable = { digcap_variable = 0.95 } }
 		add_province_modifier = { name = digging_speedcap_10 duration = 1 hidden = yes }
 	}
 	else_if = {
-		limit = { has_local_modifier_value = { which = local_build_time value = -0.95 } NOT = { has_local_modifier_value = { which = local_build_time value = -0.90 } } }
+		limit = { check_variable = { digcap_variable = 0.9 } }
 		add_province_modifier = { name = digging_speedcap_5 duration = 1 hidden = yes }
 	}
 }
@@ -896,52 +1057,67 @@ uncap_digging_speed = {
 	remove_province_modifier = digging_speedcap_40
 	remove_province_modifier = digging_speedcap_50
 	remove_province_modifier = digging_speedcap_100
+	set_variable = { digcap_variable = 0 }
+	set_variable = { digcap_variable_country = 0 }
 }
 
 
 #repairs
 define_hold_to_repair = {
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_1_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair1
-		setup_restoration_speed = yes
+	if = { #blorcs can only repair their capital
+		limit = { culture = black_orc }
+		capital_scope = {
+			set_province_flag = option_repair_1_@ROOT
+			set_province_flag = repair_@ROOT
+			remove_province_modifier = blorc_plunder_camp
+			remove_province_modifier = blorc_war_camp
+			save_event_target_as = repair1
+			setup_restoration_speed = yes
+		}
 	}
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_2_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair2
-		setup_restoration_speed = yes
-	}
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_3_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair3
-		setup_restoration_speed = yes
-	}
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_4_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair4
-		setup_restoration_speed = yes
-	}
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_5_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair5
-		setup_restoration_speed = yes
-	}
-	random_owned_province = {
-		limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = building has_construction = missionary has_construction = colonist has_construction = culture has_construction = great_project has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
-		set_province_flag = option_repair_6_@ROOT
-		set_province_flag = repair_@ROOT
-		save_event_target_as = repair6
-		setup_restoration_speed = yes
+	else = {
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_1_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair1
+			setup_restoration_speed = yes
+		}
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_2_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair2
+			setup_restoration_speed = yes
+		}
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_3_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair3
+			setup_restoration_speed = yes
+		}
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_4_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair4
+			setup_restoration_speed = yes
+		}
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_5_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair5
+			setup_restoration_speed = yes
+		}
+		random_owned_province = {
+			limit = { OR = { has_province_modifier = ruined_hold has_province_modifier = partially_ruined_hold has_province_modifier = damaged_hold } NOT = { has_construction = any has_province_flag = repair_@ROOT has_province_modifier = blorc_plunder_camp } is_city = yes is_core = ROOT }
+			set_province_flag = option_repair_6_@ROOT
+			set_province_flag = repair_@ROOT
+			save_event_target_as = repair6
+			setup_restoration_speed = yes
+		}
 	}
 }
 setup_restoration_speed = {
@@ -1029,8 +1205,27 @@ setup_restoration_speed = {
 			multiply_variable = { speed = 0.95 }
 		}
 		if = {
-			limit = { owner = { NOT = { has_country_modifier = dwarven_administration } } }
+			limit = { 
+				owner = { 
+					NOT = { 
+						has_country_modifier = dwarven_administration 
+						has_country_modifier = goblin_administration
+						has_country_modifier = kobold_administration
+					}
+				}
+			}
 			multiply_variable = { speed = 1.5 }
+		}
+		if = {
+			limit = { 
+				owner = { 
+					OR = { 
+						has_country_modifier = goblin_administration
+						has_country_modifier = kobold_administration
+					}
+				}
+			}
+			multiply_variable = { speed = 1.2 }
 		}
 		if = {
 			limit = { owner = { has_age_ability = ab_dwarven_reclamation } }
@@ -1074,10 +1269,16 @@ setup_restoration_speed = {
 		which = globalTime
 	}
 
-	#cap time to -90%
+	##these are just for the tooltips
+	#cap time to -85%
 	if = {
-		limit = { NOT = { check_variable = { localTime = -0.910 } } }
-		set_variable = { localTime = -0.900 }
+		limit = { NOT = { check_variable = { localTime = -0.860 } } }
+		set_variable = { localTime = -0.850 }
+	}
+	#cap cost to -90%
+	if = {
+		limit = { NOT = { check_variable = { localCost = -0.910 } } }
+		set_variable = { localCost = -0.900 }
 	}
 	
 	change_variable = { Cost = 1 }
@@ -1349,8 +1550,27 @@ setup_digging_deeper_capital = {
 			multiply_variable = { speed = 0.9 }
 		}
 		if = {
-			limit = { owner = { NOT = { has_country_modifier = dwarven_administration } } }
+			limit = { 
+				owner = { 
+					NOT = { 
+						has_country_modifier = dwarven_administration 
+						has_country_modifier = goblin_administration
+						has_country_modifier = kobold_administration
+					}
+				}
+			}
 			multiply_variable = { speed = 1.5 }
+		}
+		if = {
+			limit = { 
+				owner = { 
+					OR = { 
+						has_country_modifier = goblin_administration
+						has_country_modifier = kobold_administration
+					}
+				}
+			}
+			multiply_variable = { speed = 1.2 }
 		}
 		if = {
 			limit = { owner = { has_age_ability = ab_dwarven_reclamation } }
@@ -1382,6 +1602,10 @@ setup_digging_deeper_capital = {
 		}
 		if = {
 			limit = { owner = { has_country_modifier = orlghelovar_laser_cutter } }
+			multiply_variable = { speed = 0.9 }
+		}
+		if = {
+			limit = { owner = { has_estate_privilege = artifice_invention_snotfinger_stimulant } }
 			multiply_variable = { speed = 0.9 }
 		}
 		
@@ -1422,10 +1646,16 @@ setup_digging_deeper_capital = {
 			which = globalTime
 		}
 
-		#cap time to -90%
+		##these are just for the tooltips
+		#cap time to -85
 		if = {
-			limit = { NOT = { check_variable = { localTime = -0.910 } } }
-			set_variable = { localTime = -0.900 }
+			limit = { NOT = { check_variable = { localTime = -0.860 } } }
+			set_variable = { localTime = -0.850 }
+		}
+		#cap cost to -90%
+		if = {
+			limit = { NOT = { check_variable = { localCost = -0.910 } } }
+			set_variable = { localCost = -0.900 }
 		}
 		
 		change_variable = { Cost = 1 }
@@ -1595,18 +1825,7 @@ upgrade_hold_capital = {
 		}
 	}
 	
-	hidden_effect = { 
-		owner = {
-			clr_country_flag = is_digging
-			clr_country_flag = dig_prod
-			clr_country_flag = dig_manpower
-			clr_country_flag = dig_culture
-			clr_country_flag = dig_explosive
-			remove_country_modifier = dig_prod
-			remove_country_modifier = dig_manpower
-			remove_country_modifier = dig_explosive
-		}
-	}
+	hidden_effect = { owner = { clr_hold_digging_modifiers = yes } }
 	
 	if = { # Verkal Ozovar
 		limit = { province_id = 5424 owner = { has_estate_privilege = estate_mages_grand_rune_haln } }
@@ -1894,6 +2113,10 @@ setup_digging_deeper_non_capital = {
 			limit = { owner = { has_country_modifier = orlghelovar_laser_cutter } }
 			multiply_variable = { speed = 0.9 }
 		}
+		if = {
+			limit = { owner = { has_estate_privilege = artifice_invention_snotfinger_stimulant } }
+			multiply_variable = { speed = 0.9 }
+		}
 
 
 
@@ -1934,10 +2157,16 @@ setup_digging_deeper_non_capital = {
 			which = globalTime
 		}
 
-		#cap time to -90%
+		##these are just for the tooltips
+		#cap time to -85%
 		if = {
-			limit = { NOT = { check_variable = { localTime = -0.910 } } }
-			set_variable = { localTime = -0.900 }
+			limit = { NOT = { check_variable = { localTime = -0.860 } } }
+			set_variable = { localTime = -0.850 }
+		}
+		#cap cost to -90%
+		if = {
+			limit = { NOT = { check_variable = { localCost = -0.910 } } }
+			set_variable = { localCost = -0.900 }
 		}
 		
 		change_variable = { Cost = 1 }
@@ -2114,6 +2343,43 @@ upgrade_hold = {
 				add_permanent_province_modifier = { name = dig_11 duration = -1 } 
 			}
 		}
+	}
+}
+
+clr_hold_advanced_infrastructure = {
+	remove_province_modifier = hold_city
+	remove_province_modifier = hold_artisan
+	remove_province_modifier = hold_farm
+	remove_province_modifier = hold_military
+	remove_province_modifier = hold_city_2
+	remove_province_modifier = hold_artisan_2
+	remove_province_modifier = hold_farm_2
+	remove_province_modifier = hold_military_2
+	remove_province_modifier = developing_advanced_infrastructure
+	hidden_effect = { clr_province_flag = specialized_hold }
+	owner = {
+		hidden_effect = { clr_country_flag = building_diggy }
+		hidden_effect = { clr_country_flag = building_artificier_hall }
+		hidden_effect = { clr_country_flag = building_engineer_manufactory }
+		hidden_effect = { clr_country_flag = building_high_gardens }
+		hidden_effect = { clr_country_flag = building_military_academy }
+	}
+}
+
+clr_hold_digging_modifiers = {
+	hidden_effect = {
+		clr_country_flag = is_digging
+		clr_country_flag = dig_prod
+		clr_country_flag = dig_manpower
+		clr_country_flag = dig_culture
+		clr_country_flag = dig_explosive
+		clr_country_flag = dig_slimes
+		clr_country_flag = dig_miner
+		clr_country_flag = dig_trader
+		remove_country_modifier = dig_prod
+		remove_country_modifier = dig_manpower
+		remove_country_modifier = dig_explosive
+		remove_country_modifier = dig_trader
 	}
 }
 
@@ -2360,30 +2626,38 @@ increase_remnant_react = {
 ### Expeditions ###
 ###################
 ####Prep
+spawn_expedition = {
+	if = {
+		limit = { can_spawn_expedition = yes }
+		add_permanent_province_modifier = { name = expedition_target duration = -1 }
+		hidden_effect = { REB = { change_variable = { nbExpedition = 1 } } }
+	}
+}
+
 define_expedition_target = {
 	# Dungeons
 	random_owned_province = {
-		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_province_flag = floor_explored has_saved_event_target = expedition1 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition1
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_province_flag = floor_explored has_saved_event_target = expedition2 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition2
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_province_flag = floor_explored has_saved_event_target = expedition3 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition3
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_province_flag = floor_explored has_saved_event_target = expedition4 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition4
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_flag = explorable_dungeon owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_province_flag = floor_explored has_saved_event_target = expedition5 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition5
 	}
@@ -2414,27 +2688,27 @@ define_expedition_target = {
 		save_event_target_as = expedition5
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_saved_event_target = expedition6 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition6
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_saved_event_target = expedition7 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition7
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_saved_event_target = expedition8 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition8
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_saved_event_target = expedition9 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition9
 	}
 	random_owned_province = {
-		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer } }
+		limit = { is_city = yes has_province_modifier = expedition_target owned_by = ROOT controlled_by = ROOT NOT = { has_province_flag = expedition_@ROOT has_province_flag = sent_expedition_@ROOT has_province_modifier = expedition_death_timer has_saved_event_target = expedition10 } }
 		set_province_flag = expedition_@ROOT
 		save_event_target_as = expedition10
 	}
@@ -2452,6 +2726,25 @@ generate_party_stats = {
 				limit = { has_reform = dwarovar_serpentspine_spelunking }
 				change_variable = { partyEffectiveness = 0.05 }
 			}
+			if = {
+				limit = { has_country_modifier = dwarovar_urist_stories }
+				change_variable = { partyEffectiveness = 0.05 }
+			}
+			if = {
+				limit = { has_country_flag = dwarven_pantheon_expedition_dolurazan }
+				change_variable = { partyEffectiveness = 0.20 }
+				clr_country_flag = dwarven_pantheon_expedition_dolurazan
+			}
+			if = {
+				limit = { has_country_flag = dwarven_pantheon_expedition_derzobrazan }
+				change_variable = { partyEffectiveness = 0.20 }
+				clr_country_flag = dwarven_pantheon_expedition_derzobrazan
+			}
+			if = {
+				limit = { has_country_flag = dwarven_pantheon_expedition_bervinazan }
+				change_variable = { partyEffectiveness = 0.20 }
+				clr_country_flag = dwarven_pantheon_expedition_bervinazan
+			}
 			multiply_variable = { partyEffectiveness = 100 }
 		}
 		owner = { ROOT = { change_variable = { which = partyEffectiveness which = PREV } } }
@@ -2459,6 +2752,16 @@ generate_party_stats = {
 			export_to_variable = {
 				which = partyMorale
 				value = trigger_value:land_morale
+			}
+			if = {
+				limit = { has_country_flag = dwarven_pantheon_expedition_karazlov }
+				change_variable = { partyMorale = 2 }
+				clr_country_flag = dwarven_pantheon_expedition_karazlov
+			}
+			if = {
+				limit = { has_country_flag = dwarven_pantheon_expedition_grimthar }
+				change_variable = { partyMorale = 2 }
+				clr_country_flag = dwarven_pantheon_expedition_grimthar
 			}
 			if = {
 				limit = { has_country_modifier = dwarovar_expedition_douche }
@@ -2474,6 +2777,20 @@ generate_party_stats = {
 		if = {
 			limit = { NOT = { check_variable = { partyMorale = 0 } } }
 			set_variable = { partyMorale = 0 }
+		}
+		owner = {
+			if = {
+				limit = { OR = { has_country_flag = dwarven_pantheon_expedition_thyrfen has_country_flag = dwarven_pantheon_expedition_werdun } }
+				set_variable = { partySupplies = 100 }
+				clr_country_flag = dwarven_pantheon_expedition_thyrfen
+				clr_country_flag = dwarven_pantheon_expedition_werdun
+			}
+			if = {
+				limit = { OR = { has_country_flag = dwarven_pantheon_expedition_lorgram has_country_flag = dwarven_pantheon_expedition_grobilazk } }
+				set_variable = { partyManpower = 10000 }
+				clr_country_flag = dwarven_pantheon_expedition_lorgram
+				clr_country_flag = dwarven_pantheon_expedition_grobilazk
+			}
 		}
 	}
 }
@@ -2584,26 +2901,26 @@ generate_expedition = {
 		}
 		else_if = {
 			limit = { has_province_flag = explorable_dungeon }
-			# Can add some specifics shit for specific dungeon here
+
 			set_variable = { partyRewards = 0 }
 			set_variable = { partySupplies = 0 }
 			set_variable = { partyManpower = 0 }
-			generate_party_stats = yes
+			set_variable = { partyTotalCost = 0 }
 		}
 		else = {
 			set_province_flag = generated_expedition
 			
-			set_variable = { nbFloor = 1 }
+			set_variable = { nbFloor = $base_floor$ }
 			set_variable = { clearedFloor = 0 }
 			set_variable = { progressFloor = 0 }
 			set_variable = { nbEncounters = 0 }
-			set_variable = { dangerLevel = 1 } #1 = Bronze 2 = Silver 3 = Gold 4 = Platinum 5 = Mithril
+			set_variable = { dangerLevel = $base_danger$ } #1 = Bronze 2 = Silver 3 = Gold 4 = Platinum 5 = Mithril
 			set_variable = { partyLoot = 0 }
 			set_variable = { partyRewards = 0 }
 			set_variable = { partySupplies = 0 }
 			set_variable = { partyManpower = 0 }
-			generate_party_stats = yes
-			
+			set_variable = { partyTotalCost = 0 }
+
 			#####################
 			### Numbers of Floors
 			#####################
@@ -2623,11 +2940,11 @@ generate_expedition = {
 			
 			#Random Shit
 			random = {
-				chance = 50
+				chance = 40
 				change_variable = { nbFloor = 1 }
 			}
 			random = {
-				chance = 25
+				chance = 20
 				change_variable = { nbFloor = 1 }
 			}
 			random_list = {
@@ -2637,7 +2954,7 @@ generate_expedition = {
 			}
 			
 			random = {
-				chance = 40
+				chance = 30
 				multiply_variable = { nbFloor = 1.5 }
 			}
 			
@@ -2647,10 +2964,6 @@ generate_expedition = {
 			}
 			random = {
 				chance = 20
-				multiply_variable = { nbFloor = 1.5 }
-			}
-			random = {
-				chance = 15
 				multiply_variable = { nbFloor = 1.5 }
 			}
 			
@@ -2673,10 +2986,6 @@ generate_expedition = {
 						has_terrain = dwarven_hold
 						has_terrain = dwarven_hold_surface
 					}
-				}
-				random = {
-					chance = 50
-					change_variable = { nbFloor = 1 }
 				}
 				random = {
 					chance = 30
@@ -2740,7 +3049,7 @@ generate_expedition = {
 				}
 			}
 			random = {
-				chance = 45
+				chance = 35
 				change_variable = { dangerLevel = 1 }
 			}
 			random = {
@@ -2757,10 +3066,6 @@ generate_expedition = {
 				15 = { change_variable = { dangerLevel = 2 } }
 			}
 			
-			random = {
-				chance = 20
-				multiply_variable = { dangerLevel = 1.5 }
-			}
 			random = {
 				chance = 10
 				multiply_variable = { dangerLevel = 1.5 }
@@ -2785,6 +3090,7 @@ generate_expedition = {
 				set_variable = { nbFloor = 2 }
 				set_variable = { dangerLevel = 2 } 
 			}
+			
 			#temp until dungeons are implemented
 			if = {
 				limit = { has_province_flag = krakazol_1st_exp }
@@ -2800,6 +3106,13 @@ generate_expedition = {
 				limit = { has_province_flag = krakazol_3rd_exp }
 				set_variable = { nbFloor = 4 }
 				set_variable = { dangerLevel = 5 } 
+			}
+			
+			# Dur-Vazhatun MT
+			if = {
+				limit = { has_province_flag = vazhatun_expedition_flag }
+				set_variable = { nbFloor = 4 }
+				set_variable = { danger_level = 5 }
 			}
 
 			# Loot Estimate
@@ -2905,8 +3218,8 @@ change_party_morale = {
 			set_variable = { partyMorale = 0 }
 		}
 		if = {
-			limit = { check_variable = { partyMorale = 30 } }
-			set_variable = { partyMorale = 30 }
+			limit = { check_variable = { partyMorale = 10 } }
+			set_variable = { partyMorale = 10 }
 		}
 		#Only use the 4 below for the prep phase
 		[[adm_cost]	
@@ -3133,8 +3446,15 @@ save_party_preparation = {
 		set_variable = { which = partyEffectivenessSave which = partyEffectiveness }
 		set_variable = { which = partySuppliesSave which = partySupplies }
 		set_variable = { which = partyRewardsSave which = partyRewards }
-		set_variable = { which = dangerLevelSave which = dangerLevel }
-		set_variable = { which = nbFloorSave which = nbFloor }
+		if = {
+			limit = { has_province_flag = explorable_dungeon }
+			set_variable = { dangerLevelSave = 6 }
+			set_variable = { nbFloorSave = 8 }
+		}
+		else = {
+			set_variable = { which = dangerLevelSave which = dangerLevel }
+			set_variable = { which = nbFloorSave which = nbFloor }
+		}
 		owner = {
 			set_variable = { which = partyManpowerSave which = PREV }
 			set_variable = { which = partyMoraleSave which = PREV }
@@ -3241,7 +3561,7 @@ progress_advancement = {
 		#Supplies
 		set_variable = { lossSupplies = 1.95 }
 		#Morale
-		set_variable = { lossMorale = 0.17 }		#Need 8.4 morale at least to complete Floor 7
+		set_variable = { lossMorale = 0.15 }
 	}
 	# Remnant Colonial option
 	else_if = {
@@ -3251,16 +3571,16 @@ progress_advancement = {
 		#Supplies
 		set_variable = { lossSupplies = 1.11 }
 		#Morale
-		set_variable = { lossMorale = 0.12 }	#Need 10.5 morale at least to complete Floor 7
+		set_variable = { lossMorale = 0.11 }
 	}
 	# Other dude
 	else = {
-		set_variable = { addProgress = 4.4 }	 # ~22 months/floors at this rate, max ~13 years
+		set_variable = { addProgress = 5.6 }	 # ~22 months/floors at this rate, max ~13 years
 		
 		#Supplies
-		set_variable = { lossSupplies = 0.62 }
+		set_variable = { lossSupplies = 0.79 }
 		#Morale
-		set_variable = { lossMorale = 0.07 }	#Need 12.6 morale at least to complete Floor 7
+		set_variable = { lossMorale = 0.08 }
 	}
 	
 	# Supplies lost
@@ -3285,120 +3605,135 @@ progress_advancement = {
 	
 	#Party Rewards
 	if = {
-		limit = { check_variable = { rewardsFactor = 1 } }
-		multiply_variable = { lossMorale = 0.70 }
+		limit = { check_variable = { partyRewards = 2000 } }
+		multiply_variable = { lossMorale = 0.52 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.95 } }
+		limit = { check_variable = { partyRewards = 1900 } }
+		multiply_variable = { lossMorale = 0.57 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1800 } }
+		multiply_variable = { lossMorale = 0.61 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1700 } }
+		multiply_variable = { lossMorale = 0.65 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1600 } }
+		multiply_variable = { lossMorale = 0.69 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1500 } }
 		multiply_variable = { lossMorale = 0.72 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.90 } }
-		multiply_variable = { lossMorale = 0.74 }
+		limit = { check_variable = { partyRewards = 1400 } }
+		multiply_variable = { lossMorale = 0.75 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.85 } }
-		multiply_variable = { lossMorale = 0.76 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.80 } }
+		limit = { check_variable = { partyRewards = 1300 } }
 		multiply_variable = { lossMorale = 0.78 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.75 } }
-		multiply_variable = { lossMorale = 0.80 }
+		limit = { check_variable = { partyRewards = 1200 } }
+		multiply_variable = { lossMorale = 0.81 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.70 } }
-		multiply_variable = { lossMorale = 0.82 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.65 } }
+		limit = { check_variable = { partyRewards = 1100 } }
 		multiply_variable = { lossMorale = 0.84 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.60 } }
-		multiply_variable = { lossMorale = 0.86 }
+		limit = { check_variable = { partyRewards = 1000 } }
+		multiply_variable = { lossMorale = 0.87 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.55 } }
-		multiply_variable = { lossMorale = 0.88 }
+		limit = { check_variable = { partyRewards = 900 } }
+		multiply_variable = { lossMorale = 0.89 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.50 } }
-		multiply_variable = { lossMorale = 0.90 }
+		limit = { check_variable = { partyRewards = 800 } }
+		multiply_variable = { lossMorale = 0.91 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.45 } }
-		multiply_variable = { lossMorale = 0.92 }
+		limit = { check_variable = { partyRewards = 700 } }
+		multiply_variable = { lossMorale = 0.93 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.35 } }
-		multiply_variable = { lossMorale = 0.94 }
+		limit = { check_variable = { partyRewards = 600 } }
+		multiply_variable = { lossMorale = 0.95 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.30 } }
-		multiply_variable = { lossMorale = 0.96 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.25 } }
+		limit = { check_variable = { partyRewards = 500 } }
 		multiply_variable = { lossMorale = 0.97 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.20 } }
+		limit = { check_variable = { partyRewards = 400 } }
 		multiply_variable = { lossMorale = 0.98 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.15 } }
+		limit = { check_variable = { partyRewards = 300 } }
 		multiply_variable = { lossMorale = 0.99 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.10 } }
+		limit = { check_variable = { partyRewards = 200 } }
 		multiply_variable = { lossMorale = 1 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.05 } }
+		limit = { check_variable = { partyRewards = 100 } }
 		multiply_variable = { lossMorale = 1.1 }
 	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0 } }
-		multiply_variable = { lossMorale = 1.2 }
-	}
+	else = { multiply_variable = { lossMorale = 1.2 } }
 	
 	#Attrition
-	multiply_variable = { partyManpower = 0.999 }
-	random = {
-		chance = 15
-		change_variable = { partyManpower = -2 }
+	if = {
+		limit = { check_variable = { partyManpower = 8000 } }
+		multiply_variable = { partyManpower = 0.99 }
+	}
+	else_if = {
+		limit = { check_variable = { partyManpower = 5000 } }
+		multiply_variable = { partyManpower = 0.98 }
+	}
+	else = {
+		multiply_variable = { partyManpower = 0.97 }
+	}
+	random_list = {
+		120 = {}
+		25 = { change_variable = { partyManpower = -5 } }
+		25 = { change_variable = { partyManpower = -3 } }
+		25 = { change_variable = { partyManpower = -1 } }
 	}
 	
 	#Starvation
 	if = {
 		limit = { NOT = { check_variable = { partySupplies = 0.1 } } }
-		multiply_variable = { partyManpower = 0.80 }
+		multiply_variable = { partyManpower = 0.75 }
 		change_variable = { partyManpower = -500 }
 	}
 	
 	#Low Morale/Desertion
 	if = {
 		limit = { NOT = { check_variable = { partyMorale = 0.1 } } }
-		multiply_variable = { partyManpower = 0.85 }
-		change_variable = { partyManpower = -200 }
+		multiply_variable = { partyManpower = 0.7 }
+		change_variable = { partyManpower = -300 }
 	}
 	
 	#Lack of Organisation
 	if = {
 		limit = { NOT = { check_variable = { partyEffectiveness = 50 } } }
-		multiply_variable = { partyManpower = 0.95 }
+		multiply_variable = { partyManpower = 0.9 }
 		change_variable = { partyManpower = -50 }
 	}
 	
-	# Danger Random Losses
+	#Danger Random Losses
 	random_list = {
 		90 = { }
 		10 = {
-			modifier = { factor = 0 NOT = { check_variable = { dangerLevel = 2 } } }
-			modifier = { factor = 0 check_variable = { dangerLevel = 3 } }
+			trigger = { 
+				check_variable = { dangerLevel = 2 }
+				NOT = { check_variable = { dangerLevel = 3 } }
+			}
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 110 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 115 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 120 } } }
@@ -3409,8 +3744,10 @@ progress_advancement = {
 			}
 		}
 		10 = {
-			modifier = { factor = 0 NOT = { check_variable = { dangerLevel = 3 } } }
-			modifier = { factor = 0 check_variable = { dangerLevel = 4 } }
+			trigger = { 
+				check_variable = { dangerLevel = 3 }
+				NOT = { check_variable = { dangerLevel = 4 } }
+			}
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 125 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 130 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 135 } } }
@@ -3421,8 +3758,10 @@ progress_advancement = {
 			}
 		}
 		10 = {
-			modifier = { factor = 0 NOT = { check_variable = { dangerLevel = 4 } } }
-			modifier = { factor = 0 check_variable = { dangerLevel = 5 } }
+			trigger = { 
+				check_variable = { dangerLevel = 4 }
+				NOT = { check_variable = { dangerLevel = 5 } }
+			}
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 140 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 145 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 150 } } }
@@ -3433,19 +3772,21 @@ progress_advancement = {
 			}
 		}
 		10 = {
-			modifier = { factor = 0 NOT = { check_variable = { dangerLevel = 5 } } }
+			trigger = { 
+				check_variable = { dangerLevel = 5 }
+			}
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 155 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 160 } } }
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 165 } } }
 			random_list = {
-				33 = { multiply_variable = { partyManpower = 0.97 } }
-				33 = { multiply_variable = { lossSupplies = 1.03 } }
-				33 = { multiply_variable = { lossMorale = 1.03 } }
+				33 = { multiply_variable = { partyManpower = 0.96 } }
+				33 = { multiply_variable = { lossSupplies = 1.04 } }
+				33 = { multiply_variable = { lossMorale = 1.04 } }
 			}
 		}
 	}
 	
-	# Random Progress
+	#Random Progress
 	random_list = {
 		10 = {
 			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 45 } } }
@@ -3503,17 +3844,6 @@ progress_advancement = {
 		}
 	}
 	
-	# Misc shit
-	if = {
-		limit = { owner = { has_idea_group = exploration_ideas } }
-		multiply_variable = { addProgress = 1.2 }
-	}
-	
-	if = {
-		limit = { owner = { has_age_ability = ab_dwarven_reclamation } }
-		multiply_variable = { addProgress = 2 }
-	}
-	
 	if = {
 		limit = { owner = { NOT = { num_of_cities = 2 } } }
 		random = {
@@ -3525,19 +3855,6 @@ progress_advancement = {
 		random = {
 			chance = 7
 			change_party_effectiveness = { loss = 1 }
-		}
-	}
-	
-	
-	# Racial shit
-	if = {
-		limit = { owner = { NOT = { has_country_modifier = dwarven_administration } } }
-		if = {
-			limit = { owner = { OR = { has_country_modifier = goblin_administration has_country_modifier = kobold_administration } } }
-			multiply_variable = { addProgress = 0.9 }
-		}
-		else = {
-			multiply_variable = { addProgress = 0.8 }
 		}
 	}
 
@@ -3872,64 +4189,123 @@ reward_adk_effect = {
 }
 
 special_reward_expedition = {
-	
-	#counter for missions
+	##Counter for missions
 	hidden_effect = { owner = { change_variable = { expeditions_completed_var = 1 } } }
 
-	#random flavor
+	##Random flavor
 	if = {
 		limit = { has_province_modifier = dwarovar_unwanted_guests }
 		remove_province_modifier = dwarovar_unwanted_guests
 	}
 
-	# Militarisation
+	##Militarisation
 	if = {
 		limit = { owner = { NOT = { num_of_cities = 2 } } }
 		if = {
 			limit = { check_variable = { dangerLevel = 5 } }
-			owner = { add_militarised_society = 25 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 25
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 4 } }
-			owner = { add_militarised_society = 20 }
+						owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 20
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 3 } }
-			owner = { add_militarised_society = 15 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 15
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 2 } }
-			owner = { add_militarised_society = 10 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 10
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 1 } }
-			owner = { add_militarised_society = 5 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 5
+				}
+			}
 		}
 	}
 	else = {
 		if = {
 			limit = { check_variable = { dangerLevel = 5 } }
-			owner = { add_militarised_society = 12.5 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 12.5
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 4 } }
-			owner = { add_militarised_society = 10 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 10
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 3 } }
-			owner = { add_militarised_society = 7.5 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 7.5
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 2 } }
-			owner = { add_militarised_society = 5 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 5
+				}
+			}
 		}
 		else_if = {
 			limit = { check_variable = { dangerLevel = 1 } }
-			owner = { add_militarised_society = 2.5 }
+			owner = { 
+				add_government_power = {
+					mechanic_type = militarization_mechanic
+					power_type = militarized_society
+					value = 2.5
+				}
+			}
 		}
 	}
 	
-	# Prestige
+	##Prestige
 	if = {
 		limit = { check_variable = { dangerLevel = 5 } }
 		owner = { add_prestige_excess_to_splendour_effect = { VAL = 25 } }
@@ -3950,7 +4326,7 @@ special_reward_expedition = {
 		owner = { add_prestige_excess_to_splendour_effect = { VAL = 2.5 } }
 	}
 	
-	#Dwarovkron
+	##Dwarovkron
 	if = {
 		limit = { has_province_modifier = dwarovkron_fragment }
 		hidden_effect = { remove_province_modifier = dwarovkron_fragment  }
@@ -3996,7 +4372,7 @@ special_reward_expedition = {
 		}
 	}
 	
-	#Encounters
+	##Encounters
 	if = {
 		limit = { 
 			AND = {
@@ -4047,8 +4423,6 @@ special_reward_expedition = {
 		limit = { has_province_flag = expedition_slime_colony }
 		add_permanent_province_modifier = { name = expedition_slime_colony_modifier duration = -1 }
 	}
-	
-
 	if = {
 		limit = { has_province_flag = expedition_remnant_dev }
 		if = {
@@ -4070,6 +4444,8 @@ special_reward_expedition = {
 		add_permanent_province_modifier = { name = expedition_bugbear_tribe_modifier duration = -1 }
 	}
 
+
+	##Missions
 	# Khugdihr MT
 	if = {
 		limit = { has_province_flag = khug_expedition_1_created }
@@ -4109,6 +4485,13 @@ special_reward_expedition = {
 		clr_province_flag = krakazol_2nd_exp
 		clr_province_flag = krakazol_3rd_exp
 	}
+	
+	# Dur-Vazhatun MT
+	if = {
+		limit = { has_province_flag = vazhatun_expedition_flag }
+		owner = { country_event = { id = flavor_vazhatun.8 } }
+	}
+	
 }
 currency_effect_expedition = { #currency (#takeFrom) #addTo #which/value
 	hidden_effect = {
@@ -4123,17 +4506,17 @@ currency_effect_expedition = { #currency (#takeFrom) #addTo #which/value
 			limit = {
 				check_variable = { which = foo value = 0 }
 			}
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=while val=819.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=409.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=204.8 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=102.4 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=51.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=25.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=12.8 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=6.4 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=3.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=1.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=0.8 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=while val=820 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=410 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=205 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=102 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=51 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=26 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=13 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=6 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=3 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=2 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=1 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=0.4 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=0.2 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]addTo=$addTo$] [[takeFrom]takeFrom=$takeFrom$] type=if val=0.1 }
@@ -4142,17 +4525,17 @@ currency_effect_expedition = { #currency (#takeFrom) #addTo #which/value
 		}
 		else = {
 			multiply_variable = { which = foo value = -1 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=while val=819.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=409.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=204.8 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=102.4 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=51.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=25.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=12.8 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=6.4 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=3.2 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=1.6 }
-			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=0.8 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=while val=820 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=410 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=205 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=102 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=51 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=26 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=13 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=6 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=3 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=2 }
+			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=1 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=0.4 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=0.2 }
 			currency_helper_expedition = { currency=$currency$ [[addTo]takeFrom=$addTo$] [[takeFrom]addTo=$takeFrom$] type=if val=0.1 }
@@ -4203,7 +4586,6 @@ clear_expedition_effect = {
 	set_variable = { ancientDwarvenKnowledge = 0 }
 	set_variable = { temp_adk = 0 }
 	set_variable = { lootEstimate = 0 }
-	set_variable = { rewardsFactor = 0 }
 	set_variable = { partyEffectivenessAdmCost = 0 }
 	set_variable = { partyEffectivenessDipCost = 0 }
 	set_variable = { partyEffectivenessMilCost = 0 }
@@ -4216,6 +4598,7 @@ clear_expedition_effect = {
 	set_variable = { partySuppliesDipCost = 0 }
 	set_variable = { partySuppliesMilCost = 0 }
 	set_variable = { partySuppliesCashCost = 0 }
+	set_variable = { partyTotalCost = 0 }
 	
 	clr_province_flag = sent_expedition_@owner
 	clr_province_flag = expedition_in_progress
@@ -4224,7 +4607,11 @@ clear_expedition_effect = {
 	owner = { clr_country_flag = expedition_happening }
 	
 	clear_expedition_special_flags_effect = yes
-	REB = { subtract_variable = { nbExpedition = 1 } }
+	if = {
+		limit = { has_province_modifier = expedition_target }
+		remove_province_modifier = expedition_target
+		REB = { subtract_variable = { nbExpedition = 1 } }
+	}
 }
 expedition_dead_effect = {
 	set_variable = { clearedFloor = 0 }
@@ -4245,7 +4632,6 @@ expedition_dead_effect = {
 	set_variable = { ancientDwarvenKnowledge = 0 }
 	set_variable = { temp_adk = 0 }
 	set_variable = { lootEstimate = 0 }
-	set_variable = { rewardsFactor = 0 }
 	set_variable = { partyEffectivenessAdmCost = 0 }
 	set_variable = { partyEffectivenessDipCost = 0 }
 	set_variable = { partyEffectivenessMilCost = 0 }
@@ -4258,6 +4644,7 @@ expedition_dead_effect = {
 	set_variable = { partySuppliesDipCost = 0 }
 	set_variable = { partySuppliesMilCost = 0 }
 	set_variable = { partySuppliesCashCost = 0 }
+	set_variable = { partyTotalCost = 0 }
 	
 	if = {
 		limit = { is_city = yes }
@@ -4289,6 +4676,21 @@ clear_expedition_special_flags_effect = {
 
 	###Dungeon encounters
 	
+	#Frogarsalforn
+	clr_province_flag = frogarsalforn_1_broken_statue
+	clr_province_flag = frogarsalforn_1_bookbinder
+
+
+	#Wytlramvar
+	clr_province_flag = wytlramvar_1_bridge
+	clr_province_flag = wytlramvar_1_exit
+	clr_province_flag = wytlramvar_1_crystal
+	clr_province_flag = wytlramvar_2_crabs
+	clr_province_flag = wytlramvar_2_island
+	clr_province_flag = wytlramvar_2_rapids
+	clr_province_flag = wytlramvar_3_crank
+	clr_province_flag = wytlramvar_3_shinies
+	clr_province_flag = wytlramvar_3_trap
 
 	#Grumhardhum
 	clr_province_flag = grumhardhum_1_forgeroom
@@ -4308,7 +4710,6 @@ clear_expedition_special_flags_effect = {
 	clr_province_flag = grumhardhum_2_throwwater
 	clr_province_flag = grumhardhum_2_blowup
 	clr_province_flag = grumhardhum_2_tunnel_success
-	clr_province_flag = grumhardhum_3_furnace
 	clr_province_flag = grumhardhum_3_vents
 	clr_province_flag = grumhardhum_3_floodgates
 	clr_province_flag = grumhardhum_3_cannons
@@ -4321,11 +4722,66 @@ clear_expedition_special_flags_effect = {
 	clr_province_flag = grumhardhum_3_cage_success
 	clr_province_flag = grumhardhum_3_golems_success
 	clr_province_flag = grumhardhum_3_sprinklers_success
-	clr_province_flag = grumhardhum_3_elementalspotted
 	clr_province_flag = grumhardhum_3_elementalrun_1
 	clr_province_flag = grumhardhum_3_elementalrun_2
 	clr_province_flag = grumhardhum_3_elementalrun_3
 	clr_province_flag = grumhardhum_3_elementalfight_fail
+
+	#Dimlherd
+	clr_province_flag = dimlherd_lava_canoeing_flag
+	clr_province_flag = dimlherd_explosives_flag
+	clr_province_flag = dimlherd_laboratory_flag
+	clr_province_flag = dimlherd_generator_flag
+
+	#Ofralglarf
+	clr_province_flag = ofralglarf_1_investigate
+	clr_province_flag = ofralglarf_2_lock
+	clr_province_flag = ofralglarf_2_drill
+	clr_province_flag = ofralglarf_3_bomb
+	clr_province_flag = ofralglarf_3_stairs
+
+	#Stunveigryôrth
+	clr_province_flag = stunveigryorth_1_lake
+	clr_province_flag = stunveigryorth_1_explosives
+	clr_province_flag = stunveigryorth_2_pulverise
+	clr_province_flag = stunveigryorth_2_dig
+	clr_province_flag = stunveigryorth_2_explosives
+	clr_province_flag = stunveigryorth_2_descend
+	clr_province_flag = stunveigryorth_3_hammer
+	clr_province_flag = stunveigryorth_3_smoke
+	clr_province_flag = stunveigryorth_3_illusion
+	clr_province_flag = stunveigryorth_3_stick
+
+	#Leforn Vâmbrèthar
+	clr_province_flag = leforn_1_bomb
+	clr_province_flag = leforn_1_stabilize
+	clr_province_flag = leforn_3_gems
+	clr_province_flag = leforn_3_forge
+	clr_province_flag = leforn_3_jeweller
+
+	#Rizvâmbrèthar
+	clr_province_flag = runeshop_1_entry
+	clr_province_flag = runeshop_1_traps
+	clr_province_flag = runeshop_1_perimeter
+	clr_province_flag = runeshop_1_attack
+	clr_province_flag = runeshop_2_perimeter
+	clr_province_flag = runeshop_2_assembly
+	clr_province_flag = runeshop_2_violence
+	clr_province_flag = runeshop_2_magic
+	clr_province_flag = runeshop_2_shutdown
+	clr_province_flag = runeshop_2_destroy
+	clr_province_flag = runeshop_2_activate
+	clr_province_flag = runeshop_2_barricade
+	clr_province_flag = runeshop_3_search
+	clr_province_flag = runeshop_3_charge
+	clr_province_flag = runeshop_3_fastest
+	clr_province_flag = runeshop_3_failure
+	clr_province_flag = runeshop_3_source
+	clr_province_flag = runeshop_3_anvil
+	clr_province_flag = runeshop_3_ritual
+	clr_province_flag = runeshop_3_banish
+	clr_province_flag = runeshop_3_diplomacy
+
 }
 
 
@@ -4385,146 +4841,139 @@ dungeon_start_exploration = {
 
 dungeon_progress = {
 	#Supplies
-	set_variable = { lossSupplies = 1.11 }	#Those value need more raw number testing
+	set_variable = { lossSupplies = 1.16 }
 	#Morale
-	set_variable = { lossMorale = 0.12 }	#Those value need more raw number testing
+	set_variable = { lossMorale = 0.13 }
 	
 	# Supplies lost
 	random = {
-		chance = 20
+		chance = 30
 		multiply_variable = { lossSupplies = 1.1 }
 	}
-	
 	random = {
-		chance = 20
+		chance = 30
 		multiply_variable = { lossSupplies = 0.9 }
 	}
-	
 	if = {
 		limit = { owner = { ruler_has_personality = careful_personality } }
-		
 		random = {
-			chance = 20
+			chance = 30
 			multiply_variable = { lossSupplies = 0.9 }
 		}
 	}
 	
-	#Party Rewards effect
-	
+	#Party Rewards
 	if = {
-		limit = { check_variable = { rewardsFactor = 1 } }
-		multiply_variable = { lossMorale = 0.70 }
+		limit = { check_variable = { partyRewards = 2000 } }
+		multiply_variable = { lossMorale = 0.52 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.95 } }
+		limit = { check_variable = { partyRewards = 1900 } }
+		multiply_variable = { lossMorale = 0.57 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1800 } }
+		multiply_variable = { lossMorale = 0.61 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1700 } }
+		multiply_variable = { lossMorale = 0.65 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1600 } }
+		multiply_variable = { lossMorale = 0.69 }
+	}
+	else_if = {
+		limit = { check_variable = { partyRewards = 1500 } }
 		multiply_variable = { lossMorale = 0.72 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.90 } }
-		multiply_variable = { lossMorale = 0.74 }
+		limit = { check_variable = { partyRewards = 1400 } }
+		multiply_variable = { lossMorale = 0.75 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.85 } }
-		multiply_variable = { lossMorale = 0.76 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.80 } }
+		limit = { check_variable = { partyRewards = 1300 } }
 		multiply_variable = { lossMorale = 0.78 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.75 } }
-		multiply_variable = { lossMorale = 0.80 }
+		limit = { check_variable = { partyRewards = 1200 } }
+		multiply_variable = { lossMorale = 0.81 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.70 } }
-		multiply_variable = { lossMorale = 0.82 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.65 } }
+		limit = { check_variable = { partyRewards = 1100 } }
 		multiply_variable = { lossMorale = 0.84 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.60 } }
-		multiply_variable = { lossMorale = 0.86 }
+		limit = { check_variable = { partyRewards = 1000 } }
+		multiply_variable = { lossMorale = 0.87 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.55 } }
-		multiply_variable = { lossMorale = 0.88 }
+		limit = { check_variable = { partyRewards = 900 } }
+		multiply_variable = { lossMorale = 0.89 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.50 } }
-		multiply_variable = { lossMorale = 0.90 }
+		limit = { check_variable = { partyRewards = 800 } }
+		multiply_variable = { lossMorale = 0.91 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.45 } }
-		multiply_variable = { lossMorale = 0.92 }
+		limit = { check_variable = { partyRewards = 700 } }
+		multiply_variable = { lossMorale = 0.93 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.35 } }
-		multiply_variable = { lossMorale = 0.94 }
+		limit = { check_variable = { partyRewards = 600 } }
+		multiply_variable = { lossMorale = 0.95 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.30 } }
-		multiply_variable = { lossMorale = 0.96 }
-	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.25 } }
+		limit = { check_variable = { partyRewards = 500 } }
 		multiply_variable = { lossMorale = 0.97 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.20 } }
+		limit = { check_variable = { partyRewards = 400 } }
 		multiply_variable = { lossMorale = 0.98 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.15 } }
+		limit = { check_variable = { partyRewards = 300 } }
 		multiply_variable = { lossMorale = 0.99 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.10 } }
+		limit = { check_variable = { partyRewards = 200 } }
 		multiply_variable = { lossMorale = 1 }
 	}
 	else_if = {
-		limit = { check_variable = { rewardsFactor = 0.05 } }
+		limit = { check_variable = { partyRewards = 100 } }
 		multiply_variable = { lossMorale = 1.1 }
 	}
-	else_if = {
-		limit = { check_variable = { rewardsFactor = 0 } }
-		multiply_variable = { lossMorale = 1.2 }
-	}
-	
+	else = { multiply_variable = { lossMorale = 1.2 } }
+
 	#Attrition
-	multiply_variable = { partyManpower = 0.999 }
+	multiply_variable = { partyManpower = 0.97 }
 	random = {
 		chance = 15
-		change_variable = { partyManpower = -2 }
+		change_variable = { partyManpower = -4 }
 	}
 	
 	#Starvation
 	if = {
 		limit = { NOT = { check_variable = { partySupplies = 0.1 } } }
-		multiply_variable = { partyManpower = 0.80 }
+		multiply_variable = { partyManpower = 0.75 }
 		change_variable = { partyManpower = -500 }
 	}
 	
 	#Low Morale/Desertion
 	if = {
 		limit = { NOT = { check_variable = { partyMorale = 0.1 } } }
-		multiply_variable = { partyManpower = 0.85 }
-		change_variable = { partyManpower = -200 }
+		multiply_variable = { partyManpower = 0.8 }
+		change_variable = { partyManpower = -300 }
 	}
 	
 	#Lack of Organisation
 	if = {
 		limit = { NOT = { check_variable = { partyEffectiveness = 50 } } }
-		multiply_variable = { partyManpower = 0.95 }
+		multiply_variable = { partyManpower = 0.9 }
 		change_variable = { partyManpower = -50 }
 	}
 	
-	# Misc shit
-	# Nothing for now
-	
-	# Racial shit
-	# Nothing for now
+
 
 	subtract_variable = { which = partyMorale which = lossMorale }
 	subtract_variable = { which = partySupplies which = lossSupplies }
@@ -4549,80 +4998,81 @@ dungeon_progress = {
 }
 
 dungeon_progress_advancement = {
-	random_list = {
-		#Bad
-		50 = {
-			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 60 } } }
-			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 70 } } }
-			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 80 } } }
-			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 90 } } }
-			modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 100 } } }
-			random_list = {
-				#Bad
-				50 = {
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 60 } } }
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 65 } } }
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 70 } } }
-					random_list = {
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 120 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 90 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 60 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 30 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 0 } }
+	hidden_effect = {
+		random_list = {
+			#Bad
+			50 = {
+				modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 60 } } }
+				modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 70 } } }
+				modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 80 } } }
+				modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 90 } } }
+				modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 100 } } }
+				random_list = {
+					#Bad
+					50 = {
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 60 } } }
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 65 } } }
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 70 } } }
+						random_list = {
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 120 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 90 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 60 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 30 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 45 random = 0 } }
+						}
+					}
+					#Very Bad
+					50 = {
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 45 } } }
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 50 } } }
+						modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 55 } } }
+						random_list = {
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 180 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 135 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 90 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 45 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 0 } }
+						}
 					}
 				}
-				#Very Bad
-				50 = {
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 45 } } }
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 50 } } }
-					modifier = { factor = 1.5 NOT = { check_variable = { partyEffectiveness = 55 } } }
-					random_list = {
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 180 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 135 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 90 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 45 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 60 random = 0 } }
+			}
+			#Good
+			50 = {
+				modifier = { factor = 1.5 check_variable = { partyEffectiveness = 110 } }
+				modifier = { factor = 1.5 check_variable = { partyEffectiveness = 120 } }
+				modifier = { factor = 1.5 check_variable = { partyEffectiveness = 130 } }
+				modifier = { factor = 1.5 check_variable = { partyEffectiveness = 140 } }
+				modifier = { factor = 1.5 check_variable = { partyEffectiveness = 150 } }
+				random_list = {
+					#Good
+					50 = {
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 135 } }
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 140 } }
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 145 } }
+						random_list = {
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 60 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 45 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 30 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 15 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 0 } }
+						}
+					}
+					#Very Good
+					50 = {
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 150 } }
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 155 } }
+						modifier = { factor = 2 check_variable = { partyEffectiveness = 160 } }
+						random_list = {
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 30 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 21 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 15 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 7 } }
+							20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 0 } }
+						}
 					}
 				}
 			}
 		}
-		#Good
-		50 = {
-			modifier = { factor = 1.5 check_variable = { partyEffectiveness = 110 } }
-			modifier = { factor = 1.5 check_variable = { partyEffectiveness = 120 } }
-			modifier = { factor = 1.5 check_variable = { partyEffectiveness = 130 } }
-			modifier = { factor = 1.5 check_variable = { partyEffectiveness = 140 } }
-			modifier = { factor = 1.5 check_variable = { partyEffectiveness = 150 } }
-			random_list = {
-				#Good
-				50 = {
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 135 } }
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 140 } }
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 145 } }
-					random_list = {
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 60 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 45 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 30 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 15 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 30 random = 0 } }
-					}
-				}
-				#Very Good
-				50 = {
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 150 } }
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 155 } }
-					modifier = { factor = 2 check_variable = { partyEffectiveness = 160 } }
-					random_list = {
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 30 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 21 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 15 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 7 } }
-						20 = { province_event = { id = diggy_dungeons.$id$ days = 15 random = 0 } }
-					}
-				}
-			}
-		}
-		
 	}
 }
 
@@ -4716,6 +5166,8 @@ dungeon_encounter_effect = {
 
 dungeon_immediate_effect = {
 	hidden_effect = {
+		clr_province_flag = sent_expedition_@owner #so progress stops
+		subtract_variable = { which = partyLoot which = partyRewards }
 		if = {
 			limit = { check_variable = { partyLoot = 1 } }
 			set_variable = { which = cashLoot which = partyLoot }
@@ -4730,73 +5182,88 @@ dungeon_immediate_effect = {
 			divide_variable = { cashLoot = 1000 }
 			multiply_variable = { cashLoot = 1000 }
 		}
+		else = {
+			set_variable = { which = badLoot which = partyLoot }
+			multiply_variable = { badLoot = -1 }
+		}
 	}
 }
 
 #for on_actions
 dungeon_ownership_reset_effect = {
 	if = {
-		limit = { has_great_project = { type = dd_frogarsalforn } }
-		set_province_flag = dd_frogarsalforn_flag
+		limit = { has_dlc = "Leviathan" }
 		if = {
-			limit = { NOT = { has_great_project = { type = dd_frogarsalforn tier = 3 } } }
-			set_province_flag = explorable_dungeon
+			limit = { has_great_project = { type = dd_frogarsalforn } }
+			set_province_flag = dd_frogarsalforn_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_frogarsalforn tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_stunveigryorth } }
-		set_province_flag = dd_stunveigryorth_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_stunveigryorth tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_stunveigryorth } }
+			set_province_flag = dd_stunveigryorth_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_stunveigryorth tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_wytlramvar } }
-		set_province_flag = dd_wytlramvar_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_wytlramvar tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_wytlramvar } }
+			set_province_flag = dd_wytlramvar_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_wytlramvar tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_dimlherd } }
-		set_province_flag = dd_dimlherd_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_dimlherd tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_dimlherd } }
+			set_province_flag = dd_dimlherd_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_dimlherd tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_grumhardhum } }
-		set_province_flag = dd_grumhardhum_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_grumhardhum tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_grumhardhum } }
+			set_province_flag = dd_grumhardhum_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_grumhardhum tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_leforn } }
-		set_province_flag = dd_leforn_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_leforn tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_leforn } }
+			set_province_flag = dd_leforn_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_leforn tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_rizvambrethar } }
-		set_province_flag = dd_rizvambrethar_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_rizvambrethar tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_rizvambrethar } }
+			set_province_flag = dd_rizvambrethar_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_rizvambrethar tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
-	}
-	else_if = {
-		limit = { has_great_project = { type = dd_ofralglarf } }
-		set_province_flag = dd_ofralglarf_flag
-		if = {
-			limit = { NOT = { has_great_project = { type = dd_ofralglarf tier = 3 } } }
-			set_province_flag = explorable_dungeon
+		else_if = {
+			limit = { has_great_project = { type = dd_ofralglarf } }
+			set_province_flag = dd_ofralglarf_flag
+			if = {
+				limit = { NOT = { has_great_project = { type = dd_ofralglarf tier = 3 } } }
+				clr_province_flag = floor_explored
+				set_province_flag = explorable_dungeon
+			}
 		}
 	}
 }
@@ -4964,99 +5431,495 @@ respawn_dwarovkron_fragments = {
 }
 
 
+########################
+### Dwarven Pantheon ###
+########################
+
+dwarven_pantheon_unlock_deity = {
+	custom_tooltip = dwarven_pantheon_unlock_deity_$deity$_tooltip
+	hidden_effect = { set_country_flag = dwarven_pantheon_knows_$deity$ }
+}
+
+clr_dwarven_pantheon_deities = {
+	hidden_effect = {
+		remove_church_aspect = dagrin_adm_aspect
+		remove_church_aspect = dagrin_dip_aspect
+		remove_church_aspect = anvelind_dip_aspect
+		remove_church_aspect = anvelind_mil_aspect
+		remove_church_aspect = durvorazir_adm_aspect
+		remove_church_aspect = durvorazir_mil_aspect
+		remove_church_aspect = margurz_dip_aspect
+		remove_church_aspect = margurz_mil_aspect
+		remove_church_aspect = miradeth_dip_aspect
+		remove_church_aspect = miradeth_mil_aspect
+		remove_church_aspect = azmirethazin_adm_aspect
+		remove_church_aspect = azmirethazin_dip_aspect
+		remove_church_aspect = argezenna_adm_aspect
+		remove_church_aspect = argezenna_mil_aspect
+		remove_church_aspect = auirikus_adm_aspect
+		remove_church_aspect = auirikus_dip_aspect
+		remove_church_aspect = urisazirn_adm_aspect
+		remove_church_aspect = urisazirn_mil_aspect
+		remove_church_aspect = dolurazan_adm_aspect
+		remove_church_aspect = dolurazan_mil_aspect
+		remove_church_aspect = derzobrazan_adm_aspect
+		remove_church_aspect = derzobrazan_dip_aspect
+		remove_church_aspect = bervinazan_adm_aspect
+		remove_church_aspect = bervinazan_mil_aspect
+		remove_church_aspect = karazlov_dip_aspect
+		remove_church_aspect = karazlov_mil_aspect
+		remove_church_aspect = grimthar_adm_aspect
+		remove_church_aspect = grimthar_dip_aspect
+		remove_church_aspect = verdrik_adm_aspect
+		remove_church_aspect = verdrik_mil_aspect
+		remove_church_aspect = thyrfen_adm_aspect
+		remove_church_aspect = thyrfen_mil_aspect
+		remove_church_aspect = werdun_adm_aspect
+		remove_church_aspect = werdun_dip_aspect
+		remove_church_aspect = lorgrim_dip_aspect
+		remove_church_aspect = lorgrim_mil_aspect
+		remove_church_aspect = lorgram_adm_aspect
+		remove_church_aspect = lorgram_dip_aspect
+		remove_church_aspect = grobilazk_dip_aspect
+		remove_church_aspect = grobilazk_mil_aspect
+	}
+}
+
+dwarven_pantheon_argezenna_purge_effect = {
+	custom_tooltip = dwarven_pantheon_argezenna_purge_effect_tooltip
+	hidden_effect = {
+		if = {
+			limit = { 
+				OR = {
+					has_province_modifier = orcish_majority_oppressed
+					has_province_modifier = goblin_majority_oppressed
+					has_province_modifier = ogre_majority_oppressed
+					has_province_modifier = troll_majority_oppressed
+					has_province_modifier = kobold_majority_oppressed
+				}
+			}
+			add_devastation = 50
+			change_culture = ROOT
+			change_religion = ROOT
+			random_list = {
+				1 = { add_base_tax = -2 }
+				1 = { add_base_production = -2 }
+				1 = { add_base_manpower = -2 }
+			}
+			add_permanent_province_modifier = { name = purge_unrest_modifier duration = 9125 }
+			remove_province_modifier = orcish_majority_oppressed
+			remove_province_modifier = goblin_majority_oppressed
+			remove_province_modifier = ogre_majority_oppressed
+			remove_province_modifier = troll_majority_oppressed
+			remove_province_modifier = kobold_majority_oppressed
+		}
+		else = {
+			remove_province_modifier = orcish_minority_oppressed_large
+			remove_province_modifier = orcish_minority_oppressed_small
+			remove_province_modifier = goblin_minority_oppressed_large
+			remove_province_modifier = goblin_minority_oppressed_small
+			remove_province_modifier = ogre_minority_oppressed_large
+			remove_province_modifier = ogre_minority_oppressed_small
+			remove_province_modifier = troll_minority_oppressed_large
+			remove_province_modifier = troll_minority_oppressed_small
+			remove_province_modifier = kobold_minority_oppressed_large
+			remove_province_modifier = kobold_minority_oppressed_small
+		}
+	}
+}
+
+dwarven_pantheon_define_hold_for_auirikus_effect = {
+	if = {
+		limit = { has_country_flag = is_digging }
+		capital_scope = { save_event_target_as = auirikus_target1 }
+	}
+	else_if = {
+		limit = { NOT = { has_country_flag = hold_operation } }
+		random_owned_province = {
+			limit = { dwarven_pantheon_can_passive_upgrade_auirikus = yes NOT = { has_province_flag = hold_@ROOT } }
+			set_province_flag = hold_@ROOT
+			save_event_target_as = auirikus_target1
+		}
+	}
+	if = {
+		limit = { NOT = { has_country_flag = hold_operation } }
+		random_owned_province = {
+			limit = { dwarven_pantheon_can_passive_upgrade_auirikus = yes NOT = { has_province_flag = hold_@ROOT } }
+			set_province_flag = hold_@ROOT
+			save_event_target_as = auirikus_target2
+		}
+	}
+	if = {
+		limit = { NOT = { has_country_flag = hold_operation } }
+		random_owned_province = {
+			limit = { dwarven_pantheon_can_passive_upgrade_auirikus = yes NOT = { has_province_flag = hold_@ROOT } }
+			set_province_flag = hold_@ROOT
+			save_event_target_as = auirikus_target3
+		}
+	}
+	if = {
+		limit = { NOT = { has_country_flag = hold_operation } }
+		random_owned_province = {
+			limit = { dwarven_pantheon_can_passive_upgrade_auirikus = yes NOT = { has_province_flag = hold_@ROOT } }
+			set_province_flag = hold_@ROOT
+			save_event_target_as = auirikus_target4
+		}
+	}
+	if = {
+		limit = { NOT = { has_country_flag = hold_operation } }
+		random_owned_province = {
+			limit = { dwarven_pantheon_can_passive_upgrade_auirikus = yes NOT = { has_province_flag = hold_@ROOT } }
+			set_province_flag = hold_@ROOT
+			save_event_target_as = auirikus_target5
+		}
+	}
+}
+
+dwarven_pantheon_auirikus_cost_effect = {
+	trigger_switch = {
+		on_trigger = has_province_modifier
+		dig_1 = { ROOT = { add_adm_power = -25 add_dip_power = -25 add_mil_power = -25 } }
+		dig_2 = { ROOT = { add_adm_power = -50 add_dip_power = -50 add_mil_power = -50 } }
+		dig_3 = { ROOT = { add_adm_power = -75 add_dip_power = -75 add_mil_power = -75 } }
+		dig_4 = { ROOT = { add_adm_power = -100 add_dip_power = -100 add_mil_power = -100 } }
+		dig_5 = { ROOT = { add_adm_power = -125 add_dip_power = -125 add_mil_power = -125 } }
+		dig_6 = { ROOT = { add_adm_power = -150 add_dip_power = -150 add_mil_power = -150 } }
+		dig_7 = { ROOT = { add_adm_power = -175 add_dip_power = -175 add_mil_power = -175 } }
+		dig_8 = { ROOT = { add_adm_power = -200 add_dip_power = -200 add_mil_power = -200 } }
+		dig_9 = { ROOT = { add_adm_power = -225 add_dip_power = -225 add_mil_power = -225 } }
+		dig_10 = { ROOT = { add_adm_power = -250 add_dip_power = -250 add_mil_power = -250 } }
+	}
+}
+
+dwarven_pantheon_auirikus_secondary_effects = {
+	#dolurazan
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = dolurazan } }
+		custom_tooltip = dwarven_pantheon_ritual_has_dolurazan_tooltip
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_influence_modifier = { estate = estate_nobles influence = -5 duration = 1825 desc = auirikus_dolurazan_modifier }
+		}
+		else = { add_church_power = 25 }
+	}
+	#derzobrazan
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = derzobrazan } }
+		custom_tooltip = dwarven_pantheon_ritual_has_derzobrazan_tooltip
+		if = {
+			limit = { has_estate = estate_burghers }
+			add_estate_influence_modifier = { estate = estate_burghers influence = -5 duration = 1825 desc = auirikus_derzobrazan_modifier }
+		}
+		else = { add_church_power = 25 }
+	}
+	#bervinazan
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = bervinazan } }
+		custom_tooltip = dwarven_pantheon_ritual_has_bervinazan_tooltip
+		if = {
+			limit = { has_estate = estate_church }
+			add_estate_influence_modifier = { estate = estate_church influence = -5 duration = 1825 desc = auirikus_bervinazan_modifier }
+		}
+		else = { add_church_power = 25 }
+	}
+	#karazlov
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = karazlov } }
+		custom_tooltip = dwarven_pantheon_ritual_has_karazlov_tooltip
+		if = {
+			limit = { num_of_subjects = 1 }
+			random_subject_country = { add_liberty_desire = -5 }
+		}
+		else = { add_church_power = 25 }
+	}
+	#grimthar
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = grimthar } }
+		custom_tooltip = dwarven_pantheon_ritual_has_grimthar_tooltip
+		create_conquistador = { tradition = 40 }
+	}
+	#verdrik
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = verdrik } }
+		custom_tooltip = dwarven_pantheon_ritual_has_verdrik_tooltip
+		if = {
+			limit = { OR = { current_age = age_of_absolutism current_age = age_of_revolutions } }
+			add_absolutism = 2
+		}
+		else = { add_church_power = 25 }
+	}
+	#thyrfen
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = thyrfen } }
+		custom_tooltip = dwarven_pantheon_ritual_has_thyrfen_tooltip
+		if = {
+			limit = { corruption = 0.1 }
+			add_corruption = -0.5
+		}
+		else = { add_church_power = 25 }
+	}
+	#werdun
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = werdun } }
+		custom_tooltip = dwarven_pantheon_ritual_has_werdun_tooltip
+		define_advisor = {
+			type = trader
+			skill = 2
+			cost_multiplier = 0.75
+			religion = dwarven_pantheon
+			culture = ROOT
+		}
+	}
+	#lorgrim
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = lorgrim } }
+		custom_tooltip = dwarven_pantheon_ritual_has_lorgrim_tooltip
+		change_government_reform_progress = 20
+	}
+	#lorgram
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = lorgram } }
+		custom_tooltip = dwarven_pantheon_ritual_has_lorgram_tooltip
+		add_legitimacy_equivalent = { amount = 10 republican_tradition = 5 }
+	}
+	#grobilazk
+	if = {
+		limit = { has_dwarven_pantheon_deity = { deity = grobilazk } }
+		custom_tooltip = dwarven_pantheon_ritual_has_grobilazk_tooltip
+		random_owned_province = {
+			limit = { any_neighbor_province = { is_city = yes owner = { NOT = { tag = ROOT alliance_with = ROOT } } } }
+			random_neighbor_province = {
+				limit = { is_city = yes owner = { NOT = { tag = ROOT alliance_with = ROOT } } }
+				remove_loot = { who = ROOT amount = 100 }
+			}
+		}
+	}
+}
+
+dwarven_pantheon_unlock_random_deity = {
+	[[major]
+		custom_tooltip = dwarven_pantheon_unlock_random_deity_tooltip1
+		hidden_effect = {
+			random_list = {
+				1 = { modifier = { factor = 0.1 always = yes } }
+				#dagrin
+				1000 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_dagrin } 
+					}
+					country_event = { id = dwarven_pantheon.30 }
+				}
+				#anvelind
+				500 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_anvelind } 
+					}
+					country_event = { id = dwarven_pantheon.31 }
+				}
+				#durvorazir
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_durvorazir }
+						has_country_flag = dwarven_pantheon_knows_dagrin
+						has_country_flag = dwarven_pantheon_knows_anvelind
+					}
+					country_event = { id = dwarven_pantheon.32 }
+				}
+				#margurz
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_margurz }
+						has_country_flag = dwarven_pantheon_knows_dagrin
+						has_country_flag = dwarven_pantheon_knows_anvelind
+					}
+					country_event = { id = dwarven_pantheon.33 }
+				}
+				#miradeth
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_miradeth }
+						has_country_flag = dwarven_pantheon_knows_azmirethazin 
+					}
+					country_event = { id = dwarven_pantheon.34 }
+				}
+				#azmirethazin
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_azmirethazin }
+						has_country_flag = dwarven_pantheon_knows_dagrin
+					}
+					country_event = { id = dwarven_pantheon.35 }
+				}
+				#argezenna
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_argezenna }
+						has_country_flag = dwarven_pantheon_knows_azmirethazin 
+					}
+					country_event = { id = dwarven_pantheon.36 }
+				}
+				#auirikus
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_auirikus }
+					}
+					country_event = { id = dwarven_pantheon.37 }
+				}
+				#urisazirn
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_urisazirn }
+						has_country_flag = dwarven_pantheon_knows_durvorazir 
+					}
+					country_event = { id = dwarven_pantheon.38 }
+				}
+			}
+		}
+	]
+	[[minor]
+		custom_tooltip = dwarven_pantheon_unlock_random_deity_tooltip2
+		hidden_effect = {
+			random_list = {
+				1 = { modifier = { factor = 0.1 always = yes } }
+				#dolurazan
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_dolurazan }
+						has_country_flag = dwarven_pantheon_knows_azmirethazin
+						has_country_flag = dwarven_pantheon_knows_argezenna
+					}
+					country_event = { id = dwarven_pantheon.39 }
+				}
+				#derzobrazan
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_derzobrazan }
+						has_country_flag = dwarven_pantheon_knows_azmirethazin
+						has_country_flag = dwarven_pantheon_knows_argezenna
+					}
+					country_event = { id = dwarven_pantheon.40 }
+				}
+				#bervinazan
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_bervinazan }
+						has_country_flag = dwarven_pantheon_knows_azmirethazin
+						has_country_flag = dwarven_pantheon_knows_argezenna
+					}
+					country_event = { id = dwarven_pantheon.41 }
+				}
+				#karazlov
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_karazlov }
+						has_country_flag = dwarven_pantheon_knows_dagrin
+					}
+					country_event = { id = dwarven_pantheon.42 }
+				}
+				#grimthar
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_grimthar }
+						has_country_flag = dwarven_pantheon_knows_margurz
+					}
+					country_event = { id = dwarven_pantheon.43 }
+				}
+				#verdrik
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_verdrik }
+						has_country_flag = dwarven_pantheon_knows_durvorazir
+					}
+					country_event = { id = dwarven_pantheon.44 }
+				}
+				#thyrfen
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_thyrfen }
+						has_country_flag = dwarven_pantheon_knows_margurz
+					}
+					country_event = { id = dwarven_pantheon.45 }
+				}
+				#werdun
+				200 = { 
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_werdun }
+						has_country_flag = dwarven_pantheon_knows_derzobrazan
+					}
+					country_event = { id = dwarven_pantheon.46 }
+				}
+				#lorgrim
+				200 = {
+					trigger = {
+						NOT = { has_country_flag = dwarven_pantheon_knows_lorgrim }
+					}
+					country_event = { id = dwarven_pantheon.47 }
+				}
+				#lorgram
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_lorgram }
+					}
+					country_event = { id = dwarven_pantheon.48 }
+				}
+				#grobilazk
+				200 = { 
+					trigger = { 
+						NOT = { has_country_flag = dwarven_pantheon_knows_grobilazk }
+					}
+					country_event = { id = dwarven_pantheon.49 }
+				}
+			}
+		}
+	]
+}
+
+dwarven_pantheon_unlock_deity_digging = {
+	if = {
+		limit = {
+			has_dwarven_hold_5 = no
+			owner = {
+				religion = dwarven_pantheon
+				has_unlocked_all_dwarven_pantheon_deities = no
+			}
+		}
+		owner = {
+			if = {
+				limit = { 
+					has_unlocked_all_dwarven_pantheon_major_deities = yes 
+					has_unlocked_all_dwarven_pantheon_minor_deities = no
+				}
+				dwarven_pantheon_unlock_random_deity = { minor = yes }
+			}
+			if = {
+				limit = {
+					has_unlocked_all_dwarven_pantheon_major_deities = no
+					has_unlocked_all_dwarven_pantheon_minor_deities = yes
+				}
+				dwarven_pantheon_unlock_random_deity = { major = yes }
+			}
+			if = {
+				limit = {
+					has_unlocked_all_dwarven_pantheon_major_deities = no
+					has_unlocked_all_dwarven_pantheon_minor_deities = no
+				}
+				random_list = {
+					30 = {
+						dwarven_pantheon_unlock_random_deity = { major = yes }
+					}
+					70 = {
+						dwarven_pantheon_unlock_random_deity = { minor = yes }
+					}
+				}
+			}
+		}
+	}
+}
+
 
 ##############
 ### Blorcs ###
 ##############
-define_hold_to_duel = {
-	random_owned_province = {
-		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT province_id = 4218 province_id = 4147 } }
-		set_province_flag = option_duel_1_@ROOT
-		set_province_flag = duel_@ROOT
-		save_event_target_as = duel1
-	}
-	random_owned_province = {
-		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT province_id = 4218 province_id = 4147 } }
-		set_province_flag = option_duel_2_@ROOT
-		set_province_flag = duel_@ROOT
-		save_event_target_as = duel2
-	}
-	random_owned_province = {
-		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT province_id = 4218 province_id = 4147 } }
-		set_province_flag = option_duel_3_@ROOT
-		set_province_flag = duel_@ROOT
-		save_event_target_as = duel3
-	}
-	random_owned_province = {
-		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT province_id = 4218 province_id = 4147 } }
-		set_province_flag = option_duel_4_@ROOT
-		set_province_flag = duel_@ROOT
-		save_event_target_as = duel4
-	}
-}
-
-define_hold_to_plunder = {
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_1_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder1
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT  is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_2_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder2
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_3_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder3
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_4_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder4
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_5_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder5
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_6_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder6
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_7_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder7
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_8_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder8
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_9_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder9
-	}
-	random_owned_province = {
-		limit = { OR = { has_terrain = dwarven_hold has_terrain = dwarven_hold_surface } is_core = ROOT is_capital = no NOT = { has_province_flag = plunder_@ROOT has_province_modifier = blorc_plunder_camp has_province_modifier = infested_hold } }
-		set_province_flag = option_plunder_10_@ROOT
-		set_province_flag = plunder_@ROOT
-		save_event_target_as = blorc_plunder10
-	}
-}
 
 blorc_hold_trophy_remove = { # ONLY USE INSIDE on_province_owner_change ON_ACTION
 	trigger_switch = {
@@ -5090,5 +5953,395 @@ blorc_hold_trophy_remove = { # ONLY USE INSIDE on_province_owner_change ON_ACTIO
 		4350 = { FROM = { remove_country_modifier = black_orc_trophy_tuwad_dhumankon } }
 		4311 = { FROM = { remove_country_modifier = black_orc_trophy_gronstunad } }
 		4323 = { FROM = { remove_country_modifier = black_orc_trophy_verkal_dromak } }
+	}
+}
+
+define_hold_to_duel = {
+	random_owned_province = {
+		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT } }
+		set_province_flag = option_duel_1_@ROOT
+		set_province_flag = duel_@ROOT
+		save_event_target_as = duel1
+	}
+	random_owned_province = {
+		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT } }
+		set_province_flag = option_duel_2_@ROOT
+		set_province_flag = duel_@ROOT
+		save_event_target_as = duel2
+	}
+	random_owned_province = {
+		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT } }
+		set_province_flag = option_duel_3_@ROOT
+		set_province_flag = duel_@ROOT
+		save_event_target_as = duel3
+	}
+	random_owned_province = {
+		limit = { has_province_modifier = infested_hold NOT = { has_province_flag = duel_@ROOT } }
+		set_province_flag = option_duel_4_@ROOT
+		set_province_flag = duel_@ROOT
+		save_event_target_as = duel4
+	}
+}
+
+define_hold_to_plunder = {
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder1
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder2
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder3
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder4
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder5
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder6
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder7
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder8
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder9
+	}
+	random_owned_province = {
+		limit = { blorc_can_be_plundered = yes NOT = { has_province_flag = plunder_@ROOT } }
+		set_province_flag = plunder_@ROOT
+		save_event_target_as = blorc_plunder10
+	}
+}
+
+blorc_begin_plundering = {
+	if = {
+		limit = {
+			OR = {
+				base_tax = 2
+				base_production = 2
+				base_manpower = 2
+				NOT = { has_province_modifier = ruined_hold }
+			}
+		}
+		add_province_modifier = { name = blorc_plunder_camp duration = -1 }
+	}
+	else = { add_province_modifier = { name = blorc_war_camp duration = -1 } }
+}
+
+define_hold_to_plunder_fort_upgrade = {
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade1
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade2
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade3
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade4
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade5
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade6
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade7
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade8
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade9
+	}
+	random_owned_province = {
+		limit = { province_group = hold_province OR = { has_province_modifier = blorc_plunder_camp has_province_modifier = blorc_war_camp } NOT = { has_province_flag = plunder_fort_upgrade_@ROOT province_has_current_tech_fort_trigger = yes has_construction = any } }
+		set_province_flag = plunder_fort_upgrade_@ROOT
+		save_event_target_as = blorc_plunder_upgrade10
+	}
+}
+
+blorc_plunder_fort_upgrade = {
+	if = {
+		limit = { has_building = fort_17th }
+		ROOT = { add_treasury = -200 }
+		add_building_construction = { building = fort_18th cost = 0 speed = 0.5 }
+	}
+	else_if = {
+		limit = { has_building = fort_16th }
+		ROOT = { add_treasury = -200 }
+		add_building_construction = { building = fort_17th cost = 0 speed = 0.5 }
+	}
+	else_if = {
+		limit = { has_building = fort_15th }
+		ROOT = { add_treasury = -200 }
+		add_building_construction = { building = fort_16th cost = 0 speed = 0.5 }
+	}
+	else_if = {
+		limit = { NOT = { has_building = fort_18th } }
+		ROOT = { add_treasury = -200 }
+		add_building_construction = { building = fort_15th cost = 0 speed = 0.5 }
+	}
+}
+
+
+blorc_plunder_effect = {
+	[[tax]
+		if = {
+			limit = { event_target:blorc_plunder_target = { base_tax = $tax$ } }
+			event_target:blorc_plunder_target = { add_base_tax = -$tax$ }
+			capital_scope = { add_base_tax = $gain$ }
+		}
+	]
+	[[prod]
+		if = {
+			limit = { event_target:blorc_plunder_target = { base_production = $prod$ } }
+			event_target:blorc_plunder_target = { add_base_production = -$prod$ }
+			capital_scope = { add_base_production = $gain$ }
+		}
+	]
+	[[man]
+		if = {
+			limit = { event_target:blorc_plunder_target = { base_manpower = $man$ } }
+			event_target:blorc_plunder_target = { add_base_manpower = -$man$ }
+			capital_scope = { add_base_manpower = $gain$ }
+		}
+	]
+	if = {
+		limit = { NOT = { has_institution = feudalism } }
+		capital_scope = { add_institution_embracement = { which = feudalism value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = renaissance NOT = { has_institution = renaissance } }
+		capital_scope = { add_institution_embracement = { which = renaissance value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = new_world_i NOT = { has_institution = new_world_i } }
+		capital_scope = { add_institution_embracement = { which = new_world_i value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = printing_press NOT = { has_institution = printing_press } }
+		capital_scope = { add_institution_embracement = { which = printing_press value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = global_trade NOT = { has_institution = global_trade } }
+		capital_scope = { add_institution_embracement = { which = global_trade value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = manufactories NOT = { has_institution = manufactories } }
+		capital_scope = { add_institution_embracement = { which = manufactories value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = enlightenment NOT = { has_institution = enlightenment } }
+		capital_scope = { add_institution_embracement = { which = enlightenment value = 7.5 } }
+	}
+	else_if = {
+		limit = { is_institution_enabled = industrialization NOT = { has_institution = industrialization } }
+		capital_scope = { add_institution_embracement = { which = industrialization value = 7.5 } }
+	}
+}
+
+blorc_plunder_raw_loot = {
+	[[mana]
+		random_list = {
+			33 = { add_adm_power = $mana$ }
+			33 = { add_dip_power = $mana$ }
+			33 = { add_mil_power = $mana$ }
+		}
+	]
+	[[ducats]
+		add_treasury = $ducats$
+	]
+	[[prestige]
+		add_prestige_excess_to_splendour_effect = { VAL = $prestige$ }
+	]
+}
+
+
+blorc_plunder_upgrade_check = {
+	hidden_effect = {
+		capital_scope = {
+			# trigger_switch = {
+			# 	on_trigger = development
+	
+			# 	300 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy15 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	280 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy14 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	260 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy13 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	240 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy12 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	220 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy11 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	200 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy10 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	180 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy9 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	160 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy8 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	140 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy7 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	120 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy6 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	100 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy5 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	80 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy4 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	60 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy3 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	40 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy2 } } owner = { country_event = { id = blorc.103 } } } }
+			# 	20 = { if = { limit = { NOT = { has_province_modifier = blorc_trophy1 } } owner = { country_event = { id = blorc.103 } } } }
+			# }
+			#pdx why are you like this
+			if = { limit = { development = 300 NOT = { has_province_modifier = blorc_trophy15 } } country_event = { id = blorc.103 } }
+			if = { limit = { development = 280 NOT = { development = 300 } NOT = { has_province_modifier = blorc_trophy14 has_province_modifier = blorc_trophy15 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 260 NOT = { development = 280 } NOT = { has_province_modifier = blorc_trophy13 has_province_modifier = blorc_trophy14 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 240 NOT = { development = 260 } NOT = { has_province_modifier = blorc_trophy12 has_province_modifier = blorc_trophy13 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 220 NOT = { development = 240 } NOT = { has_province_modifier = blorc_trophy11 has_province_modifier = blorc_trophy12 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 200 NOT = { development = 220 } NOT = { has_province_modifier = blorc_trophy10 has_province_modifier = blorc_trophy11 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 180 NOT = { development = 200 } NOT = { has_province_modifier = blorc_trophy9 has_province_modifier = blorc_trophy10 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 160 NOT = { development = 180 } NOT = { has_province_modifier = blorc_trophy8 has_province_modifier = blorc_trophy9 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 140 NOT = { development = 160 } NOT = { has_province_modifier = blorc_trophy7 has_province_modifier = blorc_trophy8 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 120 NOT = { development = 140 } NOT = { has_province_modifier = blorc_trophy6 has_province_modifier = blorc_trophy7 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 100 NOT = { development = 120 } NOT = { has_province_modifier = blorc_trophy5 has_province_modifier = blorc_trophy6 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 80 NOT = { development = 100 } NOT = { has_province_modifier = blorc_trophy4 has_province_modifier = blorc_trophy5 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 60 NOT = { development = 80 } NOT = { has_province_modifier = blorc_trophy3 has_province_modifier = blorc_trophy4 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 40 NOT = { development = 60 } NOT = { has_province_modifier = blorc_trophy2 has_province_modifier = blorc_trophy3 } } owner = { country_event = { id = blorc.103 } } }
+			if = { limit = { development = 20 NOT = { development = 40 } NOT = { has_province_modifier = blorc_trophy1 has_province_modifier = blorc_trophy2 } } owner = { country_event = { id = blorc.103 } } }
+		}
+	}
+}
+
+blorc_move_capital_effect = {
+	if = {
+		limit = { has_country_flag = blorc_plunder_capital_set }
+		hidden_effect = {
+			capital_scope = {
+				if = {
+					limit = { development = 20 }
+					trigger_switch = {
+						on_trigger = has_province_modifier
+
+						blorc_trophy1 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy1 duration = -1 } } }
+						blorc_trophy2 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy2 duration = -1 } } }
+						blorc_trophy3 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy3 duration = -1 } } }
+						blorc_trophy4 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy4 duration = -1 } } }
+						blorc_trophy5 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy5 duration = -1 } } }
+						blorc_trophy6 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy6 duration = -1 } } }
+						blorc_trophy7 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy7 duration = -1 } } }
+						blorc_trophy8 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy8 duration = -1 } } }
+						blorc_trophy9 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy9 duration = -1 } } }
+						blorc_trophy10 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy10 duration = -1 } } }
+						blorc_trophy11 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy11 duration = -1 } } }
+						blorc_trophy12 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy12 duration = -1 } } }
+						blorc_trophy13 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy13 duration = -1 } } }
+						blorc_trophy14 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy14 duration = -1 } } }
+						blorc_trophy15 = { $ID$ = { add_permanent_province_modifier = { name = blorc_trophy15 duration = -1 } } }
+					}
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_foundry }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_foundry duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_magma_forge }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_magma_forge duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_city }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_city duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_artificier_hall }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_artificier_hall duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_artisan }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_artisan duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_engineer_manufactory }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_engineer_manufactory duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_farm }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_farm duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_high_gardens }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_high_gardens duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_military }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_military duration = -1 } }
+				}
+				if = {
+					limit = { has_province_modifier = blorc_hold_military_academy }
+					$ID$ = { add_permanent_province_modifier = { name = blorc_hold_military_academy duration = -1 } }
+				}
+
+				while = { 
+					limit = { base_tax = 2 }
+					add_base_tax = -1
+					$ID$ = { add_base_tax = 1 }
+				}
+				while = { 
+					limit = { base_production = 2 }
+					add_base_production = -1
+					$ID$ = { add_base_production = 1 }
+				}
+				while = { 
+					limit = { base_manpower = 2 }
+					add_base_manpower = -1
+					$ID$ = { add_base_manpower = 1 }
+				}
+
+				add_province_modifier = { name = blorc_plunder_camp duration = -1 }
+				clr_province_flag = blorc_plunder_capital_@ROOT
+
+				$ID$ = {
+					set_province_flag = blorc_plunder_capital_@ROOT
+					remove_province_modifier = blorc_plunder_camp
+					remove_province_modifier = blorc_war_camp
+				}
+			}
+		}
+		set_capital = $ID$
+		custom_tooltip = blorc_move_capital_effect_tooltip
+	}
+	else = {
+		hidden_effect = { $ID$ = { remove_province_modifier = blorc_plunder_camp remove_province_modifier = blorc_war_camp } }
+		set_capital = $ID$
 	}
 }

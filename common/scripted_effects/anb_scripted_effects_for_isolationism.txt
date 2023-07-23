@@ -112,7 +112,7 @@ update_nsc_level_secondary_effects = { 								#This effect can be triggered by 
 		}
 		else_if = { limit = { isolationism = 2 } 					# = level 3 in the loc/interface
 			remove_country_modifier = NSC_level_3
-			country_event = { id = new_sun_cult.1 } 				#humans gets the clergy privilege back
+			# country_event = { id = new_sun_cult.1 } 				#humans gets the clergy privilege back
 			country_event = { id = new_sun_cult.2 } 				#lose elven mil
 		}
 		else_if = { limit = { isolationism = 1 } 					# = level 2 in the loc/interface
@@ -164,6 +164,7 @@ end_all_nsc_incidents = {
 	end_incident = incident_rise_of_artificery
 	end_incident = incident_spread_of_ravelianism
 	end_incident = incident_teachings_szal_fazil
+	end_incident = incident_thirteenth_night
 	
 	clr_country_flag = active_nsc_incident_flag
 	
@@ -543,7 +544,7 @@ nsc_calculate_pledge_score = {
 				if = { limit = { owner = { religion = bulwari_sun_cult } }
 					F34 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
 				}
-				if = { limit = { country_or_non_sovereign_subject_holds = F25 }
+				if = { limit = { country_or_non_sovereign_subject_holds = F34 }
 					F34 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
 				}
 			}
@@ -554,7 +555,7 @@ nsc_calculate_pledge_score = {
 				if = { limit = { owner = { religion = bulwari_sun_cult } }
 					F37 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
 				}
-				if = { limit = { country_or_non_sovereign_subject_holds = F25 }
+				if = { limit = { country_or_non_sovereign_subject_holds = F37 }
 					F37 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
 				}
 			}
@@ -565,7 +566,7 @@ nsc_calculate_pledge_score = {
 				if = { limit = { owner = { religion = bulwari_sun_cult } }
 					F42 = { change_variable = { which = ScoreRightReligionVar value = 1 } }
 				}
-				if = { limit = { country_or_non_sovereign_subject_holds = F25 }
+				if = { limit = { country_or_non_sovereign_subject_holds = F42 }
 					F42 = { change_variable = { which = ScoreOwnedProvinceVar value = 1 } }
 				}
 			}
@@ -771,7 +772,7 @@ calculate_local_investigation_impact = {
 				has_country_flag = nsc_investigation_enabled
 				OR = {
 					is_subject = no
-					is_subject_of_type = tributary_state
+					is_subject_of_type = tributary_state_anb
 				}
 				is_lesser_in_union = no
 			}
@@ -803,7 +804,7 @@ nsc_calculate_army_strength_ratio = {
 	multiply_variable = { which = ownArmySize which = ownMilTech } #-20% to army strength for each level mil tech under the max
 	
 	every_subject_country = {
-		limit = { NOT = { is_subject_of_type = tributary_state } }
+		limit = { NOT = { is_subject_of_type = tributary_state_anb } }
 		ROOT = {
 			export_to_variable = { which = tempArmySize value = army_size who = PREV }
 			export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
@@ -848,7 +849,7 @@ nsc_calculate_army_strength_ratio = {
 	
 	$who$ = {
 		every_subject_country = {
-			limit = { NOT = { is_subject_of_type = tributary_state } }
+			limit = { NOT = { is_subject_of_type = tributary_state_anb } }
 			ROOT = {
 				export_to_variable = { which = tempArmySize value = army_size who = PREV }
 				export_to_variable = { which = tempMilTech value = mil_tech who = PREV }
@@ -1584,6 +1585,7 @@ define_kazam_siege = {
 
 #-----------# New Sun Cult End #-----------#
 
+#-----------# Runefather Worship #-----------#
 
 increase_runelink_level = {
 	if = {
@@ -1637,6 +1639,82 @@ set_runelink_level = {
 		else_if = {
 			limit = { REB = { check_variable = { runeLevel = 0 } } }
 			add_isolationism = 2
+		}
+	}
+}
+
+
+#-----------# Mengi Myths #-----------#
+
+
+increase_mengi_cycle_isolation_level = {
+	if = {
+		limit = {
+			religion = mengi_myths
+			NOT = { isolationism = 12 }
+		}
+		every_country = {
+			limit = { religion = mengi_myths }
+			custom_tooltip = mengi_cycle_increase_isolation_tt
+			hidden_effect = { add_isolationism = 1 }
+		}
+		hidden_effect = { REB = { change_variable = { mengicycleLevel = 1 } } }
+	}
+}
+
+decrease_mengi_cycle_isolation_level = {
+	if = {
+		limit = {
+			religion = mengi_myths
+			isolationism = 11
+		}
+		every_country = {
+			limit = { religion = mengi_myths }
+			custom_tooltip = mengi_cycle_decrease_isolation_tt
+			hidden_effect = { add_isolationism = -1 }
+		}
+		hidden_effect = { REB = { subtract_variable = { mengicycleLevel = 1 } } }
+	}
+}
+
+reset_mengi_cycle_isolation_level = {
+	if = {
+		limit = { religion = mengi_myths }
+		if = {
+			limit = { isolation = 12 }
+			every_country = {
+				limit = { religion = mengi_myths }
+				custom_tooltip = mengi_cycle_decrease_isolation_tt
+				hidden_effect = { add_isolationism = -2 }
+			}
+			hidden_effect = { REB = { subtract_variable = { mengicycleLevel = 2 } } }
+		}
+		else_if = {
+			limit = { isolation = 11 }
+			every_country = {
+				limit = { religion = mengi_myths }
+				custom_tooltip = mengi_cycle_decrease_isolation_tt
+				hidden_effect = { add_isolationism = -1 }
+			}
+			hidden_effect = { REB = { subtract_variable = { mengicycleLevel = 1 } } }
+		}
+	}
+}
+
+set_to_current_mengi_cycle = {
+	if = {
+		limit = { religion = mengi_myths }
+		if = {
+			limit = { REB = { check_variable = { mengicycleLevel = 2 } } }
+			add_isolationism = 11
+		}
+		else_if = {
+			limit = { REB = { check_variable = { mengicycleLevel = 1 } } }
+			add_isolationism = 10
+		}
+		else_if = {
+			limit = { REB = { check_variable = { mengicycleLevel = 0 } } }
+			add_isolationism = 9
 		}
 	}
 }
