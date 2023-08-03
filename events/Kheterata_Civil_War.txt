@@ -15,7 +15,7 @@ country_event = {
 
 	trigger = {
 		tag = U01
-		has_country_flag = nirat_defiance
+		has_country_flag = in_khet_civil_war
 		NOT = { is_year = 1445 }
 	}
 
@@ -24,7 +24,7 @@ country_event = {
 		custom_tooltip = khet_civil_war.1.tooltip
 		define_ruler_to_general = {
 			fire = 0
-			shock = 2
+			shock = 3
 			manuever = 3
 			siege = 2
 			trait = hardy_warrior_personality
@@ -46,7 +46,7 @@ country_event = {
 
 	trigger = {
 		tag = U02
-		has_country_flag = nirat_defiance
+		has_country_flag = in_khet_civil_war
 		NOT = { is_year = 1445 }
 	}
 
@@ -82,10 +82,9 @@ country_event = {
 	option = {
 		name = khet_civil_war.3.a
 		custom_tooltip = khet_civil_war.3.tooltip
-		grant_independence = yes
 		ohitsopot_area = { add_permanent_claim = ROOT }
 		coast_of_tears_area = { add_permanent_claim = ROOT }
-		mothers_delta_area = { add_permanent_claim = ROOT }
+		hidden_effect = { grant_independence = yes }
 		declare_war_with_cb = { casus_belli = cb_monster_vs_civ who = U01 }
 		U07 = { country_event = { id = khet_civil_war.4 days = 3 } }
 		ai_chance = { factor = 100 }
@@ -94,10 +93,9 @@ country_event = {
 	#attack alone
 	option = {
 		name = khet_civil_war.3.b
-		grant_independence = yes
 		ohitsopot_area = { add_permanent_claim = ROOT }
 		coast_of_tears_area = { add_permanent_claim = ROOT }
-		mothers_delta_area = { add_permanent_claim = ROOT }
+		hidden_effect = { grant_independence = yes }
 		declare_war_with_cb = { casus_belli = cb_monster_vs_civ who = U01 }
 		ai_chance = { factor = 0 }
 	}
@@ -122,6 +120,7 @@ country_event = {
 		name = khet_civil_war.4.a
 		custom_tooltip = khet_civil_war.4.tooltip
 		join_all_offensive_wars_of = U10
+		hidden_effect = { U10 = { set_country_flag = viakkoc_joins_civil_war } }
 		ai_chance = { factor = 100 }
 	}
 
@@ -150,23 +149,39 @@ country_event = {
 
 	trigger = {
 		tag = U01
-		has_country_flag = nirat_defiance
+		has_country_flag = in_khet_civil_war
 		controls = 473
 		war_score_against = { who = U02 value = 75 }
 	}
 
 	option = {
 		name = khet_civil_war.5.a
-		clr_country_flag = nirat_defiance
+		clr_country_flag = in_khet_civil_war
 		inherit = U02
+		add_mandate = 20
+		add_stability_or_adm_power = yes
+		#get cores if Brrtekuh is still fighting you
+		if = {
+			limit = { war_with = U10 }
+			custom_tooltip = khet_civil_war.5.tooltip
+			hidden_effect = { 
+				U10 = {
+					clr_country_flag = in_khet_civil_war 
+					every_owned_province = { add_core = ROOT } 
+				}
+			}
+		}
 	}
 }
 
+
+
+
 #Victory of the High Priest
 country_event = {
-	id = khet_civil_war.6
-	title = khet_civil_war.6.t
-	desc = khet_civil_war.6.d
+	id = khet_civil_war.8
+	title = khet_civil_war.8.t
+	desc = khet_civil_war.8.d
 	picture = DEATH_OF_HEIR_eventPicture
 	
 	fire_only_once = yes
@@ -177,93 +192,110 @@ country_event = {
 
 	trigger = {
 		tag = U02
-		has_country_flag = nirat_defiance
+		has_country_flag = in_khet_civil_war
 		controls = 475
 		war_score_against = { who = U01 value = 50 }
 	}
 
 	option = {
-		name = khet_civil_war.6.a
-		kheterat_proper_area = {
-			limit = { 
-				OR = {
-					controlled_by = ROOT
-					controlled_by = U01
-					controlled_by = U10
-				}
-			}
-			cede_province = ROOT
-		}
-		upper_sorrow_area = {
-			limit = { 
-				OR = {
-					controlled_by = ROOT
-					controlled_by = U01
-					controlled_by = U10
-				}
-			}
-			cede_province = ROOT
-		}
-		clr_country_flag = nirat_defiance
+		name = khet_civil_war.8.a
+		kheterat_proper_area = { cede_province = ROOT }
+		upper_sorrow_area = { cede_province = ROOT }
+		clr_country_flag = in_khet_civil_war
+		add_government_reform = nirat_priesthood_reform
 		set_emperor_of_china = ROOT
+		if = {
+			limit = { exists = U01 }
+			hidden_effect = { white_peace = U01 }
+		}
+		else = { 
+			change_tag_and_keep_color = { tag = U01 }
+			set_capital = 475
+			swap_non_generic_missions = yes
+			if = {
+				limit = { has_custom_ideas = no }
+				country_event = { id = ideagroups.1 } #Swap Ideas
+			}
+		}
+		hidden_effect = { 475 = { change_religion = nirakhetist } }
+	}
+}
+
+
+
+#Brrtekuh victory
+country_event = {
+	id = khet_civil_war.10
+	title = khet_civil_war.10.t
+	desc = khet_civil_war.10.d
+	picture = DEATH_OF_HEIR_eventPicture
+	
+	fire_only_once = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	trigger = {
+		tag = U10
+		has_country_flag = in_khet_civil_war
+		ohitsopot_area = { type = all controlled_by = ROOT }
+		controls = 462
+		controls = 503
+	}
+
+	option = {
+		name = khet_civil_war.10.a
+		clr_country_flag = in_khet_civil_war
+		ohitsopot_area = {
+			limit = { NOT = { province_id = 454 } }
+			add_core = ROOT
+			cede_province = ROOT
+		}
+		462 = { add_core = ROOT cede_province = ROOT }
+		503 = { add_core = ROOT cede_province = ROOT }
 		hidden_effect = {
-			475 = { change_religion = nirakhetist }
 			if = {
 				limit = { exists = U01 }
 				white_peace = U01
 			}
 		}
+		if = {
+			limit = { has_country_flag = viakkoc_joins_civil_war }
+			custom_tooltip = khet_civil_war.10.tooltip
+			clr_country_flag = viakkoc_joins_civil_war
+			ohitsopot_area = {
+				limit = { NOT = { province_id = 454 } }
+				add_base_tax = -1
+				add_base_manpower = -1
+				add_devastation = 25
+			}
+			462 = { add_base_tax = -1 add_base_manpower = -1 add_devastation = 25 }
+			503 = { add_base_tax = -1 add_base_manpower = -1 add_devastation = 25 }
+			hidden_effect = { U07 = { country_event = { id = khet_civil_war.11 days = 3 } } }
+		}
 	}
 }
 
-# #The Dajasht Coup
-# country_event = {
-# 	id = khet_civil_war.3
-# 	title = khet_civil_war.3.t
-# 	desc = khet_civil_war.3.d
-# 	picture = ANGRY_MOB_eventPicture
+#Viakkoc's payment
+country_event = {
+	id = khet_civil_war.11
+	title = khet_civil_war.11.t
+	desc = khet_civil_war.11.d
+	picture = DEATH_OF_HEIR_eventPicture
 	
-# 	fire_only_once = yes
-# 	is_triggered_only = yes
+	fire_only_once = yes
+	is_triggered_only = yes
 
-# 	option = {
-# 		name = khet_civil_war.3.a
-# 		kill_leader = {
-# 			type = "Dajasht Aahmes"
-# 		}
-# 	}
+	trigger = { tag = U07 }
 
-# 	option = {
-# 		name = khet_civil_war.3.b
-# 		ai_chance = { factor = 100 }
-# 		remove_government_reform = leading_clergy_reform
-# 		change_government = monarchy
-# 		add_government_reform = dajashti_hierocracy_reform
-# 		define_ruler = {
-# 			name = "Dajasht Aahmes"
-# 			adm = 3
-# 			dip = 2
-# 			mil = 6
-# 			fixed = yes
-# 			claim = 100
-# 		}
-# 		add_ruler_personality = zealot_personality
-# 		define_consort = {
-# 			name = "Neferi"
-# 			dynasty = "Neferu"
-# 			adm = 4
-# 			dip = 4
-# 			mil = 5
-# 			female = yes
-# 		}
-# 		add_queen_personality = careful_personality
-# 		define_heir = {
-# 			dynasty = "Aahmes"
-# 			age = 10
-# 			claim = 100		
-# 		}
-# 	}
-# }
+	option = {
+		name = khet_civil_war.11.a
+		add_treasury = 50
+		add_patriarch_authority = 0.25
+		385 = { heavy_ship = ROOT }
+	}
+}
 
 # #Kheteratan Collapse
 # country_event = {
@@ -280,7 +312,7 @@ country_event = {
 
 # 	trigger = {
 # 		tag = U01
-# 		has_country_flag = nirat_defiance
+# 		has_country_flag = in_khet_civil_war
 # 		OR = {
 # 			is_year = 1450
 # 			NOT = { 
@@ -323,7 +355,7 @@ country_event = {
 # 		}
 # 		white_peace = U02
 # 		white_peace = U10
-# 		clr_country_flag = nirat_defiance
+# 		clr_country_flag = in_khet_civil_war
 # 		hidden_effect = {
 # 			release_with_religion_and_culture = { tag = U04 religion = elikhetist culture = kheteratan }
 # 			if = {
@@ -373,7 +405,7 @@ country_event = {
 # 			}
 # 			U02 = {
 # 				release_with_religion_and_culture = { tag = U03 religion = elikhetist culture = kheteratan }
-# 				clr_country_flag = nirat_defiance
+# 				clr_country_flag = in_khet_civil_war
 # 			}
 # 			463 = {
 # 				add_core = U04
