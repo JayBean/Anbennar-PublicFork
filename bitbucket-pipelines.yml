@@ -1,0 +1,51 @@
+image: atlassian/default-image:3
+
+pipelines:
+  default:
+    - step:
+        name: Sync GitHub Mirror
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          - git clone --bare git@bitbucket.org:JayBean/anbennar-eu4-fork-public-build.git
+          - cd anbennar-eu4-fork-public-build.git
+          - git push --mirror git@github.com:JayBean/Anbennar-PublicFork.git
+    - parallel:
+      - step:
+          name: 'Decisions Encoding'
+          condition:
+              changesets:
+                includePaths:
+                  - "decisions/*.txt"
+          script:
+            - echo "Checking decisions encoding..."
+            - /bin/bash checkEncoding.sh -d
+      - step:
+          name: 'Events Encoding'
+          condition:
+              changesets:
+                includePaths:
+                  - "events/*.txt"
+          script:
+            - echo "Checking events encoding..."
+            - /bin/bash checkEncoding.sh -e
+      - step:
+          name: 'Localization Encoding'
+          condition:
+              changesets:
+                includePaths:
+                  - "localisation/*.yml"
+          script:
+            - echo "Checking localization encoding..."
+            - /bin/bash checkEncoding.sh -l
+      - step:
+          name: 'Brackets Syntax'
+          condition:
+              changesets:
+                includePaths:
+                  - "**.txt"
+          script:
+            - echo "Checking localization encoding..."
+            - /bin/bash checkEncoding.sh -i
+            

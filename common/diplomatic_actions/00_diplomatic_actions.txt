@@ -103,7 +103,33 @@ embargoaction = {
 						set_country_flag = silverforge_embargo
 				}
 			}
-#			add_prestige = 100
+			#add_prestige = 100
+		}
+		
+		#Amgremos Embargo
+		if = {
+			limit = {
+				tag = G62
+				2732 = {
+					owner = { trade_embargo_by = G62 }
+				}
+			}
+			2732 = {
+				owner = {
+						clr_country_flag = amgremos_embargo
+						set_country_flag = amgremos_embargo
+				}
+			}
+			add_prestige = 100
+		}
+
+		##Seghdihr free embargos
+		if = {
+			limit = {
+				tag = H78
+				mission_completed = seghdihr_rely_ourselves
+			}
+			seghdihr_update_flow_modifiers = yes
 		}
 	}
 }
@@ -145,13 +171,74 @@ transfer_trade_power = {
 			clr_country_flag = trade_power_count_3
 		}
 		if = {
-			limit = { TAG = Y20 }
-			FROM = { set_country_flag = transfers_trade_to_feiten }
+			limit = { has_saved_global_event_target = feiten_or_was_feiten_target }
+			if = {
+				limit = { tag = event_target:feiten_or_was_feiten_target }
+				FROM = { set_country_flag = transfers_trade_to_feiten }
+			}
 		}
 	}
 }
 
+#Cut because the Grand Crusade war doesn't really have any place in the current content, but it could be very useful for the future.
+#Also modders should have the chance to just uncomment it all so they can experience the great 30 Years War like Crusade.
 declarewar = {
+#	condition = {
+#		tooltip = GRAND_CRUSADE_NO_OTHER_WAR
+#		potential = { }
+#		allow = {
+#			NOT = {
+#				is_in_war = {
+#					attacker_leader = ROOT
+#					casus_belli = cb_grand_crusade
+#				}
+#			}
+#		}
+#	}
+#	effect = {
+#		if = {
+#			limit = {
+#				has_global_flag = grand_crusades_enabled
+#				has_country_flag = grand_crusader_war_monger_flag
+#				is_in_war = {
+#					attacker_leader = ROOT
+#					casus_belli = cb_grand_crusade
+#				}
+#			}
+#			FROM = {
+#				save_global_event_target_as = grand_crusade_target
+#			}
+#		}
+#	}
+	condition = { #1.35
+		tooltip = AI_CANNOT_DECLARE_WHEN_STABILITY_LOSS
+		potential = {
+			ai = yes
+		}
+		allow = {
+			ai = yes
+			NOT = {
+				has_global_modifier_value = {
+					which = stability_cost_to_declare_war
+					value = 1
+				}
+			}
+		}
+	}
+	condition = { #1.35
+		tooltip = CANNOT_DECLARE_WARS_OTHER_THAN_INDEPENDENCE_WARS
+		potential = {
+			has_country_modifier = revoked_war_rights
+			FROM = { NOT = { overlord_of = ROOT } }
+		}
+		allow = {
+			OR = {
+				NOT = { has_country_modifier = revoked_war_rights }
+				FROM = { overlord_of = ROOT }
+			}
+		}
+	}
+
 	condition = {
 		tooltip = FEDERATION_MILITARY
 		potential = {
@@ -233,7 +320,6 @@ declarewar = {
 			}
 		}
 		allow = {
-			is_at_war = no
 			OR = {
 				has_country_modifier = raj_mandate_right_to_expansion
 				FROM = { has_reform = raja_reform }
@@ -247,13 +333,43 @@ declarewar = {
 			has_reform = senapti_reform
 		}
 		allow = {
-			is_at_war = no
 			OR = {
 				has_country_modifier = raj_mandate_right_to_expansion
 				FROM = { has_reform = prabhi_reform }
 				FROM = { has_reform = senapti_reform }
 				FROM = { has_reform = raja_reform }
 				has_country_flag = raj_vizier
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = RAJ_ALREADY_AT_WAR
+		potential = {
+			OR = {
+				has_reform = prabhi_reform
+				has_reform = senapti_reform
+			}
+		}
+		allow = {
+			is_at_war = no
+		}
+	}
+
+	# Can't declare on subjects of the Raja if you are at war with them
+	condition = {
+		tooltip = RAJ_ALREADY_AT_WAR_WITH_RAJA
+		potential = {
+			FROM = {
+				is_subject = yes
+				overlord = { has_reform = raja_reform }
+			}
+		}
+		allow = {
+			NOT = {
+				any_war_enemy_country = {
+					has_reform = raja_reform
+				}
 			}
 		}
 	}
@@ -292,48 +408,131 @@ declarewar = {
 		tooltip = COMMAND_DISLOYAL_RULING_COMMAND
 		potential = {
 			has_reform = hobgoblin_stratocracy_reform
+			ai = no
 		}
 		allow = {
 			if = {
-				limit = { has_faction = hob_wolf_command }
-				estate_loyalty = {
-					estate = estate_wolf_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_wolf_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_wolf_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_wolf_command
+						loyalty = 50
+					}
 				}
 			}
 			if = {
-				limit = { has_faction = hob_boar_command }
-				estate_loyalty = {
-					estate = estate_boar_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_boar_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_boar_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_boar_command
+						loyalty = 50
+					}
 				}
 			}
 			if = {
-				limit = { has_faction = hob_lion_command }
-				estate_loyalty = {
-					estate = estate_lion_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_lion_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_lion_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_lion_command
+						loyalty = 50
+					}
 				}
 			}
 			if = {
-				limit = { has_faction = hob_dragon_command }
-				estate_loyalty = {
-					estate = estate_dragon_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_dragon_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_dragon_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_dragon_command
+						loyalty = 50
+					}
 				}
 			}
 			if = {
-				limit = { has_faction = hob_elephant_command }
-				estate_loyalty = {
-					estate = estate_elephant_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_elephant_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_elephant_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_elephant_command
+						loyalty = 50
+					}
 				}
 			}
 			if = {
-				limit = { has_faction = hob_tiger_command }
-				estate_loyalty = {
-					estate = estate_tiger_command
-					loyalty = 40
+				limit = { has_estate_privilege = estate_tiger_command_war_room_rights }
+				if = {
+					limit = { has_government_attribute = command_lower_requirement_to_declare_war }
+					estate_loyalty = {
+						estate = estate_tiger_command
+						loyalty = 40
+					}
+				}
+				else = {
+					estate_loyalty = {
+						estate = estate_tiger_command
+						loyalty = 50
+					}
+				}
+			}
+		}
+	}
+
+	condition = {
+		tooltip = COMMAND_ACTIVE_SUBORDINATION_CRISIS
+		potential = { tag = R62 }
+		allow = {
+			NOT = { has_country_flag = insubordination_be_nice }
+			if = {
+				limit = {
+					OR = { tag = R67  tag = R68  tag = R69 }
+				}
+				ai = no
+			}
+		}
+	}
+
+	condition = {
+		tooltip = JADE_MARCH_AUTONOMOUS_VASSAL_WAR
+		potential = { tag = R81 }
+		allow = {
+			ai = no
+			NOT = {
+				is_subject_of_type_with_overlord = {
+					who = R62
+					type = autonomous_vassal
 				}
 			}
 		}
@@ -398,7 +597,25 @@ declarewar = {
 		}
 	}
 	
+	condition = { #Can't declare war while unknown Luciande
+		tooltip = B34_CANT_WAR_tt
+		potential = {
+			OR = {
+				tag = B34
+				FROM = { tag = B34 }
+			}
+		}
+		allow = {
+			NOT = {
+				has_country_flag = luciande_drifting_flag 
+				FROM = { has_country_flag = luciande_drifting_flag } 
+			}
+		}
+	}
+
 	effect = {
+		on_war_declaration_effect = yes #1.35
+
 		if = {
 			limit = { 
 				has_country_modifier = federation_war_mandat
@@ -440,6 +657,14 @@ declarewar = {
 				has_country_flag = removing_monstrous
 			}
 			FROM = { country_event = { id = monstrous.103 } }
+		}
+		
+		if = { # Xiaken becomes Indipendent Xiaken if declare war at Wulin
+			limit = {
+				has_reform = xiaken
+				FROM = { has_reform = wulin }
+			}
+			add_government_reform = indep_xiaken
 		}
 		
 		if = {
@@ -486,9 +711,26 @@ declarewar = {
 			}
 			country_event = {
 				id = diggy.121
-				days = 0
 			}
 		}
+		if = {
+            limit = {
+                I07 = {
+                    mission_completed = khugdihr_the_face_of_the_reclamation
+                }
+                culture_is_dwarven = yes
+                capital_scope = {
+                    continent = serpentspine
+                }
+                FROM = {
+                    ruler_is_dwarven = no
+                    capital_scope = {
+                        continent = serpentspine
+                    }
+                }
+            }
+            country_event = { id = flavour_khug.25 }
+        }
 		if = {
 			limit = {
 				has_country_flag = escanni_wars_usurp_emperorship
@@ -551,6 +793,7 @@ declarewar = {
 			}
 			H77 = { country_event = { id = flavor_lodhum.150 days = 20 } }
 		}
+		
 #		if = {
 #			limit = {
 #				tag = A73
@@ -566,10 +809,217 @@ declarewar = {
 #          			value = 1
 #        		}
 #		}
+
+		#Keyolion Independence War
+		if = {
+			limit = {
+				tag = G58
+				NOT = {
+					has_country_flag = independence_war_started_flag
+				}
+			}
+			set_country_flag = independence_war_started_flag
+			#Clear Keyolion Triggered Province Modifier
+			2669 = { #Keyolion
+				if = {
+					limit = {
+							has_province_modifier = G58_stability_to_dec_modifier
+					}
+					remove_province_triggered_modifier = G58_stability_to_dec_modifier
+				}
+			}
+			#Clear Keyolion Stab to Declare war if present
+			if = {
+				limit = {
+					has_country_modifier = G58_keyolion_empk_truce_modifier
+				}
+				remove_country_modifier = G58_keyolion_empk_truce_modifier
+			}
+			if = {
+				limit = {
+					mission_completed = G58_4_2_independence_plot
+				}
+				#Get the .10% morale and 0.05% disc
+				add_country_modifier = {
+					name = G58_independence_war_quality_modifier
+					duration = 1825
+				}
+			}
+			if = {
+				limit = {
+					mission_completed = G58_5_2_soldiers_by_law
+				}
+				#Get the three free infantry units
+				2669 = { #Keyolion
+					G58 = {
+						infantry = PREV
+						infantry = PREV
+						infantry = PREV
+					}
+				}
+			}
+			if = {
+				#Empkeios and Arpedifer join the battle
+				limit = {
+					G53 = {
+						has_country_flag = G58_accepted_independence_deal_flag
+						NOT = {
+							truce_with = G47
+						}
+					}
+				}
+				G53 = {
+					join_all_offensive_wars_of = G58
+				}
+				G51 = {
+					join_all_defensive_wars_of = G47
+				}
+			}
+		}
+		
+		#Taychend Glory
+		if = {
+			limit = {
+				religion = gods_of_the_taychend
+				FROM = {
+					OR = {
+						religion = gods_of_the_taychend
+						tag = J74
+					}
+					OR = {
+						army_strength = {
+							who = ROOT
+							value = 0.7
+						}
+						is_enemy = ROOT
+					}
+				}
+			}
+			add_country_modifier = {
+				name = taychendi_glorious
+				duration = 3650
+			}
+		}
+		else_if = {
+			limit = { has_country_modifier = taychendi_glorious }
+			remove_country_modifier = taychendi_glorious
+		}
 	}
 }
 
 allianceaction = {
+	condition = {
+		tooltip = PIRATE_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_pirates
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_pirates }
+				FROM = { has_government_attribute = is_pirate_republic_reform }
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_PIRATE_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_pirates
+			}
+			NOT = { has_government_attribute = is_pirate_republic_reform }
+		}
+		allow = {
+			OR = {
+				has_government_attribute = is_pirate_republic_reform
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_pirates } }
+			}
+		}
+	}
+	condition = {
+		tooltip = REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_republics
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_republics }
+				FROM = { government = republic }
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_republics
+			}
+			NOT = { government = republic }
+		}
+		allow = {
+			OR = {
+				government = republic
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics } }
+			}
+		}
+	}
+	condition = {
+		tooltip = REV_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			has_government_attribute = cannot_ally_non_republics_or_non_rev
+		}
+		allow = {
+			OR = {
+				NOT = { has_government_attribute = cannot_ally_non_republics_or_non_rev }
+				FROM = { 
+					OR = {
+						government = republic 
+						is_revolutionary = yes
+					}
+				}
+			}
+		}
+	}
+	condition = {
+		tooltip = FROM_REV_REPUBLIC_DENIED_ALLIANCE
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_ally_non_republics_or_non_rev
+			}
+			NOT = { government = republic }
+			is_revolutionary = no
+		}
+		allow = {
+			OR = { #1.35
+				government = republic 
+				is_revolutionary = yes
+				NOT = { FROM = { has_government_attribute = cannot_ally_non_republics_or_non_rev } }
+			}
+		}
+	}
+
+	condition = { #1.35
+		tooltip = CANNOT_MAKE_ALLIANCES
+		potential = {
+			has_government_attribute = cannot_form_alliances
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_form_alliances }
+		}
+	}
+
+	condition = { #1.35
+		tooltip = FROM_CANNOT_MAKE_ALLIANCES
+		potential = {
+			FROM = {
+				has_government_attribute = cannot_form_alliances
+			}
+		}
+		allow = {
+			NOT = { FROM = { has_government_attribute = cannot_form_alliances } }
+		}
+	}
+
+	# Anbennar
 	condition = {
 		tooltip = ONLY_ADV_ESCANN
 		potential = {
@@ -657,9 +1107,7 @@ allianceaction = {
 		}
 		allow = {
 			FROM = {
-				OR = {
-					NOT = { has_country_modifier = centaur_administration }
-				}
+				NOT = { has_country_modifier = centaur_administration }
 			}
 		}
 	}
@@ -671,9 +1119,7 @@ allianceaction = {
 		}
 		allow = {
 			FROM = {
-				OR = {
-					NOT = { has_country_modifier = ogre_administration }
-				}
+				NOT = { has_country_modifier = ogre_administration }
 			}
 		}
 	}
@@ -681,17 +1127,7 @@ allianceaction = {
 	condition = {
 		tooltip = malacnar_companions_only
 		potential = {
-			calc_true_if = {
-				all_country = {
-					OR = {
-						is_companion = yes
-						mission_completed = G32_with_two_companions
-					}
-					exists = yes
-					is_subject = no
-				}
-				amount = 2
-			}
+			has_global_flag = G32_companions_active
 			OR = {
 				FROM = {
 					OR = {
@@ -732,17 +1168,110 @@ allianceaction = {
 			NOT = { has_reform = isolated_kingdom_reform }
 		}
 	}
+
+	condition = {
+		tooltip = OVERLORD_AMBITION
+		potential = {
+			capital_scope = {
+				superregion = ynn_superregion
+			}
+		}
+		allow = {
+			NOT = {
+				FROM = {
+					ynnic_iosahar = 1
+					has_country_modifier = ynn_diplo
+				}
+				ROOT = {
+					ynnic_iosahar = 1
+					has_country_modifier = ynn_diplo
+				}
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = ameion_closed_ports
+		potential = {
+			has_country_modifier = G52_closed_ports
+		}
+		allow = {
+			FROM = { has_country_modifier = ruinborn_administration }
+		}
+	}
+
+	condition = {
+		tooltip = dakinshi_warlords_no_ally
+		potential = { 
+		}
+		allow = { 
+			FROM = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
+			ROOT = { 
+				NOT = {
+					has_reform = dakinshi_warlord_reform
+				}
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = taychend_warlords
+		potential = {
+			NOT = { tag = J74 }
+		}
+		allow = {
+			OR = {
+				AND = {
+					ROOT = { religion = gods_of_the_taychend }
+					FROM = { religion = gods_of_the_taychend }
+				}
+				AND = {
+					ROOT = { NOT = { religion = gods_of_the_taychend } }
+					FROM = { NOT = { religion = gods_of_the_taychend } }
+				}
+			}
+		}
+	}
+	condition = {
+		tooltip = khet_civil_war_no_ally
+		potential = { 
+			OR = {
+				has_country_flag = in_khet_civil_war 
+				FROM = { has_country_flag = in_khet_civil_war }
+			}
+		}
+		allow = { 
+			always = no	
+		}
+	}
+}
+
+enforce_peace = {
+	#do this before the peace is enforced, or there is no war enemy country
+	pre_effect = {
+		if = {
+			limit = {
+				has_country_modifier = liv_protector_of_the_catholics
+				FROM = {
+					any_war_enemy_country = {
+						religion = catholic
+						is_in_war = {
+							defender_leader = THIS
+							attacker_leader = FROM
+						}
+					}
+				}
+			}
+			add_papal_influence = 25
+		}
+	}
 }
 
 royal_marriage = {
-	condition = {
-		tooltip = MARWAR
-		potential = {
-		}
-		allow = {
-			NOT = { war_with = FROM }
-		}
-	}
 	condition = {
 		tooltip = MARWAR
 		potential = {
@@ -760,36 +1289,29 @@ royal_marriage = {
 			primary_culture = sun_elf #Sun Elf rulers ruling non Sun Elf countries shouldn't care as much
 		}
 		allow = {
-			FROM = { ruler_is_elven = yes }
+			OR = {
+				FROM = { ruler_is_elven = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
+	#Sun Elf wants to marry other elven rulers only
 	condition = {
 		tooltip = SUN_ELF_SNOBBISM
 		potential = {
-			FROM = { ruler_culture = sun_elf }
+			FROM = { ruler_culture = sun_elf } 
 			FROM = { primary_culture = sun_elf } #Sun Elf rulers ruling non Sun Elf countries shouldn't care as much
 		}
 		allow = {
-			ROOT = { ruler_is_elven = yes }
+			OR = {
+				ruler_is_elven = yes
+				marriage_with = FROM
+			}
 		}
 	}
 	
 	#Elf Kingdom Kings only want to marry other elven rulers only
-	condition = {
-		tooltip = ELVEN_MONARCHY
-		potential = {
-			government = monarchy
-			ruler_is_elven = yes
-			culture_group = elven
-			NOT = { ruler_culture = desert_elf }
-			NOT = { primary_culture = desert_elf }
-		}
-		allow = {
-			FROM = { ruler_is_elven = yes }
-		}
-	}
-	
 	condition = {
 		tooltip = ELVEN_MONARCHY
 		potential = {
@@ -802,7 +1324,27 @@ royal_marriage = {
 			}
 		}
 		allow = {
-			ROOT = { ruler_is_elven = yes }
+			OR = {
+				ruler_is_elven = yes
+				marriage_with = FROM
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = ELVEN_MONARCHY
+		potential = {
+			government = monarchy
+			ruler_is_elven = yes
+			culture_group = elven
+			NOT = { ruler_culture = desert_elf }
+			NOT = { primary_culture = desert_elf }
+		}
+		allow = {
+			OR = {
+				FROM = { ruler_is_elven = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -815,11 +1357,14 @@ royal_marriage = {
 			ROOT = { ruler_is_goblin = yes }
 		}
 		allow = {
-			FROM = {
-				OR = {
-					ruler_is_goblin = yes
-					ruler_is_harpy = yes
+			OR = {
+				FROM = {
+					OR = {
+						ruler_is_goblin = yes
+						ruler_is_harpy = yes
+					}
 				}
+				marriage_with = FROM
 			}
 		}
 	}
@@ -830,11 +1375,14 @@ royal_marriage = {
 			FROM = { ruler_is_goblin = yes }
 		}
 		allow = {
-			ROOT = {
-				OR = {
-					ruler_is_goblin = yes
-					ruler_is_harpy = yes
+			OR = {
+				ROOT = {
+					OR = {
+						ruler_is_goblin = yes
+						ruler_is_harpy = yes
+					}
 				}
+				marriage_with = FROM
 			}
 		}
 	}
@@ -846,7 +1394,10 @@ royal_marriage = {
 			ROOT = { ruler_is_gnollish = yes }
 		}
 		allow = {
-			FROM = { ruler_is_gnollish = yes }
+			OR = {
+				FROM = { ruler_is_gnollish = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -856,7 +1407,10 @@ royal_marriage = {
 			FROM = { ruler_is_gnollish = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_gnollish = yes }
+			OR = {
+				ROOT = { ruler_is_gnollish = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -867,7 +1421,10 @@ royal_marriage = {
 			ROOT = { ruler_is_kobold = yes }
 		}
 		allow = {
-			FROM = { ruler_is_kobold = yes }
+			OR = {
+				FROM = { ruler_is_kobold = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -877,7 +1434,10 @@ royal_marriage = {
 			FROM = { ruler_is_kobold = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_kobold = yes }
+			OR = {
+				ROOT = { ruler_is_kobold = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -888,7 +1448,10 @@ royal_marriage = {
 			ROOT = { ruler_is_halfling = yes }
 		}
 		allow = {
-			FROM = { ruler_is_halfling = yes }
+			OR = {
+				FROM = { ruler_is_halfling = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -898,7 +1461,10 @@ royal_marriage = {
 			FROM = { ruler_is_halfling = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_halfling = yes }
+			OR = {
+				ROOT = { ruler_is_halfling = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -909,7 +1475,10 @@ royal_marriage = {
 			ROOT = { ruler_is_gnomish = yes }
 		}
 		allow = {
-			FROM = { ruler_is_gnomish = yes }
+			OR = {
+				FROM = { ruler_is_gnomish = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -919,7 +1488,10 @@ royal_marriage = {
 			FROM = { ruler_is_gnomish = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_gnomish = yes }
+			OR = {
+				ROOT = { ruler_is_gnomish = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -930,7 +1502,10 @@ royal_marriage = {
 			ROOT = { ruler_is_dwarven = yes }
 		}
 		allow = {
-			FROM = { ruler_is_dwarven = yes }
+			OR = {
+				FROM = { ruler_is_dwarven = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -940,7 +1515,10 @@ royal_marriage = {
 			FROM = { ruler_is_dwarven = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_dwarven = yes }
+			OR = {
+				ROOT = { ruler_is_dwarven = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -951,7 +1529,10 @@ royal_marriage = {
 			ROOT = { ruler_is_harimari = yes }
 		}
 		allow = {
-			FROM = { ruler_is_harimari = yes }
+			OR = {
+				FROM = { ruler_is_harimari = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -961,7 +1542,10 @@ royal_marriage = {
 			FROM = { ruler_is_harimari = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_harimari = yes }
+			OR = {
+				ROOT = { ruler_is_harimari = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -972,11 +1556,14 @@ royal_marriage = {
 			ROOT = { ruler_is_hobgoblin = yes }
 		}
 		allow = {
-			FROM = {
-				OR = {
-					ruler_is_hobgoblin = yes
-					ruler_is_harpy = yes
+			OR = {
+				FROM = {
+					OR = {
+						ruler_is_hobgoblin = yes
+						ruler_is_harpy = yes
+					}
 				}
+				marriage_with = FROM
 			}
 		}
 	}
@@ -987,11 +1574,14 @@ royal_marriage = {
 			FROM = { ruler_is_hobgoblin = yes }
 		}
 		allow = {
-			ROOT = {
-				OR = {
-					ruler_is_hobgoblin = yes
-					ruler_is_harpy = yes
+			OR = {
+				ROOT = {
+					OR = {
+						ruler_is_hobgoblin = yes
+						ruler_is_harpy = yes
+					}
 				}
+				marriage_with = FROM
 			}
 		}
 	}
@@ -1003,7 +1593,10 @@ royal_marriage = {
 			ROOT = { ruler_is_troll = yes }
 		}
 		allow = {
-			FROM = { ruler_is_troll = yes }
+			OR = {
+				FROM = { ruler_is_troll = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1013,7 +1606,10 @@ royal_marriage = {
 			FROM = { ruler_is_troll = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_troll = yes }
+			OR = {
+				ROOT = { ruler_is_troll = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1024,7 +1620,10 @@ royal_marriage = {
 			ROOT = { ruler_is_ogre = yes }
 		}
 		allow = {
-			FROM = { ruler_is_ogre = yes }
+			OR = {
+				FROM = { ruler_is_ogre = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1034,7 +1633,10 @@ royal_marriage = {
 			FROM = { ruler_is_ogre = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_ogre = yes }
+			OR = {
+				ROOT = { ruler_is_ogre = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1045,7 +1647,10 @@ royal_marriage = {
 			ROOT = { ruler_is_centaur = yes }
 		}
 		allow = {
-			FROM = { ruler_is_centaur = yes }
+			OR = {
+				FROM = { ruler_is_centaur = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1055,7 +1660,10 @@ royal_marriage = {
 			FROM = { ruler_is_centaur = yes }
 		}
 		allow = {
-			ROOT = { ruler_is_centaur = yes }
+			OR = {
+				ROOT = { ruler_is_centaur = yes }
+				marriage_with = FROM
+			}
 		}
 	}
 	
@@ -1074,8 +1682,26 @@ royal_marriage = {
 			}
 		}
 		allow = {
+			OR = {
+				FROM = {
+					NOT = {
+						ruler_is_harpy = yes
+						AND = {
+							has_regency = yes
+							heir_is_harpy = yes
+						}
+					}
+				}
+				marriage_with = FROM
+			}
+		}
+	}
+	
+	condition = {
+		tooltip = MONO_GENDERED
+		potential = {
 			FROM = {
-				NOT = {
+				OR = {
 					ruler_is_harpy = yes
 					AND = {
 						has_regency = yes
@@ -1084,20 +1710,18 @@ royal_marriage = {
 				}
 			}
 		}
-	}
-	
-	condition = {
-		tooltip = MONO_GENDERED
-		potential = {
-			ROOT = {
-				NOT = { ruler_is_harpy = yes }
-				is_female = yes
-				has_consort = no
-			}
-		}
 		allow = {
-			FROM = {
-				NOT = { ruler_is_harpy = yes }
+			OR = {
+				ROOT = {
+					NOT = {
+						ruler_is_harpy = yes
+						AND = {
+							has_regency = yes
+							heir_is_harpy = yes
+						}
+					}
+				}
+				marriage_with = FROM
 			}
 		}
 	}
@@ -1119,6 +1743,7 @@ annexationaction = {
 		potential = {
 			FROM = {
 				vassal_of = ROOT
+				NOT = { is_subject_of_type = daimyo_vassal }
 			}
 		}
 		allow = {
@@ -1170,11 +1795,52 @@ annexationaction = {
 	#		}
 	#	}
 	#}
+	condition = { #1.35
+		tooltip = CANNOT_ANNEX
+		potential = {
+			FROM = {
+				has_country_modifier = tur_mamlukian_administration
+			}
+		}
+		allow = {
+			FROM = {
+				NOT = { has_country_modifier = tur_mamlukian_administration }
+			}
+		}
+	}
+
+	condition = { #1.35
+		tooltip = NEEDS_50_CROWNLAND_TT
+		potential = {
+			has_government_attribute = need_crownland_to_annex
+			NOT = { crown_land_share = 50 }
+		}
+		allow = {
+			crown_land_share = 50
+		}
+	}
+	
+
+	
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
 		potential = {
 			ROOT = {
 				has_reform = roadwarrior_great_convoy
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
+	condition = {
+		tooltip = OZOVAR_NO_INTEGRATE
+		potential = {
+			tag = Y63
+			ai = no
+			OR = {
+				has_reform = verkal_ozovar_magocracy
+				has_reform = verkal_ozovar_monarchy
 			}
 		}
 		allow = {
@@ -1190,6 +1856,79 @@ annexationaction = {
 			H77 = { mission_completed = lodhum_yesterdays_enemy }
 		}
 		allow = { always = no }
+	}
+
+	condition = {
+		tooltip = SEGHDIHR_NO_INTEGRATE_HOLDS
+		potential = {
+			ROOT = { tag = H78 }
+			FROM = {
+				OR = {
+					tag = F47
+					tag = I14
+					tag = I15
+					tag = I17
+					tag = H79
+					tag = I18
+				} 
+			}
+		}
+		allow = { always = no }
+	}
+
+	condition = {
+		tooltip = IOSAHARSYSTEMDISCONTINUE
+		potential = {
+			FROM = {
+				is_subject_of_type = ynnic_iosahar
+			}
+		}
+		allow = {
+			OR = {
+				NOT = { has_country_modifier = ynn_diplo }
+				AND = {
+					tag = U70
+					yrw_has_settled_second_debate_blame_subjects = yes
+					FROM = {
+						primary_culture = dolindhan
+						capital_scope = { region = dolindha_region }
+					}
+				}
+				AND = {
+					tag = U69
+					yrw_has_settled_second_debate_blame_subjects = yes
+					FROM = {
+						primary_culture = sarda
+						capital_scope = { region = sarda_region }
+					}
+				}
+			}
+		}
+	}
+
+	condition = {
+		tooltip = MALACNARANNEXCOMPANIONS
+		potential = {
+			tag = G32
+			FROM = {
+				is_companion = yes
+			}
+		}
+		allow = {
+			NOT = { religion = ynn_river_worship }
+		}
+	}
+
+	condition = {
+		potential = {
+			is_emperor_of_china = yes
+			FROM = {
+				is_subject_of_type = medasi_subject
+			}
+		}
+		allow = {
+			empire_of_china_reform_passed = integrate_medasi_reform
+		}
 	}
 }
 
@@ -1208,20 +1947,15 @@ integrationaction = {
 			}
 		}
 	}
-	#condition = {
-	#	tooltip = INTEGRATEINVALID
-	#	potential = {
-	#		senior_union_with = FROM
-	#	}
-	#	allow = {
-	#		FROM = {
-	#			years_in_union_under = {
-	#				who = ROOT
-	#				years = 50
-	#			}
-	#		}
-	#	}
-	#}
+	condition = {
+		tooltip = PUINTEGRATIONIMPOSSIBLE
+		potential = {
+			has_government_attribute = cannot_integrate_personal_unions
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_integrate_personal_unions }
+		}
+	}
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
 		potential = {
@@ -1251,6 +1985,17 @@ vassalaction = {
 			FROM = { is_at_war = no }
 		}
 	}
+	condition = {
+		tooltip = SPAWNABLE_INDEPENDENT_SPIRIT
+		potential = {
+			FROM = {
+				has_country_modifier = strong_colonial_rush
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 	effect = {
 		if = { # this makes it visible i using it on someone who would lose it
 			limit = {
@@ -1261,14 +2006,13 @@ vassalaction = {
 			FROM = {
 				country_event = {
 					id = diggy.122
-					days = 0
 				}
 			}
 		}
 	}
 }
 
-abandon_union_action = {
+abandon_union = {
 	condition = {
 		potential = {
 		}
@@ -1277,6 +2021,15 @@ abandon_union_action = {
 				senior_union_with = FROM
 				is_at_war = no
 			}
+		}
+	}
+	condition = {
+		tooltip = PUABANDONINGIMPOSSIBLE
+		potential = {
+			has_government_attribute = cannot_abandon_personal_unions
+		}
+		allow = {
+			NOT = { has_government_attribute = cannot_abandon_personal_unions }
 		}
 	}
 }
@@ -1320,6 +2073,15 @@ form_coalition = {
 			FROM = { overlord = { has_reform = raja_reform } }
 		}
 	}
+	
+	condition = { #External tags can't coalition Raja subjects
+		tooltip = RAJ_COALITIONS_EXTERNALS
+		potential = {
+		}
+		allow = {
+			FROM = { NOT = { overlord = { has_reform = raja_reform } } }
+		}
+	}
 }
 
 request_to_join_trade_league = {
@@ -1357,50 +2119,60 @@ invite_to_trade_league = {
 }
 
 tributary_state_action = {
+	# condition = {
+		# potential = {
+			# ai = yes
+		# }
+		# allow = {
+			# OR = {
+				# NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
+				# AND = {
+					# ROOT = { capital_scope = { superregion = china_superregion } }
+					# NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
+				# }
+			# }
+			# OR = {
+				# NOT = { ROOT = { capital_scope = { region = japan_region } } }
+				# AND = {
+					# ROOT = { capital_scope = { region = japan_region } }
+					# NOT = { FROM = { capital_scope = { region = japan_region } } }
+				# }
+			# }
+		# }
+	# }
 	condition = {
+		tooltip = YNN_TRIBUTARY_YNNICS
 		potential = {
-			ai = yes
+			FROM = { culture_group = ynnic_ruinborn_elf }
 		}
 		allow = {
-			OR = {
-				NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
-				AND = {
-					ROOT = { capital_scope = { superregion = china_superregion } }
-					NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
-				}
-			}
-			OR = {
-				NOT = { ROOT = { capital_scope = { region = japan_region } } }
-				AND = {
-					ROOT = { capital_scope = { region = japan_region } }
-					NOT = { FROM = { capital_scope = { region = japan_region } } }
-				}
-			}
+			NOT = { culture_group = ynnic_ruinborn_elf }
 		}
 	}
 }
+
 ask_for_tributary_state_action = {
-	condition = {
-		potential = {
-			ai = yes
-		}
-		allow = {
-			OR = {
-				NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
-				AND = {
-					FROM = { capital_scope = { superregion = china_superregion } }
-					NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
-				}
-			}
-			OR = {
-				NOT = { FROM = { capital_scope = { region = japan_region } } }
-				AND = {
-					FROM = { capital_scope = { region = japan_region } }
-					NOT = { ROOT = { capital_scope = { region = japan_region } } }
-				}
-			}
-		}
-	}
+	# condition = {
+		# potential = {
+			# ai = yes
+		# }
+		# allow = {
+			# OR = {
+				# NOT = { FROM = { capital_scope = { superregion = china_superregion } } }
+				# AND = {
+					# FROM = { capital_scope = { superregion = china_superregion } }
+					# NOT = { ROOT = { capital_scope = { superregion = china_superregion } } }
+				# }
+			# }
+			# OR = {
+				# NOT = { FROM = { capital_scope = { region = japan_region } } }
+				# AND = {
+					# FROM = { capital_scope = { region = japan_region } }
+					# NOT = { ROOT = { capital_scope = { region = japan_region } } }
+				# }
+			# }
+		# }
+	# }
 }
 
 # Anbennar
@@ -1408,10 +2180,10 @@ invite_to_federation = {
     condition = {
         tooltip = ONLY_ADVENTURERS_FEDERATION
         potential = {
-
         }
         allow = {
 			has_reform = adventurer_reform
+			FROM = { has_reform = adventurer_reform }
         }
     }
 	condition = {
@@ -1419,7 +2191,15 @@ invite_to_federation = {
         potential = {
         }
         allow = {
-            NOT = { ROOT = { federation_size = 4 } }
+            NOT = { ROOT = { federation_size = 3 } }
+        }
+    }
+	condition = {
+        tooltip = IS_IN_FEDERATION
+        potential = {
+        }
+        allow = {
+            NOT = { FROM = { federation_size = 1 } }
         }
     }
 }
@@ -1431,6 +2211,7 @@ request_to_join_federation = {
         }
         allow = {
             has_reform = adventurer_reform
+			FROM = { has_reform = adventurer_reform }
         }
     }
 	condition = {
@@ -1438,7 +2219,15 @@ request_to_join_federation = {
         potential = {
         }
         allow = {
-            NOT = { FROM = { federation_size = 4 } }
+            NOT = { FROM = { federation_size = 3 } }
+        }
+    }
+	condition = {
+        tooltip = IS_IN_FEDERATION
+        potential = {
+        }
+        allow = {
+            NOT = { federation_size = 1 }
         }
     }
 }
@@ -1474,18 +2263,215 @@ callaction = {
 			}
 		}
 	}
-}
-
-tributary_state_action = {
-	condition = {
-		tooltip = YNN_TRIBUTARY_YNNICS
+	
+	condition = { #Iosahar
+		tooltip = IOSAHAR_NO_CALL_ENNEMI_SUBJECTS
 		potential = {
-			culture_group = ynnic_ruinborn_elf
-		}
-		allow = {
-			NOT = {
-				FROM = { culture_group = ynnic_ruinborn_elf }
+			FROM = {
+				is_subject_of_type = ynnic_iosahar
+				overlord = { war_with = ROOT }
 			}
 		}
+		allow = {
+			always = no
+		}
+	}
+
+	condition = { #Degakheion cant go to war against eneion when its an autovassal
+		potential = {
+			ROOT = { 
+				war_with = G55
+			}
+			FROM = { 
+				tag = G46
+				G55 = {
+					is_subject_of_type_with_overlord = {
+						who = G46
+						type = autonomous_vassal
+					}
+				}
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
+}
+
+designate_march = {
+	condition = {
+		tooltip = SEGHDIHR_NO_MARCH
+		potential = {
+			ROOT = { tag = H78 }
+			FROM = {
+				OR = {
+					tag = F47
+					tag = I14
+					tag = I15
+					tag = I17
+					tag = H79
+					tag = I18
+				} 
+			}
+		}
+		allow = { always = no }
+	}
+}
+
+ask_for_march = {
+	condition = {
+		tooltip = SEGHDIHR_NO_MARCH_VASSAL
+		potential = { 
+			is_subject_of = H78
+			OR = {
+				tag = F47
+				tag = I14
+				tag = I15
+				tag = I17
+				tag = H79
+				tag = I18
+			}
+		}
+		allow = { always = no }
+	}
+}
+
+insultaction = {
+	condition = {}
+	effect = {
+		#hul-az-krakazol drunk insults
+		if = {
+			limit = {
+				tag = I20
+				krakazol_is_drunk = { Drunk = yes }
+				FROM = { has_opinion_modifier = { who = ROOT modifier = scornfully_insulted } }
+			}
+			FROM = { add_opinion = { who = I20 modifier = opinion_krakazol_drunk_insult } }
+		}
+		if = {
+			limit = {
+				tag = H89
+			}
+			ROOT = { change_variable = { insult_counter = 1 } }
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_1
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_1
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_1
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_2
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_2
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_2
+					}
+				}
+				add_prestige = -10
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = H89_outrageous_diplomacy_3
+			}
+			FROM = { 
+				add_country_modifier = {
+					name = H89_insult_3
+					duration = 3650
+				}
+				every_enemy_country = {
+					add_opinion = {
+						who = ROOT
+						modifier = H89_insult_rival_3
+					}
+				}
+				add_prestige = -25
+				add_legitimacy_equivalent = { amount = -10 republican_tradition = -5 }
+			}
+		}
+	}
+}
+
+requestpeace = {
+	condition = {
+        tooltip = LESSER_CANT_PEACE	#can't separate peace Raj subjects
+        potential = {
+			FROM = {
+				OR = {
+					is_subject_of_type = daimyo_vassal
+					is_subject_of_type = great_daimyo_vassal
+				}
+				overlord = {
+					OR = {
+						is_in_war = {
+							attacker_leader = THIS
+							participants = ROOT
+						}
+						is_in_war = {
+							defender_leader = THIS
+							participants = ROOT
+						}
+					}
+				}
+			}
+		}
+		allow = {
+			overlord = {
+				has_reform = raja_reform
+			}
+			FROM = {
+				overlord = {
+					has_reform = raja_reform
+				}
+			}
+        }
+    }
+	condition = {
+		tooltip = B34_CANT_PEACE_tt
+		potential = {
+			ROOT = {
+				has_country_flag = B34_great_war_flag
+			}
+		}
+		allow = {
+			always = no
+        }
+	}
+	condition = {
+		tooltip = khet_civil_war_no_peace
+		potential = {
+			has_country_flag = in_khet_civil_war
+		}
+		allow = {
+			NOT = { FROM = { has_country_flag = in_khet_civil_war } }
+        }
+	}
+}
+
+support_heir = {
+}
+
+break_alliance = {
+	effect = {
+		on_alliance_broken_effect = yes
 	}
 }

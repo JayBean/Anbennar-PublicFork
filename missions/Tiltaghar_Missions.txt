@@ -1,0 +1,2066 @@
+tiltaghar_slot_1 = {
+	slot = 1
+	generic = no
+	ai = yes
+	potential = { tag = R08 }
+	has_country_shield = yes
+	
+	#Prepare the Army
+	tiltaghar_prepare_army = {
+		icon = mission_mnd_dai_control_the_army
+		required_missions = { }
+		position = 1
+		
+		provinces_to_highlight = { 
+		}
+		
+		trigger = {
+			army_size_percentage = 0.8
+			num_of_generals = 1
+		}
+		
+		effect = {
+			add_country_modifier ={
+				name = tiltaghar_prepare_army_modifier
+				duration = 3650
+			}
+		}
+	}
+
+	#Sway Sarnavan's Vassals
+	tiltaghar_sway_sarnavan_vassals ={
+		icon = personal_diplomacy
+		required_missions = { tiltaghar_prepare_army }
+		position = 2
+		
+		provinces_to_highlight = {
+			OR = {
+				is_capital_of = R34 #Kamapar
+				is_capital_of = R12 #Tilathi
+				is_capital_of = R10 #Sarnavan
+			}
+		}
+		
+		trigger = {
+			OR = {
+				AND = {
+					R34 = { #Kamapar
+						has_opinion = { 
+							who = ROOT
+							value = 100
+						}
+					}
+					R12 = { #Tilathi
+						has_opinion = { 
+							who = ROOT
+							value = 100
+						}
+					}
+					R10 = { #Sarnavan
+						has_spy_network_from = {
+							who = ROOT
+							value = 30
+						}
+					}
+					OR = {
+						advisor = statesman
+						advisor = diplomat
+					}
+				}
+				AND = { 
+					R12 = { exists = no } #Tilathi
+					R34 = { exists = no } #Kamapar
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					R34 = { #Kamapar
+						vassal_of = R10 #Sarnavan
+					} 
+				}
+				R34 = { #Kamapar
+					country_event = { id = flavor_tiltaghar.1 days = 10 } #An Offer from the Raj
+				}
+			}
+			else = {
+				4474 = { add_permanent_claim = root } #Kamapar
+			}
+			if = {
+				limit = {
+					R12 = { #Tilathi
+						vassal_of = R10 #Sarnavan
+					} 
+				}
+				R12 = { #Tilathi
+					country_event = { id = flavor_tiltaghar.1 days = 10 } #An Offer from the Raj
+				}
+			}		
+			else = {
+				4514 = { add_permanent_claim = root } #Ghatarsen
+				4509 = { add_permanent_claim = root } #Tilathi
+			}
+		}
+	}
+
+	#Subdue Parraj
+	tiltaghar_subdue_parraj ={
+		icon = mission_indian_stateman
+		required_missions = { tiltaghar_sway_sarnavan_vassals }
+		position = 3
+		
+		provinces_to_highlight = {
+			OR = {
+				province_id = 4467 #Parraj
+				province_id = 4475 #Madjunla
+			}
+		}
+		
+		trigger = {
+			OR = {
+				AND = {
+					war_with = R09 #Parraj
+					war_with = R10 #Sarnavan
+					army_size = R10 #Sarnavan
+					R09 = { #Parraj
+						NOT = { army_size = 1 }
+					}
+					adm_power = 75
+				}
+				AND = {
+					R09 = { exists = no } #Parraj
+					4467 = { owned_by = root } #Parraj
+					4475 = { owned_by = root } #Madjunla
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					R09 = { exists = yes } #Parraj
+					R34 = { vassal_of = root } #Kamapar
+				}
+				add_adm_power = -75
+				R34 = {
+					inherit = R09
+				}
+			}
+			else_if = {
+				limit = {
+					R09 = { exists = yes } #Parraj
+					R34 = { #Kamapar
+						NOT = { vassal_of = root } 
+					}
+				}
+				4467 = { cede_province = root } #Parraj
+				4475 = { cede_province = root } #Madjunla
+			}
+			bidhilar_area = { add_permanent_claim = root }
+			4510 = { add_permanent_claim = root } #Sarnavan
+		}
+	}
+	
+	#Fall of Sarnavan
+	tiltaghar_fall_sarnavan ={
+		icon = mission_crush_delhi
+		required_missions = { tiltaghar_subdue_parraj }
+		position = 4
+		
+		provinces_to_highlight = {
+			OR = {
+				area = bidhilar_area
+				province_id = 4510 #Sarnavan
+			}
+			NOT = { owned_by = root }
+		}
+		
+		trigger = {
+			bidhilar_area = { 
+				type = all
+				owned_by = root 
+			}
+			4510 = { owned_by = root } #Sarnavan
+		}
+		
+		effect = {
+			country_event = { id = flavor_tiltaghar.4 days = 1 } #Fall of Sarnavan
+		}
+	}
+	
+	#A Deal with Bhuvauri
+	tiltaghar_deal_bhuvauri ={
+		icon = mission_entrepot_of_india
+		required_missions = { }
+		position = 6
+		
+		provinces_to_highlight = { 
+			exists = R38 #Bhuvauri
+			is_capital_of = R38 #Bhuvauri
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			treasury = 500
+			dip_power = 100
+			R38 = { #Bhuvauri
+				has_opinion = { 
+					who = ROOT
+					value = 150
+				}
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_bhuvauri_warning_tooltip
+			add_treasury = -500
+			add_dip_power = -100
+			set_country_flag = tiltaghar_deal_bhuvauri_accepted_flag
+			if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_1
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_bhuvauri_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_2
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_bhuvauri_2_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_3
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_bhuvauri_3_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_4
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_bhuvauri_4_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#A Deal with Dwarves
+	tiltaghar_deal_dwarves ={
+		icon = mission_dwarf
+		required_missions = { }
+		position = 7
+		
+		provinces_to_highlight = {
+			province_id = 4397 #Sharaja
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			adm_power = 200
+			OR = {
+				any_known_country = {
+					culture_group = dwarven
+					has_opinion = { 
+						who = ROOT
+						value = 150
+					}
+				}
+				AND = {
+					4397 = { #Sharaja
+						has_dwarven_minority_trigger = yes
+					}
+					high_tolerance_dwarven_race_trigger = yes
+				}
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_dwarves_warning_tooltip
+			add_adm_power = -200
+			set_country_flag = tiltaghar_deal_dwarves_accepted_flag
+			if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_1
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_dwarves_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_2
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_dwarves_2_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_3
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_dwarves_3_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_4
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_dwarves_4_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#A Deal with the Brown Orcs
+	tiltaghar_deal_brown_orcs ={
+		icon = mission_fire_judgement
+		required_missions = { }
+		position = 8
+		
+		provinces_to_highlight = { 
+			region = shamakhad_region
+			culture = brown_orc
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			any_owned_province = {
+				culture = brown_orc
+				base_manpower = 10
+			}
+			accepted_culture = brown_orc
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_brown_orcs_warning_tooltip
+			set_country_flag = tiltaghar_deal_brown_orcs_accepted_flag
+			if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_1
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_brown_orcs_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_2
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_brown_orcs_2_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_3
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_brown_orcs_3_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_4
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_brown_orcs_4_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#Restore the Ranks
+	tiltaghar_restore_ranks ={
+		icon = prosper_in_piedmont
+		required_missions = { tiltaghar_aftermath_war }
+		position = 9
+		
+		provinces_to_highlight = {
+			region = shamakhad_region
+			owned_by = root
+			devastation = 0.01
+		}
+		
+		trigger = {
+			manpower_percentage = 0.50
+			shamakhad_region = {
+				type = all
+				OR = {
+					NOT = { owned_by = ROOT }
+					NOT = { devastation = 0.01 }
+				}
+			}
+		}
+		
+		effect = {
+			remove_country_modifier = tiltaghar_aftermath_war_devastation_modifier
+		}
+	}
+
+	#Philosophy Debate
+	tiltaghar_philosophy_debate ={
+		icon = all_bases_covered
+		required_missions = { tiltaghar_calm_north }
+		position = 11
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_philosophy_debate_tooltip
+				check_variable = { which = casteFluidityVar value = 60 }
+			}
+			OR = {
+				philosopher = 3
+				employed_advisor = {
+					category = ADM
+					culture = royal_harimari
+				}
+			}
+		}
+		
+		effect = {
+			caste_fluidity_increase_medium = yes
+			add_country_modifier = {
+				name = tiltaghar_philosophy_debate_modifier
+				duration = 7300
+			}
+		}
+	}
+}
+
+tiltaghar_slot_2 = {
+	slot = 2
+	generic = no
+	ai = yes
+	potential = { tag = R08 }
+	has_country_shield = yes
+
+	#Request Rights to Expansion
+	tiltaghar_request_rights_expansion ={
+		icon = adjust_the_general_means
+		required_missions = { }
+		position = 1
+		
+		provinces_to_highlight = {
+			province_id = 4411 #Dhenijansar
+		}
+		
+		trigger = {
+			OR = {
+				has_country_modifier = raj_mandate_right_to_expansion
+				has_estate_privilege = estate_nobles_right_of_counsel
+			}
+		}
+		
+		effect = {
+			east_rajnadhaga_area = { add_permanent_claim = root }
+		}
+	}
+
+	#Strike on Rajnadhaga
+	tiltaghar_strike_rajnadhaga ={
+		icon = mission_unite_west_india
+		required_missions = { tiltaghar_request_rights_expansion tiltaghar_prepare_army }
+		position = 2
+		
+		provinces_to_highlight = {
+			OR = {
+				province_id = 4460 #Sarnihanpur
+				province_id = 4397 #Sharaja
+			}
+		}
+		
+		trigger = {
+			OR = {
+				AND = {
+					adm_power = 150
+					4397 = { controlled_by = R08 } #Sharaja
+					4460 = { controlled_by = R08 } #Sarnihanpur
+					4459 = {  controlled_by = R08 } #Khandi
+					army_size = R07 #Rajnadhaga
+					NOT = { R07 = { army_size_percentage = 0.5 } }
+				}
+				R07 = { exists = no }
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = { R07 = { exists = yes } }
+				add_adm_power = -150
+				4397 = { cede_province = R08 } #Sharaja
+				4460 = { cede_province = R08 } #Sarnihanpur
+				4459 = { cede_province = R08 } #Khandi
+			}
+			else = {
+				add_prestige = 15
+				add_army_tradition = 20
+			}
+			west_rajnadhaga_area = { add_permanent_claim = root }
+			khadirnadi_area = { add_permanent_claim = root }
+			add_casus_belli = {
+				target = R11
+				type = cb_vassalize_mission
+				months = 120
+			}
+		}
+	}
+
+	#Subdue Khadisrapur
+	tiltaghar_subdue_khadisrapur ={
+		icon = mission_marathi_fiefs
+		required_missions = { tiltaghar_strike_rajnadhaga }
+		position = 3
+		
+		provinces_to_highlight = { 
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_battles_ruin_kingdoms_tooltip
+				check_variable = { which = tiltaghar_battles_ruin_kingdoms value = 5 }
+			}
+			OR = {
+				AND = {
+					R11 = { exists = no } #Khadisrapur
+					4465 = { owned_by = root } #Khadisrapur
+				}
+				AND = {
+					is_in_war = {
+						attacker_leader = ROOT
+						defender_leader = R11 #Khadisrapur
+						casus_belli = cb_vassalize_mission
+					}
+					4465 = { controlled_by = root } #Khadisrapur
+					OR = {
+						AND = {
+							army_size = R07 #Rajnadhaga
+							army_size = R11 #Khadisrapur
+						}
+						R07 = { exists = no } #Rajnadhaga
+					}
+				}
+			}	
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					R11 = { exists = no } #Khadisrapur
+				}
+				add_army_tradition = 20
+				add_prestige = 10
+			}
+			else = {
+				white_peace = R11 #Khadisrapur
+				vassalize = R11 #Khadisrapur
+				hidden_effect = {
+					country_event = { id = flavor_tiltaghar.22 days = 10 }
+				}
+			}
+		}
+	}
+
+	#Finish Rajnadhaga
+	tiltaghar_finish_rajnadhaga ={
+		icon = mission_sweat_fealty
+		required_missions = { tiltaghar_subdue_khadisrapur }
+		position = 4
+		
+		provinces_to_highlight = {
+			OR = {
+				area = west_rajnadhaga_area
+				area = khadirnadi_area
+				province_id = 4465 #Khadisrapur
+				province_id = 4476 #Pirhakhad
+				province_id = 4515 #Taraja
+			}
+			NOT = { owned_by = ROOT }
+		}
+		
+		trigger = {
+			west_rajnadhaga_area ={
+				type = all
+				owned_by = root
+				is_core = root
+			}
+			khadirnadi_area = {
+				type = all
+				owned_by = root
+				is_core = root
+			}
+			OR = {
+				R11 = { vassal_of = root } #Khadisrapur
+				AND = {
+					4465 = { owned_by = root } #Khadisrapur
+					4476 = { owned_by = root } #Pirhakhad
+					4515 = { owned_by = root } #Taraja
+				}
+			}
+		}
+		
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_finish_rajnadhaga_modifier
+				duration = 7300
+			}
+		}
+	}
+
+	#Reconquer Sir
+	tiltaghar_reconquer_sir ={
+		icon = mission_conquer_kannauj
+		required_missions = { tiltaghar_great_northern_war }
+		position = 7
+		
+		provinces_to_highlight = {
+			OR = {
+				area = sir_area
+				area = pharata_area
+				area = yodhilakra_area
+				area = nadida_area
+			}
+			NOT = { owned_by = ROOT }
+		}
+		
+		trigger = {
+			sir_area = { 
+				type = all
+				owned_by = root 
+			}
+			pharata_area = { 
+				type = all
+				owned_by = root 
+			}
+			yodhilakra_area = { 
+				type = all
+				owned_by = root 
+			}
+			nadida_area = { 
+				type = all
+				owned_by = root 
+			}
+		}
+		
+		effect = {
+			add_manpower = 20
+			custom_tooltip = tiltaghar_reconquer_ruin_kingdoms_tooltip
+			hidden_effect = {
+				sir_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				pharata_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				yodhilakra_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				nadida_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+			}
+		}
+	}
+
+	#Pay off the debts
+	tiltaghar_pay_off_debts ={
+		icon = mission_african_gold
+		required_missions = { tiltaghar_aftermath_war }
+		position = 9
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			current_income_balance = 1
+			NOT = { inflation = 5 }
+			NOT = { num_of_loans = 1 }
+		}
+		
+		effect = {
+			remove_country_modifier = tiltaghar_aftermath_war_production_modifier
+		}
+	}
+
+	#Restore Kagurghara
+	tiltaghar_restore_kagurghara ={
+		icon = mission_fortify_rajputana
+		required_missions = { tiltaghar_calm_north }
+		position = 11
+		
+		provinces_to_highlight = {
+			province_id = 4642 #Bhusarvad
+			OR = {
+				NOT = { has_fort_building_trigger = yes }
+				NOT = { has_manpower_building_trigger = yes }
+				NOT = { base_manpower = 6 }
+			}
+		}
+		
+		trigger = {
+			4642 = { #Bhusarvad
+				has_fort_building_trigger = yes
+				has_manpower_building_trigger = yes
+				base_manpower = 6
+			}
+		}
+		
+		effect = {
+			4642 = { #Bhusarvad
+				add_permanent_province_modifier = {
+					name = tiltaghar_restore_kagurghara_modifier
+					duration = -1
+				}
+			}
+		}
+	}
+
+	#Friendly Competition
+	tiltaghar_friendly_competition ={
+		icon = mission_feast
+		required_missions = { tiltaghar_restore_kagurghara tiltaghar_philosophy_debate }
+		position = 12
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_friendly_competition_tooltip
+				check_variable = { which = casteFluidityVar value = 75 }
+			}
+			employed_advisor = {
+				category = mil
+				culture = royal_harimari
+			}
+			num_of_generals_with_traits = 2
+			army_tradition = 50	
+		}
+		
+		effect = {
+			caste_fluidity_increase_medium = yes
+			add_country_modifier = {
+				name = tiltaghar_friendly_competition_modifier
+				duration = 7300
+			}
+		}
+	}
+
+	#The Edict of Tiltaghar
+	tiltaghar_edict_tiltaghar ={
+		icon = mission_vedic_education
+		required_missions = { tiltaghar_friendly_competition }
+		position = 14
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_edict_tiltaghar_tooltip
+				check_variable = { which = casteFluidityVar value = 85 }
+			}
+			estate_loyalty = {
+				estate = estate_lowercastes
+				loyalty = 60
+			}
+			estate_loyalty = {
+				estate = estate_middlecastes
+				loyalty = 60
+			}
+			estate_loyalty = {
+				estate = estate_uppercastes
+				loyalty = 70
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_edict_tiltaghar_effect_tooltip
+			set_country_flag = human_in_uppercastes
+		}
+	}
+}
+
+tiltaghar_slot_3 = {
+	slot = 3
+	generic = no
+	ai = yes
+	potential = { tag = R08 }
+	has_country_shield = yes
+
+	#Unite the Ruin Kingdoms
+	tiltaghar_unite_ruin_kingdoms ={
+		icon = mission_crowning
+		required_missions = { tiltaghar_finish_rajnadhaga tiltaghar_fall_sarnavan }
+		position = 5
+		
+		provinces_to_highlight = { 
+			OR = {
+				area = west_rajnadhaga_area
+				area = tiltaghar_area
+				area = east_rajnadhaga_area
+				area = khadirnadi_area
+				area = middle_nadimraj_area
+				area = bidhilar_area
+				area = tilathi_area
+				area = khadisrapur_area
+			}
+			NOT = { owned_by = root }
+		}
+		
+		trigger = {
+			if = {
+				limit = {
+					R34 = { vassal_of = root } #Kamapar
+				}
+				dip_power = 50
+					R34 = { #Kamapar	
+					NOT = { num_of_cities = 4 }
+				}
+			}
+			R07 = { exists = no } #Rajnadhaga
+			R10 = { exists = no } #Sarnavan
+			num_of_owned_provinces_with = {
+				value = 15
+				region = shamakhad_region
+			}
+			R08 = { #Tiltaghar
+				all_subject_country = {
+					NOT = { liberty_desire = 50 }
+				}
+			}
+		}
+		
+		effect = {
+			if = {
+				limit = {
+					R34 = { is_subject_of = root } #Kamapar
+				}
+				add_dip_power = -50
+				inherit = R34 #Kamapar
+			}
+			if = {
+				limit = {
+					R08 = { is_subject_of = R51 } #Dhenijanraj
+				}
+				add_prestige = 25
+				add_manpower = 10
+			}
+			else = {
+				4460 = { add_harimari_minority_size_effect = yes }
+				sir_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+					add_permanent_claim = ROOT
+				}
+				nakara_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+				add_permanent_claim = ROOT
+				}
+				khasardul_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+					add_permanent_claim = ROOT
+				}
+				pharata_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+					add_permanent_claim = ROOT
+				}
+				nadida_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+					add_permanent_claim = ROOT
+				}
+				yodhilakra_area = {
+					limit = {
+						NOT = { is_permanent_claim = ROOT }
+						NOT = { is_core = ROOT }
+					}
+					add_permanent_claim = ROOT
+				}
+			}
+		}
+	}
+
+	#The Great Northern War
+	tiltaghar_great_northern_war ={
+		icon = mission_elephant_war
+		required_missions = { }
+		position = 6
+		
+		provinces_to_highlight = {
+			region = shamakhad_region
+			OR = {
+				owned_by = R62 #The Command
+				owned_by = R63 #Thunderfist
+				owned_by = R64 #Bloodsong
+			}
+		}
+		
+		trigger = {
+			war_with = R62 #The Command
+			calc_true_if = {
+				shamakhad_region = {
+					type = all
+					OR = {
+						owned_by = R62 #The Command
+						owned_by = R63 #Thunderfist
+						owned_by = R64 #Bloodsong
+					}
+					controlled_by = root
+				}	
+				amount = 10
+			}
+		}
+		
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_northern_war_1_modifier
+				duration = -1
+			}
+			raghajandi_area = { add_permanent_claim = root }
+			khasardul_area = { add_permanent_claim = root }
+			nadida_area = { add_permanent_claim = root }
+			pharata_area = { add_permanent_claim = root }
+			sir_area = { add_permanent_claim = root }
+			hidden_effect = {
+				set_country_flag = tiltaghar_northern_war_flag
+				set_country_flag = tiltaghar_northern_war_1
+			}
+		}
+	}
+
+	#Reconquer Raghajandhi
+	tiltaghar_reconquer_raghajandhi ={
+		icon = mission_annex_prome
+		required_missions = { tiltaghar_great_northern_war }
+		position = 7
+		
+		provinces_to_highlight = {
+			OR = {
+				area = khasardul_area
+				area = raghajandi_area
+				area = tamvihar_area
+				province_id = 4532 #Kradhungur
+				province_id = 4533 #Maruvad
+				province_id = 4534 #Bhetpar
+			}
+			NOT = { owned_by = root }
+		}
+		
+		trigger = {
+			khasardul_area = { 
+				type = all
+				owned_by = root 
+			}
+			raghajandi_area = { 
+				type = all
+				owned_by = root 
+			}
+			tamvihar_area = { 
+				type = all
+				owned_by = root 
+			}
+			4532 = { owned_by = root } #Kradhungur
+			4533 = { owned_by = root } #Maruvad
+			4534 = { owned_by = root } #Bhetpar
+		}
+		
+		effect = {
+			add_manpower = 20
+			custom_tooltip = tiltaghar_reconquer_ruin_kingdoms_tooltip
+			hidden_effect = {
+				khasardul_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				raghajandi_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				tamvihar_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				4532 = { #Kradhungur
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				4533 = { #Maruvad
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				4534 = { #Bhetpar
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+			}
+		}
+	}
+
+	#Aftermath of the war
+	tiltaghar_aftermath_war ={
+		icon = take_the_littoral
+		required_missions = { tiltaghar_reconquer_sir tiltaghar_reconquer_raghajandhi tiltaghar_reconquer_ghatasak }
+		position = 8
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_aftermath_war_tooltip
+				has_country_flag = tiltaghar_aftermath_war_flag
+			}
+		}
+		
+		effect = {
+			country_event = { id = flavor_tiltaghar.6 days = 30 } #Aftermath of the War
+			country_event = { id = flavor_tiltaghar.7 days = 60 } #The fate of Sir
+			hidden_effect = {
+				if = {
+					limit = { has_country_flag = tiltaghar_deal_bhuvauri_accepted_flag }
+					country_event = { id = flavor_tiltaghar.15 days = 1460 } #Deal with Bhuvauri
+				}
+				if = {
+					limit = { has_country_flag = tiltaghar_deal_brown_orcs_accepted_flag }
+					country_event = { id = flavor_tiltaghar.16 days = 2820 } #Deal with Brown Orcs
+				}
+				if = {
+					limit = { has_country_flag = tiltaghar_deal_ministries_accepted_flag }
+					country_event = { id = flavor_tiltaghar.17 days = 4380 } #Deal with the Ministries
+				}
+				if = {
+					limit = { has_country_flag = tiltaghar_deal_elephant_lords_accepted_flag }
+					country_event = { id = flavor_tiltaghar.18 days = 5840 } #Deal with the Elephant Lords
+				}
+				if = {
+					limit = { has_country_flag = tiltaghar_deal_ghankedhen_accepted_flag }
+					country_event = { id = flavor_tiltaghar.19 days = 7300 } #Deal with the Ghankedhen
+				}
+			}
+		}
+	}
+
+	#Pacify the Provinces
+	tiltaghar_pacify_provinces ={
+		icon = mission_accomodate_the_rajputs
+		required_missions = { tiltaghar_aftermath_war }
+		position = 9
+		
+		provinces_to_highlight = {
+			owned_by = root
+			local_autonomy = 50
+		}
+		
+		trigger = {
+			NOT = { unrest = 1 }
+			NOT = { average_autonomy = 50 }
+		}
+		
+		effect = {
+			remove_country_modifier = tiltaghar_aftermath_war_unrest_modifier
+		}
+	}
+
+	
+	#Calm in the North
+	tiltaghar_calm_north ={
+		icon = mission_conquer_rewakantha
+		required_missions = { tiltaghar_pacify_provinces tiltaghar_restore_ranks tiltaghar_pay_off_debts tiltaghar_avoid_famine }
+		position = 10
+		
+		provinces_to_highlight = { 
+			region = shamakhad_region
+			owned_by = root
+			OR = {
+				devastation = 0.01
+				nationalism = 1
+			}
+		}
+		
+		trigger = {
+			adm_power = 150
+			legitimacy = 100
+			shamakhad_region = {
+				type = all
+				country_or_non_sovereign_subject_holds = root
+				NOT = { devastation = 0.01 }
+				NOT = { nationalism = 1 }
+			}
+			NOT = { num_of_rebel_controlled_provinces = 1 }
+			NOT = { num_of_rebel_armies = 1 }
+		}
+		
+		effect = {
+			country_event = { id = flavor_tiltaghar.8 days = 1 } #Calm in the North
+		}
+	}
+
+	#Repopulate the North
+	tiltaghar_repopulate_north ={
+		icon = mission_indian_soldier_elephant
+		required_missions = { tiltaghar_calm_north }
+		position = 11
+		
+		provinces_to_highlight = { 
+			OR = {
+				province_id = 4633 #Sir
+				province_id = 4630 #Sarilavhan
+				province_id = 4546 #Ghatasak
+				province_id = 4465 #Khadisrapur
+				province_id = 4474 #Kamapar
+				province_id = 4467 #Parraj
+				province_id = 4510 #Sarnavan
+				province_id = 4397 #Sharaja
+			}
+			NOT = { has_production_building_trigger = yes }
+			NOT = { has_tax_building_trigger = yes }
+			NOT = {	has_trade_building_trigger = yes }
+		}
+		
+		trigger = {
+			manpower_percentage = 0.5
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_repopulate_north_tooltip
+				4633 = { #Sir
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4630 = { #Sarilavhan
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4546 = { #Ghatasak
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4465 = { #Khadisrapur
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4474 = { #Kamapar
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4467 = { #Parraj
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4510 = { #Sarnavan
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+				4397 = { #Sharaja
+					has_production_building_trigger = yes
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+				}
+			}
+		}
+		
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_repopulate_north_modifier
+				duration = 9125
+			}
+		}
+	}
+
+	#Northern Capital
+	tiltaghar_northern_capital ={
+		icon = mission_metropolis_of_the_deccan
+		required_missions = { tiltaghar_repopulate_north }
+		position = 12
+		
+		provinces_to_highlight = { 
+			province_id = 4460 #Sarnihanpur
+			NOT = { development = 40 } 
+			NOT = { has_production_building_trigger = yes }
+			NOT = {	has_tax_building_trigger = yes }
+			NOT = {	has_trade_building_trigger = yes }
+			NOT = {	has_courthouse_building_trigger = yes }
+			NOT = {	has_manufactory_trigger = yes }
+		}
+		
+		trigger = {
+			4460 = { #Sarnihanpur
+				development = 40
+				has_production_building_trigger = yes
+				has_tax_building_trigger = yes
+				has_trade_building_trigger = yes
+				has_courthouse_building_trigger = yes
+				has_manufactory_trigger = yes
+			}
+		}
+
+		effect = {
+			set_capital = 4460 #Sarnihanpur
+			add_country_modifier = {
+				name = tiltaghar_northern_capital_modifier
+				duration = -1
+			}
+		}
+	}
+
+	#The Most Loyal Subject
+	tiltaghar_most_loyal_subject ={
+		icon = mission_rajput_mansabdars
+		required_missions = { tiltaghar_northern_capital tiltaghar_edict_tiltaghar tiltaghar_second_pilgrimage }
+		position = 15
+		
+		provinces_to_highlight = {
+			or = {
+				province_id = 4411 #Dhenijansar
+				region = dhujat_region
+				region = rakhadesh_region
+			}
+			NOT = { owned_by = root }
+		}
+		
+		trigger = {
+			if = {
+				limit = {
+					any_known_country = {
+						NOT = { tag = R08 } #Tiltaghar
+						has_reform = raja_reform
+					}
+				}
+				any_known_country = {
+					has_reform = raja_reform
+					overlord_of = ROOT
+					has_opinion = { 
+						who = ROOT
+						value = 150
+					}
+				}
+			}
+			else = {
+				num_of_owned_provinces_with = {
+					or = {
+						region = dhujat_region
+						region = rakhadesh_region
+					}
+					value = 20
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					NOT = { has_country_flag = raj_vizier }
+					any_known_country = {
+						NOT = { tag = R08 } #Tiltaghar
+						has_reform = raja_reform
+					}
+				}
+				custom_tooltip = tiltaghar_most_loyal_subject_tooltip
+				hidden_effect = {
+					overlord = {
+						random_subject_country  = {
+							limit = { has_country_flag = raj_vizier }
+							raj_clear_vizier = yes
+							country_event = { id = rahenraj.2103 days = 1 }
+						}
+					}
+					ROOT = {
+						set_country_flag = raj_vizier
+						save_event_target_as = new_vizier
+						country_event = { id = rahenraj.2102 days = 1 }
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = raj_vizier
+				}
+				add_prestige = 20
+				change_variable = { which = vizierSway value = 25 }
+			}
+			else = {
+				country_event = { id = flavor_tiltaghar.20 days = 10 } #The Rebirth of the Raj
+			}
+			if = {
+				limit = {
+					has_estate_privilege = estate_raj_ministries_tiltaghar_deal
+				}
+				remove_estate_privilege = estate_raj_ministries_tiltaghar_deal
+			}
+		}
+	}
+
+	#The Northern Raj
+	tiltaghar_northern_raj ={
+		icon = mission_the_tiger_triumphant
+		required_missions = { tiltaghar_most_loyal_subject }
+		position = 16
+		
+		provinces_to_highlight = { 
+			province_id = 4411 #Dhenijansar
+			NOT = { owned_by = root }
+		}
+		
+		trigger = {
+			if = {
+				limit = {
+					has_reform = tiltaghar_grand_vizier_reform
+				}
+				4411 = { owned_by = root is_core = root } #Dhenijansar
+				num_of_owned_provinces_with = {
+					region = rahen_coast_region
+					value = 20
+				}
+			}
+			else = {
+				has_reform = raja_reform
+				adm_power = 100
+				dip_power = 100
+			}
+		}
+
+		effect = {
+			change_tag = R73 #Nadimraj
+			if = {
+				limit = {
+					has_custom_ideas = no
+				}
+				country_event = { id = ideagroups.1 } #Swap Ideas
+			}
+			if = {
+				limit = {
+					has_reform = tiltaghar_grand_vizier_reform
+				}
+				rahen_superregion = {
+					add_permanent_claim = root
+				}
+				add_country_modifier = {
+					name = tiltaghar_northern_raj_nadimraj_modifier
+					duration = -1
+				}
+			}
+			else = {
+				add_adm_power = -100
+				add_dip_power = -100
+				4460 = { #Sarnihanpur
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_capital_modifier
+						duration = -1
+					}
+				}
+				4459 = { #Khandi
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_1_modifier
+						duration = -1
+					}
+				}
+				4397 = { #Sharaja
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_1_modifier
+						duration = -1
+					}
+				}
+				tiltaghar_area = {
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_2_modifier
+						duration = -1
+					}
+				}
+				khadirnadi_area = {
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_2_modifier
+						duration = -1
+					}
+				}
+				middle_nadimraj_area = {
+					add_permanent_province_modifier = {
+						name = tiltaghar_northern_raj_core_2_modifier
+						duration = -1
+					}
+				}
+			}
+		}
+	}
+}
+
+tiltaghar_slot_4 = {
+	slot = 4
+	generic = no
+	ai = yes
+	potential = { tag = R08 }
+	has_country_shield = yes
+
+	#Humans in the Administration
+	tiltaghar_humans_administration ={
+		icon = mission_brahmin_administrators
+		required_missions = { }
+		position = 1
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			OR = {
+				estate_loyalty = {
+					estate = estate_raj_ministries
+					loyalty = 60
+				}
+				estate_loyalty = {
+					estate = estate_middlecastes
+					loyalty = 60
+				}
+			}
+			employed_advisor = {
+				category = ADM
+				culture = rajnadhid
+			}
+		}
+
+		effect = {
+			define_advisor = {
+				type = statesman
+				name = "Ranjitsingha of the Crouching Shadow"
+				skill = 2
+				culture = royal_harimari
+				discount = yes
+			}
+		}
+	}
+
+	#Teachers from the Court
+	tiltaghar_teachers_court ={
+		icon = mission_court_education
+		required_missions = { tiltaghar_humans_administration }
+		position = 2
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			OR = {
+				has_country_modifier = raj_mandate_ministry_lectures
+				has_estate_privilege = estate_lowercastes_mediators
+			}
+		}
+
+		effect = {
+			random_list = {
+				50 = { change_adm = 1 }
+				50 = { change_dip = 1 }
+			}
+		}
+	}
+
+	#Expanded Administration
+	tiltaghar_expanded_administration ={
+		icon = mission_ahmadabad_paper
+		required_missions = { tiltaghar_teachers_court }
+		position = 4
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			OR = {
+				adm = 6
+				ruler_has_personality = scholar_personality
+				has_estate_privilege = estate_raj_ministries_extend_education_grants
+			}
+		}
+
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_expanded_administration_modifier
+				duration = 18250
+			}
+			caste_fluidity_increase_huge = yes
+		}
+	}
+
+	#Reconquer Ghatasak
+	tiltaghar_reconquer_ghatasak ={
+		icon = mission_conquer_sindh_mer
+		required_missions = { tiltaghar_great_northern_war }
+		position = 7
+		
+		provinces_to_highlight = {
+			OR = {
+				area = khamarutar_area
+				area = marudhoj_area
+				area = ghatasak_area
+			}
+			NOT = { owned_by = root }
+		 }
+		
+		trigger = {
+			khamarutar_area = { 
+				type = all
+				owned_by = root 
+			}
+			marudhoj_area = { 
+				type = all
+				owned_by = root 
+			}
+			ghatasak_area = { 
+				type = all
+				owned_by = root 
+			}
+		}
+		
+		effect = {
+			add_manpower = 20
+			custom_tooltip = tiltaghar_reconquer_ruin_kingdoms_tooltip
+			hidden_effect = {
+				khamarutar_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				marudhoj_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+				ghatasak_area = { 
+					add_province_modifier = {
+						name = tiltaghar_reconquer_ruin_kingdoms_modifier
+						duration = 3650
+					}
+				}
+			}
+		}
+	}
+
+	#Avoid the Famine
+	tiltaghar_avoid_famine ={
+		icon = mission_rice_farming
+		required_missions = { tiltaghar_aftermath_war }
+		position = 9
+		
+		provinces_to_highlight = { 
+			owned_by = root
+			has_terrain = farmlands
+			OR = {
+				NOT = { has_production_building_trigger = yes }
+				NOT = { base_production = 6 }
+			}
+		}
+		
+		trigger = {
+			num_of_owned_provinces_with = {
+				value = 5
+				has_terrain = farmlands
+				has_production_building_trigger = yes
+				base_production = 6
+			}
+		}
+
+		effect = {
+			remove_country_modifier = tiltaghar_aftermath_war_development_modifier
+		}
+	}
+
+	#The First Pilgrimage
+	tiltaghar_first_pilgrimage ={
+		icon = mission_jungle_pilgrim
+		required_missions = { tiltaghar_calm_north }
+		position = 11
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			OR = {
+				AND = {
+					legitimacy = 100
+					adm = 4	
+				}
+				AND = {
+					legitimacy = 100
+					estate_loyalty = {
+						estate = estate_uppercastes
+						loyalty = 60
+					}
+				}
+			}
+		}
+
+		effect = {
+			4509 = { #Tilathi
+				add_permanent_province_modifier = {
+					name = tiltaghar_first_pilgrimage_modifier
+					duration = 1825
+				}
+			}
+			4466 = { #Tiltaghar
+				add_permanent_province_modifier = {
+					name = tiltaghar_first_pilgrimage_modifier
+					duration = 1825
+				}
+			}
+		}
+	}
+
+	#The Elephant Ziggurat
+	tiltaghar_elephant_ziggurat ={
+		icon = mission_temple_patronage
+		required_missions = { tiltaghar_first_pilgrimage }
+		position = 12
+		
+		provinces_to_highlight = { 
+			province_id = 4509 #Tilathi
+			NOT = { development = 25 }
+			NOT = { has_tax_building_trigger = yes }
+		}
+		
+		trigger = {
+			4509 = { #Tilathi
+				development = 25
+				has_tax_building_trigger = yes
+			}
+		}
+
+		effect = {
+			4509 = { #Tilathi
+				add_permanent_province_modifier = {
+					name = tiltaghar_northern_ziggurat
+					duration = -1
+				}
+			}
+		}
+	}
+
+	#The Path of the High Gods
+	tiltaghar_path_high_gods ={
+		icon = mission_the_grand_trunk_road_dlh
+		required_missions = { tiltaghar_tiger_ziggurat tiltaghar_elephant_ziggurat }
+		position = 13
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			treasury = 350
+			adm_power = 100
+		}
+
+		effect = {
+			pilgrims_road_area = {
+				add_permanent_province_modifier = {
+					name = R51_pilgrims_road
+					duration = -1
+				}
+			}
+		}
+	}
+
+	#The Second Pilgrimage
+	tiltaghar_second_pilgrimage ={
+		icon = mission_protect_jain_communities
+		required_missions = { tiltaghar_path_high_gods }
+		position = 14
+		
+		provinces_to_highlight = {
+			province_group = pilgrims_road_area
+			devastation = 1
+		}
+		
+		trigger = {
+			is_at_war = no
+			pilgrims_road_area = { 
+				type = all
+				NOT = { devastation = 1 }
+			}
+		}
+
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_second_pilgrimage_modifier
+				duration = 18250
+			}
+		}
+	}
+}
+
+tiltaghar_slot_5 = {
+	slot = 5
+	generic = no
+	ai = yes
+	potential = { tag = R08 }
+	has_country_shield = yes
+
+	#Humans in the Military
+	tiltaghar_humans_military ={
+		icon = mission_son_military_expertise
+		required_missions = { }
+		position = 1
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			estate_loyalty = {
+				estate = estate_uppercastes
+				loyalty = 60
+			}
+			employed_advisor = {
+				category = mil
+				culture = rajnadhid
+			}
+		}
+
+		effect = {
+			define_general = {
+				name = "Wujiada of the Vengeful Gaze"
+				shock = 4
+				fire = 0
+				manuever = 2
+				siege = 1
+			}
+		}
+	}
+
+	#Prove their Worth
+	tiltaghar_prove_worth ={
+		icon = mission_afghan_frontier
+		required_missions = { tiltaghar_humans_military }
+		position = 2
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			is_in_war = {
+				attacker_leader = ROOT
+				duration = 1095
+			}
+			army_tradition = 40
+		}
+
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_prove_worth_modifier
+				duration = 5475
+			}
+		}
+	}
+
+	#Expanded Military
+	tiltaghar_expanded_military ={
+		icon = mission_persian_soldiers
+		required_missions = { tiltaghar_prove_worth }
+		position = 4
+		
+		provinces_to_highlight = { }
+		
+		trigger = {
+			OR = {
+				army_tradition = 50
+				army_professionalism = 0.25
+				has_estate_privilege = estate_uppercastes_officer_corp
+			}
+		}
+
+		effect = {
+			add_country_modifier = {
+				name = tiltaghar_expanded_military_modifier
+				duration = 18250
+			}
+			caste_fluidity_increase_huge = yes
+		}
+	}
+
+	#A Deal with the Ministries
+	tiltaghar_deal_ministries ={
+		icon = mission_viceroyalty_of_the_deccan
+		required_missions = { }
+		position = 6
+		
+		provinces_to_highlight = { 
+			province_id = 4411 #Dhenijansar
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			adm_power = 100
+			any_known_country = {
+				has_reform = raja_reform
+				has_opinion = { 
+					who = ROOT
+					value = 150
+				}
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_ministries_warning_tooltip
+			add_adm_power = -100
+			set_country_flag = tiltaghar_deal_ministries_accepted_flag
+			if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_1
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_ministries_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_2
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_ministries_2_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_3
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_ministries_3_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_4
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_deal_ministries_4_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#A Deal with the Elephant Lords
+	tiltaghar_deal_elephant_lords ={
+		icon = mission_elephant_king
+		required_missions = { }
+		position = 7
+		
+		provinces_to_highlight = { 
+			region = dhujat_region
+			culture = ghavaanaj
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			treasury = 500
+			adm_power = 100
+			any_known_country = {
+				primary_culture = ghavaanaj
+				has_opinion = { 
+					who = ROOT
+					value = 150
+				}
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_elephant_lords_warning_tooltip
+			add_adm_power = -100
+			add_treasury = -500
+			set_country_flag = tiltaghar_deal_elephant_lords_accepted_flag
+			if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_1
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_elephant_lords_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_2
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_elephant_lords_2_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_3
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_elephant_lords_3_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					has_country_flag = tiltaghar_northern_war_4
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_elephant_lords_4_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#A Deal with the Ghankedhen
+	tiltaghar_deal_ghankedhen ={
+		icon = mission_harimar
+		required_missions = { }
+		position = 8
+		
+		provinces_to_highlight = { 
+			region = rakhadesh_region
+			culture = ghankedhen
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_is_in_northern_war_tooltip
+				has_country_flag = tiltaghar_northern_war_flag
+			}
+			war_with = R62 #The Command
+			dip_power = 200
+			any_known_country = {
+				primary_culture = ghankedhen
+				has_opinion = { 
+					who = ROOT
+					value = 150
+				}
+			}
+		}
+		
+		effect = {
+			custom_tooltip = tiltaghar_deal_ghankedhen_warning_tooltip
+			add_dip_power = -200
+			set_country_flag = tiltaghar_deal_ghankedhen_accepted_flag
+			if = {
+				limit = {
+					OR = {
+						has_country_flag = tiltaghar_northern_war_1
+						has_country_flag = tiltaghar_northern_war_2
+					}
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_ghankedhen_1_modifier } #Tiltaghar
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_flag = tiltaghar_northern_war_3
+						has_country_flag = tiltaghar_northern_war_4
+					}
+				}
+				4466 = { add_province_triggered_modifier = tiltaghar_ghankedhen_2_modifier } #Tiltaghar
+			}
+		}
+	}
+
+	#End the Command
+	tiltaghar_end_command ={
+		icon = mission_subdue_rajputana
+		required_missions = { tiltaghar_aftermath_war }
+		position = 9
+		
+		provinces_to_highlight = { 
+			region = jade_mines_region
+			owned_by = R62 #The Command
+		}
+		
+		trigger = {
+			R62 = { exists = no } #The Command
+			4311 = { owned_by = root } #Gronstunad
+		}
+
+		effect = {
+			country_event = { id = flavor_tiltaghar.9 days = 10 } #The End of the Command
+		}
+	}
+
+	#Expell the Hobgoblins
+	tiltaghar_expel_hobgoblins ={
+		icon = mission_beautiful_hobgoblin_stache
+		required_missions = { tiltaghar_end_command }
+		position = 10
+		
+		provinces_to_highlight = { 
+			OR = {
+				region = shamakhad_region
+				region = jade_mines_region
+			}
+			culture_group = hobgoblin
+			owner = { culture_group = hobgoblin }
+		}
+		
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_expel_hobgoblins_shamakhad_tooltip
+				NOT = {
+					shamakhad_region = {
+						culture_group = hobgoblin
+						owner = { culture_group = hobgoblin }
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = tiltaghar_expel_hobgoblins_jade_mines_tooltip
+				NOT = {
+					jade_mines_region = {
+						culture_group = hobgoblin
+						owner = { culture_group = hobgoblin }
+					}
+				}
+			}
+		}
+
+		effect = {
+			country_event = { id = flavor_tiltaghar.10 days = 10 } #The Long March
+		}
+	}
+
+	#The Tiger Ziggurat
+	tiltaghar_tiger_ziggurat ={
+		icon = mission_temple_patronage
+		required_missions = { tiltaghar_first_pilgrimage }
+		position = 12
+		
+		provinces_to_highlight = {
+			province_id = 4466 #Tiltaghar
+			NOT = { development = 25 }
+			NOT = { has_tax_building_trigger = yes }
+		}
+		
+		trigger = {
+			4466 = { #Tiltaghar
+				development = 25
+				has_tax_building_trigger = yes
+			}
+		}
+
+		effect = {
+			4466 = { #Tiltaghar
+				add_permanent_province_modifier = {
+					name = tiltaghar_northern_ziggurat
+					duration = -1
+				}
+			}
+		}
+	}
+}
