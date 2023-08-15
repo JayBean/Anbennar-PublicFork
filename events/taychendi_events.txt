@@ -21,6 +21,10 @@ country_event = {
 		}
 		every_ally = {
 			break_alliance = ROOT
+			if = {
+				limit = { is_in_war = { participants = ROOT } }
+				add_stability = 2
+			}
 			add_trust = {
 				who = ROOT
 				value = -10
@@ -36,15 +40,31 @@ country_event = {
 	option = {
 		name = taychendi.0.a
 		if = {
-			limit = { any_subject_country = { liberty_desire = 50 } }
-			random_subject_country = { 
-				limit = { liberty_desire = 50 }
-				save_event_target_as = taychend_revolt_leader
-				overlord = { country_event = { id = taychendi.2 } }
-			}
+			limit = { has_country_flag = taychend_regency }
+			change_personal_deity = taychend_glory_1
+			clr_country_flag = taychend_regency
 		}
 		else = {
-			country_event = { id = taychendi.3 }
+			if = {
+				limit = {
+					num_of_subjects = 1
+					any_subject_country = { liberty_desire = 50 }
+				}
+				random_subject_country = { 
+					limit = { liberty_desire = 50 }
+					save_event_target_as = taychend_revolt_leader
+					overlord = { country_event = { id = taychendi.2 } }
+				}
+			}
+			else = {
+				country_event = { id = taychendi.3 }
+			}
+		}
+	}
+	after = {
+		if = {
+			limit = { has_regency = yes }
+			set_country_flag = taychend_regency
 		}
 	}
 }
@@ -64,6 +84,7 @@ country_event = {
 	
 	option = {
 		name = taychendi.1.a #RIP Bozo
+		trigger = { NOT = { is_in_war = { participants = FROM } } }
 		tooltip = {
 			break_alliance = FROM
 			add_trust = {
@@ -72,6 +93,20 @@ country_event = {
 				mutual = yes
 			}
 		}
+	}
+	
+	option = {
+		name = taychendi.1.b
+		trigger = { is_in_war = { participants = FROM } }
+		tooltip = {
+			break_alliance = FROM
+			add_trust = {
+				who = FROM
+				value = -10
+				mutual = yes
+			}
+		}
+		custom_tooltip = taychend_no_stab_loss
 	}
 }
 
@@ -106,13 +141,13 @@ country_event = {
 					casus_belli = cb_independence_war
 				}
 			}
-			update_taychend_glory = yes
+			change_personal_deity = taychend_glory_1
 		}
 	}
 	
 	option = {
 		name = taychendi.2.a
-		custom_tooltip = break_alliances
+		custom_tooltip = tayched_break_alliances
 		tooltip = {
 			event_target:taychend_revolt_leader = {
 				declare_war_with_cb = {
@@ -122,14 +157,7 @@ country_event = {
 			}
 			change_personal_deity = taychend_glory_1
 		}
-		if = {
-			limit = { NOT = { is_monarch_leader = yes } }
-			if = {
-				limit = { is_female = yes }
-				convert_female_ruler_to_general = yes
-			}
-			else = { convert_ruler_to_general = yes }
-		}
+		taychend_ruler_general = yes
 	}
 	
 	after = {
@@ -152,18 +180,13 @@ country_event = {
 	
 	is_triggered_only = yes
 	
+	immediate = { hidden_effect = { change_personal_deity = taychend_glory_1 } }
+	
 	option = {
 		name = taychendi.3.a
-		custom_tooltip = break_alliances
+		custom_tooltip = tayched_break_alliances
 		tooltip = { change_personal_deity = taychend_glory_1 }
-		if = {
-			limit = { NOT = { is_monarch_leader = yes } }
-			if = {
-				limit = { is_female = yes }
-				convert_female_ruler_to_general = yes
-			}
-			else = { convert_ruler_to_general = yes }
-		}
+		taychend_ruler_general = yes
 	}
 	
 	after = {
@@ -411,6 +434,33 @@ country_event = {
 		ai_chance = {
 			factor = 10
 			modifier = {
+				factor = 0
+				NOT = { sailors_percentage = 0.80 }
+			}
+			modifier = {
+				factor = 5
+				NOT = { sailors_percentage = 0.50 }
+			}
+			modifier = {
+				factor = 5
+				NOT = { sailors_percentage = 0.25 }
+			}
+			modifier = {
+				factor = 0
+				NOT = { treasury = 25 }
+			}
+		}
+		add_sailors = 500
+		add_country_modifier = {
+			name = taychend_hired_ships
+			duration = 365
+		}
+	}
+	option = {
+		name = taychendi.5.i
+		ai_chance = {
+			factor = 10
+			modifier = {
 				factor = 10
 				NOT = { treasury = 20 }
 			}
@@ -420,5 +470,327 @@ country_event = {
 			duration = 365
 		}
 	}
+	
 	after = { clr_country_flag = taychend_shipping }
+}
+
+country_event = { #hidden startup, makes taychend rulers generals
+	id = taychendi.100
+	title = taychendi.100.t
+	desc = taychendi.100.d
+	picture = SIEGE_eventPicture
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		NOT = {
+			is_year = 1445
+		}
+	}
+
+	immediate = { #hopefully this isnt considered a sin by the coding reviewers
+		
+		G82 = { #nagar vyechei
+			define_ruler_to_general = {
+				fire = 1
+				shock = 7
+				manuever = 2
+				siege = 2
+			}
+		}
+
+		G74 = { #gophira
+			define_ruler_to_general = {
+				fire = 0
+				shock = 4
+				manuever = 2
+				siege = 2
+			}
+		}
+
+		G71 = { #orenkoraim
+			define_ruler_to_general = {
+				fire = 2
+				shock = 0
+				manuever = 2
+				siege = 0
+			}
+		}
+
+		G81 = { #sthanan ith vussam
+			define_ruler_to_general = {
+				fire = 0
+				shock = 1
+				manuever = 5
+				siege = 1
+			}
+		}
+
+		G64 = { #larankar
+			define_ruler_to_general = {
+				fire = 2
+				shock = 5
+				manuever = 5
+				siege = 3
+			}
+		}
+
+		G68 = { #mlerek
+			define_ruler_to_general = {
+				fire = 2
+				shock = 1
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		G70 = { #kriadvai
+			define_ruler_to_general = {
+				fire = 0
+				shock = 2
+				manuever = 0
+				siege = 2
+			}
+		}
+
+		G69 = { #kilaek
+			define_ruler_to_general = {
+				fire = 2
+				shock = 4
+				manuever = 2
+				siege = 2
+			}
+		}
+
+		J77 = { #kattisangamar
+			define_ruler_to_general = {
+				fire = 3
+				shock = 3
+				manuever = 2
+				siege = 2
+			}
+		}
+
+		J76 = { #banderuttai
+			define_ruler_to_general = {
+				fire = 4
+				shock = 2
+				manuever = 1
+				siege = 1
+			}
+		}
+
+		J72 = { #darkalyndar
+			define_ruler_to_general = {
+				fire = 0
+				shock = 4
+				manuever = 3
+				siege = 1
+			}
+		}
+
+		J73 = { #zaernmaera
+			define_ruler_to_general = {
+				fire = 0
+				shock = 5
+				manuever = 3
+				siege = 1
+			}
+		}
+
+		J70 = { #oremvand
+			define_ruler_to_general = {
+				fire = 2
+				shock = 1
+				manuever = 3
+				siege = 3
+			}
+		}
+
+		J75 = { #rakkabuttai
+			define_ruler_to_general = {
+				fire = 3
+				shock = 3
+				manuever = 0
+				siege = 1
+			}
+		}
+
+		J74 = { #caergaraen
+			define_ruler_to_general = {
+				fire = 1
+				shock = 4
+				manuever = 4
+				siege = 2
+			}
+		}
+
+		G83 = { #korrimutren
+			define_ruler_to_general = {
+				fire = 0
+				shock = 1
+				manuever = 1
+				siege = 2
+			}
+		}
+
+		G80 = { #imarchend
+			define_ruler_to_general = {
+				fire = 1
+				shock = 0
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		J71 = { #sarihaddu
+			define_ruler_to_general = {
+				fire = 0
+				shock = 4
+				manuever = 4
+				siege = 2
+			}
+		}
+
+		G73 = { #ahartdyam
+			define_ruler_to_general = {
+				fire = 1
+				shock = 4
+				manuever = 3
+				siege = 0
+			}
+		}
+
+		G65 = { #sedregenhi
+			define_ruler_to_general = {
+				fire = 1
+				shock = 2
+				manuever = 2
+				siege = 0
+			}
+		}
+
+		G78 = { #ethanamara
+			define_ruler_to_general = {
+				fire = 0
+				shock = 1
+				manuever = 2
+				siege = 0
+			}
+		}
+
+		G66 = { #clematar
+			define_ruler_to_general = {
+				fire = 0
+				shock = 2
+				manuever = 1
+				siege = 0
+			}
+		}
+
+		G77 = { #marhed varanya
+			define_ruler_to_general = {
+				fire = 1
+				shock = 3
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		J78 = { #uersennu
+			define_ruler_to_general = {
+				fire = 2
+				shock = 4
+				manuever = 2
+				siege = 0
+			}
+		}
+
+		J79 = { #katalperai
+			define_ruler_to_general = {
+				fire = 2
+				shock = 2
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		G67 = { #royakottar
+			define_ruler_to_general = {
+				fire = 2
+				shock = 3
+				manuever = 5
+				siege = 4
+			}
+		}
+
+		J80 = { #vettakaramai
+			define_ruler_to_general = {
+				fire = 1
+				shock = 4
+				manuever = 3
+				siege = 2
+			}
+		}
+
+		J81 = { #parahechend
+			define_ruler_to_general = {
+				fire = 2
+				shock = 3
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		J82 = { #varampiraya
+			define_ruler_to_general = {
+				fire = 2
+				shock = 2
+				manuever = 2
+				siege = 1
+			}
+		}
+
+		J83 = { #airoa naditari
+			define_ruler_to_general = {
+				fire = 1
+				shock = 7
+				manuever = 4
+				siege = 3
+			}
+		}
+
+		G79 = { #vul tenvach
+			define_ruler_to_general = {
+				fire = 2
+				shock = 3
+				manuever = 1
+				siege = 0
+			}
+		}
+
+		G75 = { #sibisimra
+			define_ruler_to_general = {
+				fire = 4
+				shock = 1
+				manuever = 3
+				siege = 0
+			}
+		}
+
+		G76 = { #tirsin
+			define_ruler_to_general = {
+				fire = 2
+				shock = 0
+				manuever = 1
+				siege = 0
+			}
+		}
+	}
+	
+	option = {
+		name = taychendi.100.a
+	}
 }
