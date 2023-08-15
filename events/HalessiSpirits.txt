@@ -3355,7 +3355,7 @@ province_event = {
 				owner = { country_event = { id = spirits.229 } }
 			}
 			10 = {
-				trigger = { owner = { heir_age = 15 NOT = { heir_adm = 2 heir_dip = 2 heir_mil = 2 } } }
+				trigger = { owner = { heir_age = 15  NOT = { heir_adm = 2 heir_dip = 2 heir_mil = 2	} } }
 				owner = { country_event = { id = spirits.230 } }
 			}
 			10 = {
@@ -3429,7 +3429,7 @@ province_event = {
 				influence = 5
 				duration = 3650
 				estate = estate_adventurers
-				desc = estate_adventurers_monkeys
+				desc = ESTATE_ADVENTUERS_MONKEY_INFLUENCE
 			}
 		}
 	}
@@ -11227,7 +11227,8 @@ country_event = {
 				}
 				country_event = { id = spirits.701 }
 			}
-			else = {
+			else_if = {
+				limit = { any_owned_province = { continent = asia NOT = { superregion = forbidden_lands_superregion } } }
 				country_event = { id = spirits.702 days = 180 }
 			}
 		}
@@ -11286,12 +11287,12 @@ country_event = {
 
 	trigger = {
 		OR = {
-			num_of_owned_provinces_with = {
-				value = 10
+			capital_scope = {
 				continent = asia
 				NOT = { superregion = forbidden_lands_superregion }
 			}
-			capital_scope = {
+			num_of_owned_provinces_with = {
+				value = 10
 				continent = asia
 				NOT = { superregion = forbidden_lands_superregion }
 			}
@@ -11300,13 +11301,112 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
-			#do all the rending stuff here
+			temple_province_group = {
+				limit = { owned_by = ROOT }
+				if = {
+					limit = { has_province_modifier = temple_complex }
+					random = {
+						chance = 50
+						remove_province_modifier = temple_complex
+						add_permanent_province_modifier = { name = damaged_temple_complex duration = -1 }
+						downgrade_temple_wards = yes
+					}
+				}
+				else_if = {
+					limit = { NOT = { has_province_modifier = temple_complex } }
+					if = {
+						limit = { has_province_modiifer = damaged_temple_complex }
+						add_devastation = 25
+						every_neighbor_province = { add_devastation = 10 }
+					}
+					else_if = {
+						limit = { has_province_modiifer = derelict_temple_complex }
+						add_devastation = 50
+						every_neighbor_province = { add_devastation = 15 }
+					}
+					else_if = {
+						limit = { has_province_modiifer = ruined_temple_complex }
+						add_devastation = 75
+						every_neighbor_province = { add_devastation = 20 }
+					}
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						religion = bangujonsi
+						religion = mystic_accord
+					}
+				}
+				set_country_flag = rending_appease_flag
+			}
+			else_if = {
+				limit = {
+					religion = lefthand_path
+				}
+				set_country_flag = rending_corrupt_flag
+			}
+			else_if = {
+				limit = {
+					NOT = { religion = righteous_path } # righteous path gets an event to choose
+				}
+				set_country_flag = rending_ward_flag
+			}
 		}
 	}
 
 	option = {
 		name = spirits.703.a
 		ai_chance = { factor = 100 }
+
+		custom_tooltip = spirits_bork_temple_tt
+		custom_tooltip = spirits_break_temple_tt
+
+		if = {
+			limit = {
+				religion = righteous_path
+			}
+			country_event = { id = spirits.704 }
+		}
+	}
+}
+
+# Righteous Path - Choose your path
+country_event = {
+	id = spirits.704
+	title = spirits.704.t
+	desc = spirits.704.d
+	picture = BIG_BOOK_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		religion = righteous_path
+	}
+
+	# suppress
+	option = {
+		name = spirits.704.a
+		ai_chance = { factor = 100 }
+		custom_tooltip = rp_ward_suppress_tt
+		hidden_effect = { set_country_flag = rending_warding_flag }
+	}
+
+	# appease
+	option = {
+		name = spirits.704.b
+		ai_chance = { factor = 100 }
+		custom_tooltip = rp_accord_appease_tt
+		hidden_effect = { set_country_flag = rending_appease_flag }
+	}
+
+	# appease + go MA
+	option = {
+		name = spirits.704.c
+		ai_chance = { factor = 100 }
+		custom_tooltip = rp_flip_ma_tt
+		change_religion = mystic_accord
+		hidden_effect = { set_country_flag = rending_appease_flag }
 	}
 }
 
