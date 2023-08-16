@@ -578,6 +578,7 @@ country_event = {
 	
 	trigger = {
 		NOT { tag = S70 }
+		NOT { has_ruler_flag = xhazob_patron }
 	}
 	
 	immediate = {
@@ -589,6 +590,8 @@ country_event = {
 						religion = the_jadd
 						religion = corinite
 						religion = the_thought
+						religion = kvangahga
+						religion = rinta_seekers
 					}
 					is_city = yes
 				}
@@ -611,6 +614,14 @@ country_event = {
 									culture_group = kobold
 								}
 							}
+						}
+						AND = {
+							religion = kvangahga
+							ROOT = { culture_group = gnollish }
+						}
+						AND = {
+							religion = rinta_seekers
+							NOT = { ROOT = { culture_group = lizardfolk } }
 						}
 					}
 				}
@@ -1202,6 +1213,14 @@ country_event = {
 									}
 								}
 							}
+							AND = {
+								religion = kvangahga
+								ROOT = { culture_group = gnollish }
+							}
+							AND = {
+								religion = rinta_seekers
+								NOT = { ROOT = { culture_group = lizardfolk } }
+							}
 						}
 					}
 				}
@@ -1224,6 +1243,14 @@ country_event = {
 									}
 								}
 							}
+							AND = {
+								religion = kvangahga
+								ROOT = { culture_group = gnollish }
+							}
+							AND = {
+								religion = rinta_seekers
+								NOT = { ROOT = { culture_group = lizardfolk } }
+							}
 						}
 					}
 					save_event_target_as = country
@@ -1244,6 +1271,14 @@ country_event = {
 										culture_group = kobold
 									}
 								}
+							}
+							AND = {
+								religion = kvangahga
+								ROOT = { culture_group = gnollish }
+							}
+							AND = {
+								religion = rinta_seekers
+								NOT = { ROOT = { culture_group = lizardfolk } }
 							}
 						}
 					}
@@ -1611,14 +1646,15 @@ country_event = {
 	hidden = yes
 	
 	trigger = {
-		NOT = {
-			any_country = {
-				has_opinion_modifier = {
-					who = ROOT
-					modifier = root_monstrous
-				}
-			}
-		}
+		NOT = { has_country_flag = setup_monstrous_opinion }
+		#NOT = {
+		#	any_country = {
+		#		has_opinion_modifier = {
+		#			who = ROOT
+		#			modifier = root_monstrous
+		#		}
+		#	}
+		#}
 		# has_country_flag = removing_monstrous
 	}
 	
@@ -1637,56 +1673,71 @@ country_event = {
 					is_colonial_nation = yes
 					colonial_parent = { NOT = { has_country_modifier = monstrous_nation } }
 				}
+				# parent is demonsterized, so now we are demonsterised too - set opinion like a non-monstrous nation
 				set_country_flag = no_longer_monstrous
 				every_country = {
-					limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } NOT = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } } }
-					add_opinion = { who = ROOT modifier = root_monstrous }
-					reverse_add_opinion = { who = ROOT modifier = root_monstrous }
-				}
-				every_country = {
-					limit = { has_country_modifier = monstrous_nation has_country_flag = semi_monstrous NOT = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } } }
-					add_opinion = { who = ROOT modifier = semi_monstrous }
-					reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+					limit = { NOT = { tag = ROOT } } # do not set against yourself or error log is sad
+					if = {
+						limit = { has_country_modifier = monstrous_nation }
+						
+						if = {
+							limit = { has_country_flag = semi_monstrous }
+	
+							add_opinion = { who = ROOT modifier = semi_monstrous }
+							reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+						}
+						else = {
+							add_opinion = { who = ROOT modifier = root_monstrous }
+							reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+						}
+					}
 				}
 			}
 			else = {
-				if = {
-					limit = { has_country_flag = semi_monstrous }
-					every_country = {
-						limit = { has_country_modifier = monstrous_nation NOT = { has_opinion_modifier = { who = ROOT modifier = both_monstrous } } }
+				# set opinions of the new monstrous nation
+				every_country = {
+					limit = { NOT = { tag = ROOT } } # do not set against yourself or error log is sad
+					
+					if = {
+						limit = { has_country_modifier = monstrous_nation }
+						
 						add_opinion = { who = ROOT modifier = both_monstrous }
 						reverse_add_opinion = { who = ROOT modifier = both_monstrous }
 					}
-					every_country = {
-						limit = { NOT = { has_country_modifier = monstrous_nation } NOT = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } } }
-						add_opinion = { who = ROOT modifier = semi_monstrous }
-						reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
-					}
-				}
-				else = {
-					every_country = {
-						limit = { has_country_modifier = monstrous_nation NOT = { has_opinion_modifier = { who = ROOT modifier = both_monstrous } } }
-						add_opinion = { who = ROOT modifier = both_monstrous }
-						reverse_add_opinion = { who = ROOT modifier = both_monstrous }
-					}
-					every_country = {
-						limit = { NOT = { has_country_modifier = monstrous_nation } NOT = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } } }
-						add_opinion = { who = ROOT modifier = root_monstrous }
-						reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+					else = {
+						if = {
+							limit = { ROOT = { has_country_flag = semi_monstrous } }
+
+							add_opinion = { who = ROOT modifier = semi_monstrous }
+							reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+						}
+						else = {
+							add_opinion = { who = ROOT modifier = root_monstrous }
+							reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+						}
+						
 					}
 				}
 			}
 		}
 		else = {
+			# set opinions against other monstrous nations
 			every_country = {
-				limit = { has_country_modifier = monstrous_nation NOT = { has_country_flag = semi_monstrous } NOT = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } } }
-				add_opinion = { who = ROOT modifier = root_monstrous }
-				reverse_add_opinion = { who = ROOT modifier = root_monstrous }
-			}
-			every_country = {
-				limit = { has_country_modifier = monstrous_nation has_country_flag = semi_monstrous NOT = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } } }
-				add_opinion = { who = ROOT modifier = semi_monstrous }
-				reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+				limit = { NOT = { tag = ROOT } } # do not set against yourself or error log is sad
+				if = {
+					limit = { has_country_modifier = monstrous_nation }
+					
+					if = {
+						limit = { has_country_flag = semi_monstrous }
+
+						add_opinion = { who = ROOT modifier = semi_monstrous }
+						reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
+					}
+					else = {
+						add_opinion = { who = ROOT modifier = root_monstrous }
+						reverse_add_opinion = { who = ROOT modifier = root_monstrous }
+					}
+				}
 			}
 		}
 	}
@@ -1979,6 +2030,14 @@ country_event = {
 							}
 						}
 					}
+					AND = {
+						religion = kvangahga
+						ROOT = { culture_group = gnollish }
+					}
+					AND = {
+						religion = rinta_seekers
+						NOT = { ROOT = { culture_group = lizardfolk } }
+					}
 				}
 			}
 			any_owned_province = {
@@ -1987,6 +2046,8 @@ country_event = {
 					religion = the_jadd
 					religion = corinite
 					religion = the_thought
+					religion = kvangahga
+					religion = rinta_seekers
 				}
 			}
 		}
@@ -2186,6 +2247,8 @@ country_event = {
 				religion = the_jadd
 				religion = corinite
 				religion = the_thought
+				religion = kvangahga
+				religion = rinta_seekers
 			}
 			OR = {
 				any_neighbor_country = {
@@ -2205,6 +2268,14 @@ country_event = {
 								}
 							}
 						}
+						AND = {
+							religion = kvangahga
+							ROOT = { culture_group = gnollish }
+						}
+						AND = {
+							religion = rinta_seekers
+							NOT = { ROOT = { culture_group = lizardfolk } }
+						}
 					}
 				}
 				any_owned_province = {
@@ -2220,6 +2291,14 @@ country_event = {
 									culture_group = kobold
 								}
 							}
+						}
+						AND = {
+							religion = kvangahga
+							ROOT = { culture_group = gnollish }
+						}
+						AND = {
+							religion = rinta_seekers
+							NOT = { ROOT = { culture_group = lizardfolk } }
 						}
 					}
 				}
