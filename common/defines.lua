@@ -938,7 +938,7 @@ NCountry = {
 	MIN_SHIPS_TO_EXPLORE = 3,
 
 	-- Subject Interactions --
-	BESTOW_GIFTS_FRACTION = 0.5,					-- As share of target's yearly income
+	BESTOW_GIFTS_FRACTION = 2,					-- As share of target's yearly income #Anbennar, increased this greatly
 	SEND_ADDITIONAL_TROOPS_FRACTION = 2,			-- As share of target's yearly growth
 	DEMAND_ARTIFACTS_PRESTIGE = 5,
 	DEMAND_ADDITIONAL_TRIBUTE_FRACTION = 0.25,		-- As share of target's yearly income
