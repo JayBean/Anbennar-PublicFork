@@ -87,6 +87,7 @@ on_startup = {
 		anbennar_setup.10		#Sets up Greentide Adventurer opinion
 		anbennar_setup.12
 		anbennar_setup.13		#Adds a hacky delay to prevent existing adventurers colonizing straight away
+		anbennar_setup.21		#Achievement setups
 		#estate_organization.1		#Give unassigned countries appropriate modifier - does anbennar_setup.6 for rest of game
 		#kobold_events.1 		#Sets up for kobolds
 		diggy.108				#Dwarovar Claimer event
@@ -690,6 +691,11 @@ on_startup = {
 		}
 	}
 
+	
+	#dwarovar reclaimer
+	if = { limit = { capital_scope = { continent = serpentspine } }
+		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
+	}
 }
 
 # country
@@ -1394,6 +1400,9 @@ on_religion_change = {
 		}
 		set_estate_privilege = estate_ahati_khetist_recruitment
 	}
+	
+	#updates "Religion Triumphant" HRE modifiers
+	country_event = { id = religious_leagues.11 }
 }
 
 # country.
@@ -1978,6 +1987,8 @@ on_war_won = {
 		}
 		country_event = { id = zokka_jaddari_war.13 }
 	}
+	
+	remove_country_modifier = anb_defense_of_empire
 
 	if = {
 		limit = {
@@ -2304,7 +2315,10 @@ on_war_lost = {
 		}
 		country_event = { id = flavour_bulwar_tag.15 }
 	}
-
+	
+	#triggered modifiers replacements
+	remove_country_modifier = anb_defense_of_empire
+	
 	update_artifice_points = yes #needs to be last
 }
 
@@ -4719,6 +4733,7 @@ on_lock_hre_religion = {
 	events = {
 		religious_leagues.1
 		religious_leagues.8
+		religious_leagues.11
 	}
 }
 
@@ -4726,6 +4741,7 @@ on_change_hre_religion = {
 	events = {
 		religious_leagues.2
 		religious_leagues.3
+		religious_leagues.11
 	}
 }
 
@@ -5811,7 +5827,108 @@ on_monthly_pulse = {
 			}
 		} 
 	}
+	
+	#crusade triggered mod replacement
+	if = { limit = { is_religion_enabled = ravelian }
+		if = {
+			limit = {
+				religion = ravelian
+				crusade_target = {
+					exists = yes
+					war_with = ROOT
+					any_owned_province = {
+						controlled_by = root
+					}
+				}
+				land_maintenance = 1.0
+			}
+			add_country_modifier = { name = crusader duration = -1 }
+		}
+		else = {
+			remove_country_modifier = crusader
+		}
+	}
+	
+	#defense of the empire triggered mod replacement
+	if = {
+		limit = {
+			has_dlc = "Emperor"
+			OR = {
+				is_emperor = yes
+				is_elector = yes
+			}
+			hre_reform_passed = emperor_reichskrieg
+			any_known_country = {
+				war_with = ROOT
+				NOT = { is_part_of_hre = yes }
+			}
+		}
+		add_country_modifier = { name = defense_of_the_empire_modifier duration = -1 }
+	}
+	else = {
+		remove_country_modifier = defense_of_the_empire_modifier
+	}
+	
+	#counter revolution triggered mod replacement
+	if = {
+		limit = {
+			revolution_target_exists = yes
+			is_revolutionary = no
+			is_free_or_tributary_trigger = yes
+			government = monarchy
+			revolution_target = {
+				OR = {
+					capital_scope = {
+						continent = ROOT
+					}
+					is_neighbor_of = ROOT
+				}
+			}
+		}
+		if = {
+			limit = {
+				revolution_target = {
+					NOT = { war_with = ROOT }
+				}
+			}
+			add_country_modifier = { name = counter_revolution duration = -1 }
+			remove_country_modifier = reaction
+		}
+		else = {
+			add_country_modifier = { name = reaction duration = -1 }
+			remove_country_modifier = counter_revolution
+		}
+	}
+	else = {
+		remove_country_modifier = reaction
+		remove_country_modifier = counter_revolution
+	}
+	
+	#imperial mage triggered mod replacement
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					is_emperor = yes
+					OR = {
+						heir_has_personality = mage_personality
+						has_heir_flag = heir_consort_mage_personality
+					}
+				}
+				AND = {
+					ruler_has_personality = mage_personality
+					is_part_of_hre = yes
+					is_emperor = no
+				}
+			}
+		}
+		add_country_modifier = { name = imperial_mage_election duration = -1 }
+	}
+	else = {
+		remove_country_modifier = imperial_mage_election
+	}
 }
+
 on_yearly_pulse = {
 	events = {
 		#Pillar of Gates
@@ -12282,7 +12399,7 @@ on_culture_promoted = {
 	country_event = { id = race_setup_events.6 }
 	country_event = { id = racial_modifiers.7 }	#Save primary culture
 	country_event = { id = racial_modifiers.8 }	#Change back primary culture if the country has a locked administration
-	country_event = { id = monstrous.102 days = 35 } #Remove opinion if no longer monstrous, 35days delay to let the triggered modifier update itself
+	country_event = { id = monstrous.102 } #Remove opinion if no longer monstrous
 	update_nsc_level_secondary_effects = yes
 
 	if = { #1.35
@@ -12831,6 +12948,16 @@ on_create_vassal = {
 	on_religion_change_estate_privileges_effect = yes
 	if = {
 		limit = {
+			monstrous_culture = yes
+			NOT = { has_country_flag = no_longer_monstrous }
+		}
+		add_country_modifier = { name = monstrous_nation duration = -1 }
+	}
+	if = { limit = { capital_scope = { continent = serpentspine } }
+		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
+	}
+	if = {
+		limit = {
 			has_dlc = "Emperor"
 			FROM = {
 				is_revolutionary = yes
@@ -13083,6 +13210,16 @@ on_country_released = {
 	}
 
 	#Anbennar
+	if = {
+		limit = {
+			monstrous_culture = yes
+			NOT = { has_country_flag = no_longer_monstrous }
+		}
+		add_country_modifier = { name = monstrous_nation duration = -1 }
+	}
+	if = { limit = { capital_scope = { continent = serpentspine } }
+		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
+	}
 	if = {
 		limit = {
 			capital_scope = {
@@ -14289,6 +14426,17 @@ on_capital_moved = {
 		country_event = { id = escanni_wars.200 } # Joined Escanni wars
 		country_event = { id = flavour_splinter.2 } # Itinerant Capital
 	}
+	
+	#update "Religion Triumphant" HRE modifiers
+	owner = { country_event = { id = religious_leagues.11 } }
+	
+	#dwarovar reclaimer
+	if = { limit = { continent = serpentspine }
+		owner = { add_country_modifier = { name = reclaiming_dwarovar duration = -1 } }
+	}
+	else = {
+		owner = { remove_country_modifier = reclaiming_dwarovar }
+	}
 }
 
 #ROOT = province that was expanded in, FROM = country that did it
@@ -14375,6 +14523,8 @@ on_defender_of_faith_claim = {
 }
 
 on_hre_dismantled = {
+	#updates "Religion Triumphant" HRE modifiers
+	country_event = { id = religious_leagues.11 }
 }
 
 on_new_age = {
