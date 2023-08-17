@@ -938,7 +938,7 @@ NCountry = {
 	MIN_SHIPS_TO_EXPLORE = 3,
 
 	-- Subject Interactions --
-	BESTOW_GIFTS_FRACTION = 2,					-- As share of target's yearly income #Anbennar, increased this greatly
+	BESTOW_GIFTS_FRACTION = 2.5,					-- As share of target's yearly income #Anbennar, increased this greatly
 	SEND_ADDITIONAL_TROOPS_FRACTION = 2,			-- As share of target's yearly growth
 	DEMAND_ARTIFACTS_PRESTIGE = 5,
 	DEMAND_ADDITIONAL_TRIBUTE_FRACTION = 0.25,		-- As share of target's yearly income
@@ -949,7 +949,7 @@ NCountry = {
 	ENFORCE_RELIGION_LIBERTY_THRESHOLD = 50,
 	ENFORCE_CULTURE_LIBERTY = 25,
 	ENFORCE_CULTURE_LIBERTY_THRESHOLD = 50,
-	ENFORCE_CULTURE_TAX_MULTIPLIER = 2,
+	ENFORCE_CULTURE_TAX_MULTIPLIER = 1.4,
 	SIPHON_INCOME_FRACTION = 0.5,
 	SIPHON_INCOME_LIBERTY = 10,
 	DIVERT_TRADE_FRACTION = 1,
