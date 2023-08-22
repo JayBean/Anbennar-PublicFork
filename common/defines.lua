@@ -132,7 +132,7 @@ NDiplomacy = {
 	JOIN_HRE_DEVELOPMENT_CAP_VASSAL = 200,			-- Max cap of development of vassals to join the empire
 	IMPERIAL_REFORM_COST = 50,						-- Minium Cost of enacting a new reform.
 	IMPERIAL_REFORM_AUTHORITY_ACCEPTANCE = 1,		-- How much acceptance for each authority above IMPERIAL_REFORM_COST
-	CELESTIAL_EMPIRE_REFORM_COST = 80,				-- Mandate cost of enacting a new reform for the Emperor of China.
+	CELESTIAL_EMPIRE_REFORM_COST = 70,				-- Mandate cost of enacting a new reform for the Emperor of China.
 	CELESTIAL_EMPIRE_REFORM_STABILITY_COST = 1,		-- Stability cost of enacting a new reform for the Emperor of China
 	CELESTIAL_EMPIRE_REFORM_MIN_VALUE = 80,		-- Minimum value of Mandate above which new reforms can be enacted.
 	DEFENDER_OF_FAITH_COST = 500, 					-- _DDEF_DEFENDER_OF_FAITH_COST_
@@ -938,7 +938,7 @@ NCountry = {
 	MIN_SHIPS_TO_EXPLORE = 3,
 
 	-- Subject Interactions --
-	BESTOW_GIFTS_FRACTION = 0.5,					-- As share of target's yearly income
+	BESTOW_GIFTS_FRACTION = 2.5,					-- As share of target's yearly income #Anbennar, increased this greatly
 	SEND_ADDITIONAL_TROOPS_FRACTION = 2,			-- As share of target's yearly growth
 	DEMAND_ARTIFACTS_PRESTIGE = 5,
 	DEMAND_ADDITIONAL_TRIBUTE_FRACTION = 0.25,		-- As share of target's yearly income
@@ -949,7 +949,7 @@ NCountry = {
 	ENFORCE_RELIGION_LIBERTY_THRESHOLD = 50,
 	ENFORCE_CULTURE_LIBERTY = 25,
 	ENFORCE_CULTURE_LIBERTY_THRESHOLD = 50,
-	ENFORCE_CULTURE_TAX_MULTIPLIER = 2,
+	ENFORCE_CULTURE_TAX_MULTIPLIER = 1.4,
 	SIPHON_INCOME_FRACTION = 0.5,
 	SIPHON_INCOME_LIBERTY = 10,
 	DIVERT_TRADE_FRACTION = 1,
