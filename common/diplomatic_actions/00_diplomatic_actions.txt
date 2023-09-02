@@ -563,16 +563,6 @@ declarewar = {
 		}
 	}
 	
-	condition = {
-		tooltip = ADVENTURER_NO_NO_CB
-		potential = {
-			has_country_modifier = adventurer_no_cb
-		}
-		allow = {
-			always = no
-		}
-	}
-	
 	condition = { #Can't declare independence if you have a NSC level 3 or more (lvl 3 in the code = lvl 4 in the loc/interface)
 		tooltip = NSC_LEVEL_VASSAL
 		potential = {
@@ -613,8 +603,40 @@ declarewar = {
 		}
 	}
 
+	condition = {
+		tooltip = KINSTRIFE_NO_WAR
+		potential = {
+			OR = {
+				FROM = { has_country_flag = kinstrife_funtime_flag }
+				has_country_flag = kinstrife_funtime_flag
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
+
+	condition = {
+		tooltip = escann_cant_dec_no_cb_war_trigger_tt
+		potential = {
+			has_reform = adventurer_reform
+			NOT = { has_casus_belli_against = FROM }
+		}
+		allow = { has_reform = found_our_nation }
+	}
+
 	effect = {
 		on_war_declaration_effect = yes #1.35
+
+		if = {	# If an Escanni adventurer player tries to declare a no-CB war.
+			limit = { escann_adventurer_no_no_cb_wars_trigger = yes }
+			white_peace = FROM	# Immediate white peace; keeps the -2 stab hit from no-CB.
+			country_event = { id = adventurer.6 }
+			save_event_target_as = cheeky_no_cb_adventurers
+			FROM = {
+				country_event = { id = adventurer.5 }
+			}
+		}
 
 		if = {
 			limit = { 
@@ -793,6 +815,7 @@ declarewar = {
 			}
 			H77 = { country_event = { id = flavor_lodhum.150 days = 20 } }
 		}
+		
 #		if = {
 #			limit = {
 #				tag = A73
@@ -874,6 +897,34 @@ declarewar = {
 					join_all_defensive_wars_of = G47
 				}
 			}
+		}
+		
+		#Taychend Glory
+		if = {
+			limit = {
+				religion = gods_of_the_taychend
+				FROM = {
+					OR = {
+						religion = gods_of_the_taychend
+						tag = J74
+					}
+					OR = {
+						army_strength = {
+							who = ROOT
+							value = 0.7
+						}
+						is_enemy = ROOT
+					}
+				}
+			}
+			add_country_modifier = {
+				name = taychendi_glorious
+				duration = 3650
+			}
+		}
+		else_if = {
+			limit = { has_country_modifier = taychendi_glorious }
+			remove_country_modifier = taychendi_glorious
 		}
 	}
 }
@@ -991,6 +1042,17 @@ allianceaction = {
 	}
 
 	# Anbennar
+	condition = {
+		tooltip = escann_cant_offer_alliance_trigger_tt
+		potential = { has_reform = adventurer_reform }
+		allow = { has_reform = found_our_nation }
+	}
+	condition = {
+		tooltip = escann_restricted_diplo_trigger_tt
+		potential = { escann_restricted_greentide_diplo_trigger = yes }
+		allow = { always = no }
+	}
+	
 	condition = {
 		tooltip = ONLY_ADV_ESCANN
 		potential = {
@@ -1188,26 +1250,57 @@ allianceaction = {
 			}
 		}
 	}
+	
+	condition = {
+		tooltip = taychend_warlords
+		potential = {
+			NOT = { tag = J74 }
+		}
+		allow = {
+			OR = {
+				AND = {
+					ROOT = { religion = gods_of_the_taychend }
+					FROM = { religion = gods_of_the_taychend }
+				}
+				AND = {
+					ROOT = { NOT = { religion = gods_of_the_taychend } }
+					FROM = { NOT = { religion = gods_of_the_taychend } }
+				}
+			}
+		}
+	}
+	condition = {
+		tooltip = khet_civil_war_no_ally
+		potential = { 
+			OR = {
+				has_country_flag = in_khet_civil_war 
+				FROM = { has_country_flag = in_khet_civil_war }
+			}
+		}
+		allow = { 
+			always = no	
+		}
+	}
 }
 
 enforce_peace = {
 	#do this before the peace is enforced, or there is no war enemy country
 	pre_effect = {
-		if = {
-			limit = {
-				has_country_modifier = liv_protector_of_the_catholics
-				FROM = {
-					any_war_enemy_country = {
-						religion = catholic
-						is_in_war = {
-							defender_leader = THIS
-							attacker_leader = FROM
-						}
-					}
-				}
-			}
-			add_papal_influence = 25
-		}
+		#if = {
+		#	limit = {
+		#		has_country_modifier = liv_protector_of_the_catholics
+		#		FROM = {
+		#			any_war_enemy_country = {
+		#				religion = catholic
+		#				is_in_war = {
+		#					defender_leader = THIS
+		#					attacker_leader = FROM
+		#				}
+		#			}
+		#		}
+		#	}
+		#	add_papal_influence = 25
+		#}
 	}
 }
 
@@ -1760,25 +1853,7 @@ annexationaction = {
 		}
 	}
 	
-    condition = { #lets you annex angel tributaries at 190 relations. angelic host
-        tooltip = ANNEX_TOO_LOW
-        potential = {
-            FROM = {
-                AND = {
-                    is_subject_of = ROOT
-                    is_subject_of_type = angel_tributary_state
-                }
-            }                
-        }
-        allow = {
-			FROM = {
-				has_opinion = {
-					who = ROOT
-					value = 190	
-				}
-			}
-		}
-	}
+
 	
 	condition = {
 		tooltip = ROADWARRIOR_NO_INTEGRATE
@@ -1874,6 +1949,18 @@ annexationaction = {
 		}
 		allow = {
 			NOT = { religion = ynn_river_worship }
+		}
+	}
+
+	condition = {
+		potential = {
+			is_emperor_of_china = yes
+			FROM = {
+				is_subject_of_type = medasi_subject
+			}
+		}
+		allow = {
+			empire_of_china_reform_passed = integrate_medasi_reform
 		}
 	}
 }
@@ -2242,6 +2329,33 @@ callaction = {
 			always = no
 		}
 	}
+	
+	effect = {
+		if = {	#achievement against the Command
+			limit = {
+				ai = no
+				war_with = R62
+				FROM = { NOT = { is_subject_of = ROOT } }
+			}
+			set_country_flag = ach_called_allies_againt_the_command
+		}
+	}
+
+	condition = {	#Bosancovac can't call allies against the Boats' revolt
+		potential = {
+			ROOT = {
+				owns = 1165
+				has_country_flag = g27_bosancovac_owner_flag
+				is_in_war = {
+					attacker_leader = G27
+					casus_belli = cb_support_rebels
+				}
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 }
 
 designate_march = {
@@ -2402,6 +2516,30 @@ requestpeace = {
 			always = no
         }
 	}
+	condition = {
+		tooltip = khet_civil_war_no_peace
+		potential = {
+			has_country_flag = in_khet_civil_war
+		}
+		allow = {
+			NOT = { 
+				has_country_flag = in_khet_civil_war
+				FROM = { has_country_flag = in_khet_civil_war } 
+			}
+        }
+	}
+}
+
+support_heir = {
+    condition = {
+        tooltip = cannot_support_heir_TT
+        potential = {
+            NOT = { has_estate_privilege = estate_mages_organization_magisterium }
+        }
+        allow = {
+            always = no
+        }
+    }
 }
 
 break_alliance = {
@@ -2409,3 +2547,59 @@ break_alliance = {
 		on_alliance_broken_effect = yes
 	}
 }
+
+excommunicate_action = {
+	condition = {  }
+	
+	effect = {
+		add_ruler_modifier = { name = anb_excommunicated duration = -1 }
+	}
+}
+
+guaranteeaction = {
+	condition = {
+		tooltip = escann_restricted_diplo_trigger_tt
+		potential = { escann_restricted_greentide_diplo_trigger = yes }
+		allow = { always = no }
+	}
+}
+
+improve_relation = {
+	condition = {
+		tooltip = escann_restricted_diplo_trigger_tt
+		potential = { escann_restricted_greentide_diplo_trigger = yes }
+		allow = { always = no }
+	}
+}
+
+# knowledge_sharing = {
+# 	condition = {
+# 		tooltip = escann_restricted_diplo_trigger_tt
+# 		potential = { escann_restricted_greentide_diplo_trigger = yes }
+# 		allow = { always = no }
+# 	}
+# }
+
+giftaction = {
+	condition = {
+		tooltip = escann_restricted_diplo_trigger_tt
+		potential = { escann_restricted_greentide_diplo_trigger = yes }
+		allow = { always = no }
+	}
+}
+
+warsubsidy = {
+	condition = {
+		tooltip = escann_restricted_diplo_trigger_tt
+		potential = { escann_restricted_greentide_diplo_trigger = yes }
+		allow = { always = no }
+	}
+}
+
+# sellprov = {
+# 	condition = {
+# 		tooltip = escann_restricted_diplo_trigger_tt
+# 		potential = { escann_restricted_greentide_diplo_trigger = yes }
+# 		allow = { always = no }
+# 	}
+# }
