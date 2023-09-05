@@ -317,7 +317,10 @@ country_event = {
 			}
 			NOT = { has_province_modifier = ahati_fort_garrison }
 		}
-		NOT = { has_global_flag = aakheta_released }
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
 	}
 
 	immediate = {
@@ -384,7 +387,10 @@ country_event = {
 			}
 			NOT = { has_province_flag = ahati_barracks }
 		}
-		NOT = { has_global_flag = aakheta_released }
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
 	}
 
 	immediate = {
@@ -449,7 +455,10 @@ country_event = {
 			}
 			NOT = { has_province_modifier = ahati_cot }
 		}
-		NOT = { has_global_flag = aakheta_released }
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
 	}
 
 	immediate = {
@@ -712,6 +721,10 @@ country_event = {
 			factor = 0.8
 			total_development = 500
 		}
+		modifier = {
+			factor = 0.8
+			estate_influence = { estate = estate_ahati influence = 70 }
+		}
 	}
 
 	trigger = {
@@ -766,6 +779,7 @@ country_event = {
 		}
 		else = { remove_estate_privilege = estate_ahati_non_khet_steward }
 		set_estate_privilege = estate_ahati_rebellious
+		change_estate_land_share = { estate = estate_ahati share = 15 }
 
 		466 = { add_core = U04 } #aakheta
 		464 = { add_core = U04 } #hapkes
@@ -839,6 +853,7 @@ country_event = {
 				has_estate_privilege = estate_ahati_ahati_commanders
 				has_estate_privilege = estate_ahati_ahati_education
 				has_estate_privilege = estate_ahati_guaranteed_privileges
+				has_estate_privilege = estate_ahati_sponsor_guilds
 				has_estate_privilege = estate_ahati_ahati_overseers
 			}
 		}
@@ -862,7 +877,7 @@ country_event = {
 				country_event = { id = ahati_events.114 }
 			}
 			500 = { 
-				trigger = { has_estate_privilege = estate_ahati_guaranteed_privileges }
+				trigger = { OR = { has_estate_privilege = estate_ahati_guaranteed_privileges has_estate_privilege = estate_ahati_sponsor_guilds } }
 				country_event = { id = ahati_events.115 }
 			}
 			500 = { 
@@ -884,6 +899,7 @@ country_event = {
 				has_estate_privilege = estate_ahati_ahati_commanders
 				has_estate_privilege = estate_ahati_ahati_education
 				has_estate_privilege = estate_ahati_guaranteed_privileges
+				has_estate_privilege = estate_ahati_sponsor_guilds
 				has_estate_privilege = estate_ahati_ahati_overseers
 			}
 		}
@@ -999,13 +1015,23 @@ country_event = {
 	trigger = {
 		is_emperor_of_china = yes
 		has_estate = estate_ahati
-		has_estate_privilege = estate_ahati_guaranteed_privileges
+		OR = {
+			has_estate_privilege = estate_ahati_guaranteed_privileges
+			has_estate_privilege = estate_ahati_sponsor_guilds
+		}
 	}
 
 	#oh shit
 	option = {
 		name = ahati_events.115.a
-		remove_estate_privilege = estate_ahati_guaranteed_privileges
+		if = {
+			limit = { has_estate_privilege = estate_ahati_guaranteed_privileges }
+			remove_estate_privilege = estate_ahati_guaranteed_privileges
+		}
+		if = {
+			limit = { has_estate_privilege = estate_ahati_sponsor_guilds }
+			remove_estate_privilege = estate_ahati_sponsor_guilds
+		}
 		set_estate_privilege = estate_ahati_autonomous_sectors
 
 		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
@@ -1068,14 +1094,14 @@ country_event = {
 		name = ahati_events.101.a
 		trigger = { any_owned_province = { has_province_modifier = ahati_fort_garrison } }
 		random_owned_province = {
-			limit = { has_province_modifier = ahati_fort_garrison }
+			limit = { has_province_modifier = ahati_fort_garrison NOT = { is_core = U04 } }
 			province_event = { id = ahati_events.131 }
 		}
 		ai_chance = { factor = 33 }
 	}
 	option = {
 		name = ahati_events.101.a
-		trigger = { any_owned_province = { has_province_modifier = ahati_cot } }
+		trigger = { any_owned_province = { has_province_modifier = ahati_cot NOT = { is_core = U04 } } }
 		random_owned_province = {
 			limit = { has_province_modifier = ahati_cot }
 			province_event = { id = ahati_events.132 }
@@ -1084,7 +1110,7 @@ country_event = {
 	}
 	option = {
 		name = ahati_events.101.a
-		trigger = { any_owned_province = { has_province_flag = ahati_barracks } }
+		trigger = { any_owned_province = { has_province_flag = ahati_barracks NOT = { is_core = U04 } } }
 		random_owned_province = {
 			limit = { has_province_flag = ahati_barracks }
 			province_event = { id = ahati_events.133 }
@@ -1224,6 +1250,7 @@ country_event = {
 			}
 		}
 	}
+	goto = event_province
 
 	#kick them out
 	option = {
@@ -1240,14 +1267,24 @@ country_event = {
 				}
 			}
 		}
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
 	option = {
 		name = ahati_events.150.b
-		1305 = { add_trade_node_income = -2 } 
-		event_target:event_province = { add_local_autonomy = 50 }
+		1305 = { add_trade_node_income = -12 } 
+		event_target:event_province = { 
+			add_local_autonomy = 50 
+			if = {
+				limit = { 
+					NOT = { 
+						is_core = U04 
+						has_global_flag = aakheta_released } 
+					}
+				add_core = U04
+			}
+		}
 		ai_chance = { factor = 50 }
 	}
 }
@@ -1289,20 +1326,35 @@ country_event = {
 				}
 			}
 		}
+		NOT = { has_global_flag = ahati_rebellion_crushed }
 	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
 
 	
 	#kill him
 	option = {
 		name = ahati_events.151.a
 		kill_leader = { type = general }
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		add_army_tradition = -4
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#do nothing
 	option = {
 		name = ahati_events.151.b
-		add_army_tradition = -4
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
 		ai_chance = { factor = 50 }
 	}
 }
@@ -1327,18 +1379,30 @@ country_event = {
 		is_emperor_of_china = yes
 		meritocracy = 5
 	}
-
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
 	
 	#kick them out
 	option = {
 		name = ahati_events.152.a
 		add_meritocracy = -5
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	option = {
 		name = ahati_events.152.b
 		add_prestige = 15
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
 		ai_chance = { factor = 50 }
 	}
 }
@@ -1365,9 +1429,10 @@ country_event = {
 	}
 	immediate = {
 		hidden_effect = {
-			random_ally = {
-				save_event_target_as = event_country
-				capital_scope = { save_event_target_as = event_province }
+			random_ally = { save_event_target_as = event_country }
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
 			}
 		}
 	}
@@ -1379,13 +1444,17 @@ country_event = {
 		name = ahati_events.153.a
 		event_target:event_country = { add_favors = { who = ROOT amount = 10 } }
 		add_prestige = -10
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#no way
 	option = {
 		name = ahati_events.153.b
 		event_target:event_country = { add_trust = { who = ROOT value = -5 } }
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
 		ai_chance = { factor = 50 }
 	}
 }
@@ -1414,10 +1483,6 @@ country_event = {
 	}
 	immediate = {
 		hidden_effect = {
-			random_owned_province = {
-				limit = { area = coast_of_tears_area }
-				save_event_target_as = event_province
-			}
 			if = {
 				limit = {
 					OR = {
@@ -1446,6 +1511,10 @@ country_event = {
 					save_event_target_as = event_country
 				}
 			}
+			random_owned_province = {
+				limit = { has_port = yes is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
 		}
 	}
 	goto = event_province
@@ -1454,18 +1523,22 @@ country_event = {
 	#fight them off
 	option = {
 		name = ahati_events.154.a
-		add_yearly_sailors = -2
-		add_yearly_manpower = -1.5
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		add_yearly_sailors = -1.75
+		add_yearly_manpower = -1.25
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#oh shit
 	option = {
 		name = ahati_events.154.b
-		mothers_delta_area = {
+		coast_of_tears_area = {
 			limit = { owned_by = ROOT }
 			add_devastation = 15
-			remove_loot = { who = event_target:event_country amount = -100 }
+			remove_loot = { who = event_target:event_country amount = 100 }
+		}
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
 		}
 		ai_chance = { factor = 50 }
 	}
@@ -1488,7 +1561,7 @@ country_event = {
 		any_owned_province = {
 			region = kheterata_region
 			has_gnomish_minority_trigger = yes
-			NOT = { is_core = U04 }
+			is_potential_aakheta_core = no
 		}
 		NOT = { has_global_flag = aakheta_released }
 	}
@@ -1499,7 +1572,7 @@ country_event = {
 				limit = { 
 					region = kheterata_region
 					has_gnomish_minority_trigger = yes
-					NOT = { is_core = U04 }
+					is_potential_aakheta_core = no
 				}
 				save_event_target_as = event_province
 			}
@@ -1511,8 +1584,8 @@ country_event = {
 	option = {
 		name = ahati_events.155.a
 		small_decrease_of_gnomish_tolerance_effect = yes
-		event_target:event_province = { add_unrest = 5 }
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		event_target:event_province = { spawn_rebels = { type = ahati_rebels size = 1.5 } }
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1550,7 +1623,7 @@ country_event = {
 				area = golkora_stretch_area
 				area = hapmot_area
 			}
-			NOT = { is_core = U04 }
+			is_potential_aakheta_core = no
 		}
 		NOT = { has_global_flag = aakheta_released }
 	}
@@ -1563,7 +1636,7 @@ country_event = {
 						area = golkora_stretch_area
 						area = hapmot_area
 					}
-					NOT = { is_core = U04 }
+					is_potential_aakheta_core = no
 				}
 				save_event_target_as = event_province
 			}
@@ -1574,9 +1647,10 @@ country_event = {
 	#stop them
 	option = {
 		name = ahati_events.156.a
-		add_adm_power = -25
-		add_mil_power = -30
-		reduce_ahati_influence_disaster_effect = { VAL = -3 }
+		add_corruption = 0.5
+		add_adm_power = -50
+		add_mil_power = -75
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1615,12 +1689,12 @@ country_event = {
 	#stop them
 	option = {
 		name = ahati_events.157.a
-		466 = { spawn_rebels = { type = ahati_rebels size = 2 } }
-		464 = { spawn_rebels = { type = ahati_rebels size = 1 } }
-		467 = { spawn_rebels = { type = ahati_rebels size = 1 } }
-		468 = { spawn_rebels = { type = ahati_rebels size = 1 } }
-		coast_of_tears_area = { spawn_rebels = { type = ahati_rebels size = 1 } }
-		reduce_ahati_influence_disaster_effect = { VAL = -10 }
+		466 = { spawn_rebels = { type = ahati_rebels size = 3 win = yes } }
+		464 = { spawn_rebels = { type = ahati_rebels size = 2.5 win = yes } }
+		467 = { spawn_rebels = { type = ahati_rebels size = 2.5 win = yes } }
+		468 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+		coast_of_tears_area = { spawn_rebels = { type = ahati_rebels size = 1.5 } }
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1657,10 +1731,11 @@ country_event = {
 		name = ahati_events.158.a
 		469 = { 
 			spawn_rebels = { type = ahati_rebels size = 3 }
-			add_devastation = 10
+			spawn_rebels = { type = ahati_rebels size = 2 }
+			spawn_rebels = { type = ahati_rebels size = 2 }
+			add_devastation = 25
 		}
-		
-		reduce_ahati_influence_disaster_effect = { VAL = -10 }
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1700,11 +1775,12 @@ country_event = {
 		name = ahati_events.159.a
 		473 = { 
 			spawn_rebels = { type = ahati_rebels size = 3 }
-			add_devastation = 15
+			add_devastation = 25
 		}
-		472 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+		472 = { spawn_rebels = { type = ahati_rebels size = 2.5 } }
+		491 = { spawn_rebels = { type = ahati_rebels size = 2.5 } }
 		
-		reduce_ahati_influence_disaster_effect = { VAL = -10 }
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1722,6 +1798,8 @@ country_event = {
 				remove_building = temple
 			}
 		}
+		472 = { add_core = U04 }
+		491 = { add_core = U04 }
 		if = {
 			limit = { has_estate = estate_church }
 			add_estate_loyalty = { estate = estate_church loyalty = -20 }
@@ -1746,7 +1824,7 @@ country_event = {
 		is_emperor_of_china = yes
 		culture_group = gnollish
 		num_of_owned_provinces_with = {
-			value = 3
+			value = 4
 			culture_group = gnollish
 		}
 		NOT = { has_global_flag = aakheta_released }
@@ -1765,6 +1843,10 @@ country_event = {
 				limit = { culture_group = gnollish NOT = { province_id = event_target:event_province1 province_id = event_target:event_province2 } }
 				save_event_target_as = event_province3
 			}
+			random_owned_province = {
+				limit = { culture_group = gnollish NOT = { province_id = event_target:event_province1 province_id = event_target:event_province2 province_id = event_target:event_province3 } }
+				save_event_target_as = event_province4
+			}
 		}
 	}
 
@@ -1772,10 +1854,11 @@ country_event = {
 	option = {
 		name = ahati_events.160.a
 		capital_scope = { spawn_rebels = { type = ahati_rebels size = 2 } }
-		event_target:event_province1 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+		event_target:event_province1 = { spawn_rebels = { type = ahati_rebels size = 3 } }
 		event_target:event_province2 = { spawn_rebels = { type = ahati_rebels size = 2 } }
 		event_target:event_province3 = { spawn_rebels = { type = ahati_rebels size = 2 } }
-		reduce_ahati_influence_disaster_effect = { VAL = -10 }
+		event_target:event_province4 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
 		ai_chance = { factor = 50 }
 	}
 	#leave them
@@ -1785,6 +1868,7 @@ country_event = {
 		event_target:event_province1 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
 		event_target:event_province2 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
 		event_target:event_province3 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		event_target:event_province4 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
 		add_mandate = -10
 		ai_chance = { factor = 50 }
 	}
@@ -1812,8 +1896,11 @@ country_event = {
 			U04 = {
 				#base setup
 				change_government = republic
-				add_government_reform = noble_republic
+				add_government_reform = noble_elite_reform
 				set_capital = 466
+				add_manpower = 20
+				add_treasury = 2000
+				add_country_modifier = { name = aakheta_uprising_modifier duration = -1 }
 				define_ruler = {
 					adm = 3
 					dip = 4
@@ -1825,6 +1912,9 @@ country_event = {
 					religion = aakhetist
 					name = "Hazan the Vengeful"
 				}
+				add_ruler_personality = strict_personality
+				add_ruler_personality = conqueror_personality
+				add_ruler_personality = martial_educator_personality
 				add_treasury = 2000
 				add_manpower = 30
 				add_adm_power = 100
@@ -1837,10 +1927,9 @@ country_event = {
 					limit = { NOT = { area = mothers_delta_area } }
 					spawn_aakheta_army = yes 
 				}
-				add_country_modifier = { name = aakheta_uprising_modifier duration = -1 }
 				define_ruler_to_general = {
-					fire = 4
-					shock = 6
+					fire = 5
+					shock = 7
 					manuever = 4
 					siege = 3
 					trait = ruthless_personality
@@ -1854,14 +1943,14 @@ country_event = {
 					trait = goal_oriented_personality
 				}
 				if = {
-					limit = { num_of_cities = 10 }
+					limit = { num_of_cities = 8 }
 					random_owned_province = { 
 						limit = { NOT = { area = mothers_delta_area } }
 						spawn_aakheta_army = yes 
 					}
 					define_general = {
-						fire = 4
-						shock = 4
+						fire = 5
+						shock = 5
 						manuever = 1
 						siege = 0
 						name = "Arhab the Unbreaking"
@@ -1869,7 +1958,7 @@ country_event = {
 					}
 				}
 				if = {
-					limit = { num_of_cities = 15 }
+					limit = { num_of_cities = 13 }
 					random_owned_province = { 
 						limit = { NOT = { area = mothers_delta_area } }
 						spawn_aakheta_army = yes 
@@ -1884,7 +1973,7 @@ country_event = {
 					}
 				}
 				if = {
-					limit = { num_of_cities = 20 }
+					limit = { num_of_cities = 18 }
 					random_owned_province = { 
 						limit = { NOT = { area = mothers_delta_area } }
 						spawn_aakheta_army = yes 
@@ -1900,7 +1989,6 @@ country_event = {
 				}
 				
 				##anti player cheese
-				#aakheta academy buffs
 				466 = {
 					if = {
 						limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
@@ -1910,9 +1998,14 @@ country_event = {
 						limit = { NOT = { has_building = ramparts } }
 						add_building = ramparts
 					}
-					add_province_modifier = { name = ahati_academy_forts duration = -1 } 
+					#aakheta academy buffs
+					if = {
+						limit = { has_great_project = { type = bronze_dragon_academy } }
+						add_province_modifier = { name = ahati_academy_forts duration = -1 }
+					}
+					add_province_modifier = { name = ahati_aakheta_base duration = -1 }
 				}
-				#readd modifiers
+				#readd other modifiers
 				every_owned_province = {
 					if = {
 						limit = { has_province_flag = ahati_fort }
@@ -1929,9 +2022,11 @@ country_event = {
 						clr_province_flag = ahati_cot
 					}
 					clr_province_flag = ahati_barracks
+					change_religion = aakhetist
 				}
-				declare_war_with_cb = { who = ROOT casus_belli = cb_aakheta_uprising }
+				#change_religion = aakhetist #just incase
 			}
+			country_event = { id = ahati_events.175 days = 1 }
 		}
 	}
 
@@ -1947,6 +2042,14 @@ country_event = {
         ai_chance = { factor = 0 }
 		custom_tooltip = ahati_events.170.tooltip2
 		switch_tag = U04
+	}
+	after = {
+		U04 = {
+			hidden_effect = {
+				remove_country_modifier = restructuring_military
+				remove_country_modifier = restructuring_administration
+			}
+		}
 	}
 }
 
@@ -2001,36 +2104,54 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		is_emperor_of_china = yes
+		tag = U04
+	}
+
+	immediate = {
+		hidden_effect = { 
+			event_target:EmperorOfChina = { 
+				disband_all_units = yes 
+				save_event_target_as = event_country 
+			}
+			remove_country_modifier = restructuring_military
+			remove_country_modifier = restructuring_administration
+		}
 	}
 
 	#name change
 	option = {
         name = ahati_events.172.a
-		hidden_effect = { event_target:EmperorOfChina = { disband_all_units = yes } }
 		add_government_reform = aakheta_ahati_reform
 		set_emperor_of_china = ROOT
-		inherit = event_target:EmperorOfChina
-		override_country_name = KHETERATA
 		if = {
+			limit = { event_target:event_country = { government_rank = 3 } }
+			set_government_rank = 3
+		}
+		else_if = {
 			limit = { NOT = { government_rank = 2 } }
 			set_government_rank = 2
 		}
+		inherit = event_target:event_country
+		override_country_name = KHETERATA
 		ai_chance = { factor = 100 }
 	}
 	#no name change
 	option = {
         name = ahati_events.172.b
-		hidden_effect = { event_target:EmperorOfChina = { disband_all_units = yes } }
 		add_government_reform = aakheta_ahati_reform
 		set_emperor_of_china = ROOT
-		inherit = event_target:EmperorOfChina
 		if = {
+			limit = { event_target:event_country = { government_rank = 3 } }
+			set_government_rank = 3
+		}
+		else_if = {
 			limit = { NOT = { government_rank = 2 } }
 			set_government_rank = 2
 		}
+		inherit = event_target:event_country
 		ai_chance = { factor = 0 }
 	}
+
 	after = {
 		set_global_flag = ahati_rebellion_succeeded
 		remove_country_modifier = aakheta_uprising_modifier
@@ -2041,10 +2162,6 @@ country_event = {
 			clr_province_flag = ahati_barracks
 			clr_province_flag = ahati_cot
 			clr_province_flag = ahati_fort
-			466 = {
-				add_province_modifier = { name = ahati_aakheta_base duration = -1 }
-				change_religion = aakhetist
-			}
 		}
 		country_event = { id = ahati_events.173 days = 5 }
 	}
@@ -2065,7 +2182,7 @@ country_event = {
 
 	#yay
 	option = {
-        name = ahati_events.172.a
+        name = ahati_events.173.a
 		add_stability = 2
 		set_mandate = 100
 		set_meritocracy = 50
@@ -2073,10 +2190,38 @@ country_event = {
 		add_country_modifier = { name = aakheta_victory2 duration = 9125 }
 		change_aakhet_approval = { value = 50 }
 
+		custom_tooltip = ahati_events.173.tooltip
 		ai_chance = { factor = 100 }
 	}
 }
 
+
+#1 day war delay because ai doesn't change troops mid war
+country_event = {
+	id = ahati_events.175
+	title = ahati_events.173.t
+	desc = ahati_events.173.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+	}
+
+	#yay
+	option = {
+        name = ahati_events.172.a
+		U04 = { 
+			remove_country_modifier = restructuring_military
+			remove_country_modifier = restructuring_administration
+			declare_war_with_cb = { who = ROOT casus_belli = cb_aakheta_uprising } 
+		}
+
+		ai_chance = { factor = 100 }
+	}
+}
 
 
 #disaster end
@@ -2090,6 +2235,10 @@ country_event = {
 
 	trigger = {
 		is_emperor_of_china = yes
+	}
+
+	immediate = {
+		hidden_effect = { set_global_flag = ahati_rebellion_crushed }
 	}
 
 	#yay
@@ -2106,7 +2255,7 @@ country_event = {
 			set_estate_privilege = estate_ahati_khetist_recruitment
 		}
 		else = { set_estate_privilege = estate_ahati_non_khet_steward }
-		set_global_flag = ahati_rebellion_crushed
+		
 		ai_chance = { factor = 100 }
 	}
 }
