@@ -719,7 +719,6 @@ on_startup = {
 			id = effelai_worship.302
 		}
 	}
-
 	
 	#dwarovar reclaimer
 	if = { limit = { capital_scope = { continent = serpentspine } }
@@ -2111,6 +2110,18 @@ on_war_won = {
 	g27_boats_uprising_check_effect = yes
 	g27_civil_war_end_effect = yes
 
+	#DTC flees Deranne
+	if = {
+		limit = {
+			FROM = { 
+				tag = A02 #Deranne
+			}
+		}
+		country_event = {
+			id = aelantirspawnables.20
+		}
+	}
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -2440,6 +2451,7 @@ on_battle_lost_country = {
 		}
 		update_taychend_glory = yes
 	}
+	g27_civil_war_end_no_subject_effect = yes
 }
 
 # province
@@ -3386,6 +3398,15 @@ on_siege_lost_province =  {
 			}
 			owner = { country_event = { id = ynn_events.27 } }
 		}
+	}
+
+	if = {	#Brelar civil war for if ur a schizo and didn't make any subjects
+		limit = {
+			owner = {
+				tag = G27
+			}
+		}
+		g27_civil_war_end_lost_effect = yes
 	}
 
 	if = {
@@ -5204,6 +5225,25 @@ on_mandate_of_heaven_gained = {
 	}
 	update_sorrow_province_count = yes
 	set_meritocracy = 50
+	if = {
+		limit = { any_subject_country = { is_subject_of_type = tributary_state_anb } }
+		every_subject_country = {
+			limit = { is_subject_of_type = tributary_state_anb }
+			country_event = { id = khet_mandate.02 } 
+		}
+	}
+	if = {
+		limit = { tag = U01 } #kheterata
+		restore_country_name = yes
+	}
+	if = {
+		limit = { ai = yes }
+		475 = { add_core = ROOT }
+		473 = { add_core = ROOT }
+		463 = { add_core = ROOT }
+		479 = { add_core = ROOT }
+		5481 = { add_core = ROOT }
+	}
 }
 
 # When a nation loses the Mandate of Heaven
@@ -5225,6 +5265,27 @@ on_mandate_of_heaven_lost = {
 		remove_claim = ROOT
 	}
 	clr_mandate_modifiers = yes
+	if = {
+		limit = { any_subject_country = { is_subject_of_type = tributary_state } }
+		every_subject_country = { 
+			limit = { is_subject_of_type = tributary_state }
+			country_event = { id = khet_mandate.03 } 
+		}
+	}
+	if = {
+		limit = { 
+			OR = {
+				tag = U02 #nirat
+				tag = U04 #aakheta
+			} 
+		}
+		restore_country_name = yes
+	}
+	475 = { remove_core = ROOT }
+	473 = { remove_core = ROOT }
+	463 = { remove_core = ROOT }
+	479 = { remove_core = ROOT }
+	5481 = { remove_core = ROOT }
 }
 
 on_embrace_revolution = {
@@ -8287,21 +8348,33 @@ on_thri_yearly_pulse_4 = {
 
 		20 = 0
 	}
-
+	##aakhetist events
 	random_events = {
-		3500 = 0
+		700 = 0
 
-		75 = aakhetist.50
-		100 = aakhetist.51
-		100 = aakhetist.52
-		100 = aakhetist.53
-		100 = aakhetist.54
-		100 = aakhetist.55
-		80 = aakhetist.56
-		100 = aakhetist.57
-		100 = aakhetist.58
-		100 = aakhetist.59
-		100 = aakhetist.60
+		50 = aakhetist.50
+		80 = aakhetist.51
+		80 = aakhetist.52
+		80 = aakhetist.53
+		80 = aakhetist.54
+		80 = aakhetist.55
+		60 = aakhetist.56
+		80 = aakhetist.57
+		80 = aakhetist.58
+		80 = aakhetist.59
+		80 = aakhetist.60
+	}
+	#ahati events
+	random_events = {
+		100 = ahati_events.30
+		100 = ahati_events.31
+		100 = ahati_events.32
+		100 = ahati_events.33
+		150 = ahati_events.34
+		150 = ahati_events.35
+		150 = ahati_events.36
+		100 = ahati_events.38
+		100 = ahati_events.39
 	}
 }
 
@@ -8924,17 +8997,6 @@ on_four_year_pulse_3 = {
 		100 = ancestor_worship.116	#Tales of a noble foreigner
 		100 = ancestor_worship.117	#Celebrate the ancestors
 		100 = ancestor_worship.118	#Monsters destroy ancestor's grave
-	}
-
-	random_events = {
-		1300 = 0
-		100 = ahati_events.30
-		100 = ahati_events.31
-		100 = ahati_events.32
-		100 = ahati_events.33
-		100 = ahati_events.34
-		100 = ahati_events.35
-		100 = ahati_events.36
 	}
 
 	random_events = {
@@ -10855,6 +10917,18 @@ on_province_owner_change = {
 			4311 = { province_event = { id = blorc.27 } }
 			4323 = { province_event = { id = blorc.28 } }
 		}
+
+		# grant massive dev cost malus to holds to prevent devving
+		if = {
+			limit = {
+				province_group = hold_province
+			}
+			add_province_modifier = {
+				name = blorc_hold_malus
+				duration = -1
+				hidden = yes
+			}
+		} 
 	}
 	if = {
 		limit = { FROM = { primary_culture = black_orc } }
@@ -11394,6 +11468,32 @@ on_province_owner_change = {
 
 	if = {
 		limit = {
+			province_id = 234
+			has_province_modifier = clstc_colonial_port
+		}
+		if = {
+			limit = {
+				owner = {
+					is_part_of_hre = yes
+				}
+			}
+			owner = {
+				country_event = {
+					id = hre_event.100
+				}
+			}
+		}
+		else = {
+			owner = {
+				country_event = {
+					id = hre_event.101
+				}
+			}
+		}
+	}
+
+	if = {
+		limit = {
 			province_id = 912
 			has_province_modifier = incomplete_hold_0
 			owned_by = A73
@@ -11537,12 +11637,6 @@ on_province_owner_change = {
 		FROM = { update_sorrow_province_count = yes }
 	}
 
-	#Mandate ahati religion switch
-	if = {
-		limit = { religion = aakhetist_ahati }
-		change_religion = aakhetist
-	}
-
 	#Ynn
 	owner = { country_event = { id = ynn_events.2 } }
 	FROM = { country_event = { id = ynn_events.2 } }
@@ -11619,6 +11713,7 @@ on_province_owner_change = {
 	}
 
 	g27_breluslad_integration_effect = yes	#Breluslad integrating provinces stuff
+	g27_iron_mines_effect = yes #Brelari Iron mines stronk
 
 	#reduced dev cost in capital state, adds modifier when gaining provinces in capital state
 	if = {
@@ -12009,6 +12104,12 @@ on_province_owner_change = {
 	if = {
 		limit = {
 			province_group = shrine_provinces
+			NOT = {
+				AND = {
+					province_id = 6612
+					NOT = { has_global_flag = begga_canonization }
+				}
+			}
 			owner = {
 				has_reform = shrine_guardians_reform
 			}
@@ -12080,7 +12181,7 @@ on_province_owner_change = {
 		}
 		5710 = {
 			remove_province_modifier = kolo_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = kolo_shrine_province_active
 				duration = -1  
 			}
@@ -12101,7 +12202,7 @@ on_province_owner_change = {
 		}
 		5823 = {
 			remove_province_modifier = the_nakazy_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = the_nakazy_shrine_province_active
 				duration = -1  
 			}
@@ -12122,7 +12223,7 @@ on_province_owner_change = {
 		}
 		6634 = {
 			remove_province_modifier = turozi_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = turozi_shrine_province_active
 				duration = -1  
 			}
@@ -12144,7 +12245,7 @@ on_province_owner_change = {
 		}
 		5899 = {
 			remove_province_modifier = yuye_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = yuye_shrine_province_active
 				duration = -1  
 			}
@@ -12166,7 +12267,7 @@ on_province_owner_change = {
 		}
 		5825 = {
 			remove_province_modifier = ozamdi_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = ozamdi_shrine_province_active
 				duration = -1  
 			}
@@ -12187,7 +12288,7 @@ on_province_owner_change = {
 		}
 		6626 = {
 			remove_province_modifier = jyva_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = jyva_shrine_province_active
 				duration = -1  
 			}
@@ -12208,7 +12309,7 @@ on_province_owner_change = {
 		}
 		6610 = {
 			remove_province_modifier = ytrai_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = ytrai_shrine_province_active
 				duration = -1  
 			}
@@ -12229,7 +12330,7 @@ on_province_owner_change = {
 		}
 		6632 = {
 			remove_province_modifier = drongray_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = drongray_shrine_province_active
 				duration = -1  
 			}
@@ -12250,7 +12351,7 @@ on_province_owner_change = {
 		}
 		6608 = {
 			remove_province_modifier = elinao_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = elinao_shrine_province_active
 				duration = -1  
 			}
@@ -12271,7 +12372,7 @@ on_province_owner_change = {
 		}
 		6612 = {
 			remove_province_modifier = begga2_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = begga2_shrine_province_active
 				duration = -1  
 			}
@@ -12292,7 +12393,7 @@ on_province_owner_change = {
 		}
 		5821 = {
 			remove_province_modifier = nakinta_shrine_province
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = nakinta_shrine_province_active
 				duration = -1  
 			}
@@ -12307,7 +12408,7 @@ on_province_owner_change = {
 		}
 		remove_province_modifier = lel_shrine_province_active
 		6599 = {
-			add_province_modifier = { 
+			add_permanent_province_modifier = { 
 				name = lel_shrine_province
 				duration = -1  
 			}
@@ -12332,7 +12433,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = the_nakazy } }			
 		}
 		remove_province_modifier = the_nakazy_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = the_nakazy_shrine_province
 			duration = -1  
 		}
@@ -12344,7 +12445,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = turozi } }			
 		}
 		remove_province_modifier = turozi_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = turozi_shrine_province
 			duration = -1  
 		}
@@ -12356,7 +12457,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = ozamdi } }			
 		}
 		remove_province_modifier = ozamdi_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = ozamdi_shrine_province
 			duration = -1  
 		}
@@ -12368,7 +12469,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = yuye } }			
 		}
 		remove_province_modifier = yuye_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = yuye_shrine_province
 			duration = -1  
 		}
@@ -12380,7 +12481,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = jyva } }			
 		}
 		remove_province_modifier = jyva_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = jyva_shrine_province
 			duration = -1  
 		}
@@ -12392,7 +12493,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = ytrai } }			
 		}
 		remove_province_modifier = ytrai_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = ytrai_shrine_province
 			duration = -1  
 		}
@@ -12404,7 +12505,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = drongray } }			
 		}
 		remove_province_modifier = drongray_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = drongray_shrine_province
 			duration = -1  
 		}
@@ -12416,7 +12517,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = elinao } }			
 		}
 		remove_province_modifier = elinao_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = elinao_shrine_province
 			duration = -1  
 		}
@@ -12425,10 +12526,11 @@ on_province_owner_change = {
 	if = {
 		limit = {
 			province_id = 6612
-			NOT = { owner = { has_personal_deity = begga2 } }			
+			NOT = { owner = { has_personal_deity = begga2 } }
+			has_province_modifier = begga2_shrine_province_active
 		}
 		remove_province_modifier = begga2_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = begga2_shrine_province
 			duration = -1  
 		}
@@ -12440,7 +12542,7 @@ on_province_owner_change = {
 			NOT = { owner = { has_personal_deity = nakinta } }			
 		}
 		remove_province_modifier = nakinta_shrine_province_active
-		add_province_modifier = { 
+		add_permanent_province_modifier = { 
 			name = nakinta_shrine_province
 			duration = -1  
 		}
@@ -13087,7 +13189,7 @@ on_admiral_recruited = {
 	}
 	
 	#Anbennar
-	kobold_dragon_cult_recruited_leader = yes
+	kobold_dragon_cult_recruited_general = yes
 }
 
 # country
@@ -13305,18 +13407,26 @@ on_hre_reform_passed = {
 }
 
 on_mandate_reform_passed = {
-	if = {
-		limit = {
-			religion_group = khetist 
-			475 = {
-				owned_by = ROOT
-				has_great_project = {
-					type = elikhet_pyramid
-					tier = 3
+	event_target:EmperorOfChina = {
+		if = {
+			limit = { has_country_flag = free_mandate_reform }
+			clr_country_flag = free_mandate_reform
+			add_mandate = 70
+			add_stability = 1
+		}
+		else_if = {
+			limit = {
+				religion_group = khetist 
+				475 = {
+					owned_by = PREV
+					has_great_project = {
+						type = elikhet_pyramid
+						tier = 3
+					}
 				}
 			}
+			add_stability = 1
 		}
-		add_stability = 1
 	}
 }
 
@@ -13649,6 +13759,14 @@ on_primary_culture_changed = {
 		remove_country_modifier = black_orc_trophy_tuwad_dhumankon
 		remove_country_modifier = black_orc_trophy_gronstunad
 		remove_country_modifier = black_orc_trophy_verkal_dromak
+
+		# remove all dev cost maluses on holds
+		hold_province = {
+			limit = {
+				owned_by = ROOT
+			}
+			remove_province_modifier = blorc_hold_malus 
+		}
 	}
 	else = { #transfer all trophies to Blorc
 		if = { limit = { owns = 2863 } 2863 = { province_event = { id = blorc.1 } } }
@@ -13679,6 +13797,18 @@ on_primary_culture_changed = {
 		if = { limit = { owns = 4350 } 4350 = { province_event = { id = blorc.26 } } }
 		if = { limit = { owns = 4311 } 4311 = { province_event = { id = blorc.27 } } }
 		if = { limit = { owns = 4323 } 4323 = { province_event = { id = blorc.28 } } }
+
+		# add massive dev cost maluses to prevent devving holds
+		hold_province = {
+			limit = {
+				owned_by = ROOT
+			}
+			add_province_modifier = {
+				name = blorc_hold_malus
+				duration = -1
+				hidden = yes
+			}
+		}
 	}
 	if = {
 		limit = {
@@ -13781,7 +13911,7 @@ on_dependency_gained = {
 	if = { #Turning vassals into Xiakens when you release or gain new vassals
 		limit = {
 			ROOT = { has_reform = wulin }
-			FROM = { NOT = { is_subject_of_type = daimyo_xiaken_vassal } }
+			FROM = { NOT = { has_reform = xiaken } }
 		}
 		# logic moved into event to prevent crashes
 		FROM = { country_event = { id = one_xia.3000 } }
