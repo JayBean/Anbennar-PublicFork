@@ -791,7 +791,7 @@ NCountry = {
 	STRENGTHEN_GOVERNMENT_REPUBLICAN_TRADITION = 3,
 	STRENGTHEN_GOVERNMENT_HORDE_UNITY = 10,
 	STRENGTHEN_GOVERNMENT_DEVOTION = 10,
-	STRENGTHEN_GOVERNMENT_MERITOCRACY = 5, #Anbennar, vanilla is 10
+	STRENGTHEN_GOVERNMENT_MERITOCRACY = 5, -- #Anbennar, vanilla is 10
 
 	CORE_COLONY = 0.5,								-- Multiplied with development, colonized by country or overseas
 	CORE_OVERSEAS = 0.5,							-- Multiplied with development, colonized by country or overseas
