@@ -2,13 +2,12 @@
 namespace = flavour_bosancovac
 
 country_event = {
-	id = flavour_bosancovac.1
-	title = flavour_bosancovac.1.t
-	desc = flavour_bosancovac.1.d
+	id = flavour_bosancovac.000
+	title = flavour_bosancovac.000.t
+	desc = flavour_bosancovac.000.d
 	picture = CAVE_eventPicture
 
 	is_triggered_only = yes
-	fire_only_once = yes
 
 	trigger = {
 		OR = {
@@ -22,14 +21,73 @@ country_event = {
 				was_tag = G33
 			}
 		}
+		NOT = { has_country_flag = bosancovac_no_notification }
 	}
 
 	option = {
 		name = flavour_bosancovac.1.a
+		add_mercantilism = 1
+		add_opinion = {
+			who = FROM
+			modifier = g33_accepted_port
+		}
+		if = {
+			limit = { FROM = { is_subject_of = ROOT } }
+			FROM = { add_liberty_desire = -5 }
+		}
+		ai_chance = {
+			factor = 100
+		}
 	}
 
 	option = {
 		name = flavour_bosancovac.1.b
+		custom_tooltip = "You will stop receiving notifications about this."
+		hidden_effect = { set_country_flag = bosancovac_no_notification }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+country_event = {
+	id = flavour_bosancovac.001
+	title = flavour_bosancovac.001.t
+	desc = flavour_bosancovac.001.d
+	picture = CAVE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		OR = {
+			tag = G33
+			AND = {
+				tag = U70
+				was_tag = G33
+			}
+			AND = {
+				tag = H27
+				was_tag = G33
+			}
+		}
+		has_country_flag = bosancovac_no_notification
+	}
+
+	option = {
+		name = flavour_bosancovac.001.a
+		add_mercantilism = 1
+		add_opinion = {
+			who = FROM
+			modifier = g33_accepted_port
+		}
+		if = {
+			limit = { FROM = { is_subject_of = ROOT } }
+			FROM = { add_liberty_desire = -5 }
+		}
+		ai_chance = {
+			factor = 100
+		}
 	}
 }
 
@@ -61,12 +119,14 @@ country_event = {
 		name = flavour_bosancovac.210.a
 		G26 = { country_event = { id = flavour_bosancovac.211 } }
 		custom_tooltip = bosancovac_offer_amacimst_tt
+		hidden_effect = { set_country_flag = bosancovac_chose_amacimst }
 	}
 
 	option = {
 		name = flavour_bosancovac.210.b
 		G32 = { country_event = { id = flavour_bosancovac.211 } }
 		custom_tooltip = bosancovac_offer_malacnar_tt
+		hidden_effect = { set_country_flag = bosancovac_chose_malacnar }
 	}
 
 	option = {
@@ -94,6 +154,71 @@ country_event = {
 
 	trigger = {
 		OR = {
+			tag = G26
+			tag = G32
+		}
+	}
+
+	option = {
+		name = flavour_bosancovac.211.a
+		trigger = { tag = G26 }
+		custom_tooltip = bosancovac_amacimst_offer_tt
+		hidden_effect = {
+			G33 = {
+				declare_war_with_cb = {
+					casus_belli = cb_iosahar_annex
+					who = G32
+				}
+			}
+			join_all_offensive_wars_of = G33
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+
+	option = {
+		name = flavour_bosancovac.211.b
+		trigger = { tag = G32 }
+		custom_tooltip = bosancovac_malacnar_offer_tt
+		hidden_effect = {
+			G33 = {
+				declare_war_with_cb = {
+					casus_belli = cb_iosahar_annex
+					who = G26
+				}
+			}
+			join_all_offensive_wars_of = G33
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+
+	option = {
+		name = flavour_bosancovac.211.c
+		add_trust = {
+			who = G33
+			value = -30
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+#Honoring the deal
+country_event = {
+	id = flavour_bosancovac.212
+	title = flavour_bosancovac.212.t
+	desc = flavour_bosancovac.212.d
+	picture = CAVE_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		OR = {
 			tag = G33
 			AND = {
 				tag = U70
@@ -106,20 +231,126 @@ country_event = {
 		}
 	}
 
-	option = {
-		name = flavour_bosancovac.211.a
-		custom_tooltip = bosancovac_offer_amacimst_tt
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = { has_country_flag = bosancovac_chose_amacimst }
+				every_owned_province = {
+					limit = {
+						NOT = { is_core = ROOT }
+						NOT = { area = malacnar_area }
+						NOT = { area = drevkenuc_area }
+					}
+					if = {
+						limit = { any_core_country = { exists = no } }
+						random_core_country = {
+							limit = { exists = no }
+							PREV = { cede_province = PREV }
+							G26 = { create_iosahar = { tag = PREV } }
+						}
+					}
+					else_if = {
+						limit = { any_core_country = { is_subject_of = G26 } }
+						random_core_country = {
+							limit = { is_subject_of = G26 }
+							PREV = { cede_province = PREV }
+						}
+					}
+					else = { cede_province = G26 }
+				}
+				G32 = {
+					if = {
+						limit = {
+							is_subject_of = G33
+						}
+						every_owned_province = {
+							limit = {
+								NOT = { area = malacnar_area }
+								NOT = { area = drevkenuc_area }
+							}
+							if = {
+								limit = { any_core_country = { exists = no } }
+								random_core_country = {
+									limit = { exists = no }
+									PREV = { cede_province = PREV }
+									G26 = { create_iosahar = { tag = PREV } }
+								}
+							}
+							else_if = {
+								limit = { any_core_country = { is_subject_of = G26 } }
+								random_core_country = {
+									limit = { is_subject_of = G26 }
+									PREV = { cede_province = PREV }
+								}
+							}
+							else = { cede_province = G26 }
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { has_country_flag = bosancovac_chose_malacnar }
+				every_owned_province = {
+					limit = {
+						NOT = { is_core = ROOT }
+						NOT = { area = bosancovac_area }
+						NOT = { area = amacimst_area }
+					}
+					if = {
+						limit = { any_core_country = { exists = no } }
+						random_core_country = {
+							limit = { exists = no }
+							PREV = { cede_province = PREV }
+							G32 = { create_iosahar = { tag = PREV } }
+						}
+					}
+					else_if = {
+						limit = { any_core_country = { is_subject_of = G32 } }
+						random_core_country = {
+							limit = { is_subject_of = G32 }
+							PREV = { cede_province = PREV }
+						}
+					}
+					else = { cede_province = G32 }
+				}
+				G26 = {
+					if = {
+						limit = {
+							is_subject_of = G33
+						}
+						every_owned_province = {
+							limit = {
+								NOT = { area = malacnar_area }
+								NOT = { area = drevkenuc_area }
+							}
+							if = {
+								limit = { any_core_country = { exists = no } }
+								random_core_country = {
+									limit = { exists = no }
+									PREV = { cede_province = PREV }
+									G32 = { create_iosahar = { tag = PREV } }
+								}
+							}
+							else_if = {
+								limit = { any_core_country = { is_subject_of = G32 } }
+								random_core_country = {
+									limit = { is_subject_of = G32 }
+									PREV = { cede_province = PREV }
+								}
+							}
+							else = { cede_province = G32 }
+						}
+					}
+				}
+			}
+		}
 	}
 
 	option = {
-		name = flavour_bosancovac.211.b
-		custom_tooltip = bosancovac_offer_malacnar_tt
-		#declare war
-	}
-
-	option = {
-		name = flavour_bosancovac.211.c
-		#lose trust
+		name = flavour_bosancovac.212.a
+		add_prestige = 5
+		add_opinion = { who = THIS modifier = g33_hasty_occupation }
+		hidden_effect = { clr_country_flag = bosancovac_chose_amacimst clr_country_flag = bosancovac_chose_malacnar }
 	}
 }
 
@@ -206,7 +437,6 @@ country_event = {
 		define_advisor = {
 			type = artist
 			culture = dolindhan
-			location = 2488
 		}
 		hidden_effect = { set_country_flag = bosancovac_foundations_unlocked }
 		custom_tooltip = bosancovac_foundations_unlock_tt
@@ -218,7 +448,6 @@ country_event = {
 		define_advisor = {
 			type = artist
 			culture = dolindhan
-			location = 2488
 			discount = yes
 		}
 		hidden_effect = { set_country_flag = bosancovac_foundations_unlocked }
