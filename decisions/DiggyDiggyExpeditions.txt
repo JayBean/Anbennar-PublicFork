@@ -1,32 +1,61 @@
 
 country_decisions = {
 	expedition_menu = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
-			REB = { check_variable = { nbExpedition = 1 } }
+			OR = {
+				REB = { check_variable = { nbExpedition = 1 } }
+				any_owned_province = { has_province_flag = explorable_dungeon }
+			}
 			capital_scope = { continent = serpentspine }
 			NOT = { has_country_flag = debug_menu }
+			NOT = { has_country_flag = expedition_happening }
 		}
 		
 		provinces_to_highlight = {
-			has_province_modifier = expedition_target
 			owned_by = ROOT
+			OR = {
+				has_province_modifier = expedition_target
+				has_province_flag = explorable_dungeon
+			}
 		}
 		
 		allow = {
+			hidden_trigger = { capital_scope = { continent = serpentspine } }
 			custom_trigger_tooltip = {
 				tooltip = no_expedition_happening
 				NOT = { has_country_flag = expedition_happening }
 			}
+			if = {
+				limit = { 
+					ai = no 
+					NOT = { land_maintenance = 1 }
+				}
+				land_maintenance = 1
+			}
 			any_owned_province = {
 				is_city = yes
-				has_province_modifier = expedition_target
-				owned_by = ROOT
+				OR = {
+					has_province_modifier = expedition_target
+					AND = {
+						custom_trigger_tooltip = {
+							tooltip = has_explorable_dungeon_tooltip
+							has_province_flag = explorable_dungeon
+						}
+						custom_trigger_tooltip = {
+							tooltip = dungeon_floor_builded_tooltip
+							NOT = { has_province_flag = floor_explored }
+						}
+						NOT = { has_construction = any }
+					}
+				}
 				controlled_by = ROOT
 				custom_trigger_tooltip = {
 					tooltip = no_expedition_happening
 					NOT = { has_province_flag = sent_expedition_@ROOT }
 				}
+				NOT = { has_province_modifier = expedition_death_timer }
 			}
 		}
 		
@@ -36,18 +65,31 @@ country_decisions = {
 		}
 		
 		ai_will_do = {
-			factor = 0
+			factor = 100
+			modifier = {
+				factor = 0
+				has_reform = dwarovar_adventurer_reform
+				adm_tech = 7
+				hold_province = { owned_by = ROOT }
+			}
 		}
 	}
 	
 	expedition_party = {
+		color = { 33 64 96 }
 		major = yes
 		potential = {
-			ai = no
 			capital_scope = { continent = serpentspine }
 			NOT = { has_country_flag = debug_menu }
+			has_country_flag = expedition_happening
 			any_owned_province = {
 				has_province_flag = sent_expedition_@ROOT
+				NOT = {
+					AND = {
+						owner = { ai = yes }
+						has_province_flag = generated_party_stats_@ROOT
+					}
+				}
 			}
 		}
 		
@@ -60,18 +102,44 @@ country_decisions = {
 		}
 		
 		effect = {
-			custom_tooltip = expedition_party_decision_tooltip
-			hidden_effect = {
+			if = {
+                limit = { ai = no }
+                custom_tooltip = expedition_party_decision_tooltip
+                hidden_effect = {
+                    random_owned_province = {
+                        limit = { has_province_flag = sent_expedition_@ROOT }
+                        if = { 
+							limit = { has_province_flag = expedition_in_progress }
+                            if = {
+								limit = { has_province_flag = explorable_dungeon }
+                                province_event = { id = diggy_dungeons.3 }
+                            }
+                            else = {
+                                province_event = { id = diggy_expedition.10 }
+                            }
+                        }
+                        else = {
+                            province_event = { id = diggy_expedition.3 }
+                        }
+                    }
+                }
+                hidden_effect = { set_country_flag = debug_menu }
+            }
+			#AI expeditions
+			else = {
 				random_owned_province = {
 					limit = { has_province_flag = sent_expedition_@ROOT }
-					province_event = { id = diggy_expedition.3 }
+					if = {
+						limit = { has_province_flag = explorable_dungeon }
+						province_event = { id = diggy_dungeons.1500 }
+					}
+					else = { province_event = { id = diggy_expedition.1500 } }
 				}
 			}
-			hidden_effect = { set_country_flag = debug_menu }
 		}
 		
 		ai_will_do = {
-			factor = 0
+			factor = 100
 		}
 	}
 }
