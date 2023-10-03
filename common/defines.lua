@@ -2578,7 +2578,7 @@ NReligion = {
 
 	KARMA_FOR_OFFENSIVE_WAR = -5,								-- (Anbennar) pdx: -10
 	KARMA_FOR_HONORING_CTA = 25,
-	KARMA_PER_RELEASED_PROVINCE = 1,
+	KARMA_PER_RELEASED_PROVINCE = 0,						-- (Anbennar) pdx: 1
 	KARMA_PER_TAKEN_PROVINCE = 0,							-- (Anbennar) pdx: -1
 	KARMA_TOO_HIGH = 33,
 	KARMA_TOO_LOW = -33,
