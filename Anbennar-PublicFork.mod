@@ -1,4 +1,4 @@
-name="anbennar-eu4-fork-meander"
+name="Anbennar-PublicFork"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -28,4 +28,4 @@ replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
 supported_version="1.35.6"
-path="C:/Users/Meander/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-fork-meander"
+path="mod/Anbennar-PublicFork"
