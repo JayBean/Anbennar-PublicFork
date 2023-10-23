@@ -44,7 +44,7 @@ function validate_events(){
 	declare -i NEUTRAL=0
 	declare -i BAD=0
 	
-	for f in ./events/*.txt
+	for f in ./events/*.txt ./missions/*.txt
 	do
 		if [ "$(file -b --mime-encoding "$f")" = us-ascii ];then
 			# echo -e "${GREEN}{$f} encoding is good.${NC}"
@@ -66,12 +66,12 @@ function validate_events(){
 		TOTAL+=1
 	done
 	
-	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}event files encoding validated.${NC}\n"
+	echo -e "\n		${GREEN}${GOOD}${NC}/${TOTAL} ${GREEN}files encoding validated.${NC}\n"
 	if [[ $NEUTRAL > 0 ]]; then
-		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}event files encoding are in european ascii or unknown.${NC}\n"
+		echo -e "\n		${YELLOW}${NEUTRAL}${NC}/${TOTAL} ${YELLOW}files encoding are in european ascii or unknown.${NC}\n"
 	fi
 	if [[ $BAD > 0 ]]; then
-		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}event files have a wrong encoding!${NC}\n"
+		echo -e "\n		${RED}${BAD}${NC}/${TOTAL} ${RED}files have a wrong encoding!${NC}\n"
 		exit 1
 	fi
 }
@@ -149,7 +149,7 @@ function help_function()
 {
 	echo ""
 	echo "Usage: $0 -e -l -d -u"
-	echo -e "\t-e Check events folder files encoding"
+	echo -e "\t-e Check events and missions folder files encoding"
 	echo -e "\t-l Check localization folder files encoding"
 	echo -e "\t-d Check decisions folder files encoding"
 	echo -e "\t-i Check text file for broken indentation(bracket counting)"
