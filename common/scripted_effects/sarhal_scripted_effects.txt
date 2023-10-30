@@ -35,31 +35,32 @@ night_coven_collapse = {
 	}
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
     every_owned_province = {
-        limit = {
-            NOT = {
-                region = yezel_mora_region
-            }
-        }
-        remove_core = FROM
-    }
-    every_owned_province = {
-        limit = {
-            NOT = {
-				region = yezel_mora_region #fuck custom nations. Don't need to account for spawning ones or converts either cause they don't get reforms
-            }
-        }
-    	#remove_core = S70 #done above
-        random_core_country = {
-            save_event_target_as = night_reform_tag_select
-        }
-        random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
-            20 = { ##no way to check if there is a core core country unfortunately, just if one exist on the map or doesn't exist. But if there is no valid one, it is fixed later
+        limit = { NOT = { region = yezel_mora_region } }
+		remove_core = S70
+
+        random_list = {
+			
+			#existing tag with a core
+			80 = {
+				random_core_country = {
+					limit = { 
+						NOT = { tag = F68 }
+						exists = yes
+					}
+					save_event_target_as = night_reform_tag_select
+				}
+				cede_province = event_target:night_reform_tag_select
+			}
+			#any tag with a core
+            20 = {
                 random_core_country = {
+					limit = { NOT = { tag = F68 } }
                     save_event_target_as = night_reform_tag_select
                 }
                 cede_province = event_target:night_reform_tag_select
             }
-            5 = { #30% we give to a neighbor #decreasing this from 30 to 5
+			#neighbor
+            5 = {
                 trigger = {
                     any_neighbor_province = {
                         is_city = yes
@@ -68,37 +69,30 @@ night_coven_collapse = {
                 }
                 random_neighbor_province = {
                     limit = {
-                        NOT = {
-                            owned_by = S70
-                        }
+						is_city = yes
+                        NOT = { owned_by = S70 }
                     }
                     owner = { save_event_target_as = night_reform_tag_select }
                 }
-                add_claim = event_target:night_reform_tag_select
                 cede_province = event_target:night_reform_tag_select
             }
-    		30 = { #increasing  this from 5 to 30 to help the angel and players getting attacked by the troll
-                cede_province = previous_owner
-    		}
-            5 = { ##
+			#previous owner
+			30 = { cede_province = previous_owner }
+			#release
+            5 = {
                 random_core_country = {
-                    S70 = {
-                        Release = PREV
-                    }
+					limit = { NOT = { tag = F68 } }
+                    S70 = { release = PREV }
                 }
             }
         }
         #in case we can't give some away
         if = {
-            limit = {
-                owned_by = S70
-            }
+            limit = { owned_by = S70 }
             cede_province = previous_owner
         }
         ####inform the player
-        owner = {
-            country_event = { id = shadow.3 }
-        }
+        province_event = { id = shadow.3 }
     }
 }
 
@@ -295,7 +289,7 @@ bulwar_parliament_fort_effect = {
 }
 calculate_gardener_duty_effect = {	
 	if = {
-		limit = { owner = { has_estate_privilege = estate_church_gardener_duty } }
+		limit = { owner = { has_estate_privilege = estate_church_dictate_understanding } }
 		if = {
 			limit = {
 				NOT = { religion_group = bulwari }
@@ -309,16 +303,111 @@ calculate_gardener_duty_effect = {
 				}
 			}
 			add_province_modifier = {
-				name = estate_church_gardener_duty_mod
+				name = estate_church_dictate_understanding_mod
 				duration = -1
 			}
 		}
 		else = {
-			remove_province_modifier = estate_church_gardener_duty_mod
+			remove_province_modifier = estate_church_dictate_understanding_mod
 		}
 	}
 }
-
+bulwarize_province = {
+	if = { 
+		limit = { region = harpy_hills_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = kuz_mountains_area
+					area = kuzak_area
+					area = imuluses_area
+				}
+			}
+			change_culture = kuzarami
+		}
+		else = {
+			change_culture = gelkar
+		}
+	}
+	else_if = {
+		limit = { region = bahar_region }
+		change_culture = bahari
+	}
+	else_if = {
+		limit = { region = far_salahad_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = dasmatus_area
+					area = zallirkor_area
+					province_id = 4400
+				}
+			}
+			change_culture = maqeti
+		}
+		else = {
+			change_culture = masnsih
+		}
+	}
+	else_if = {
+		limit = { region = far_bulwar_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = avamezan_area
+					area = sareyand_area
+				}
+			}
+			change_culture = zanite
+		}
+		else_if = { 
+			limit = { 
+				OR = {
+					area = garpix_zokka_area
+					area = jikarzax_area
+					area = xhurgrum_area
+					area = eastern_krahway_area
+				}
+			}
+			change_culture = masnsih
+		}
+		else = {
+			change_culture = surani
+		}
+	}
+	else_if = {
+		limit = { region = bulwar_proper_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = sur_mountains_area
+					area = garpix_tluukt_area
+					area = grixekyr_area
+					province_id = 689
+				}
+			}
+			change_culture = sadnatu
+		}
+		else_if = { 
+			limit = { 
+				OR = {
+					area = kumarkand_area
+					area = bulwar_area
+					area = harklum_area
+					area = south_naza_area
+					area = traz_buranun_area
+					area = north_naza_area
+					area = east_naza_area
+					area = jixobix_area
+				}
+			}
+			change_culture = zanite
+		}
+		else = {
+			change_culture = brasanni
+		}
+	}
+}
 
 ##Aakhetist
 
@@ -482,5 +571,142 @@ aakhet_reset = {
 		clr_country_flag = current_aakhet_host
 		clear_global_event_target = aakhet_host
 		set_global_flag = aakhet_hostless
+	}
+}
+
+adeen_increase_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_temp_appeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = 1
+			}
+		}
+	}
+}
+
+adeen_spawn_rebels_condition = {
+	if = {
+		limit = {
+			NOT = { 
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_owned_province = {
+			limit = { is_overseas = no }
+			spawn_rebels = {
+				type = adeen_rebels
+				size = 30
+				as_if_faction = yes
+			}
+		}
+	}
+}
+
+adeen_decrease_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_temp_displeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = -1
+			}
+		}
+		adeen_spawn_rebels_condition = yes
+	}
+}
+
+adeen_remove_privilege = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		adeen_decrease_appease = yes
+	}
+	add_country_modifier = { name = adeen_revoke_cooldown_mod duration = 730 }
+}
+
+adeen_increasing_corruption_low = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.2
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.4
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 0.7
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1
+	}
+}
+
+adeen_increasing_corruption_high = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.3
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.5
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 1
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1.5
+	}
+}
+
+adeen_more_events = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_additional_events
 	}
 }
