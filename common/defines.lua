@@ -2539,7 +2539,7 @@ NReligion = {
 
 	MAYA_COLLAPSE_PROVINCES = 15,	-- Maya collapses to this size on reform
 	MAYA_COLLAPSE_PROVINCES_PER_REFORM = 1,					-- Maya keeps this many extra provinces per reform
-	YEARLY_DOOM_INCREASE = .3,								-- Multiplied by number of provinces
+	YEARLY_DOOM_INCREASE = 0.3,								-- Multiplied by number of provinces
 	DOOM_REDUCTION_FROM_REFORMS = 0.2,						-- This much less monthly doom (as a fraction of whole) for each reform passed
 	DOOM_REDUCTION_FROM_OCCUPATION = 0.05,					-- Multiplied by development
 	DOOM_REDUCTION_FROM_BATTLE = 1,							-- Per 1000 men killed
