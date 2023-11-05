@@ -2577,7 +2577,8 @@ NReligion = {
 	CHURCH_POWER_RATE_SCALE = 0.1,								-- Scaling value for rate at which church power is gained.
 
 	KARMA_FOR_OFFENSIVE_WAR = -15,								-- (Anbennar) pdx: -10
-	KARMA_FOR_HONORING_CTA = 20,
+	--KARMA_FOR_HONORING_CTA = 20,
+	KARMA_FOR_HONORING_CTA = 20,	--Testing
 	KARMA_PER_RELEASED_PROVINCE = 0,						-- (Anbennar) pdx: 1
 	KARMA_PER_TAKEN_PROVINCE = 0,							-- (Anbennar) pdx: -1
 	KARMA_TOO_HIGH = 33,
