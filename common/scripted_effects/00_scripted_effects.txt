@@ -1422,6 +1422,18 @@ set_great_project_tier_1 = {
 				tier = 1
 			}
 		}
+		else = {
+			random_list = {
+				1 = { add_base_tax = 2 }
+				1 = { add_base_production = 2 }
+				1 = { add_base_manpower = 2 }
+			}
+		}
+	}
+	else = {
+		add_base_tax = 1
+		add_base_production = 1
+		add_base_manpower = 1
 	}
 }
 
@@ -1940,6 +1952,15 @@ add_legitimacy_equivalent = {
 # estate_janissary_ottoman_vanguards
 # estate_nobles_english_copyhold_tenure
 # estate_burghers_autonomous_trade_companies
+# estate_nobles_defensive_policy
+# estate_qizilbash_defensive_policy
+# estate_ghulams_defensive_policy
+# estate_nobles_tofangchi_regiment
+# estate_qizilbash_tofangchi_regiment
+# estate_ghulams_tofangchi_regiment
+# estate_nobles_tupchi_artillery_corps
+# estate_qizilbash_tupchi_artillery_corps
+# estate_ghulams_tupchi_artillery_corps
 ##########################################################
 # When adding new privileges then make sure that a unlock_privilege_$estate_privilege$_tt is defined in the localization
 # For checking if an estate privilege is unlocked already, use has_unlocked_estate_privilege = { estate_privilege = $estate_privilege$ }
@@ -1949,6 +1970,22 @@ unlock_estate_privilege = {
 	hidden_effect = {
 		set_country_flag = unlocked_privilege_$estate_privilege$
 	}
+	[[modifier_tooltip]
+		custom_tooltip = unlock_estate_privilege_modifier_tooltip_tt
+		tooltip = {
+			add_country_modifier = {
+				name = $modifier_tooltip$
+				duration = -1
+				desc = UNTIL_PRIVILEGE_REVOKED
+			}
+		}
+	]
+	[[effect_tooltip]
+		custom_tooltip = unlock_estate_privilege_effect_tooltip_tt
+		tooltip = {
+			$effect_tooltip$
+		}
+	]
 }
 
 #Country effect
@@ -4277,14 +4314,34 @@ faction_in_power_effect = {
 }
 
 ## adds the culture as an accepted culture or 100 dip power
-### add_accepted_culture_or_dip_power = { culture = <culture> }
+### add_accepted_culture_or_dip_power = { culture = <culture> (optional) free = yes (optional) dip_reward = yes (optional, use when you have this effect twice in a row) new_line = yes }
 ### the custom effect is only able to check for up to 10 culture slots
 #Credits for that script goes to Stiopa
+# In case you want a culture to be a free slot then make sure that you have the following covered:
+# defined a free_slot_for_$culture$ = { num_accepted_culture = 1 }
+# Supports currently the following cultures:
+#	armenian
+#	georgian
+#	turkish
+#	al_iraqiya_arabic
+#	al_suryah_arabic
 add_accepted_culture_or_dip_power = {
 	tooltip = {
 		add_accepted_culture = $culture$
 	}
-	custom_tooltip = ADD_ACCEPTED_CULTURE_TT # "If the §YCulture§! is already an §YAccepted Culture§!, or if there are not enough §YSlots§!, gain §G100§! Diplomatic Power instead."
+	[[free]
+		custom_tooltip = CULTURE_WILL_NOT_TAKE_SLOT_UNTIL_DEMOTED_TT
+		hidden_effect = {
+			add_country_modifier = {
+				name = free_slot_for_$culture$
+				duration = -1
+				hidden = yes
+			}
+		}
+	]
+	[[dip_reward]
+		custom_tooltip = ADD_ACCEPTED_CULTURE_TT # "If the §YCulture§! is already an §YAccepted Culture§!, or if there are not enough §YSlots§!, gain §G100§! Diplomatic Power instead."
+	]
 	hidden_effect = {
 		if = {
 			limit = {
@@ -4532,39 +4589,45 @@ fifty_percent_merc_army_professionalism_cost = {
 
 #Province effect
 set_center_level_3_center_of_trade = {
-	if = {
-		limit = { NOT = { province_has_center_of_trade_of_level = 1 } }
-		center_of_trade = 3
-	}
-	else = {
+	custom_tooltip = set_center_level_3_center_of_trade_tt
+	hidden_effect = {
 		if = {
-			limit = { province_has_center_of_trade_of_level = 3 }
-			add_base_production = 4
-		}
-		else_if = {
-			limit = { province_has_center_of_trade_of_level = 2 }
-			add_base_production = 2
-			add_center_of_trade_level = 1
+			limit = { NOT = { province_has_center_of_trade_of_level = 1 } }
+			center_of_trade = 3
 		}
 		else = {
-			add_center_of_trade_level = 2
+			if = {
+				limit = { province_has_center_of_trade_of_level = 3 }
+				add_base_production = 4
+			}
+			else_if = {
+				limit = { province_has_center_of_trade_of_level = 2 }
+				add_base_production = 2
+				add_center_of_trade_level = 1
+			}
+			else = {
+				add_center_of_trade_level = 2
+			}
 		}
 	}
 }
 
 
 set_center_level_2_center_of_trade = {
-	if = {
-		limit = { NOT = { province_has_center_of_trade_of_level = 1 } }
-		center_of_trade = 2
-	}
-	else = {
+	custom_tooltip = set_center_level_2_center_of_trade_tt
+	hidden_effect = {
 		if = {
-			limit = { province_has_center_of_trade_of_level = 2 }
-			add_base_production = 2
+			limit = { NOT = { province_has_center_of_trade_of_level = 1 } }
+			center_of_trade = 2
 		}
 		else = {
-			add_center_of_trade_level = 1
+			if = {
+				limit = { province_has_center_of_trade_of_level = 2 }
+				add_base_production = 2
+			}
+			else = {
+				add_center_of_trade_level = 1
+			}
 		}
 	}
 }
@@ -8939,6 +9002,431 @@ clr_ruler_focus_modifiers = {
 	if = { limit = { has_country_modifier = civic_republicanism_focus_quality } 	remove_country_modifier = civic_republicanism_focus_quality		}
 	if = { limit = { has_country_modifier = civic_republicanism_focus_naval } 		remove_country_modifier = civic_republicanism_focus_naval		}
 }
+
+for_every_level_of_advisor_do = {
+	if = {
+		limit = {
+			has_advisor_of_type_and_level = { type = $type$ level = 1 }
+		}
+		$effect$
+		if = {
+			limit = {
+				has_advisor_of_type_and_level = { type = $type$ level = 2 }
+			}
+			$effect$
+			if = {
+				limit = {
+					has_advisor_of_type_and_level = { type = $type$ level = 3 }
+				}
+				$effect$
+				if = {
+					limit = {
+						has_advisor_of_type_and_level = { type = $type$ level = 4 }
+					}
+					$effect$
+					if = {
+						limit = {
+							has_advisor_of_type_and_level = { type = $type$ level = 5 }
+						}
+						$effect$
+					}
+				}
+			}
+		}
+	}
+}
+
+#Check with "has_unlocked_decision = { type = <decisions id> }"
+#Supports the following decisions
+#################################
+# grand_vizier_selection
+# horse_breeding_decision
+unlock_decision = {
+	custom_tooltip = unlock_decision_$type$_tt
+	hidden_effect = { set_country_flag = unlocked_decision_$type$ }
+	[[effect_tooltip]
+		custom_tooltip = unlock_decision_effect_tt
+		$effect_tooltip$
+	]
+	[[custom_tooltip]custom_tooltip = $custom_tooltip$]
+}
+lock_decision = {
+	custom_tooltip = lock_decision_$type$_tt
+	hidden_effect = { clr_country_flag = unlocked_decision_$type$ }
+}
+
+#Supports the following holy orders
+###################################
+# savafid_order
+# zahediyeh_order
+unlock_holy_order = {
+	if = {
+		limit = { has_dlc = "Golden Century" }
+		custom_tooltip = unlock_holy_order_$type$_tt
+	}
+	hidden_effect = { set_country_flag = unlocked_holy_order_$type$ }
+}
+
+#Supports the following arguments
+#################################
+# fabricate_spread_the_true_faith_cb
+unlock_diplomatic_action = {
+	custom_tooltip = unlock_$type$_tt
+	hidden_effect = {
+		set_country_flag = unlocked_diplomatic_action_$type$
+	}
+	[[custom_tooltip]custom_tooltip = $custom_tooltip$]
+}
+
+enable_great_holy_war_cb = {
+	custom_tooltip = enable_great_holy_war_cb_tt
+	hidden_effect = { set_country_flag = enabled_great_holy_war_cb }
+}
+
+# All is province scope here
+## add/upgrade trade building in province
+### add_or_upgrade_trade_building = yes  # feel free to refactor to include the amount of upgrades
+add_or_upgrade_trade_building = {
+	custom_tooltip = add_or_upgrade_trade_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = marketplace }
+			add_building = trade_depot
+		}
+		else_if = {
+			limit = { has_building = trade_depot }
+			add_building = stock_exchange
+		}
+		else_if = {
+			limit = { has_building = stock_exchange }
+			add_base_tax = 1
+			add_base_production = 1
+		}
+		else = { add_building = marketplace }
+	}
+}
+
+add_or_upgrade_tax_building = {
+	custom_tooltip = add_or_upgrade_tax_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = temple }
+			add_building = cathedral
+		}
+		else_if = {
+			limit = { has_building = cathedral }
+			add_base_tax = 2
+		}
+		else = { add_building = temple }
+	}
+}
+
+add_or_upgrade_production_building = {
+	custom_tooltip = add_or_upgrade_production_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = workshop }
+			add_building = counting_house
+		}
+		else_if = {
+			limit = { has_building = counting_house }
+			add_base_production = 2
+		}
+		else = { add_building = workshop }
+	}
+}
+
+add_or_upgrade_dock_building = {
+	custom_tooltip = add_or_upgrade_dock_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = dock }
+			add_building = drydock
+		}
+		else_if = {
+			limit = { has_building = drydock }
+			ROOT = { add_sailors = 0.5 }
+		}
+		else = { add_building = dock }
+	}
+}
+
+add_or_upgrade_shipyard_building = {
+	custom_tooltip = add_or_upgrade_shipyard_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = shipyard }
+			add_building = grand_shipyard 
+		}
+		else_if = {
+			limit = { has_building = grand_shipyard }
+			ROOT = { add_sailors = 0.5 }
+		}
+		else = { add_building = shipyard }
+	}
+}
+
+add_or_upgrade_manpower_building = {
+	custom_tooltip = add_or_upgrade_manpower_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = barracks }
+			add_building = training_fields  
+		}
+		else_if = {
+			limit = { has_building = training_fields }
+			add_base_tax = 1
+			add_base_manpower = 1
+		}
+		else = { add_building = barracks }
+	}
+}
+
+add_or_upgrade_forcelimit_building = {
+	custom_tooltip = add_or_upgrade_forcelimit_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = regimental_camp }
+			add_building = conscription_center   
+		}
+		else_if = {
+			limit = { has_building = conscription_center }
+			add_base_manpower = 2
+		}
+		else = { add_building = regimental_camp }
+	}
+}
+
+add_or_upgrade_university_building = {
+	custom_tooltip = add_or_upgrade_university_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = university }
+			add_base_tax = 1
+			add_base_production = 1
+			add_base_manpower = 1
+		}
+		else = { add_building = university }
+	}
+}
+
+add_or_upgrade_courthouse_building = {
+	custom_tooltip = add_or_upgrade_courthouse_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = courthouse }
+			add_building = town_hall   
+		}
+		else_if = {
+			limit = { has_building = town_hall }
+			add_base_tax = 1
+			add_base_production = 1
+			add_base_manpower = 1
+		}
+		else = { add_building = courthouse }
+	}
+}
+
+add_or_upgrade_fort_building = {
+	custom_tooltip = add_or_upgrade_fort_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = fort_15th }
+			add_building = fort_16th
+		}
+		else_if = {
+			limit = { has_building = fort_16th }
+			add_building = fort_17th
+		}
+		else_if = {
+			limit = { has_building = fort_17th }
+			add_building = fort_18th
+		}
+		else_if = {
+			limit = { has_building = fort_18th }
+			add_base_manpower = 3
+		}
+		else = { add_building = fort_15th }
+	}
+}
+
+add_or_upgrade_naval_defense_building = {
+	custom_tooltip = add_or_upgrade_naval_defense_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = coastal_defence }
+			add_building = naval_battery
+		}
+		else_if = {
+			limit = { has_building = naval_battery }
+			add_base_production = 2
+		}
+		else = { add_building = coastal_defence }
+	}
+}
+
+upgrade_trade_building = {
+	custom_tooltip = upgrade_trade_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = marketplace }
+			add_building = trade_depot
+		}
+		else_if = {
+			limit = { has_building = trade_depot }
+			add_building = stock_exchange
+		}
+		else_if = {
+			limit = { has_building = stock_exchange }
+			add_base_tax = 1
+			add_base_production = 1
+		}
+	}
+}
+
+upgrade_tax_building = {
+	custom_tooltip = upgrade_tax_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = temple }
+			add_building = cathedral
+		}
+		else_if = {
+			limit = { has_building = cathedral }
+			add_base_tax = 2
+		}
+	}
+}
+
+upgrade_production_building = {
+	custom_tooltip = upgrade_production_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = workshop }
+			add_building = counting_house
+		}
+		else_if = {
+			limit = { has_building = counting_house }
+			add_base_production = 2
+		}
+	}
+}
+
+upgrade_dock_building = {
+	custom_tooltip = upgrade_dock_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = dock }
+			add_building = drydock
+		}
+		else_if = {
+			limit = { has_building = drydock }
+			ROOT = { add_sailors = 0.5 }
+		}
+	}
+}
+
+upgrade_shipyard_building = {
+	custom_tooltip = upgrade_shipyard_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = shipyard }
+			add_building = grand_shipyard 
+		}
+		else_if = {
+			limit = { has_building = grand_shipyard }
+			ROOT = { add_sailors = 0.5 }
+		}
+	}
+}
+
+upgrade_manpower_building = {
+	custom_tooltip = upgrade_manpower_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = barracks }
+			add_building = training_fields  
+		}
+		else_if = {
+			limit = { has_building = training_fields }
+			add_base_tax = 1
+			add_base_manpower = 1
+		}
+	}
+}
+
+upgrade_forcelimit_building = {
+	custom_tooltip = upgrade_forcelimit_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = regimental_camp }
+			add_building = conscription_center   
+		}
+		else_if = {
+			limit = { has_building = conscription_center }
+			add_base_manpower = 2
+		}
+	}
+}
+
+upgrade_courthouse_building = {
+	custom_tooltip = upgrade_courthouse_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = courthouse }
+			add_building = town_hall   
+		}
+		else_if = {
+			limit = { has_building = town_hall }
+			add_base_tax = 1
+			add_base_production = 1
+			add_base_manpower = 1
+		}
+	}
+}
+
+upgrade_fort_building = {
+	custom_tooltip = upgrade_fort_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = fort_15th }
+			add_building = fort_16th
+		}
+		else_if = {
+			limit = { has_building = fort_16th }
+			add_building = fort_17th
+		}
+		else_if = {
+			limit = { has_building = fort_17th }
+			add_building = fort_18th
+		}
+		else_if = {
+			limit = { has_building = fort_18th }
+			add_base_manpower = 3
+		}
+	}
+}
+
+upgrade_naval_defense_building = {
+	custom_tooltip = upgrade_naval_defense_building_tt
+	hidden_effect = {
+		if = {
+			limit = { has_building = coastal_defence }
+			add_building = naval_battery
+		}
+		else_if = {
+			limit = { has_building = naval_battery }
+			add_base_production = 2
+		}
+	}
+}
+
+remove_temporary_colonist = {
+	hidden_effect = {
+		remove_country_modifier = temporary_colonist
+	}
+}
+
 
 primary_and_ruler_culture_change = {
 	if = {
