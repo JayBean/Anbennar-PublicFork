@@ -9,7 +9,8 @@ namespace = spirits
 # 400-499 = temple events
 # 500-599 = temple quest events
 # 600-699 = temple corruption/misc LHP
-# 700-799 = rending events
+# 700-899 = rending events
+# 900-999 = country-specific events
 # Temple Provinces: 4380, 4384, 4397, 4411, 4417, 4420, 4438, 4450, 4465, 4469, 4488, 4499, 4510, 4527, 4546d, 4565, 4570 4580, 4630d, 4633d, 4764, 4811, 4839d, 4859, 4871, 4925, 4930, 4941d, 4949, 4951, 4955d, 4964, 4979, 4618d
 # If you want to downgrade a temple province, use the scripted effect 'downgrade_temple_wards = yes' in the temple province scope AFTER (very important!) downgrading the temple province modifier itself, same for upgrading
 ##############################################################
@@ -514,12 +515,12 @@ province_event = {	#Handler event, determines which spirit event the country get
 			200 = {
 				trigger = {
 					religion = high_philosophy
-					NOT = { owner = { has_country_flag = currently_restoring_temple } }
 					OR = {
 						has_province_modifier = damaged_temple_complex
 						has_province_modifier = derelict_temple_complex
 						has_province_modifier = corrupted_temple_complex
 					}
+					NOT = { has_province_modifier = temple_restoration_efforts }
 				}
 				province_event = { id = spirits.401 } #Philosophers Demand Restoration of Temples
 			}
@@ -738,6 +739,7 @@ country_event = {	#Startup event to give out hidden wards modifiers
 	
 	option = {
 		name = spirits.000.a
+		set_global_flag = spirit_cooldown_flag #starts spirit pulse
 		dhurasidheni_temple_area = {
 			set_province_flag = pristine_wards
 		}
@@ -842,6 +844,9 @@ country_event = {	#Startup event to give out hidden wards modifiers
 		}
 		shanyutian_temple_area = {
 			set_province_flag = damaged_wards
+		}
+		temple_province_group = {
+			owner = { set_country_flag = owns_high_temple }
 		}
 	}
 }
@@ -1014,8 +1019,19 @@ province_event = {	#Temple restored
 	}
 
 	immediate = {
-		hidden_effect = { owner = { clr_country_flag = currently_restoring_temple } }
 		remove_province_modifier = temple_restoration_efforts
+		if = {
+			limit = {
+				check_variable = {
+					which = NumTemplesRestorting
+					value = 1
+				}
+			}
+			subtract_variable = {
+				which = NumTemplesRestoring
+				value = 1
+			}
+		}
 	}
 	
 	option = {
@@ -1077,60 +1093,108 @@ country_event = { #Temple Restoration menu
 	option = {
         name = spirits.005.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_1_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore1
+				event_target:restore1 = { has_province_flag = option_restore_1_@ROOT }
+			}
+		}
 		goto = restore1
 		event_target:restore1 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt1
 		}
 	}
 	
 	option = {
         name = spirits.005.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_2_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore2
+				event_target:restore2 = { has_province_flag = option_restore_2_@ROOT }
+			}
+		}
 		goto = restore2
 		event_target:restore2 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt2
 		}
 	}
 	
 	option = {
         name = spirits.005.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_3_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore3
+				event_target:restore3 = { has_province_flag = option_restore_3_@ROOT }
+			}
+		}
 		goto = restore3
 		event_target:restore3 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt3
 		}
 	}
 	
 	option = {
         name = spirits.005.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_4_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore4
+				event_target:restore4 = { has_province_flag = option_restore_4_@ROOT }
+			}
+		}
 		goto = restore4
 		event_target:restore4 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt4
 		}
 	}
 	
 	option = {
         name = spirits.005.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_5_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore5
+				event_target:restore5 = { has_province_flag = option_restore_5_@ROOT }
+			}
+		}
 		goto = restore5
 		event_target:restore5 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt5
 		}
 	}
 	
 	option = {
         name = spirits.005.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_6_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore6
+				event_target:restore6 = { has_province_flag = option_restore_6_@ROOT }
+			}
+		}
 		goto = restore6
 		event_target:restore6 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt6
 		}
 	}
 	#Go Back
@@ -1176,21 +1240,12 @@ province_event = { #Cleanup event to clear restoration/corruption/temple quest f
 		if = { limit = { OR = { has_province_modifier = rite_of_corruption has_province_modifier = azjakuma_rite_of_corruption } }
 			remove_province_modifier = rite_of_corruption
 			remove_province_modifier = azjakuma_rite_of_corruption
-			FROM = {
-				clr_country_flag = currently_corrupting_temple
-			}
 		}
 		if = { limit = { has_province_modifier = temple_restoration_efforts }
 			remove_province_modifier = temple_restoration_efforts
-			FROM = {
-				clr_country_flag = currently_restoring_temple
-			}
 		}
 		if = { limit = { has_province_modifier = rite_of_purification }
 			remove_province_modifier = rite_of_purification
-			FROM = {
-				clr_country_flag = currently_purifying_temple
-			}
 		}
 	}
 }
@@ -1230,72 +1285,163 @@ country_event = { #Temple Purification menu
 	option = {
         name = spirits.007.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_1_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify1
+				event_target:purify1 = { has_province_flag = option_purify_1_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify1
 		event_target:purify1 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_2_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify2
+				event_target:purify2 = { has_province_flag = option_purify_2_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify2
 		event_target:purify2 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_3_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify3
+				event_target:purify3 = { has_province_flag = option_purify_3_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify3
 		event_target:purify3 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_4_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify4
+				event_target:purify4 = { has_province_flag = option_purify_4_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify4
 		event_target:purify4 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_5_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify5
+				event_target:purify5 = { has_province_flag = option_purify_5_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify5
 		event_target:purify5 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_6_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify6
+				event_target:purify6 = { has_province_flag = option_purify_6_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify6
 		event_target:purify6 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	#Go Back
 	option = {
         name = spirits.005.h
         ai_chance = { factor = 0 }
+
 	}
 }
 
@@ -1313,7 +1459,6 @@ province_event = {	#Temple Purified
 	}
 
 	after = {
-		hidden_effect = { clr_country_flag = currently_purifying_temple }
 		remove_province_modifier = rite_of_purification
 	}
 	
@@ -4204,12 +4349,26 @@ country_event = {
 	is_triggered_only = yes
 	hidden = yes 
 
+	trigger = {
+		has_global_flag = rending_active
+		OR = {
+			has_country_flag = rending_corrupt_flag
+			has_country_flag = rending_appease_flag
+			has_country_flag = rending_ward_flag
+		}
+	}
+
 	option = {
 		name = spirits.298.a
 		ai_chance = {
 			factor = 1
 		}
 		random_owned_province = {
+			limit = {
+				continent = asia
+				NOT = { superregion = forbidden_lands_superregion }
+				has_province_modifier = rending_unhindered_spirits
+			}
 			province_event = {
 				id = spirits.299
 				days = 180
@@ -4232,8 +4391,6 @@ province_event = {
 	trigger = {
 		has_global_flag = rending_active
 		has_province_modifier = rending_unhindered_spirits
-		continent = asia
-		NOT = { superregion = forbidden_lands_superregion }
 	}
 
 	option = {
@@ -6412,7 +6569,10 @@ province_event = { #Philosophers Demand Restoration
 	}
 	
 	immediate = {
-		ROOT = { setup_temple_restoration_speed = yes }
+		ROOT = {
+			setup_temple_restoration_speed = yes
+			hidden_effect = { calculate_temple_restoration = yes }
+		}
 	}
 	
 	option = { #Very well
@@ -6424,6 +6584,9 @@ province_event = { #Philosophers Demand Restoration
 				factor = 5
 				religion = high_philosophy
 			}
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt
 		}
 	}
 	
@@ -6506,13 +6669,15 @@ province_event = { #Temple Falls into Disrepair
 		}
 		downgrade_temple_wards = yes
 		setup_temple_restoration_speed = yes
+		ROOT = {
+			setup_temple_restoration_speed = yes
+			hidden_effect = { calculate_temple_restoration = yes }
+		}
 	}
 	
 	option = { #Fund immediate restoration efforts
 		name = spirits.403.a
-		trigger = {
-			owner = { NOT = { has_country_flag = currently_restoring_temple } }
-		}
+		hidden_effect = { calculate_temple_restoration = yes }
 		begin_temple_restoration = yes
 		ai_chance = {
 			factor = 10
@@ -6520,6 +6685,9 @@ province_event = { #Temple Falls into Disrepair
 				factor = 5
 				religion = high_philosophy
 			}
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt
 		}
 	}
 	
@@ -6559,16 +6727,16 @@ province_event = { #Earthquake Strikes Temple
 				duration = -1
 			}
 			downgrade_temple_wards = yes
-			setup_temple_restoration_speed = yes
+			ROOT = {
+				setup_temple_restoration_speed = yes
+				hidden_effect = { calculate_temple_restoration = yes }
+			}
 			add_devastation = 40
 		}
 	}
 	
 	option = { #Fund immediate restoration efforts
 		name = spirits.404.a
-		trigger = {
-			owner = { NOT = { has_country_flag = currently_restoring_temple } }
-		}
 		begin_temple_restoration = yes
 		tooltip = {
 			if = {
@@ -6586,6 +6754,9 @@ province_event = { #Earthquake Strikes Temple
 			downgrade_temple_wards = yes
 			setup_temple_restoration_speed = yes
 			add_devastation = 40
+			tooltip = {
+				custom_tooltip = temple_restoration_cost_tt
+			}
 		}
 		ai_chance = {
 			factor = 10
@@ -11218,67 +11389,121 @@ country_event = { #Temple Corruption menu
 	option = {
         name = spirits.602.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_1_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt1
+				event_target:corrupt1 = { has_province_flag = option_corrupt_1_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt1
 		event_target:corrupt1 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_2_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt2
+				event_target:corrupt1 = { has_province_flag = option_corrupt_2_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt2
 		event_target:corrupt2 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_3_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt3
+				event_target:corrupt1 = { has_province_flag = option_corrupt_3_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt3
 		event_target:corrupt3 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_4_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt4
+				event_target:corrupt1 = { has_province_flag = option_corrupt_4_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt4
 		event_target:corrupt4 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_5_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt5
+				event_target:corrupt1 = { has_province_flag = option_corrupt_5_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt5
 		event_target:corrupt5 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_6_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt6
+				event_target:corrupt1 = { has_province_flag = option_corrupt_6_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt6
 		event_target:corrupt6 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	#Go Back
 	option = {
@@ -11304,11 +11529,6 @@ province_event = {	#Temple Corrupted
 	}
 
 	after = {
-		hidden_effect = {
-			owner = {
-				clr_country_flag = currently_corrupting_temple
-			}
-		}
 		remove_province_modifier = rite_of_corruption
 		remove_province_modifier = azjakuma_rite_of_corruption
 	}
@@ -13105,7 +13325,7 @@ country_event = {
 	fire_only_once = yes
 
 	trigger = {
-		is_year = 1600
+		current_age = age_of_absolutism
 		owns = 4871
 		NOT = { has_global_flag = rending_active }
 	}
@@ -13169,7 +13389,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
-			is_year = 1645
+			is_year = 1655
 		}
 	}
 
@@ -13373,6 +13593,32 @@ country_event = {
 					}
 				}
 			}
+			hokuma_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			yanhe_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			kharunyana_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			phokhao_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			hengdu_bowu_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			cinulau_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			lupulan_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			dhenbasana_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			marutha_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			gehet_ketine_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			hukai_telebei_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			huszien_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+
+			tughayasa_spirit_area = { add_permanent_province_modifier = { name = rending_domain_helper duration = -1 } }
+			
 		}
 	}
 
@@ -13522,22 +13768,31 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
-			capital_scope = {
-				trigger_switch = {
-					on_trigger = province_group
-					hokuma_spirit_area = { owner = { country_event = { id = spirits.708 } } }
-					yanhe_spirit_area = { owner = { country_event = { id = spirits.709 } } }
-					kharunyana_spirit_area = { owner = { country_event = { id = spirits.710 } } }
-					phokhao_spirit_area = { owner = { country_event = { id = spirits.711 } } }
-					hengdu_bowu_spirit_area = { owner = { country_event = { id = spirits.712 } } }
-					cinulau_spirit_area = { owner = { country_event = { id = spirits.713 } } }
-					lupulan_spirit_area = { owner = { country_event = { id = spirits.714 } } }
-					dhenbasana_spirit_area = { owner = { country_event = { id = spirits.715 } } }
-					marutha_spirit_area = { owner = { country_event = { id = spirits.716 } } }
-					gehet_ketine_spirit_area = { owner = { country_event = { id = spirits.717 } } }
-					hukai_telebei_spirit_area = { owner = { country_event = { id = spirits.718 } } }
-					huszien_spirit_area = { owner = { country_event = { id = spirits.719 } } }
-					tughayasa_spirit_area = { owner = { country_event = { id = spirits.720 } } }
+			if = {
+				limit = { NOT = { has_unique_spirit_interaction = yes } }
+				capital_scope = {
+					trigger_switch = {
+						on_trigger = province_group
+						hokuma_spirit_area = { owner = { country_event = { id = spirits.708 } } }
+						yanhe_spirit_area = { owner = { country_event = { id = spirits.709 } } }
+						kharunyana_spirit_area = { owner = { country_event = { id = spirits.710 } } }
+						phokhao_spirit_area = { owner = { country_event = { id = spirits.711 } } }
+						hengdu_bowu_spirit_area = { owner = { country_event = { id = spirits.712 } } }
+						cinulau_spirit_area = { owner = { country_event = { id = spirits.713 } } }
+						lupulan_spirit_area = { owner = { country_event = { id = spirits.714 } } }
+						dhenbasana_spirit_area = { owner = { country_event = { id = spirits.715 } } }
+						marutha_spirit_area = { owner = { country_event = { id = spirits.716 } } }
+						gehet_ketine_spirit_area = { owner = { country_event = { id = spirits.717 } } }
+						hukai_telebei_spirit_area = { owner = { country_event = { id = spirits.718 } } }
+						huszien_spirit_area = { owner = { country_event = { id = spirits.719 } } }
+						tughayasa_spirit_area = { owner = { country_event = { id = spirits.720 } } }
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = { is_or_was_tag = { tag = Y09 } }
+					Y09 = { country_event = { id = spirits.1000 } }
 				}
 			}
 		}
@@ -15227,6 +15482,10 @@ country_event = {
 	hidden = yes
 
 	trigger = {
+		had_global_flag = {
+			flag = rending_active
+			days = 900
+		}
 		4559 = {
 			NOT = {
 				check_variable = {
@@ -15270,7 +15529,74 @@ country_event = {
 				remove_country_modifier = hukai_telebei_scoured_modifier
 				remove_country_modifier = huszien_scoured_modifier
 				remove_country_modifier = huli_jing_scoured_modifier
+
+				#MA stuff:
+
+				# Rewards
+				clr_country_flag = rending_hukai_telebei_reward
+				clr_country_flag = tughayasa_reward
+				clr_country_flag = rending_gehet_ketine_reward
+				clr_country_flag = rending_lupulan_reward
+				remove_country_modifier = marutha_modifier
+				remove_country_modifier = hengdu_bowu_modifier
+				remove_country_modifier = phokhao_modifier
+				remove_country_modifier = gehet_ketine_modifier
+				remove_country_modifier = cinulau_modifier
+				remove_country_modifier = yanhe_modifier
+				remove_country_modifier = hokuma_modifier
+				remove_country_modifier = huszien_modifier
+				remove_country_modifier = dhenbasana_modifier
+
+				#Flag cleanup
+				clr_country_flag = marutha_appeasement 
+				clr_country_flag = marutha_appeased
+				clr_country_flag = dhenbasana_appeasement 
+				clr_country_flag = dhenbasana_appeased
+				clr_country_flag = kharunyana_appeasement 
+				clr_country_flag = kharunyana_appeased
+				clr_country_flag = tughayasa_appeasement 
+				clr_country_flag = tughayasa_appeased
+				clr_country_flag = hengdu_bowu_appeasement 
+				clr_country_flag = hengdu_bowu_appeased
+				clr_country_flag = hukai_telebei_appeasement 
+				clr_country_flag = hukai_telebei_appeased
+				clr_country_flag = phokhao_appeasement 
+				clr_country_flag = phokhao_appeased
+				clr_country_flag = gehet_ketine_appeasement 
+				clr_country_flag = gehet_ketine_appeased
+				clr_country_flag = lupulan_appeasement 
+				clr_country_flag = lupulan_appeased
+				clr_country_flag = cinulau_appeasement 
+				clr_country_flag = cinulau_appeased
+				clr_country_flag = yanhe_appeasement 
+				clr_country_flag = yanhe_appeased
+				clr_country_flag = hokuma_appeasement
+				clr_country_flag = hokuma_appeased
+				clr_country_flag = huszien_appeasement
+				clr_country_flag = huszien_appeased
+				clr_country_flag = rending_quest_first
+				clr_country_flag = rending_quest_second 
+				clr_country_flag = rending_quest_third 
+				clr_country_flag = rending_quest_fourth 
+				clr_country_flag = rending_quest_fifth 
+				clr_country_flag = appeasement_in_progress
+				clr_country_flag = rending_appeasement_menu_open
 			}
+
+			hokuma_spirit_area = { remove_province_modifier = rending_domain_helper }
+			yanhe_spirit_area = { remove_province_modifier = rending_domain_helper }
+			kharunyana_spirit_area = { remove_province_modifier = rending_domain_helper }
+			phokhao_spirit_area = { remove_province_modifier = rending_domain_helper }
+			hengdu_bowu_spirit_area = { remove_province_modifier = rending_domain_helper }
+			cinulau_spirit_area = { remove_province_modifier = rending_domain_helper }
+			lupulan_spirit_area = { remove_province_modifier = rending_domain_helper }
+			dhenbasana_spirit_area = { remove_province_modifier = rending_domain_helper }
+			marutha_spirit_area = { remove_province_modifier = rending_domain_helper }
+			gehet_ketine_spirit_area = { remove_province_modifier = rending_domain_helper }
+			hukai_telebei_spirit_area = { remove_province_modifier = rending_domain_helper }
+			huszien_spirit_area = { remove_province_modifier = rending_domain_helper }
+			tughayasa_spirit_area = { remove_province_modifier = rending_domain_helper}
+
 			asia = {
 				remove_province_modifier = spirit_region_warded
 				remove_province_modifier = rending_unhindered_spirits
@@ -17095,6 +17421,70 @@ country_event = {
 			factor = 1
 		}
 		set_country_flag = tughayasa_interact_flag
+	}
+}
+
+#Bianfang goes MA
+country_event = {
+	id = spirits.1000
+	title = spirits.1000.t
+	desc = spirits.1000.d
+	picture = GREAT_SPIRIT_YANHE_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = spirits.1000.a
+		ai_chance = {
+			factor = 1
+		}
+		if = {
+			limit = {
+				has_heir = yes
+			}
+			kill_heir = {}
+		}
+		capital_scope = {
+			spirit_swarms = 3
+		}
+		random_owned_province = {
+			spirit_swarms = 2
+		}
+		add_stability = -1
+	}
+	option = {
+		name = spirits.1000.b
+		ai_chance = {
+			factor = 2
+		}
+		change_religion = mystic_accord
+		add_stability = -4
+		if = {
+			limit = {
+				ai = no
+			}
+			add_country_modifier = {
+				name = yanhe_chosen
+				duration = 7300
+			}
+		}
+		else = {
+			add_country_modifier = {
+				name = yanhe_chosen_ai
+				duration = 7300
+			}
+		}
+		hidden_effect = {
+			clr_country_flag = rending_ward_flag
+			add_country_modifier = {
+				name = rending_medium_global
+				duration = -1
+			}
+			country_event = { 
+				id = rending.300
+			}
+			remove_country_modifier = rending_severe_global
+		}
 	}
 }
 
