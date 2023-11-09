@@ -515,12 +515,12 @@ province_event = {	#Handler event, determines which spirit event the country get
 			200 = {
 				trigger = {
 					religion = high_philosophy
-					NOT = { owner = { has_country_flag = currently_restoring_temple } }
 					OR = {
 						has_province_modifier = damaged_temple_complex
 						has_province_modifier = derelict_temple_complex
 						has_province_modifier = corrupted_temple_complex
 					}
+					NOT = { has_province_modifier = temple_restoration_efforts }
 				}
 				province_event = { id = spirits.401 } #Philosophers Demand Restoration of Temples
 			}
@@ -739,6 +739,7 @@ country_event = {	#Startup event to give out hidden wards modifiers
 	
 	option = {
 		name = spirits.000.a
+		set_global_flag = spirit_cooldown_flag #starts spirit pulse
 		dhurasidheni_temple_area = {
 			set_province_flag = pristine_wards
 		}
@@ -1018,8 +1019,19 @@ province_event = {	#Temple restored
 	}
 
 	immediate = {
-		hidden_effect = { owner = { clr_country_flag = currently_restoring_temple } }
 		remove_province_modifier = temple_restoration_efforts
+		if = {
+			limit = {
+				check_variable = {
+					which = NumTemplesRestorting
+					value = 1
+				}
+			}
+			subtract_variable = {
+				which = NumTemplesRestoring
+				value = 1
+			}
+		}
 	}
 	
 	option = {
@@ -1081,60 +1093,108 @@ country_event = { #Temple Restoration menu
 	option = {
         name = spirits.005.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_1_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore1
+				event_target:restore1 = { has_province_flag = option_restore_1_@ROOT }
+			}
+		}
 		goto = restore1
 		event_target:restore1 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt1
 		}
 	}
 	
 	option = {
         name = spirits.005.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_2_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore2
+				event_target:restore2 = { has_province_flag = option_restore_2_@ROOT }
+			}
+		}
 		goto = restore2
 		event_target:restore2 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt2
 		}
 	}
 	
 	option = {
         name = spirits.005.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_3_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore3
+				event_target:restore3 = { has_province_flag = option_restore_3_@ROOT }
+			}
+		}
 		goto = restore3
 		event_target:restore3 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt3
 		}
 	}
 	
 	option = {
         name = spirits.005.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_4_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore4
+				event_target:restore4 = { has_province_flag = option_restore_4_@ROOT }
+			}
+		}
 		goto = restore4
 		event_target:restore4 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt4
 		}
 	}
 	
 	option = {
         name = spirits.005.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_5_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore5
+				event_target:restore5 = { has_province_flag = option_restore_5_@ROOT }
+			}
+		}
 		goto = restore5
 		event_target:restore5 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt5
 		}
 	}
 	
 	option = {
         name = spirits.005.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_restore_6_@ROOT } }
+		trigger = { 
+			AND = {
+				has_saved_event_target = restore6
+				event_target:restore6 = { has_province_flag = option_restore_6_@ROOT }
+			}
+		}
 		goto = restore6
 		event_target:restore6 = {
 			begin_temple_restoration = yes
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt6
 		}
 	}
 	#Go Back
@@ -1180,21 +1240,12 @@ province_event = { #Cleanup event to clear restoration/corruption/temple quest f
 		if = { limit = { OR = { has_province_modifier = rite_of_corruption has_province_modifier = azjakuma_rite_of_corruption } }
 			remove_province_modifier = rite_of_corruption
 			remove_province_modifier = azjakuma_rite_of_corruption
-			FROM = {
-				clr_country_flag = currently_corrupting_temple
-			}
 		}
 		if = { limit = { has_province_modifier = temple_restoration_efforts }
 			remove_province_modifier = temple_restoration_efforts
-			FROM = {
-				clr_country_flag = currently_restoring_temple
-			}
 		}
 		if = { limit = { has_province_modifier = rite_of_purification }
 			remove_province_modifier = rite_of_purification
-			FROM = {
-				clr_country_flag = currently_purifying_temple
-			}
 		}
 	}
 }
@@ -1234,72 +1285,163 @@ country_event = { #Temple Purification menu
 	option = {
         name = spirits.007.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_1_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify1
+				event_target:purify1 = { has_province_flag = option_purify_1_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify1
 		event_target:purify1 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_2_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify2
+				event_target:purify2 = { has_province_flag = option_purify_2_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify2
 		event_target:purify2 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_3_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify3
+				event_target:purify3 = { has_province_flag = option_purify_3_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify3
 		event_target:purify3 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_4_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify4
+				event_target:purify4 = { has_province_flag = option_purify_4_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify4
 		event_target:purify4 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_5_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify5
+				event_target:purify5 = { has_province_flag = option_purify_5_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify5
 		event_target:purify5 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	
 	option = {
         name = spirits.007.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_purify_6_@ROOT } }
+		trigger = { 
+			AND = {
+				if = {
+					limit = { religion = righteous_path }
+					church_power = 100
+				}
+				#else_if = {
+				#	limit = { religion_group = raheni } 
+				#	piety = 25
+				#}
+				has_saved_event_target = purify6
+				event_target:purify6 = { has_province_flag = option_purify_6_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+			}
+		}
 		goto = purify6
 		event_target:purify6 = {
 			begin_temple_purification = yes
 		}
-		hidden_effect = { set_country_flag = currently_purifying_temple }
 	}
 	#Go Back
 	option = {
         name = spirits.005.h
         ai_chance = { factor = 0 }
+
 	}
 }
 
@@ -1317,7 +1459,6 @@ province_event = {	#Temple Purified
 	}
 
 	after = {
-		hidden_effect = { clr_country_flag = currently_purifying_temple }
 		remove_province_modifier = rite_of_purification
 	}
 	
@@ -6428,7 +6569,10 @@ province_event = { #Philosophers Demand Restoration
 	}
 	
 	immediate = {
-		ROOT = { setup_temple_restoration_speed = yes }
+		ROOT = {
+			setup_temple_restoration_speed = yes
+			hidden_effect = { calculate_temple_restoration = yes }
+		}
 	}
 	
 	option = { #Very well
@@ -6440,6 +6584,9 @@ province_event = { #Philosophers Demand Restoration
 				factor = 5
 				religion = high_philosophy
 			}
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt
 		}
 	}
 	
@@ -6522,13 +6669,15 @@ province_event = { #Temple Falls into Disrepair
 		}
 		downgrade_temple_wards = yes
 		setup_temple_restoration_speed = yes
+		ROOT = {
+			setup_temple_restoration_speed = yes
+			hidden_effect = { calculate_temple_restoration = yes }
+		}
 	}
 	
 	option = { #Fund immediate restoration efforts
 		name = spirits.403.a
-		trigger = {
-			owner = { NOT = { has_country_flag = currently_restoring_temple } }
-		}
+		hidden_effect = { calculate_temple_restoration = yes }
 		begin_temple_restoration = yes
 		ai_chance = {
 			factor = 10
@@ -6536,6 +6685,9 @@ province_event = { #Temple Falls into Disrepair
 				factor = 5
 				religion = high_philosophy
 			}
+		}
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt
 		}
 	}
 	
@@ -6575,16 +6727,16 @@ province_event = { #Earthquake Strikes Temple
 				duration = -1
 			}
 			downgrade_temple_wards = yes
-			setup_temple_restoration_speed = yes
+			ROOT = {
+				setup_temple_restoration_speed = yes
+				hidden_effect = { calculate_temple_restoration = yes }
+			}
 			add_devastation = 40
 		}
 	}
 	
 	option = { #Fund immediate restoration efforts
 		name = spirits.404.a
-		trigger = {
-			owner = { NOT = { has_country_flag = currently_restoring_temple } }
-		}
 		begin_temple_restoration = yes
 		tooltip = {
 			if = {
@@ -6602,6 +6754,9 @@ province_event = { #Earthquake Strikes Temple
 			downgrade_temple_wards = yes
 			setup_temple_restoration_speed = yes
 			add_devastation = 40
+			tooltip = {
+				custom_tooltip = temple_restoration_cost_tt
+			}
 		}
 		ai_chance = {
 			factor = 10
@@ -11234,67 +11389,121 @@ country_event = { #Temple Corruption menu
 	option = {
         name = spirits.602.a
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_1_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt1
+				event_target:corrupt1 = { has_province_flag = option_corrupt_1_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt1
 		event_target:corrupt1 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.b
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_2_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt2
+				event_target:corrupt1 = { has_province_flag = option_corrupt_2_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt2
 		event_target:corrupt2 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.c
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_3_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt3
+				event_target:corrupt1 = { has_province_flag = option_corrupt_3_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt3
 		event_target:corrupt3 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.e
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_4_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt4
+				event_target:corrupt1 = { has_province_flag = option_corrupt_4_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt4
 		event_target:corrupt4 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.f
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_5_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt5
+				event_target:corrupt1 = { has_province_flag = option_corrupt_5_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt5
 		event_target:corrupt5 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	
 	option = {
         name = spirits.602.g
         ai_chance = { factor = 5 }
-		trigger = { any_owned_province = { has_province_flag = option_corrupt_6_@ROOT } }
+		trigger = { 
+			AND = { 
+				has_saved_event_target = corrupt6
+				event_target:corrupt1 = { has_province_flag = option_corrupt_6_@ROOT }
+				adm_power = 50
+				dip_power = 50
+				mil_power = 50
+				church_power = 100
+			}
+			
+		}
 		goto = corrupt6
 		event_target:corrupt6 = {
 			begin_temple_corruption = yes
 		}
-		hidden_effect = { set_country_flag = currently_corrupting_temple }
 	}
 	#Go Back
 	option = {
@@ -11320,11 +11529,6 @@ province_event = {	#Temple Corrupted
 	}
 
 	after = {
-		hidden_effect = {
-			owner = {
-				clr_country_flag = currently_corrupting_temple
-			}
-		}
 		remove_province_modifier = rite_of_corruption
 		remove_province_modifier = azjakuma_rite_of_corruption
 	}
