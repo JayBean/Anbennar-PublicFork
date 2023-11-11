@@ -1,4 +1,4 @@
-name="anbennar-eu4-lian"
+name="Anbennar-PublicFork"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -27,5 +27,5 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
-supported_version="1.35.6"
-path="mod/anbennar-eu4-lian"
+supported_version="1.36.0"
+path="/home/aw/.local/share/Paradox Interactive/Europa Universalis IV/mod/Anbennar-PublicFork"
