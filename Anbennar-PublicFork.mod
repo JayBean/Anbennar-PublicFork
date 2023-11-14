@@ -29,3 +29,4 @@ replace_path="tutorial"
 picture="anbennar.jpg"
 supported_version="1.36.1"
 path="mod/Anbennar-PublicFork"
+
