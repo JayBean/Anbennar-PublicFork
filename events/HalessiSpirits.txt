@@ -1027,30 +1027,31 @@ province_event = {	#Temple restored
 						value = 1
 					}
 			}
+			if = {
+				limit = { has_province_modifier = damaged_temple_complex }
+				remove_province_modifier = damaged_temple_complex
+				add_permanent_province_modifier = {
+					name = temple_complex
+					duration = -1
+				}
+				upgrade_temple_wards = yes
+			}
+			if = {
+				limit = { has_province_modifier = derelict_temple_complex }
+				remove_province_modifier = derelict_temple_complex
+				add_permanent_province_modifier = {
+					name = temple_complex
+					duration = -1
+				}
+				upgrade_temple_wards = yes
+			}
 		}
 	}
 	
 	option = {
 		name = spirits.004.a
 		goto = ROOT
-		if = {
-			limit = { has_province_modifier = damaged_temple_complex }
-			remove_province_modifier = damaged_temple_complex
-			add_permanent_province_modifier = {
-				name = temple_complex
-				duration = -1
-			}
-			upgrade_temple_wards = yes
-		}
-		if = {
-			limit = { has_province_modifier = derelict_temple_complex }
-			remove_province_modifier = derelict_temple_complex
-			add_permanent_province_modifier = {
-				name = temple_complex
-				duration = -1
-			}
-			upgrade_temple_wards = yes
-		}
+		custom_tooltip = temple_restored_tt
 	}
 }
 
@@ -1554,40 +1555,41 @@ province_event = {	#Temple Purified
 		has_province_modifier = rite_of_purification
 	}
 
-	after = {
+	immediate = {
+		if = {
+			limit = { has_province_flag = was_temple_complex }
+			hidden_effect = {
+				purify_temple_wards = yes
+				remove_province_triggered_modifier = corrupted_temple_complex
+				add_permanent_province_modifier = { name = temple_complex duration = -1 }
+			}
+			clr_province_flag = was_temple_complex
+		}
+		if = {
+			limit = { has_province_flag = was_damaged_temple_complex }
+			hidden_effect = {
+				purify_temple_wards = yes
+				remove_province_triggered_modifier = corrupted_temple_complex
+				add_permanent_province_modifier = { name = damaged_temple_complex duration = -1 }
+			}
+			clr_province_flag = was_damaged_temple_complex
+		}
+		if = {
+			limit = { has_province_flag = was_derelict_temple_complex }
+			hidden_effect = {
+				purify_temple_wards = yes
+				remove_province_triggered_modifier = corrupted_temple_complex
+				add_permanent_province_modifier = { name = derelict_temple_complex duration = -1 }
+			}
+			clr_province_flag = was_derelict_temple_complex
+		}
 		remove_province_modifier = rite_of_purification
 	}
 	
 	option = {
 		name = spirits.008.a
 		goto = ROOT
-		if = {
-			limit = { has_province_flag = was_temple_complex }
-			hidden_effect = {
-				purify_temple_wards = yes
-				clr_province_flag = was_temple_complex
-			}
-			remove_province_triggered_modifier = corrupted_temple_complex
-			add_permanent_province_modifier = { name = temple_complex duration = -1 }
-		}
-		else_if = {
-			limit = { has_province_flag = was_damaged_temple_complex }
-			hidden_effect = {
-				purify_temple_wards = yes
-				clr_province_flag = was_damaged_temple_complex
-			}
-			remove_province_triggered_modifier = corrupted_temple_complex
-			add_permanent_province_modifier = { name = damaged_temple_complex duration = -1 }
-		}
-		else_if = {
-			limit = { has_province_flag = was_derelict_temple_complex }
-			hidden_effect = {
-				purify_temple_wards = yes
-				clr_province_flag = was_derelict_temple_complex
-			}
-			remove_province_triggered_modifier = corrupted_temple_complex
-			add_permanent_province_modifier = { name = derelict_temple_complex duration = -1 }
-		}
+		custom_tooltip = temple_purified_tt
 	}
 }
 
@@ -11623,15 +11625,8 @@ province_event = {	#Temple Corrupted
 			has_province_modifier = azjakuma_rite_of_corruption
 		}
 	}
-
-	after = {
-		remove_province_modifier = rite_of_corruption
-		remove_province_modifier = azjakuma_rite_of_corruption
-	}
 	
-	option = {
-		name = spirits.603.a
-		goto = ROOT
+	immediate = {
 		hidden_effect = { set_variable = { which = CorruptedHeartMana value = 0 } }
 		if = {
 			limit = { has_province_modifier = temple_complex }
@@ -11642,7 +11637,7 @@ province_event = {	#Temple Corrupted
 			remove_province_modifier = temple_complex
 			add_province_triggered_modifier = corrupted_temple_complex
 		}
-		else_if = {
+		if = {
 			limit = { has_province_modifier = damaged_temple_complex }
 			hidden_effect = {
 				corrupt_temple_wards = yes
@@ -11651,7 +11646,7 @@ province_event = {	#Temple Corrupted
 			remove_province_modifier = damaged_temple_complex
 			add_province_triggered_modifier = corrupted_temple_complex
 		}
-		else_if = {
+		if = {
 			limit = { has_province_modifier = derelict_temple_complex }
 			hidden_effect = {
 				corrupt_temple_wards = yes
@@ -11661,7 +11656,6 @@ province_event = {	#Temple Corrupted
 			add_province_triggered_modifier = corrupted_temple_complex
 		}
 		owner = {
-			custom_tooltip = spirits_corrupted_temple_opinion_tooltip
 			hidden_effect = {
 				every_known_country = {
 					limit = {
@@ -11682,8 +11676,36 @@ province_event = {	#Temple Corrupted
 						modifier = spirits_corrupted_temple_ally
 					}
 				}
+				every_known_country = {
+					limit = {
+						alliance_with = PREV
+						capital_scope = {
+							continent = asia
+							NOT = { superregion = forbidden_lands_superregion }
+						}
+						NOT = { religion = lefthand_path }
+					}
+					add_opinion = {
+						who = PREV
+						modifier = spirits_corrupted_temple_ally
+					}
+					remove_opinion = { #so you don't double up on negative opinion modifiers
+						who = PREV
+						modifier = spirits_corrupted_temple
+					}
+				}
 			}
+		}
+		remove_province_modifier = rite_of_corruption
+		remove_province_modifier = azjakuma_rite_of_corruption
+	}
 
+	option = {
+		name = spirits.603.a
+		goto = ROOT
+		custom_tooltip = temple_corrupted_tt
+		custom_tooltip = spirits_corrupted_temple_opinion_tooltip
+		owner = {
 			if = {
 				limit = {
 					any_known_country = { 
@@ -11694,28 +11716,8 @@ province_event = {	#Temple Corrupted
 						}
 						NOT = { religion = lefthand_path }
 					}
-				}
+				}  
 				custom_tooltip = spirits_corrupted_temple_opinion_ally_tooltip
-				hidden_effect = {
-					every_known_country = {
-						limit = {
-							alliance_with = PREV
-							capital_scope = {
-								continent = asia
-								NOT = { superregion = forbidden_lands_superregion }
-							}
-							NOT = { religion = lefthand_path }
-						}
-						add_opinion = {
-							who = PREV
-							modifier = spirits_corrupted_temple_ally
-						}
-						remove_opinion = { #so you don't double up on negative opinion modifiers
-							who = PREV
-							modifier = spirits_corrupted_temple
-						}
-					}
-				}
 			}
 		}
 	}
@@ -13577,10 +13579,13 @@ country_event = {
 	picture = GREAT_SPIRIT_YANHE_eventPicture
 
 	trigger = {
-		had_global_flag = {
-			flag = rending_active
-			days = 360
-		}
+        OR = {
+            Y26 = { mission_completed = Y26_huszien_restored }
+            had_global_flag = {
+                flag = rending_active
+                days = 360
+            }
+        }
 		NOT = { has_country_flag = rending_started_country }
 		OR = {
 			capital_scope = {
