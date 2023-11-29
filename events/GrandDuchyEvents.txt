@@ -1,0 +1,559 @@
+namespace = grand_duchy
+
+# Triggering event for the Incident
+country_event = {
+	id = grand_duchy.0
+	title = grand_duchy.0.t
+	desc = grand_duchy.0.d
+	picture = COURT_eventPicture
+	# hidden = yes
+
+	trigger = {
+		has_dlc = "Emperor"
+		OR = {
+			tag = Z46
+			tag = A58
+		} 
+		is_part_of_hre = yes
+		# is_elector = no
+		NOT = { active_imperial_incident = any }
+		NOT = {	has_country_flag = had_grand_duchy_incident	}
+		NOT = {
+			emperor = {
+				truce_with = ROOT
+			}
+		} 
+	}
+	
+	mean_time_to_happen = {
+		months = 1
+	}
+	
+	immediate = {
+		set_country_flag = had_grand_duchy_incident
+		save_global_event_target_as = grand_duchy_incident_target
+	}
+	
+	option = {
+		name = grand_duchy.0.a
+		ai_chance = {
+			factor = 10
+		}
+		if = {
+			limit = {
+				has_dlc = "Emperor"
+			}
+			set_imperial_incident = incident_grand_duchy
+		}
+		else = {
+			emperor = {
+				country_event = {
+					id = grand_duchy.1
+				}
+			}
+		}
+	}
+}
+
+# Imperial incident for re-formed Grand Duchies
+country_event = {
+	id = grand_duchy.1
+	title = grand_duchy.1.t
+	desc = grand_duchy.1.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	after = {
+	}
+	
+	option = { # [Nation] is fully entitled to its previous claims!
+		name = grand_duchy.1.a
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 100
+				OR = {	
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_friendly
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_loyal
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_allied
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				OR = {
+					has_opinion = {
+						who = event_target:grand_duchy_incident_target
+						value = 100
+					}				
+				}
+			}
+		}
+		custom_tooltip = grand_duchy_tooltip_accept
+		add_imperial_influence = -5
+		hidden_effect = {
+			event_target:grand_duchy_incident_target = {
+				set_country_flag = claims_acknowledged
+				country_event = {
+					id = grand_duchy.2
+				}
+			}
+		}
+
+	}
+	
+	option = { # The title of Grand Duchy is mostly ceremonial; Let [Nation] have it and naught else.
+		name = grand_duchy.1.b
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 5
+				AND = {
+					has_opinion = {
+						who = event_target:grand_duchy_incident_target
+						value = -100
+					}
+					NOT = { 
+						has_opinion = {
+							who = event_target:grand_duchy_incident_target
+							value = 100
+						}
+					}			
+				}
+			}
+		}
+		custom_tooltip = grand_duchy_tooltip_negotiate
+		hidden_effect = {
+			event_target:grand_duchy_incident_target = {
+				set_country_flag = claims_negotiated
+				country_event = {
+					id = grand_duchy.2
+				}
+			}
+		}
+	}
+
+	option = { # These warmongers deserve no praise nor accolades. Censure [Nation]
+		name = grand_duchy.1.c
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 100
+				OR = {	
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_rivalry
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_hostile
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_threatened
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_outraged
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_disloyal
+					}
+					ai_attitude = {
+						who = event_target:grand_duchy_incident_target
+						attitude = attitude_rebellious
+					}
+				}
+			}
+			modifier = {
+				factor = 10
+				NOT = {
+					has_opinion = {
+						who = event_target:grand_duchy_incident_target
+						value = -100
+					}				
+				}
+			}
+		}
+		custom_tooltip = grand_duchy_tooltip_deny
+		hidden_effect = {
+			event_target:grand_duchy_incident_target = {
+				set_country_flag = claims_denied
+				country_event = {
+					id = grand_duchy.2
+				}
+			}
+		}
+	}
+
+}
+
+# Imperial incident result
+country_event = {
+	id = grand_duchy.2
+	title = grand_duchy.2.t
+	desc = {
+		trigger = { has_country_flag = claims_acknowledged }
+		desc = grand_duchy.2.d1
+	}
+	desc = {
+		trigger = { has_country_flag = claims_negotiated }
+		desc = grand_duchy.2.d2
+	}
+	desc = {
+		trigger = { has_country_flag = claims_denied }
+		desc = grand_duchy.2.d3
+	}
+	picture = GOOD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	major = yes
+	
+	after = {
+		# clear_global_event_target = grand_duchy_incident_target
+		clr_country_flag = claims_acknowledged
+		clr_country_flag = claims_negotiated
+		clr_country_flag = claims_denied
+	}
+	
+	option = { # Accept the claims and the accolades
+		name = grand_duchy.2.a
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_acknowledged
+		}
+		if = {
+			limit = {
+				NOT = { government_rank = 2 }
+				is_elector = yes
+			}
+			set_government_rank = 2
+		}
+		set_country_flag = is_a_grand_duchy
+		add_prestige = 15
+		add_legitimacy_equivalent = { amount = 15 republican_tradition = 10 }
+		if = { # Add Esmaria claims
+			limit = { tag = Z46 }
+			esmaria_region = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = Z46
+			}
+		}
+		if = { # Add Dameria claims
+			limit = { tag = A48 }
+			west_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			east_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			west_dameshead_region = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			damerian_dales_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			the_commons_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			heartlands_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+		}
+		emperor = {
+			add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_recognized
+			}
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_recognized
+			}
+		}
+	}
+	
+	option = { # Gracefully accept the title
+		name = grand_duchy.2.b
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_negotiated
+		}
+		if = {
+			limit = {
+				NOT = { government_rank = 2 }
+				is_elector = yes
+			}
+			set_government_rank = 2
+		}
+		set_country_flag = is_a_grand_duchy
+		add_prestige = 5
+		add_legitimacy_equivalent = { amount = 5 republican_tradition = 2.5 }
+		emperor = {
+			add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_negotiated
+			}
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_negotiated
+			}
+		}
+	}
+
+	option = { # If the empire won't give us our claims, we'll get them ourselves
+		name = grand_duchy.2.c
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_negotiated
+			is_emperor = no
+		}
+		remove_non_electors_emperors_from_empire_effect = yes
+		if = {
+			limit = {
+				NOT = { government_rank = 2 }
+			}
+			set_government_rank = 2
+		}
+		# set_country_flag = is_a_grand_duchy
+		if = { # Add Esmaria claims
+			limit = { tag = Z46 }
+			esmaria_region = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = Z46
+			}
+		}
+		if = { # Add Dameria claims
+			limit = { tag = A48 }
+			west_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			east_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			west_dameshead_region = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			damerian_dales_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			the_commons_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			heartlands_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+		}
+		emperor = {
+			add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_left_empire_claims_negotiated
+			}
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_left_empire_claims_negotiated
+			}
+		}
+	}
+
+	option = { # Accept the emperor's reprisals
+		name = grand_duchy.2.d
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_denied
+		}
+		add_prestige = -15
+		add_legitimacy_equivalent = { amount = -15 republican_tradition = -10 }
+		add_country_modifier = {
+			name = imperial_injunction_on_conquest
+			duration = 5475
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_denied
+			}
+		}
+		emperor = {
+			ROOT = {
+				add_casus_belli = {
+					type = cb_insult
+					target = prev
+				}
+			}
+		}
+		set_country_flag = enable_grand_duchy_cb
+	}
+
+	option = { # They deny our rights and try to harass us? We will not stay in this sham of an empire.
+		name = grand_duchy.2.e
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_denied
+			is_emperor = no
+		}
+		remove_non_electors_emperors_from_empire_effect = yes
+		if = {
+			limit = {
+				NOT = { government_rank = 2 }
+			}
+			set_government_rank = 2
+		}
+		# set_country_flag = is_a_grand_duchy
+		if = { # Add Esmaria claims
+			limit = { tag = Z46 }
+			esmaria_region = {
+				limit = {
+					NOT = { is_core = ROOT }
+					NOT = { is_permanent_claim = ROOT }
+				}
+				add_permanent_claim = Z46
+			}
+		}
+		if = { # Add Dameria claims
+			limit = { tag = A48 }
+			west_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			east_damesear_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			west_dameshead_region = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			damerian_dales_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			the_commons_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+			heartlands_area = {
+				limit = { NOT = { owned_by = ROOT } }
+				add_permanent_claim = A58
+			}
+		}
+		emperor = {
+			add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_denied
+			}
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_denied
+			}
+		}
+		emperor = {
+			add_casus_belli = {
+				type = cb_reintegrate_into_hre
+				target = ROOT
+			}
+		}
+	}
+
+	option = { # We will fight for our rights!
+		name = grand_duchy.2.f
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				# trigger
+			}
+		}
+		trigger = {
+			has_country_flag = claims_denied
+			is_emperor = no
+		}
+		set_country_flag = enable_grand_duchy_cb
+		emperor = {
+			add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_denied
+			}
+		}
+		emperor = {
+			reverse_add_opinion = {
+				who = ROOT
+				modifier = grand_duchy_claims_denied
+			}
+		}
+		emperor = {
+			ROOT = {
+				declare_war_with_cb = {
+					casus_belli = cb_insult
+					who = PREV
+				}
+			}
+		}
+	}
+}
