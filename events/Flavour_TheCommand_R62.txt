@@ -418,9 +418,10 @@ country_event = { #End the Temple's Curse
 	immediate = {
 		hidden_effect = {
 			random_owned_province = {
-				limit = { OR = { has_province_modifier = damaged_temple_complex has_province_modifier = derelict_temple_complex } NOT = { has_province_flag = temple_being_plundered } is_city = yes is_core = ROOT }
+				limit = { OR = { has_province_modifier = damaged_temple_complex has_province_modifier = derelict_temple_complex } NOT = { has_province_flag = temple_being_plundered } NOT = { has_province_modifier = temple_restoration_efforts } is_city = yes is_core = ROOT }
 				setup_temple_restoration_speed = yes
-				save_event_target_as = temple_to_restore
+				calculate_temple_restoration = yes
+				save_event_target_as = restore1
 			}
 		}
 	}
@@ -437,7 +438,10 @@ country_event = { #End the Temple's Curse
 				add_ogre_minority_size_effect = yes
 			}
 		}
-		event_target:temple_to_restore = { begin_temple_restoration = yes }
+		event_target:restore1 = { begin_temple_restoration = yes }
+		tooltip = {
+			custom_tooltip = temple_restoration_cost_tt1
+		}
 	}
 }
 
@@ -512,16 +516,48 @@ country_event = { #The Betrayal of the Oni!
 	trigger = {
 		tag = R62
 		has_country_flag = command_oni_temple_stewardship_flag
-		is_year = 1661
+		is_year = 1608
 	}
 	
 	immediate = {
 		hidden_effect = {
 			every_owned_province = {
-				limit = { has_province_modifier = temple_complex }
-				remove_province_modifier = temple_complex
-				add_province_triggered_modifier = corrupted_temple_complex
+				limit = { 
+					OR = { 
+						has_province_modifier = temple_complex
+						has_province_modifier = damaged_temple_complex
+						has_province_modifier = derelict_temple_complex
+					}
+				}
+				if = {
+					limit = { has_province_modifier = temple_complex }
+					hidden_effect = {
+						corrupt_temple_wards = yes
+						set_province_flag = was_temple_complex
+					}
+					remove_province_modifier = temple_complex
+					add_province_triggered_modifier = corrupted_temple_complex
+				}
+				else_if = {
+					limit = { has_province_modifier = damaged_temple_complex }
+					hidden_effect = {
+						corrupt_temple_wards = yes
+						set_province_flag = was_damaged_temple_complex
+					}
+					remove_province_modifier = damaged_temple_complex
+					add_province_triggered_modifier = corrupted_temple_complex
+				}
+				else_if = {
+					limit = { has_province_modifier = derelict_temple_complex }
+					hidden_effect = {
+						corrupt_temple_wards = yes
+						set_province_flag = was_derelict_temple_complex
+					}
+					remove_province_modifier = derelict_temple_complex
+					add_province_triggered_modifier = corrupted_temple_complex
+				}
 			}
+			clr_country_flag = command_oni_temple_stewardship_flag
 		}
 	}
 
@@ -1275,11 +1311,18 @@ province_event = { #The Laws of Ninun
 					has_country_flag = command_laws_of_ninun_unlocked_flag
 					ai = yes
 				}
-				any_neighbor_province = {
-					OR = {
-						culture_group = hobgoblin
-						culture_group = wuhyun
+				OR = {
+					any_neighbor_province = {
+						OR = {
+							culture_group = hobgoblin
+							culture_group = wuhyun
+							culture = honourbound_harimari
+							religion = godlost
+						}
 					}
+					culture_group = wuhyun
+					culture = honourbound_harimari
+					religion = godlost
 				}
 			}
 			has_state_edict = laws_of_ninun_edict
@@ -1288,9 +1331,17 @@ province_event = { #The Laws of Ninun
 			culture_is_human = yes
 			culture_is_half_orcish = yes
 			culture_is_orcish = yes
+			culture_is_harimari = yes
+			culture_is_kobold = yes
+			culture_is_harpy = yes
 		}
 		OR = {
-			NOT = { culture_group = wuhyun }
+			NOT = {
+				culture_group = wuhyun
+				culture = honourbound_harimari
+				culture = pezarangi_harpy
+				culture = goldscale_kobold
+			}
 			NOT = { religion = godlost }
 		}
 	}
@@ -1299,7 +1350,10 @@ province_event = { #The Laws of Ninun
 		months = 18
 		modifier = {
 			factor = 0.5
-			culture_group = wuhyun
+			OR = {
+				culture_group = wuhyun
+				culture = honourbound_harimari
+			}
 		}
 		modifier = {
 			factor = 0.5
@@ -1316,7 +1370,14 @@ province_event = { #The Laws of Ninun
 		ai_chance = {
 			factor = 1
 		}
-		trigger = { NOT = { culture_group = wuhyun } }
+		trigger = {
+			NOT = {
+				culture_group = wuhyun
+				culture = honourbound_harimari
+				culture = pezarangi_harpy
+				culture = goldscale_kobold
+			}
+		}
 		
 		if = {
 			limit = { continent = asia }
@@ -1331,6 +1392,18 @@ province_event = { #The Laws of Ninun
 			1 = {
 				trigger = { NOT = { has_orcish_majority_trigger = yes } }
 				if = {
+					limit = { has_harimari_majority_trigger = yes }
+					change_culture = honourbound_harimari
+				}
+				else_if = {
+					limit = { has_harpy_majority_trigger = yes }
+					change_culture = pezarangi_harpy
+				}
+				else_if = {
+					limit = { has_kobold_majority_trigger = yes }
+					change_culture = goldscale_kobold
+				}
+				else_if = {
 					limit = { superregion = rahen_superregion }
 					change_culture = azepyanunin
 				}
@@ -1392,10 +1465,19 @@ province_event = { #The Laws of Ninun
 						OR = {
 							AND = {
 								religion = godlost
-								culture_group = wuhyun
+								OR = {
+									culture_group = wuhyun
+									culture_group = hobgoblin
+									culture = honourbound_harimari
+									culture = pezarangi_harpy
+									culture = goldscale_kobold
+								}
 							}
 							AND = {
 								culture_is_human = no
+								culture_is_harimari = no
+								culture_is_harpy = no
+								culture_is_kobold = no
 								OR = {
 									AND = {
 										owner = { has_country_flag = R62_honourable_half_orcs_flag }
@@ -2868,10 +2950,18 @@ province_event = { #Wuhyunification of slave-state land
 		has_global_flag = R62_slave_state_wuhyunification_flag
 		OR = {
 			has_human_majority_trigger = yes
+			has_harimari_majority_trigger = yes
+			has_harpy_majority_trigger = yes
+			has_kobold_majority_trigger = yes
 			has_half_orcish_majority_trigger = yes
 		}
 		OR = {
-			NOT = { culture_group = wuhyun }
+			NOT = {
+				culture_group = wuhyun
+				culture = honourbound_harimari
+				culture = pezarangi_harpy
+				culture = goldscale_kobold
+			}
 			NOT = { religion = godlost }
 		}
 	}
@@ -2880,7 +2970,10 @@ province_event = { #Wuhyunification of slave-state land
 		months = 60
 		modifier = {
 			factor = 0.5
-			culture_group = wuhyun
+			OR = {
+				culture_group = wuhyun
+				culture = honourbound_harimari
+			}
 		}
 		modifier = {
 			factor = 0.5
@@ -2908,6 +3001,18 @@ province_event = { #Wuhyunification of slave-state land
 			1 = {
 				trigger = { NOT = { has_orcish_majority_trigger = yes } }
 				if = {
+					limit = { has_harimari_majority_trigger = yes }
+					change_culture = honourbound_harimari
+				}
+				else_if = {
+					limit = { has_harpy_majority_trigger = yes }
+					change_culture = pezarangi_harpy
+				}
+				else_if = {
+					limit = { has_kobold_majority_trigger = yes }
+					change_culture = goldscale_kobold
+				}
+				else_if = {
 					limit = { superregion = rahen_superregion }
 					change_culture = azepyanunin
 				}
@@ -10032,7 +10137,17 @@ country_event = { # spawning the tiger command
 				4378 = { save_global_event_target_as = tiger_command_upstream }
 			}
 			every_subject_country = {	# Transferring Raheni subjects to Tiger Command
-				limit = { capital_scope = { superregion = rahen_superregion NOT = { region = shamakhad_region } } }
+				limit = {
+					capital_scope = {
+						superregion = rahen_superregion
+						NOT = { region = shamakhad_region }
+					}
+					NOT = {
+						tag = R67
+						tag = R68
+						tag = R69
+					}
+				}
 				if = {
 					limit = { is_subject_of_type = autonomous_vassal }
 					R67 = { create_subject = { subject = PREV subject_type = autonomous_vassal } }
