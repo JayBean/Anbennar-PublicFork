@@ -843,6 +843,7 @@ on_religion_change = {
 	if = {
 		limit = { 
 			NOT = { religion = night_coven }
+			NOT = { religion = shadow_pact }
 			tag = S70
 		}
 		#remove night coven Reforms if you convert away
@@ -3654,7 +3655,7 @@ on_new_monarch = {
 	# for edge cases with swapping to existing mage rulers (i.e. jaddaresa for jaddar succession)
 	# if they have the menu open when you do this you cannot use the magic menu
 	# so make sure the magic menu opening flag is not set for new ruler
-	set_runelink_level = yes
+	#set_runelink_level = yes
 
 	events = {
 		flavor_sca.2				# Education Focus of the new Ruler
@@ -3960,11 +3961,8 @@ on_new_monarch = {
 	if = {
 		limit = {
 			tag = B37
-			had_ruler_flag = {
-				flag = rogieria_young_owl_alive
-				days = 365
-			}
-			not = { has_ruler_flag = rogieria_young_owl_alive }
+			NOT = { has_ruler = "Rogier 'Young Owl'" }
+			NOT = { has_ruler_flag = rogieria_young_owl_alive }
 		}
 		country_event = { id = flavor_rogieria.31 days = 1 }
 	}
@@ -4584,10 +4582,10 @@ on_heir_death = {
 		limit = { has_ruler_flag = heir_went_on_grand_tour }
 		clr_ruler_flag = heir_went_on_grand_tour
 	}
-	if = {
-		limit = { has_country_flag = albrecht_achilles_flag }
-		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
-	}
+#	if = {
+#		limit = { has_country_flag = albrecht_achilles_flag }
+#		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
+#	}
 	if = {
 		limit = { has_ruler_flag = sancaga_cikma }
 		clr_ruler_flag = sancaga_cikma
@@ -4628,8 +4626,13 @@ on_heir_death = {
 	}
 	events = {
 		flavor_magisterium.23
-		flavor_magisterium.29		
+		flavor_magisterium.29
 	}
+	clr_country_flag = theo_local_noble_flag #Anbennar - Fix for bugged devotion events due to being incompatible/ineligible with the same heir selection event
+	clr_country_flag = theo_foreign_noble_flag
+	clr_country_flag = theo_merchants_son_flag
+	clr_country_flag = theo_talented_theologian_flag
+	clr_country_flag = theo_local_preacher_flag
 }
 
 # country
@@ -4750,6 +4753,13 @@ on_new_heir = {
 				define_heir = {
 					dynasty = original_dynasty
 					culture = ROOT
+					female = yes
+				}
+			}
+			else_if = { limit = { tag = F62 } #Duwarkani
+				define_heir = {
+					dynasty = original_dynasty
+					culture = nzeri_harpy
 					female = yes
 				}
 			}
@@ -6337,11 +6347,19 @@ on_monthly_pulse = {
 	#harpy queendom gov mechanic
 	if = {
 		limit = {
-			has_government_power = {
-				mechanic_type = harpylen_queendom_claim_mechanic
-				power_type = harpylen_queendom_power
-				value = 0
-			}
+			has_country_flag = hasQueendomGovBarFlag
+		}
+		set_variable = { which = QueendomAdditionVar value = 0 }
+		set_variable = { which = QueendomPrimaryCultureVar value = 0 }
+		set_variable = { which = QueendomCultureGroupVar value = 0 }
+		set_variable = { which = QueendomRoostCountVar value = 0 }
+		set_variable = { which = QueendomSubjectPositiveVar value = 0 }
+		set_variable = { which = QueendomSubjectNegativeVar value = 0 }
+		set_variable = { which = QueendomToleratedRacesVar value = 0 }
+		set_variable = { which = QueendomMonumentVar value = 0 }
+		ROOT = {
+			subtract_variable = { which = QueendomOverallVar value = 1 }
+			subtract_variable = { which = QueendomAdditionVar value = 1 }
 		}
 		every_owned_province = {
 			if = {
@@ -6349,7 +6367,16 @@ on_monthly_pulse = {
 					has_owner_culture = yes
 					NOT = { development = 20 }
 				}
-				ROOT = { add_queendom_claim_power = { amount = -0.15 } }
+				ROOT = {
+					add_government_power = {
+						mechanic_type = harpylen_queendom_claim_mechanic
+						power_type = harpylen_queendom_power
+						value = -0.15
+					}
+					change_variable = { which = QueendomAdditionVar value = -0.15 }
+					change_variable = { which = QueendomPrimaryCultureVar value = -0.15 }
+					change_variable = { which = QueendomOverallVar value = -0.15 }
+				}
 			}
 			else_if = {
 				limit = {
@@ -6357,7 +6384,31 @@ on_monthly_pulse = {
 					has_owner_culture = no
 					NOT = { development = 10 }
 				}
-				ROOT = { add_queendom_claim_power = { amount = -0.1 } }
+				ROOT = {
+					add_government_power = {
+						mechanic_type = harpylen_queendom_claim_mechanic
+						power_type = harpylen_queendom_power
+						value = -0.1
+					}
+					change_variable = { which = QueendomAdditionVar value = -0.1 }
+					change_variable = { which = QueendomCultureGroupVar value = -0.1 }
+					change_variable = { which = QueendomOverallVar value = -0.1 }
+				}
+			}
+			if = {
+				limit = {
+					has_active_triggered_province_modifier = harpy_roost
+				}
+				ROOT = {
+					add_government_power = {
+						mechanic_type = harpylen_queendom_claim_mechanic
+						power_type = harpylen_queendom_power
+						value = 0.1
+					}
+					change_variable = { which = QueendomAdditionVar value = 0.1 }
+					change_variable = { which = QueendomRoostCountVar value = 0.1 }
+					change_variable = { which = QueendomOverallVar value = 0.1 }
+				}
 			}
 		}
 		every_subject_country = {
@@ -6368,91 +6419,343 @@ on_monthly_pulse = {
 						value = 100
 					}
 				}
-			ROOT = { add_queendom_claim_power = { amount = 0.2 } }
+				ROOT = {
+					add_government_power = {
+						mechanic_type = harpylen_queendom_claim_mechanic
+						power_type = harpylen_queendom_power
+						value = 0.2
+					}
+					change_variable = { which = QueendomAdditionVar value = 0.2 }
+					change_variable = { which = QueendomSubjectPositiveVar value = 0.2 }
+					change_variable = { which = QueendomOverallVar value = 0.2 }
+				}
 			}		
 			else_if = {
 				limit = {
-					has_opinion = {
-						who = PREV
-						value = -100
+					NOT = {
+						has_opinion = {
+							who = PREV
+							value = -100
+						}
 					}
 				}
-				ROOT = { add_queendom_claim_power = { amount = -0.2 } }			
+				ROOT = {
+					add_government_power = {
+						mechanic_type = harpylen_queendom_claim_mechanic
+						power_type = harpylen_queendom_power
+						value = -0.2
+					}
+					change_variable = { which = QueendomAdditionVar value = -0.2 }
+					change_variable = { which = QueendomSubjectNegativeVar value = -0.2 }
+					change_variable = { which = QueendomOverallVar value = -0.2 }
+				}	
 			}
 		}
 		if = {
 			limit = { high_tolerance_dwarven_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_elven_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_halfling_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_gnomish_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_half_orcish_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_kobold_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_orcish_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_human_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_gnollish_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_ruinborn_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_goblin_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_troll_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_half_elven_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_ogre_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = {  high_tolerance_harimari_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_centaur_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_hobgoblin_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
 		if = {
 			limit = { high_tolerance_lizardfolk_race_trigger = yes }
-			ROOT = { add_queendom_claim_power = { amount = 0.15 } }
+			ROOT = {
+				add_government_power = {
+					mechanic_type = harpylen_queendom_claim_mechanic
+					power_type = harpylen_queendom_power
+					value = 0.15
+				}
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomToleratedRacesVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
 		}
-	}	
+		if = {
+			limit = {
+				660 = {
+					owned_by = ROOT
+					has_great_project = {
+						type = queens_throne
+						tier = 3
+					}
+				}
+			}
+			ROOT = {
+				change_variable = { which = QueendomAdditionVar value = 0.45 }
+				change_variable = { which = QueendomMonumentVar value = 0.45 }
+				change_variable = { which = QueendomOverallVar value = 0.45 }
+			}
+		}
+		else_if = {
+			limit = {
+				660 = {
+					owned_by = ROOT
+					has_great_project = {
+						type = queens_throne
+						tier = 2
+					}
+				}
+			}
+			ROOT = {
+				change_variable = { which = QueendomAdditionVar value = 0.3 }
+				change_variable = { which = QueendomMonumentVar value = 0.3 }
+				change_variable = { which = QueendomOverallVar value = 0.3 }
+			}
+		}
+		else_if = {
+			limit = {
+				660 = {
+					owned_by = ROOT
+					has_great_project = {
+						type = queens_throne
+						tier = 1
+					}
+				}
+			}
+			ROOT = {
+				change_variable = { which = QueendomAdditionVar value = 0.15 }
+				change_variable = { which = QueendomMonumentVar value = 0.15 }
+				change_variable = { which = QueendomOverallVar value = 0.15 }
+			}
+		}
+		ROOT = {
+			if = {
+				limit = {
+					check_variable = {
+						which = QueendomOverallVar
+						value = 100
+					}
+				}
+				set_variable = { which = QueendomOverallVar value = 100 }
+			}
+			if = {
+				limit = {
+					NOT = {
+						check_variable = {
+							which = QueendomOverallVar
+							value = 0
+						}
+					}
+				}
+				set_variable = { which = QueendomOverallVar value = 0 }
+			}
+		}
+	}
 }
 
 on_yearly_pulse = {
@@ -11534,6 +11837,7 @@ on_province_owner_change = {
 		else_if = {
 			limit = {
 				owned_by = B34
+				owner = { has_reform = luciande_board_of_chains_reform }
 			}
 			if = {
 				limit = {
@@ -12363,59 +12667,6 @@ on_province_owner_change = {
             }
         }
     }
-	#luciande add slave modifiers
-	if = {
-		limit = {
-			NOT = { owner = { tag = B34 } }
-			OR = {
-				has_province_modifier = B34_board_of_chains_boost
-				has_province_modifier = B34_board_of_chains_boost_upgraded
-				has_province_modifier = B34_board_of_chains_boost_upgraded_2
-			}
-		}
-		remove_province_modifier = B34_board_of_chains_boost
-		remove_province_modifier = B34_board_of_chains_boost_upgraded
-		remove_province_modifier = B34_board_of_chains_boost_upgraded_2
-	}
-	if = {
-		limit = { 
-			trade_goods = slaves
-			owner = { 
-				has_country_flag = luciande_tier3_slaves_flag
-			} 
-		}
-		add_province_modifier = {
-			name = B34_board_of_chains_boost_upgraded_2
-			duration = -1
-			hidden = yes #hide
-		}
-	}
-	else_if = {
-		limit = { 
-			trade_goods = slaves
-			owner = { 
-				has_country_flag = luciande_tier2_slaves_flag
-			}
-		}
-		add_province_modifier = {
-			name = B34_board_of_chains_boost_upgraded
-			duration = -1
-			hidden = yes #hide
-		}
-	}
-	else_if = {
-		limit = { 
-			trade_goods = slaves
-			owner = { 
-				has_country_flag = luciande_tier1_slaves_flag
-			} 
-		}
-		add_province_modifier = {
-			name = B34_board_of_chains_boost
-			duration = -1
-			hidden = yes #hide
-		}
-	}
 	#Newshire
 	if = {
 		limit = {
@@ -15764,8 +16015,8 @@ on_trade_good_changed = {
 		#luciande
 		if = {
 			limit = { 
-				owner = { tag = B34 }
 				trade_goods = slaves
+				owner = { tag = B34 has_reform = luciande_board_of_chains_reform }
 			}
 			if = {
 				limit = {
@@ -16627,6 +16878,14 @@ on_colonial_nation_established = {
 			name = orcish_slaves_in_colonies
 			duration = -1
 		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				monstrous_culture = yes
+			}
+		}
+		country_event = { id = monstrous.200 }
 	}
 }
 
