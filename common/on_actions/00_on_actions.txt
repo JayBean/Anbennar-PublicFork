@@ -2234,7 +2234,35 @@ on_war_won = {
 			id = aelantirspawnables.20
 		}
 	}
-	
+
+	if = {
+		limit = {
+			tag = R86
+			mission_completed = Y26_fading_is_the_harvest_moon
+			any_owned_province = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+					has_province_flag = Y26_noble_rebellion
+				}
+			}
+		}
+		every_owned_province = {
+			limit = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+				}
+			}
+			set_province_flag = Y26_noble_rebellion
+		}
+		country_event = { id = flavour_yinquan.48 days = 30 }
+	}
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -4582,10 +4610,10 @@ on_heir_death = {
 		limit = { has_ruler_flag = heir_went_on_grand_tour }
 		clr_ruler_flag = heir_went_on_grand_tour
 	}
-	if = {
-		limit = { has_country_flag = albrecht_achilles_flag }
-		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
-	}
+#	if = {
+#		limit = { has_country_flag = albrecht_achilles_flag }
+#		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
+#	}
 	if = {
 		limit = { has_ruler_flag = sancaga_cikma }
 		clr_ruler_flag = sancaga_cikma
@@ -4626,8 +4654,13 @@ on_heir_death = {
 	}
 	events = {
 		flavor_magisterium.23
-		flavor_magisterium.29		
+		flavor_magisterium.29
 	}
+	clr_country_flag = theo_local_noble_flag #Anbennar - Fix for bugged devotion events due to being incompatible/ineligible with the same heir selection event
+	clr_country_flag = theo_foreign_noble_flag
+	clr_country_flag = theo_merchants_son_flag
+	clr_country_flag = theo_talented_theologian_flag
+	clr_country_flag = theo_local_preacher_flag
 }
 
 # country
@@ -16092,7 +16125,30 @@ on_trade_good_changed = {
 				add_province_modifier = { name = mulen_jewelry_line duration = -1 }
 			}
 		}
-    }
+	}
+	if = {
+		limit = { owner = { tag = R86 mission_completed = Y26_fading_is_the_harvest_moon } }
+		if = {
+			limit = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+					has_province_flag = Y26_noble_rebellion
+				}
+			}
+			add_province_modifier = { name = Y26_land_redistribution duration = -1 }
+			add_province_modifier = { name = Y26_fading_is_the_harvest_moon_mod duration = -1 }
+		}
+		else_if = {
+			limit = { NOT = { trade_goods = grain trade_goods = livestock } }
+			clr_province_flag = Y26_noble_rebellion
+			clr_province_flag = Y26_noble_autonomy
+			remove_province_modifier = Y26_land_redistribution
+			remove_province_modifier = Y26_fading_is_the_harvest_moon_mod
+		}
+	}
 }
 
 # this = country
@@ -16435,25 +16491,6 @@ on_conquest = {
 			}
 		}
 		province_event = { id = flavour_yinquan.25 }
-	}
-	if = {
-		limit = {
-			owner = {
-				tag = R86
-				mission_completed = Y26_fading_is_the_harvest_moon
-			}
-			OR = {
-				trade_goods = grain
-				trade_goods = livestock
-			}
-		}
-		set_province_flag = Y26_noble_rebellion
-		owner = {
-			country_event = {
-				id = flavour_yinquan.48
-				days = 30
-			}
-		}
 	}
 	# Mountainshark removing slaves
 	if = {
@@ -16873,6 +16910,14 @@ on_colonial_nation_established = {
 			name = orcish_slaves_in_colonies
 			duration = -1
 		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				monstrous_culture = yes
+			}
+		}
+		country_event = { id = monstrous.200 }
 	}
 }
 
