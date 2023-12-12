@@ -791,7 +791,7 @@ NCountry = {
 	STRENGTHEN_GOVERNMENT_REPUBLICAN_TRADITION = 3,
 	STRENGTHEN_GOVERNMENT_HORDE_UNITY = 10,
 	STRENGTHEN_GOVERNMENT_DEVOTION = 10,
-	STRENGTHEN_GOVERNMENT_MERITOCRACY = 10,
+	STRENGTHEN_GOVERNMENT_MERITOCRACY = 5, -- #Anbennar, vanilla is 10
 
 	CORE_COLONY = 0.5,								-- Multiplied with development, colonized by country or overseas
 	CORE_OVERSEAS = 0.5,							-- Multiplied with development, colonized by country or overseas
@@ -1439,7 +1439,7 @@ NMilitary = {
 	SUPPLY_DEPOT_MIL_COST = 20,						-- Mil power cost to build a supply depot in an area.
 	BATTLE_DAILY_MORALE_DAMAGE = 0.01,				-- Deployed troops take this fraction of their maximum morale as damage
 	RESERVE_DAILY_MORALE_DAMAGE = 0.02,				-- Reserve troops take this fraction of their maximum morale as damage (modified by reserves_organisation)
-	CREATE_JANISSARIES_MIL_COST = 10,				-- Cost to create janissaries (per unit) #Anbennar, vanilla is 3
+	CREATE_JANISSARIES_MIL_COST = 5,				-- Cost to create janissaries (per unit) #Anbennar, vanilla is 3
 	CREATE_CAWA_MIL_COST = 2,						-- Cost to create Cawa (per unit)
 	CREATE_HUSSARS_MIL_COST = 10;					-- (Anbennar) pdx: 0 (Mythical Riders) Cost to create Hussars (per unit) 
 	COSSACKS_MAXIMUM_RATIO = 1.0,					-- Maximum number of Cossacks regiments, relative to force limit
