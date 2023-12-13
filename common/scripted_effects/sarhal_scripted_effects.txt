@@ -1,5 +1,6 @@
 night_coven_collapse = {
-	if = {		#1. Reform Done
+	#1. Reform Done
+	if = {
 		limit = {
 			NOT = {
 				OR = {
@@ -13,78 +14,105 @@ night_coven_collapse = {
 		}
 		set_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#2. Reform Done
+	#2. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_1 }
 		set_country_flag = night_coven_reform_prog_2
 		clr_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#3. Reform Done
+	#3. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_2 }
 		set_country_flag = night_coven_reform_prog_3
 		clr_country_flag = night_coven_reform_prog_2
 	}
-	else_if = {		#4. Reform Done
+	#4. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_3 }
 		set_country_flag = night_coven_reform_prog_4
 		clr_country_flag = night_coven_reform_prog_3
 	}
-	else_if = {		#5. Reform Done
+	#5. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_4 }
 		set_country_flag = night_coven_reform_prog_5
 		clr_country_flag = night_coven_reform_prog_4
 	}
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
+
+	#return provinces
     every_owned_province = {
         limit = { NOT = { region = yezel_mora_region } }
 		remove_core = S70
-        random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
-            20 = { ##no way to check if there is a core core country unfortunately, just if one exist on the map or doesn't exist. But if there is no valid one, it is fixed later
-                random_core_country = {
-					limit = { NOT = { tag = F68 } }
-                    save_event_target_as = night_reform_tag_select
-                }
-                cede_province = event_target:night_reform_tag_select
-            }
-            5 = { #30% we give to a neighbor #decreasing this from 30 to 5
-                trigger = {
-                    any_neighbor_province = {
-                        is_city = yes
-                        NOT = { owned_by = S70 }
-                    }
-                }
-                random_neighbor_province = {
-                    limit = {
-                        NOT = {
-                            owned_by = S70
-                        }
-                    }
-                    owner = { save_event_target_as = night_reform_tag_select }
-                }
-                add_claim = event_target:night_reform_tag_select
-                cede_province = event_target:night_reform_tag_select
-            }
-			30 = { #increasing  this from 5 to 30 to help players getting attacked by the troll
-                cede_province = previous_owner
+
+		#alive core tag
+		if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+					exists = yes
+				}
 			}
-            5 = { ##
-                random_core_country = {
-					limit = { NOT = { tag = F68 } }
-                    S70 = {
-                        Release = PREV
-                    }
-                }
-            }
-        }
-        #in case we can't give some away
-        if = {
-            limit = {
-                owned_by = S70
-            }
-            cede_province = previous_owner
-        }
-        ####inform the player
-        province_event = { id = shadow.3 }
-    }
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+					exists = yes
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			province_event = { id = shadow.3 }
+		}
+		#dead core tag
+		else_if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			event_target:new_owner = { country_event = { id = anbennar_setup.3 } }
+		}
+		#previous owner
+		else = { cede_province = previous_owner }
+	}
+
+	#fallback
+	if = {
+		limit = { any_owned_province = { NOT = { region = yezel_mora_region } } }
+		every_owned_province = {
+			limit = { NOT = { region = yezel_mora_region } }
+			random_neighbor_province = {
+				limit = { 
+					is_city = yes
+					NOT = {
+						owned_by = S70 #Trolls
+						owned_by = F68 #Rombeni
+					}
+				}
+				owner = { save_event_target_as = new_owner }
+			}
+			cede_province = event_target:new_owner
+		}
+	}
 }
 
 
@@ -563,4 +591,330 @@ aakhet_reset = {
 		clear_global_event_target = aakhet_host
 		set_global_flag = aakhet_hostless
 	}
+}
+
+adeen_increase_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_temp_appeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = 1
+			}
+		}
+	}
+}
+
+adeen_spawn_rebels_condition = {
+	if = {
+		limit = {
+			NOT = { 
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		random_owned_province = {
+			limit = { is_overseas = no }
+			spawn_rebels = {
+				type = adeen_rebels
+				size = 2
+			}
+		}
+	}
+}
+
+adeen_decrease_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+				has_country_flag = adeen_rebel_skip
+			}
+		}
+		custom_tooltip = adeen_temp_displeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = -1
+			}
+		}
+		adeen_spawn_rebels_condition = yes
+	}
+}
+
+adeen_remove_privilege = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		adeen_decrease_appease = yes
+	}
+	add_country_modifier = { name = adeen_revoke_cooldown_mod duration = 730 }
+}
+
+adeen_increasing_corruption_low = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.2
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.4
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 0.7
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1
+	}
+}
+
+adeen_increasing_corruption_high = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.3
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.5
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 1
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1.5
+	}
+}
+
+adeen_more_events = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_additional_events
+	}
+}
+
+adeen_rebel_chance = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			1 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 1.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+}
+
+adeen_temp_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	adeen_rebel_chance = yes
+}
+
+adeen_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	adeen_rebel_chance = yes
 }
