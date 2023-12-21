@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-oldamar999"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -28,4 +28,4 @@ replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
 supported_version="1.36.*"
-path="mod/Anbennar-PublicFork"
+path="mod/anbennar-eu4-fork-oldamar999"
