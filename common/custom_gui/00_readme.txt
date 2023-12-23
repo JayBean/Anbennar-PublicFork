@@ -1,3 +1,7 @@
+# ANBENNAR: this folder is arranged into the different interface files the GUI elements belong in. For mission/tag-specific GUI, please use zz_mission_content.txt
+
+
+
 # The custom guiButtonType/instantTextBoxType/iconType must have a 'scripted = yes' line to work
 #custom_button = {
 #    name = custom_button_testing #Must match a scripted guiButtonType in a .gui file
