@@ -1,5 +1,6 @@
 night_coven_collapse = {
-	if = {		#1. Reform Done
+	#1. Reform Done
+	if = {
 		limit = {
 			NOT = {
 				OR = {
@@ -13,91 +14,907 @@ night_coven_collapse = {
 		}
 		set_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#2. Reform Done
+	#2. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_1 }
 		set_country_flag = night_coven_reform_prog_2
 		clr_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#3. Reform Done
+	#3. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_2 }
 		set_country_flag = night_coven_reform_prog_3
 		clr_country_flag = night_coven_reform_prog_2
 	}
-	else_if = {		#4. Reform Done
+	#4. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_3 }
 		set_country_flag = night_coven_reform_prog_4
 		clr_country_flag = night_coven_reform_prog_3
 	}
-	else_if = {		#5. Reform Done
+	#5. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_4 }
 		set_country_flag = night_coven_reform_prog_5
 		clr_country_flag = night_coven_reform_prog_4
 	}
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
+
+	#return provinces
     every_owned_province = {
-        limit = {
-            NOT = {
-                region = yezel_mora_region
-            }
-        }
-        remove_core = FROM
-    }
-    every_owned_province = {
-        limit = {
-            NOT = {
-				region = yezel_mora_region #fuck custom nations. Don't need to account for spawning ones or converts either cause they don't get reforms
-            }
-        }
-    	#remove_core = S70 #done above
-        random_core_country = {
-            save_event_target_as = night_reform_tag_select
-        }
-        random_list = { #we give the province to a nation which has a core on it, a neighboring nation, a same culture nation, we release all provinces of whoever has a core on it
-            20 = { ##no way to check if there is a core core country unfortunately, just if one exist on the map or doesn't exist. But if there is no valid one, it is fixed later
-                random_core_country = {
-                    save_event_target_as = night_reform_tag_select
-                }
-                cede_province = event_target:night_reform_tag_select
-            }
-            5 = { #30% we give to a neighbor #decreasing this from 30 to 5
-                trigger = {
-                    any_neighbor_province = {
-                        is_city = yes
-                        NOT = { owned_by = S70 }
-                    }
-                }
-                random_neighbor_province = {
-                    limit = {
-                        NOT = {
-                            owned_by = S70
-                        }
-                    }
-                    owner = { save_event_target_as = night_reform_tag_select }
-                }
-                add_claim = event_target:night_reform_tag_select
-                cede_province = event_target:night_reform_tag_select
-            }
-    		30 = { #increasing  this from 5 to 30 to help the angel and players getting attacked by the troll
-                cede_province = previous_owner
-    		}
-            5 = { ##
-                random_core_country = {
-                    S70 = {
-                        Release = PREV
-                    }
-                }
-            }
-        }
-        #in case we can't give some away
-        if = {
-            limit = {
-                owned_by = S70
-            }
-            cede_province = previous_owner
-        }
-        ####inform the player
-        owner = {
-            country_event = { id = shadow.3 }
-        }
-    }
+        limit = { NOT = { region = yezel_mora_region } }
+		remove_core = S70
+
+		#alive core tag
+		if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+					exists = yes
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+					exists = yes
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			province_event = { id = shadow.3 }
+		}
+		#dead core tag
+		else_if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			event_target:new_owner = { country_event = { id = anbennar_setup.3 } }
+		}
+		#previous owner
+		else = { cede_province = previous_owner }
+	}
+
+	#fallback
+	if = {
+		limit = { any_owned_province = { NOT = { region = yezel_mora_region } } }
+		every_owned_province = {
+			limit = { NOT = { region = yezel_mora_region } }
+			random_neighbor_province = {
+				limit = { 
+					is_city = yes
+					NOT = {
+						owned_by = S70 #Trolls
+						owned_by = F68 #Rombeni
+					}
+				}
+				owner = { save_event_target_as = new_owner }
+			}
+			cede_province = event_target:new_owner
+		}
+	}
+}
+
+
+shrine_cleanup_effect = {
+	shrine_provinces = {
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = lel_shrine_province_active
+			}
+			remove_province_modifier = lel_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = lel_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = kolo_shrine_province_active
+			}
+			remove_province_modifier = kolo_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = kolo_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = the_nakazy_shrine_province_active
+			}
+			remove_province_modifier = the_nakazy_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = the_nakazy_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = turozi_shrine_province_active
+			}
+			remove_province_modifier = turozi_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = turozi_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = yuye_shrine_province_active
+			}
+			remove_province_modifier = yuye_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = yuye_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = ozamdi_shrine_province_active
+			}
+			remove_province_modifier = ozamdi_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = ozamdi_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = jyva_shrine_province_active
+			}
+			remove_province_modifier = jyva_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = jyva_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = ytrai_shrine_province_active
+			}
+			remove_province_modifier = ytrai_shrine_province_active
+			add_province_modifier = { 
+				name = ytrai_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = drongray_shrine_province_active
+			}
+			remove_province_modifier = drongray_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = drongray_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = elinao_shrine_province_active
+			}
+			remove_province_modifier = elinao_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = elinao_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = begga2_shrine_province_active
+			}
+			remove_province_modifier = begga2_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = begga2_shrine_province
+				duration = -1  
+			}
+		}
+		
+		if = {
+			limit = { 
+				owned_by = ROOT
+				has_province_modifier = nakinta_shrine_province_active
+			}
+			remove_province_modifier = nakinta_shrine_province_active
+			add_permanent_province_modifier = { 
+				name = nakinta_shrine_province
+				duration = -1  
+			}
+		}
+	}	
+}
+#bulwar
+bulwar_parliament_bulding_effect = {
+	custom_tooltip = bulwar_parliament_bulding_effect_tt
+	hidden_effect = {
+		every_owned_province = {
+			limit = {
+				OR = {
+					holy_order = servants_of_surael_order
+					holy_order = jasienes_daughters_order
+					holy_order = servants_of_surakel_order
+				}
+				has_production_building_trigger = yes
+				has_seat_in_parliament = yes
+			}
+			add_province_modifier = {
+				name = bulwar_parliament_buliding_modifier_$VALUE$
+				duration = 3650
+			}
+		}
+	}
+}
+
+bulwar_parliament_fort_effect = {
+	custom_tooltip = bulwar_parliament_fort_effect_tt
+	hidden_effect = {
+		every_owned_province = {
+			limit = {
+				OR = {
+					holy_order = order_of_exemplars_order
+					holy_order = militant_jadd_order
+					holy_order = eduz_nabari_order
+					holy_order = the_unforgivable_order
+				}
+				has_fort_building_trigger = yes
+				has_seat_in_parliament = yes
+			}
+			add_province_modifier = {
+				name = bulwar_parliament_fort_modifier_$VALUE$
+				duration = 3650
+			}
+		}
+	}
+}
+calculate_gardener_duty_effect = {	
+	if = {
+		limit = { owner = { has_estate_privilege = estate_church_dictate_understanding } }
+		if = {
+			limit = {
+				NOT = { religion_group = bulwari }
+				NOT = { superregion= bulwar_superregion }
+				NOT = {
+					culture = sun_elf
+					culture = desert_elf
+					culture = dawn_elf
+					culture = zanlibi
+					culture_group = bulwari
+				}
+			}
+			add_province_modifier = {
+				name = estate_church_dictate_understanding_mod
+				duration = -1
+			}
+		}
+		else = {
+			remove_province_modifier = estate_church_dictate_understanding_mod
+		}
+	}
+}
+bulwarize_province = {
+	if = { 
+		limit = { region = harpy_hills_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = kuz_mountains_area
+					area = kuzak_area
+					area = imuluses_area
+				}
+			}
+			change_culture = kuzarami
+		}
+		else = {
+			change_culture = gelkar
+		}
+	}
+	else_if = {
+		limit = { region = bahar_region }
+		change_culture = bahari
+	}
+	else_if = {
+		limit = { region = far_salahad_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = dasmatus_area
+					area = zallirkor_area
+					province_id = 4400
+				}
+			}
+			change_culture = maqeti
+		}
+		else = {
+			change_culture = masnsih
+		}
+	}
+	else_if = {
+		limit = { region = far_bulwar_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = avamezan_area
+					area = sareyand_area
+				}
+			}
+			change_culture = zanite
+		}
+		else_if = { 
+			limit = { 
+				OR = {
+					area = garpix_zokka_area
+					area = jikarzax_area
+					area = xhurgrum_area
+					area = eastern_krahway_area
+				}
+			}
+			change_culture = masnsih
+		}
+		else = {
+			change_culture = surani
+		}
+	}
+	else_if = {
+		limit = { region = bulwar_proper_region }
+		if = { 
+			limit = { 
+				OR = {
+					area = sur_mountains_area
+					area = garpix_tluukt_area
+					area = grixekyr_area
+					province_id = 689
+				}
+			}
+			change_culture = sadnatu
+		}
+		else_if = { 
+			limit = { 
+				OR = {
+					area = kumarkand_area
+					area = bulwar_area
+					area = harklum_area
+					area = south_naza_area
+					area = traz_buranun_area
+					area = north_naza_area
+					area = east_naza_area
+					area = jixobix_area
+				}
+			}
+			change_culture = zanite
+		}
+		else = {
+			change_culture = brasanni
+		}
+	}
+}
+
+##Aakhetist
+
+change_aakhet_approval = {
+	custom_tooltip = change_aakhet_approval_tooltip_$value$
+	custom_tooltip = aakhetist_current_approval_tooltip
+	hidden_effect = {
+		change_variable = { aakhet_approval = $value$ }
+	
+		#overflow and not host
+		if = {
+			limit = { 
+				check_variable = { aakhet_approval = 101 } 
+				NOT = {
+					has_global_flag = aakhet_hostless
+					has_country_flag = current_aakhet_host
+					overlord = { has_country_flag = current_aakhet_host } 
+				}
+			}
+			set_variable = { which = aakhet_overflow which = aakhet_approval }
+			change_variable = { aakhet_overflow = -100 }
+			if = {
+				limit = { check_variable = { aakhet_overflow = 30 } }
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_30 country_event = { id = aakhetist.02 } }
+			}
+			if = {
+				limit = {
+					NOT = { check_variable = { aakhet_overflow = 30 } }
+					check_variable = { aakhet_overflow = 25 }
+				}
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_25 country_event = { id = aakhetist.02 } }
+			}
+			if = {
+				limit = {
+					NOT = { check_variable = { aakhet_overflow = 25 } }
+					check_variable = { aakhet_overflow = 20 }
+				}
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_20 country_event = { id = aakhetist.02 } }
+			}
+			if = {
+				limit = {
+					NOT = { check_variable = { aakhet_overflow = 20 } }
+					check_variable = { aakhet_overflow = 15 }
+				}
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_15 country_event = { id = aakhetist.02 } }
+			}
+			if = {
+				limit = {
+					NOT = { check_variable = { aakhet_overflow = 15 } }
+					check_variable = { aakhet_overflow = 10 }
+				}
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_10 country_event = { id = aakhetist.02 } }
+			}
+			if = {
+				limit = {
+					NOT = { check_variable = { aakhet_overflow = 10 } }
+					check_variable = { aakhet_overflow = 5 }
+				}
+				event_target:aakhet_host = { set_country_flag = aakhet_reduction_5 country_event = { id = aakhetist.02 } }
+			}
+			set_variable = { aakhet_approval = 100 }
+			set_variable = { aakhet_overflow = 0 }
+		}
+		#just overflow
+		if = {
+			limit = { 
+				check_variable = { aakhet_approval = 101 }
+				OR = { 
+					has_country_flag = current_aakhet_host
+					overlord = { has_country_flag = current_aakhet_host } 
+				}
+			}
+			set_variable = { aakhet_approval = 100 }
+		}
+		#Aakhet is hostless
+		if = {
+			limit = {
+				check_variable = { aakhet_approval = 101 }
+				has_global_flag = aakhet_hostless
+			}
+			set_variable = { aakhet_approval = 100 }
+			country_event = { id = aakhetist.01 }
+		}
+		#below 0 and not host
+		if = {
+			limit = { 
+				NOT = {
+					check_variable = { aakhet_approval = 1 } 
+					has_country_flag = current_aakhet_host 
+				}
+			}
+			set_variable = { aakhet_approval = 0 }
+		}
+		#below 0 and host
+		if = {
+			limit = { 
+				NOT = { check_variable = { aakhet_approval = 1 } }
+				has_country_flag = current_aakhet_host 
+			}
+			set_variable = { aakhet_approval = 0 }
+			country_event = { id = aakhetist.03 }
+		}
+	}
+}
+
+#to be done in host scope
+aakhet_movement = {
+	hidden_effect = {
+		clr_country_flag = current_aakhet_host
+
+		if = {
+			limit = { 
+				any_country = {
+					religion = aakhetist
+					ai = no
+					check_variable = { aakhet_approval = 90 }
+				}
+			}
+			random_country = {
+				limit = { religion = aakhetist ai = no check_variable = { aakhet_approval = 90 } }
+				country_event = { id = aakhetist.01 }
+			}
+		}
+		if = {
+			limit = { 
+				NOT = {
+					any_country = {
+						religion = aakhetist
+						ai = no
+						check_variable = { aakhet_approval = 90 }
+					}
+				}
+				any_country = {
+					religion = aakhetist
+				}
+			}
+			random_country = {
+				limit = {
+					religion = aakhetist
+					any_known_country = {
+						religion = aakhetist
+						NOT = { check_variable = { which = aakhet_approval which = PREV } }
+					}
+				}
+				country_event = { id = aakhetist.01 }
+			}
+		}
+		else = { clr_country_flag = current_aakhet_host clear_global_event_target = aakhet_host set_global_flag = aakhet_hostless }
+	}
+}
+
+aakhet_reset = {
+	if = {
+		limit = { 
+			has_country_flag = current_aakhet_host 
+			OR = {
+				NOT = { religion = aakhetist }
+				exists = no
+			} 
+		}
+		clr_country_flag = current_aakhet_host
+		clear_global_event_target = aakhet_host
+		set_global_flag = aakhet_hostless
+	}
+}
+
+adeen_increase_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_temp_appeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = 1
+			}
+		}
+	}
+}
+
+adeen_spawn_rebels_condition = {
+	if = {
+		limit = {
+			NOT = { 
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		random_owned_province = {
+			limit = { is_overseas = no }
+			spawn_rebels = {
+				type = adeen_rebels
+				size = 2
+			}
+		}
+	}
+}
+
+adeen_decrease_appease = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+				has_country_flag = adeen_rebel_skip
+			}
+		}
+		custom_tooltip = adeen_temp_displeased
+		hidden_effect = {
+			change_variable = {
+				which = adeen_appease_count
+				value = -1
+			}
+		}
+		adeen_spawn_rebels_condition = yes
+	}
+}
+
+adeen_remove_privilege = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		adeen_decrease_appease = yes
+	}
+	add_country_modifier = { name = adeen_revoke_cooldown_mod duration = 730 }
+}
+
+adeen_increasing_corruption_low = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.2
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.4
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 0.7
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1
+	}
+}
+
+adeen_increasing_corruption_high = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_corruption = 0.3
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_corruption = 0.5
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_corruption = 1
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_corruption = 1.5
+	}
+}
+
+adeen_more_events = {
+	if = {
+		limit = {
+			NOT = {
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
+			}
+		}
+		custom_tooltip = adeen_additional_events
+	}
+}
+
+adeen_rebel_chance = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			1 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 1.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+}
+
+adeen_temp_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	adeen_rebel_chance = yes
+}
+
+adeen_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	adeen_rebel_chance = yes
 }
