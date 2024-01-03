@@ -116,7 +116,7 @@ on_startup = {
 		ogre.2					#Sets up warring northern Fathide clan opinions
 		ogre.3					#Sets up Ogre Monarch v Tribal opinion
 		ogre.4					#Sets up Ogre Tribal v Monarch opinion
-		magic_ruler.109			#Sets up magic for rulers with undefined skills
+		magic_ruler.102			#Sets up magic for rulers with undefined skills
 		# anbennar_setup.17		#exodus goblin invasion
 		escann_intro.1          #Sword Covenant start
 		escann_intro.2			#House of Riches start
@@ -136,6 +136,8 @@ on_startup = {
 		flavor_nuugdan_tsarai.1					#Faceless Queen
 		flavour_balrijin.29	#Balrijin-Lanjinhui favor/trust setup
 		the_command.0			#The Great Command
+		zokka_jaddari_war.1 #zokka starting event
+		zokka_jaddari_war.14 #jaddari starting event
 		spirits.001				#Sets up temple coverage
 		treasurefleet.0			#Treasure Fleet Begin Cycle
 		guhe.100 				#Guhe Setup Event
@@ -162,6 +164,7 @@ on_startup = {
 		flavor_magisterium.25
         flavor_zansap.4 # Zansap intro
 		medasi.20 				#medasi start event
+		amadia.1				#Amadian Damestear/Goods
 
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -306,13 +309,6 @@ on_startup = {
 			days = 1
 		}
 	}
-
-	#Jaddari-Zokka War
-	if = {
-		limit = { tag = F29 }
-		country_event = { id = zokka_jaddari_war.1 }
-	}
-	
 	#Mulen goblin setup
 	if = {
 		limit = { tag = F50 }
@@ -826,6 +822,19 @@ on_startup = {
 			id = dakinshi.13
 		}
 	}
+
+	#Deyeion set variable
+	if = {
+		limit = { 
+			tag = G56 
+			NOT = { is_year = 1445 }
+		}
+		set_variable = {
+			which = G56_beat_natives_variable
+			value = 0
+		}
+	}
+
 }
 
 # country
@@ -1775,7 +1784,7 @@ on_war_won = {
         limit = {
 			ROOT = {
 				NOT = { has_reform = wulin }
-				NOT = { has_reform = raja_reform}
+				NOT = { has_government_attribute = is_raja}
 				any_subject_country = {
 					OR = {
 						is_subject_of_type = daimyo_vassal
@@ -1865,7 +1874,7 @@ on_war_won = {
 
 	#Raja winning war
 	if = {
-		limit = { has_reform = raja_reform }
+		limit = { has_government_attribute = is_raja }
 		FROM = { raj_cohesion_change = { amount = 10 non_monthly = yes } }
 		every_subject_country = {
 			# make sure all subjects of the Raja get truces with the party.
@@ -2086,8 +2095,8 @@ on_war_won = {
 	if = {
 		limit = {
 			OR = {
-				has_reform = raja_reform
-				overlord = { has_reform = raja_reform }
+				has_government_attribute = is_raja
+				overlord = { has_government_attribute = is_raja }
 			}
 		}
 		raj_calc_internal_wars = yes
@@ -2236,7 +2245,35 @@ on_war_won = {
 			id = aelantirspawnables.20
 		}
 	}
-	
+
+	if = {
+		limit = {
+			tag = R86
+			mission_completed = Y26_fading_is_the_harvest_moon
+			any_owned_province = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+					has_province_flag = Y26_noble_rebellion
+				}
+			}
+		}
+		every_owned_province = {
+			limit = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+				}
+			}
+			set_province_flag = Y26_noble_rebellion
+		}
+		country_event = { id = flavour_yinquan.48 days = 30 }
+	}
+
 	update_artifice_points = yes #needs to be last
 }
 
@@ -2330,7 +2367,7 @@ on_war_lost = {
 
 	#Raja losing war
 	if = {
-		limit = { has_reform = raja_reform }
+		limit = { has_government_attribute = is_raja }
 		FROM = { raj_cohesion_change = { amount = -10 non_monthly = yes } }
 
 		if = {
@@ -3044,6 +3081,29 @@ on_battle_won_unit = {
 			}
 		}
 	}
+
+	#Deyeion win battles against the Mteibhar
+	if = {
+		limit = { 
+			unit_owner = {
+				OR = { 
+					tag = G56
+					was_tag = G56
+				} 
+			}
+			location = { region = mteibas_valley_region }
+			enemy_unit = {
+				unit_owner = { tag = NAT }
+			}
+		}
+		unit_owner = {
+			country_event = {
+				id = deyeion_events.101 #Natives
+				days = 1
+			}
+		}	
+	}
+
 }
 
 # country
@@ -3660,7 +3720,7 @@ on_new_monarch = {
 	# for edge cases with swapping to existing mage rulers (i.e. jaddaresa for jaddar succession)
 	# if they have the menu open when you do this you cannot use the magic menu
 	# so make sure the magic menu opening flag is not set for new ruler
-	set_runelink_level = yes
+	#set_runelink_level = yes
 
 	events = {
 		flavor_sca.2				# Education Focus of the new Ruler
@@ -3673,7 +3733,7 @@ on_new_monarch = {
 		anbennar_setup.19			#Setup for artifice system
 		# racial_modifiers.5		#Racial admin change if unmatching
 		# racial_modifiers.6		#Racial mil change if unmatching
-		magic_ruler.109				#gives magic schools
+		magic_ruler.102				#gives magic schools
 		anb_miscevents.10 			# Make you adventurer reform if youre not - this is for released countries
 		anb_miscevents.11			# Makes temples theocracies when released
 		#adventuring.7	#A new Captain rises
@@ -3750,19 +3810,6 @@ on_new_monarch = {
 	if = {
 		limit = { is_year = 1445 }
 		country_event = { id = great_conqueror.0 days = 35 }
-	}
-
-	if = {
-		limit = {
-			has_dlc = "Rights of Man"
-			OR = {
-				ruler_is_elven = yes
-				ruler_is_dwarven = yes
-				ruler_is_gnomish = yes
-				ruler_is_half_elven = yes
-			}
-		}
-		country_event = { id =  magic_ruler.102 days = 3700 } #Since long-lived races can no longer naturally roll mage_personality has first trait fire after second trait received
 	}
 	if = {
 		limit = { religion = the_jadd has_global_flag = the_jadd_is_the_true_faith NOT = { has_country_modifier = jaddari_the_true_faith } }
@@ -4591,10 +4638,10 @@ on_heir_death = {
 		limit = { has_ruler_flag = heir_went_on_grand_tour }
 		clr_ruler_flag = heir_went_on_grand_tour
 	}
-	if = {
-		limit = { has_country_flag = albrecht_achilles_flag }
-		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
-	}
+#	if = {
+#		limit = { has_country_flag = albrecht_achilles_flag }
+#		clr_country_flag = albrecht_achilles_flag #Death of original Albrecht Achilles
+#	}
 	if = {
 		limit = { has_ruler_flag = sancaga_cikma }
 		clr_ruler_flag = sancaga_cikma
@@ -4635,8 +4682,13 @@ on_heir_death = {
 	}
 	events = {
 		flavor_magisterium.23
-		flavor_magisterium.29		
+		flavor_magisterium.29
 	}
+	clr_country_flag = theo_local_noble_flag #Anbennar - Fix for bugged devotion events due to being incompatible/ineligible with the same heir selection event
+	clr_country_flag = theo_foreign_noble_flag
+	clr_country_flag = theo_merchants_son_flag
+	clr_country_flag = theo_talented_theologian_flag
+	clr_country_flag = theo_local_preacher_flag
 }
 
 # country
@@ -5480,6 +5532,12 @@ on_siberian_pulse = {
 
 # country random events
 on_monthly_pulse = {
+
+	events = {
+		magic_ruler.102
+	}
+
+
 	if = {
 		limit = {
 			ai = no
@@ -6309,7 +6367,7 @@ on_monthly_pulse = {
 
 	if = {
 		limit = {
-			has_reform = raja_reform
+			has_government_attribute = is_raja
 		}
 		4411 = { raj_monthy_calc = yes }
 	}
@@ -6818,6 +6876,16 @@ on_yearly_pulse = {
 		limit = { tag = I16 } 
 		country_event = { id = flavour_gor_burad.60 }
 	}
+
+	#Deyeion decrease variable
+	if = {
+		limit = { has_country_modifier = G56_independence_movement_post_mt }
+		subtract_variable = {
+			which = G56_independence_movement_variable
+			value = 1
+		}
+	}
+
 }
 on_yearly_pulse_2 = {
 }
@@ -6850,7 +6918,7 @@ on_bi_yearly_pulse = {
 		diggy.406 #dwarovar-marrhold tunnel maintenance
 	}
 	if = { limit = { ruler_can_revive = yes } save_ruler_stats = yes }
-	if = { limit = { capital = 4411 has_reform = raja_reform } country_event = { id = rahenraj.2000 days = 365 } }
+	if = { limit = { capital = 4411 has_government_attribute = is_raja } country_event = { id = rahenraj.2000 days = 365 } }
 	if = {
 		limit = {
 			owns_core_province = 4565
@@ -8419,9 +8487,6 @@ on_thri_yearly_pulse_2 = {
 		bulwar_flavour.10
 		dartaxagerdim_events.20
 
-		#Ynn Pulse Events, moved back to 3 year since there should be more events for variety
-		ynn_events.100
-
 		#Ynn Buycev events, were on yearly but that was too frequent 
 		ynn_buycev_events.999
 		flavour_brelar.169	#ravelians in Breluslad
@@ -9382,6 +9447,8 @@ on_four_year_pulse_2 = {
 
 		# racial_modifiers.6		#just in case
 
+		#Ynn Pulse Events, moved back to 3 year since there should be more events for variety
+		ynn_events.100
 
 		flavour_amacimst.300 #Amacimst event for converting rzentur
 	}
@@ -9436,6 +9503,9 @@ on_four_year_pulse_3 = {
 		50 = diggy.588  #fungrum mithril mine
 		100 = diggy.589 #roth� herd
 		25 = diggy.590 	#echoes event chain
+		90 = diggy.759 #norker attack
+		75 = diggy.760 #veladklufar infestation
+		15 = diggy.761 #cave crab farms
 
 		100 = ancestor_worship.1	#Discover Krummul
 		100 = ancestor_worship.2	#Discover Balgar
@@ -12017,8 +12087,8 @@ on_province_owner_change = {
 		limit = {
 			owner = {
 				NOT = {
-					overlord = { has_reform = raja_reform }
-					has_reform = raja_reform
+					overlord = { has_government_attribute = is_raja }
+					has_government_attribute = is_raja
 				}
 			}
 		}
@@ -13758,6 +13828,30 @@ on_province_owner_change = {
 			}
 		}
 	}
+
+	#Deyeion change variable to add years to modifier
+	if = {
+		limit = { 
+			is_city = yes
+			owner = { 
+				NOT = { is_core = PREV }
+				has_country_modifier = G56_independence_movement_post_mt 
+			} 
+		}
+		owner = {
+			change_variable = {
+				which = G56_independence_movement_variable_temp
+				value = 1
+			}
+			country_event = {
+				id = deyeion_events.99 #Update modifier
+				days = 1
+			}
+		}
+	}
+	
+	province_event = { id = amadia.2 } #Amadian Damestear
+
 }
 
 # country 1.35
@@ -14922,7 +15016,7 @@ on_dependency_gained = {
 	
 	if = { #Turning new subjects into Prabhia for the Raja
 		limit = {
-			ROOT = { has_reform = raja_reform }						# Overlord must be the Raja
+			ROOT = { has_government_attribute = is_raja }						# Overlord must be the Raja
 			FROM = {
 				NOT = { has_reform = oracular_order_reform } 		# Tughayasa has their own thing.
 				NOT = { is_subject_of_type = great_daimyo_vassal }	# Do nothing if already correct type.
@@ -15213,7 +15307,7 @@ on_dependency_lost = {
 			raj_clear_vizier = yes
 			ROOT = { country_event = { id = rahenraj.2100 days = 1 } }
 		}
-		if = { limit = { ROOT = { has_reform = raja_reform } }
+		if = { limit = { ROOT = { has_government_attribute = is_raja } }
 			every_owned_province = {
 				rahen_clear_court_disaster_province_modifiers = yes
 			}
@@ -16108,7 +16202,30 @@ on_trade_good_changed = {
 				add_province_modifier = { name = mulen_jewelry_line duration = -1 }
 			}
 		}
-    }
+	}
+	if = {
+		limit = { owner = { tag = R86 mission_completed = Y26_fading_is_the_harvest_moon } }
+		if = {
+			limit = {
+				OR = { trade_goods = grain trade_goods = livestock }
+				NOT = {
+					has_province_modifier = Y26_fading_is_the_harvest_moon_mod
+					has_province_modifier = Y26_land_redistribution
+					has_province_flag = Y26_noble_autonomy
+					has_province_flag = Y26_noble_rebellion
+				}
+			}
+			add_province_modifier = { name = Y26_land_redistribution duration = -1 }
+			add_province_modifier = { name = Y26_fading_is_the_harvest_moon_mod duration = -1 }
+		}
+		else_if = {
+			limit = { NOT = { trade_goods = grain trade_goods = livestock } }
+			clr_province_flag = Y26_noble_rebellion
+			clr_province_flag = Y26_noble_autonomy
+			remove_province_modifier = Y26_land_redistribution
+			remove_province_modifier = Y26_fading_is_the_harvest_moon_mod
+		}
+	}
 }
 
 # this = country
@@ -16451,25 +16568,6 @@ on_conquest = {
 			}
 		}
 		province_event = { id = flavour_yinquan.25 }
-	}
-	if = {
-		limit = {
-			owner = {
-				tag = R86
-				mission_completed = Y26_fading_is_the_harvest_moon
-			}
-			OR = {
-				trade_goods = grain
-				trade_goods = livestock
-			}
-		}
-		set_province_flag = Y26_noble_rebellion
-		owner = {
-			country_event = {
-				id = flavour_yinquan.48
-				days = 30
-			}
-		}
 	}
 	# Mountainshark removing slaves
 	if = {
@@ -16889,6 +16987,14 @@ on_colonial_nation_established = {
 			name = orcish_slaves_in_colonies
 			duration = -1
 		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				monstrous_culture = yes
+			}
+		}
+		country_event = { id = monstrous.200 }
 	}
 }
 
