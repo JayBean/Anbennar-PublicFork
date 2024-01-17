@@ -3955,6 +3955,74 @@ country_event = { #Laii bone hunt east effelai event
 
 	}
 }
+country_event = { #Laii win humiliation of taychend
+	id = effelai_worship.535
+	title = effelai_worship.535.t
+	desc = effelai_worship.535.d
+	picture = ARTWORK_eventPicture
+	is_triggered_only = yes
+	trigger = {
+		has_country_flag = effelai_laii_humiliation_war
+		OR = { #if you peace out and are not at war with the wartarget, check for if you won
+			is_at_war = no
+			all_known_country = {
+				OR = {
+					NOT = {
+						has_country_flag = effelai_laii_humiliation_war_target
+					}
+					NOT = {
+						is_in_war = {
+							attacker_leader = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
+	immediate = {
+		hidden_effect = {
+			clr_country_flag = effelai_laii_humiliation_war
+			random_known_country = {
+				limit = {
+					has_country_flag = effelai_laii_humiliation_war_target
+				}
+				save_event_target_as = effelai_laii_humiliation_war_target
+				clr_country_flag = effelai_laii_humiliation_war_target
+			}
+			if = {
+				limit = {
+					has_won_war_against = {
+						who = event_target:effelai_laii_humiliation_war_target
+						max_years_since = 30
+					}
+				}
+				set_country_flag = effelai_laii_has_won_war
+			}
+		}
+	}
+	option = {
+		trigger = {
+			has_country_flag = effelai_laii_has_won_war
+		}
+		name = effelai_worship.535.a
+		clr_country_flag = effelai_laii_has_won_war
+		remove_country_modifier = effelai_laii_bone_armor
+		remove_country_modifier = effelai_laii_bone_helms
+		remove_country_modifier = effelai_laii_bone_weaponry
+		add_country_modifier = {
+			name = effelai_laii_bone_arsenal
+			duration = -1
+		}
+	}
+	option = {
+		trigger = {
+			NOT = {
+				has_country_flag = effelai_laii_has_won_war
+			}
+		}
+		add_prestige = -50
+	}
+}
 country_event = { #Effe'i hidden startup event
 	id = effelai_worship.541
 	title = effelai_worship.541.t
@@ -4531,31 +4599,48 @@ country_event = { #Friend or Foe?
 				limit = {
 					OR = {
 						AND = {
-							is_rival = ROOT
-							has_opinion_modifier = {
-								who = ROOT
-								modifier = insulted
+							is_enemy = ROOT
+							NOT = {
+								army_size = ROOT
 							}
 						}
-						has_opinion_modifier = {
+						has_opinion = {
 							who = ROOT
-							modifier = improved_relation
-							value = 90
+							value = 100
 						}
 					}
 				}
+				save_event_target_as = effelai_target_country
 				if = {
 					limit = {
-						has_opinion_modifier = {
-							who = ROOT
-							modifier = insulted
+						AND = {
+							is_enemy = ROOT
+							NOT = {
+								army_size = ROOT
+							}
 						}
 					}
 					ROOT = {
-						set_country_flag = effelai_is_rivaling_foe
-						add_historical_rival = PREV
+						random_list = {
+							75 = {
+								set_country_flag = effelai_is_rivaling_foe
+								add_casus_belli = {
+									type = cb_vassalize_mission
+									target = PREV
+								}
+							}
+							25 = {
+								add_historical_friend = PREV
+								remove_rival = PREV
+								PREV = {
+									force_remove_rival = ROOT
+									add_historical_friend = ROOT
+								}
+							}
+						}
+						
 					}
-					add_historical_rival = ROOT
+					
 				}
 				else = {
 					add_historical_friend = ROOT
@@ -4572,12 +4657,22 @@ country_event = { #Friend or Foe?
 			has_country_flag = effelai_is_rivaling_foe
 		}
 		clr_country_flag = effelai_is_rivaling_foe
+		add_casus_belli = {
+			type = cb_vassalize_mission
+			target = event_target:effelai_target_country
+		}
 	}
 	option = { #friend time
 		name = effelai_worship.701.b
 		trigger = {
 			NOT = {
 				has_country_flag = effelai_is_rivaling_foe
+			}
+		}
+		tooltip = {
+			add_historical_friend = event_target:effelai_target_country
+			event_target:effelai_target_country = {
+				add_historical_friend = ROOT
 			}
 		}
 	}
@@ -4593,8 +4688,17 @@ country_event = { #Strength through Unity
 			random_neighbor_country = {
 				limit = {
 					OR = {
-						historical_friend_with = ROOT
-						historical_rival_with = ROOT
+						AND = {
+							historical_friend_with = ROOT
+							has_opinion = {
+								who = ROOT
+								value = 150
+							}
+						}
+						AND = {
+							historical_rival_with = ROOT
+							is_subject_of = ROOT
+						}
 					}
 				}
 				save_event_target_as = effelai_strength_through_unity_tag
@@ -4606,7 +4710,6 @@ country_event = { #Strength through Unity
 		trigger = {
 			historical_friend_with = event_target:effelai_strength_through_unity_tag
 		}
-		add_dip_power = -100
 		vassalize = event_target:effelai_strength_through_unity_tag
 	}
 	option = { #subjugating bitter enemies
@@ -4616,10 +4719,12 @@ country_event = { #Strength through Unity
 				historical_friend_with = event_target:effelai_strength_through_unity_tag
 			}
 		}
-		add_casus_belli = {
-			type = cb_vassalize_mission
-			target = event_target:effelai_strength_through_unity_tag
+		event_target:effelai_strength_through_unity_tag = {
+			remove_historical_rival = ROOT
+			add_historical_friend = ROOT
 		}
+		remove_historical_rival = event_target:effelai_strength_through_unity_tag
+		add_historical_friend = event_target:effelai_strength_through_unity_tag
 	}
 }
 country_event = { #Far from Home - Laii
