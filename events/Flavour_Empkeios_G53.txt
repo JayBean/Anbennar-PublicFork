@@ -1446,7 +1446,7 @@ country_event = {
 
 	option = {
 		name = empkeios_events.1201.a
-		set_estate_privilege = estate_burghers_G53_slaver_guilds
+		set_estate_privilege = estate_burghers_G53slaver_guilds
 		# hidden_effect = {
 			set_variable = {
 				which = slaveincome_cap
@@ -1469,8 +1469,8 @@ country_event = {
 					trade_goods = slaves
 				}
 				export_to_variable = {
-					value = trigger_value:base_production
 					which = slaveincomeprov
+					value = trigger_value:base_production
 					who = ROOT
 				}
 				change_variable = {
@@ -1504,4 +1504,292 @@ country_event = {
 	}
 }
 
-## 
+## Renew "monopoly on slaves" (independent trade)
+
+# TBD
+
+## The shadow of rebellion - Chain Start
+country_event = {
+	id = empkeios_events.1301
+	title = empkeios_events.1301.t
+	desc = empkeios_events.1301.d
+	picture = ELECTION_REPUBLICAN_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = empkeios_events.1301.a
+		every_owned_province = {
+			limit = {
+				trade_goods = slaves
+			}
+			add_province_modifier = {
+				name = G53_Shadow_of_Rebellion
+				duration = 3650
+			}
+		}
+		every_subject_country = {
+			every_owned_province = {
+				limit = {
+					trade_goods = slaves
+				}
+				add_province_modifier = {
+					name = G53_Shadow_of_Rebellion
+					duration = 3650
+				}
+			}
+		}
+		hidden_effect = {
+			country_event = {
+				id = empkeios_events.1302
+				days = 5 # DEBUG CHANGE
+				# days = 120
+			}
+		}
+	}
+}
+## A leader amongst unfree people
+country_event = {
+	id = empkeios_events.1302
+	title = empkeios_events.1302.t
+	desc = empkeios_events.1302.d
+	picture = ANGRY_MOB_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		hidden_effect = {
+			set_variable = {
+				which = G53_Rebellion_Size
+				value = 2
+			}
+		}
+	}
+
+	option = {
+		name = empkeios_events.1302.a
+		add_stability = -1
+		add_prestige = -10
+	}
+	option = {
+		name = empkeios_events.1302.b
+		trigger = {
+			ROOT = {
+				spymaster = 1
+			}
+		}
+		ai_chance = {
+			factor = 100
+		}
+		add_adm_power = -50
+		
+	}
+	after = {
+		hidden_effect = {
+			country_event = {
+				id = empkeios_events.1304
+				days = 30 # DEBUG CHANGE
+				# days = 365
+				# random = 700
+			}
+			every_known_country = {
+				limit = {
+					OR = {
+						NOT = {
+							has_country_modifier = orcish_slaves_in_colonies
+						}
+						historical_rival_with = G53
+						is_enemy = ROOT
+						is_rival = ROOT
+						ai_attitude = {
+							who = G53
+							attitude = attitude_hostile
+						}
+						ai_attitude = {
+							who = G53
+							attitude = attitude_domineering
+						}
+						NOT = {
+							has_opinion = {
+								who = ROOT
+								value = 0
+							}
+						}
+					}
+				}
+				country_event = {
+					id = empkeios_events.1303
+					days = 1
+				}
+			}
+		}
+		
+	}
+}
+## A Rebellion in the making - for rivals
+country_event = {
+	id = empkeios_events.1303
+	title = empkeios_events.1303.t
+	desc = empkeios_events.1303.d
+	picture = CORRUPTION_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = no
+
+	option = {
+		ai_chance = {
+			factor = 70
+		}
+		name = empkeios_events.1303.a
+		add_treasury = -100
+		add_prestige = 10
+		hidden_effect = {
+			G53 = {
+				change_variable = {
+					which = G53_Rebellion_Size
+					value = 1
+				}
+			}
+		}
+		custom_tooltip = empkeios_events.1303.att
+	}
+	option = {
+		ai_chance = {
+			factor = 30
+		}
+		name = empkeios_events.1303.b
+		add_prestige = -5
+	}
+}
+## The Slave Rebellion
+country_event = {
+	id = empkeios_events.1304
+	title = empkeios_events.1304.t
+	desc = empkeios_events.1304.d
+	picture = ANGRY_MOB_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = empkeios_events.1304.a
+		add_stability = -2
+		set_country_flag = G53_Slave_Rebellion
+		define_general = {
+			key = G53_Leyand_General
+			name = "Leyan'd Lanahasha"
+			female = yes
+			manuever = 2
+			fire = 2
+			shock = 4
+			siege = 1
+		}
+		capital_scope = {
+			spawn_rebels = {
+				type = particularist_rebels
+				size = $G53_Rebellion_Size$
+				unrest = 2
+				leader = G53_Leyand_General
+				should_take_capital = yes
+			}
+		}
+		divide_variable = {
+			which = G53_Rebellion_Size
+			value = 2
+		}
+		any_owned_province = {
+			limit = {
+				trade_goods = slaves
+				NOT = capital_scope
+			}
+			spawn_rebels = {
+				type = particularist_rebels
+				size = $G53_Rebellion_Size$
+				unrest = 2
+			}
+			set_province_flag = G53_slave_reb_prov
+			should_take_capital = yes
+		}
+		any_owned_province = {
+			limit = {
+				trade_goods = slaves
+				NOT = capital_scope
+				NOT = {
+					has_province_flag = G53_slave_reb_prov
+				}
+			}
+			spawn_rebels = {
+				type = particularist_rebels
+				size = $G53_Rebellion_Size$
+				unrest = 2
+				should_take_capital = yes
+			}
+			set_province_flag = G53_slave_reb_prov
+		}
+	}
+}
+
+## The Slave Rebellion - Slaves Success
+country_event = {
+	id = empkeios_events.1305
+	title = empkeios_events.1305.t
+	desc = empkeios_events.1305.d
+	picture = ANGRY_MOB_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		hidden_effect = {
+			disband_rebel = particularist_rebels
+		}
+	}
+	option = {
+		name = empkeios_events.1305.a
+		clr_country_flag = G53_Slave_Rebellion
+		add_country_modifier = {
+			name = G53_Equals_at_Last
+		}
+		kill_ruler = yes
+		define_ruler = {
+			is_female = yes
+			name = "Leyand" 
+			dinasty = "Lanahasha"
+			age = 25
+			adm = 2
+			dip = 5
+			mil = 4
+		}
+		set_ruler = "Leyand"
+		convert_femaler_ruler_to_general = yes
+		all_owned_provinces = {
+			limit = {
+				trade_goods = slaves
+			}
+			add_devastation = 80
+			change_trade_goods = unknown
+			remove_province_modifier = G53_Shadow_of_Rebellion
+		}
+	}
+}
+
+## The Slave Rebellion - Slaver victory
+country_event = {
+	id = empkeios_events.1306
+	title = empkeios_events.1306.t
+	desc = empkeios_events.1306.d
+	picture = ANGRY_MOB_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = empkeios_events.1306.a
+		clr_country_flag = G53_Slave_Rebellion
+		add_country_flag = G53_Slaver_Victory
+		add_stability = 1
+		swap_non_generic_missions = yes
+	}
+}
