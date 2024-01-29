@@ -1048,12 +1048,12 @@ yrw_iosahar_subjugation_preparation_effect = {
 					casus_belli = cb_independence_war
 				}
 			}
-		white_peace = ROOT
-		release_iosahar = yes
-		# peace subjugated iosahars out of independence wars against vassals
-		# to stop you getting the iosahar back for free, they're released - bad luck
-		# because if their new overlord joins the independence war (i.e. via enforce peace)
-		# then separately peaces, the game crashes
+			white_peace = ROOT
+			release_iosahar = yes
+			# peace subjugated iosahars out of independence wars against vassals
+			# to stop you getting the iosahar back for free, they're released - bad luck
+			# because if their new overlord joins the independence war (i.e. via enforce peace)
+			# then separately peaces, the game crashes
 		}
 	}
 
@@ -1128,30 +1128,30 @@ yrw_iosahar_subjugation_preparation_effect = {
 				has_reform = malacnar_monarchy
 			}
 			FROM = { 
-				if = {
-					limit = {
-						NOT = {
-							is_subject_of_type = ynnic_iosahar
-						}
-					}
-					country_event = { id = flavor_malacnar.200 }	#the fate of malacnar
-				}
-				else = {
-					overlord = {
-						country_event = { id = flavor_malacnar.200 } #the fate of malacnar
-					}
-				}
+				country_event = { id = flavor_malacnar.200000 } #the fate of malacnar prep event
 			}
 		}
-		else_if = {
+		if = {
 			limit = {
-				has_country_flag = ynn_iosahar_breakup_debug
+				NOT = {
+					has_country_flag = ynn_iosahar_breakup_debug
+				}
 			}
-			clr_country_flag = ynn_iosahar_breakup_debug
+			ynn_iosahar_breakup_effect = yes	#Breakup of new Iosahar
 		}
 		else = {
-			FROM = { country_event = { id = ynn_events.10 } }	#Breakup of new Iosahar
+			clr_country_flag = ynn_iosahar_breakup_debug
 		}
+	}
+
+	if = {
+		limit = {
+			NOT = {
+				has_country_flag = ynn_iosahar_breakup_debug
+			}
+			total_development = 35
+		}
+		ynn_iosahar_breakup_effect = yes	#Breakup of new Iosahar
 	}
 
 
@@ -1171,6 +1171,128 @@ yrw_iosahar_subjugation_preparation_effect = {
 			}
 		}
 		FROM = { country_event = { id = flavour_bosancovac.212 days = 1 } }
+	}
+}
+
+ynn_iosahar_breakup_effect = {
+	if = {		#Returns cores belonging to you
+		limit = { core_claim = FROM }
+		ROOT = {
+			every_owned_province = {
+				limit = { is_core = FROM }
+				cede_province = FROM
+			}
+		}
+	}
+	ROOT = {
+		every_owned_province = {
+			limit = {
+				any_core_country = {
+					NOT = { tag = ROOT }
+					exists = no
+					NOT = {
+						has_country_flag = ynn_iosahar_breakup_debug
+					}
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { tag = ROOT }
+					exists = no
+					NOT = {
+						has_country_flag = ynn_iosahar_breakup_debug
+					}
+				}
+				ROOT = {
+					release = PREV
+					# difficult to get primary culture and sets religion later so exempt from using release_with_religion_and_culture
+				}
+				hidden_effect = {
+					set_country_flag = ynn_iosahar_breakup_debug
+					if = {
+						limit = {
+							culture_group = ynnic_ruinborn_elf
+						}
+						change_government = monarchy
+						add_government_reform = feudalism_reform
+						change_religion = FROM
+					}
+					else = {
+						change_government = republic
+						add_government_reform = oligarchy_reform
+						change_religion = ROOT
+					}
+						
+					add_opinion = {
+						who = FROM
+						modifier = saved_us_from_warlord
+					}
+				}
+			}
+		}
+	}
+	ynn_superregion = {		#Returns cores belonging to others. Also a fallback since sometimes countries are only released partly.
+		limit = { 
+			owned_by = ROOT
+			any_core_country = {
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			NOT = {
+				any_province_in_state = {
+					is_capital_of = ROOT	#Lets them keep their capital area
+				}
+			}
+		}
+		random_core_country = {
+			limit = { 
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			PREV = { cede_province = PREV }
+		}
+	}
+	forest_of_the_cursed_ones_region = {
+		limit = { 
+			owned_by = ROOT
+			any_core_country = {
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			NOT = {
+				any_province_in_state = {
+					is_capital_of = ROOT	#Lets them keep their capital area
+				}
+			}
+		}
+		random_core_country = {
+			limit = { 
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			PREV = { cede_province = PREV }
+		}
+	}
+	ROOT =  {
+		# FROM = {
+		# 	country_event = { id = ynn_events.20000 }	#scope fuckery event
+		# }
+		every_known_country = {
+			limit = {
+				has_country_flag = ynn_iosahar_breakup_debug
+			}
+			clr_country_flag = ynn_iosahar_breakup_debug
+			add_truce_with = FROM
+			add_truce_with = ROOT
+		}
 	}
 }
 
