@@ -5,16 +5,32 @@ custom_button = {
 			has_terrain = dwarven_hold
 			has_terrain = dwarven_hold_surface
 		}
+		#Owner needs to be you, and also not be native/horde since raze/settle buttons get in the way.
 		owner = {
 			tag = FROM
 			NOT = {
 				government = native
+				is_nomad = yes
 			}
+		}
+		#Blorcs can't repair non-capital holds
+		OR = {
+			is_capital = yes
+			NOT = { owner = { culture = black_orc } }
 		}
 	}
 	trigger = {
+		#Can use button to repair non-capital holds, but not dig non-capital holds without centralizing hold operations
 		if = {
-			limit = { NOT = { is_capital = yes } }
+			limit = {
+				NOT = {
+					is_capital = yes
+					has_province_modifier = ruined_hold
+					has_province_modifier = partially_ruined_hold
+					has_province_modifier = damaged_hold
+					has_province_modifier = infested_hold
+				}
+			}
 			custom_trigger_tooltip = {
 				tooltip = has_centralized_hold_operations_tt
 				owner = { has_country_flag = hold_operation }
@@ -22,43 +38,48 @@ custom_button = {
 		}
 	}
 	effect = {
-		if = {
-			limit = { NOT = { has_province_flag = diggy_diggy_estimate_flag } }
-			set_province_flag = diggy_diggy_estimate_flag
+		hidden_effect = {
 			if = {
-				limit = {
-					OR = {
-						has_province_modifier = ruined_hold
-						has_province_modifier = partially_ruined_hold
-						has_province_modifier = damaged_hold
-					}
-				}
-				owner = {
-					PREV = {
-						setup_restoration_speed = yes
-					}
-				}
-			}
-			else = {
+				limit = { NOT = { has_province_flag = diggy_diggy_estimate_flag } }
+				#Open digging menu
+				set_province_flag = diggy_diggy_estimate_flag
+				#Set up the digging preview cost and time.
 				if = {
-					limit = { is_capital = yes }
+					limit = {
+						OR = {
+							has_province_modifier = ruined_hold
+							has_province_modifier = partially_ruined_hold
+							has_province_modifier = damaged_hold
+						}
+					}
 					owner = {
 						PREV = {
-							setup_digging_deeper_capital = yes
+							setup_restoration_speed = yes
 						}
 					}
 				}
 				else = {
-					owner = {
-						PREV = {
-							setup_digging_deeper_non_capital = yes
+					if = {
+						limit = { is_capital = yes }
+						owner = {
+							PREV = {
+								setup_digging_deeper_capital = yes
+							}
+						}
+					}
+					else = {
+						owner = {
+							PREV = {
+								setup_digging_deeper_non_capital = yes
+							}
 						}
 					}
 				}
 			}
-		}
-		else = {
-			clr_province_flag = diggy_diggy_estimate_flag
+		
+			else = {
+				clr_province_flag = diggy_diggy_estimate_flag
+			}
 		}
 
 	}
