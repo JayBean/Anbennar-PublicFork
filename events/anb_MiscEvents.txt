@@ -246,7 +246,7 @@ country_event = {
 		create_explorer = {
 			tradition = 50
 		}
-	    create_conquistador = {
+		create_conquistador = {
 			tradition = 50
 		}
 		add_country_modifier = { 
@@ -293,13 +293,23 @@ country_event = {
 			add_base_production = 2
 			add_base_manpower = 2
 			
-			build_to_forcelimit = {
-				infantry = 0.7
-				cavalry = 0.2
-				artillery = 0.1
-				heavy_ship = 0.2
-				light_ship = 0.5
-				transport = 0.3
+			if = {
+				limit = { has_port = yes }
+				build_to_forcelimit = {
+					infantry = 0.7
+					cavalry = 0.2
+					artillery = 0.1
+					heavy_ship = 0.2
+					light_ship = 0.5
+					transport = 0.3
+				}
+			}
+			else = {
+				build_to_forcelimit = {
+					infantry = 0.7
+					cavalry = 0.2
+					artillery = 0.1
+				}
 			}
 			
 			if = {
@@ -394,7 +404,17 @@ country_event = {
 				}
 			}
 		}
-		
+		if = {
+			limit = { capital_scope = { has_port = no } }
+			random_owned_province = {
+				limit = { has_port = yes }
+				build_to_forcelimit = {
+					heavy_ship = 0.2
+					light_ship = 0.5
+					transport = 0.3
+				}
+			}
+		}
 		#just in case they become corinite
 		# ROOT = {
 			# change_religion = event_target:home_province
@@ -435,47 +455,8 @@ country_event = {
 				id = colonial_culture.1
 				days = 21900
 			}
-
-			country_event = { id = anbennar_setup.9 } # grant racial admin/mil
-
-			# need to delay for a few days or the admin/mil from above won't register for the below
-			country_event = { id = race_setup_events.1 days = 5 } #Player
-			country_event = { id = race_setup_events.2 days = 5 } #AI
-			country_event = { id = race_setup_events.6 days = 5 } #Player
-			country_event = { id = racial_modifiers.7 days = 5 } #AI
-			country_event = { id = race_setup_events.19 days = 5 } # fix tolerances on new land
-
-			country_event = { id = monstrous.100 days = 35 } # setup monstrous opinion
 		}
 
-		#AI Tolerance
-		hidden_effect = {
-			if = {
-				limit = { 
-					OR = {
-						tag = H31	#Zurzumexia
-						tag = H36	#Valorpoint
-						tag = G91	#Isobelin
-					}
-				}
-				change_variable = {
-					which = ruinborn_race_tolerance_ai
-					value = 100
-				}
-			}
-			else_if = {
-				limit = { 
-					OR = {
-						tag = H35	#Corinsfield
-						tag = H38	#Zanlib
-					}
-				}
-				subtract_variable = {
-					which = ruinborn_race_tolerance_ai
-					value = 100
-				}
-			}
-		}
 	}
 }
 
@@ -656,40 +637,7 @@ country_event = {
 				# }
 			# }
 		# }
-		hidden_effect = {
-			country_event = { id = anbennar_setup.9 } # grant racial admin/mil
 
-			# need to delay for a few days or the admin/mil from above won't register for the below
-			country_event = { id = race_setup_events.1 days = 5 } #Player
-			country_event = { id = race_setup_events.2 days = 5 } #AI
-			country_event = { id = race_setup_events.6 days = 5 } #Player
-			country_event = { id = racial_modifiers.7 days = 5 } #AI
-			country_event = { id = race_setup_events.19 days = 5 } # fix tolerances on new land
-
-			country_event = { id = monstrous.100 days = 35 } # setup monstrous opinion
-		}
-
-		#AI Tolerance
-		hidden_effect = {
-			if = {
-				limit = {
-					tag = H54       #West Tipney
-				}
-				change_variable = {
-					which = ruinborn_race_tolerance_ai
-					value = 100
-				}
-			}
-			else_if = {
-				limit = {
-					tag = H42       #Onyx Legion
-				}
-				subtract_variable = {
-					which = ruinborn_race_tolerance_ai
-					value = 100
-				}
-			}
-		}
 	}
 }
 
@@ -806,6 +754,8 @@ country_event = {
 	trigger = {
 		is_temple = yes
 		NOT = { has_reform = leading_clergy_reform }
+		is_revolutionary = no
+		# or they get stuck in a loop converting to rev repub and back in revolution
 	}
 	
 	option = {
@@ -1210,7 +1160,7 @@ country_event = {
 	option = {
 		name = anb_miscevents.19.g
 		trigger = { has_faction = tec_brilliance }
-		add_mil_power = -25
+		add_adm_power = -25
 		add_country_modifier = { name = anb_tec_brilliance_influence duration = 1825 }
 	}
 	option = {
@@ -1360,7 +1310,7 @@ country_event = {
 	option = {
 		name = anb_miscevents.19.al
 		trigger = { has_faction = tec_mechanists }
-		add_adm_power = -25
+		add_mil_power = -25
 		add_country_modifier = { name = anb_tec_mechanists_influence duration = 1825 }
 	}
 	option = {
@@ -1531,7 +1481,7 @@ province_event = {
 				duration = -1
 			}
 		}
-		else = {
+		else_if = {
 			limit = { has_province_flag = command_ikaniwagain_warcamp }
 			add_province_modifier = {
 				name = command_ikaniwagain_warcamp
@@ -1560,3 +1510,82 @@ country_event = {
 		remove_country_modifier = corinite_during_active_league_war
 	}
 }
+
+# country setup event for aelantir/adventurer spawnables
+country_event = {
+	id = anb_miscevents.22
+	title = anb_miscevents.22.t
+	desc = anb_miscevents.22.d
+	picture = EMPTY_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			country_event = { id = anbennar_setup.9 } # grant racial admin/mil
+
+			country_event = { id = race_setup_events.1 } #Player
+			country_event = { id = race_setup_events.2 } #AI
+			country_event = { id = race_setup_events.6 } #Player
+			country_event = { id = racial_modifiers.7 } #AI
+			country_event = { id = race_setup_events.19 } # fix tolerances on new land
+
+			if = {
+				limit = {
+					monstrous_culture = yes
+					NOT = { has_country_flag = no_longer_monstrous }
+				}
+				add_country_modifier = { name = monstrous_nation duration = -1 }
+			}
+			# grant monstrous country modifier
+
+			country_event = { id = monstrous.100 days = 1 } # setup monstrous opinion
+
+			#Pick Holy Order
+			if = {
+				limit = { religion = corinite }
+				country_event = {
+					id = corinite.300
+					days = 7
+				}
+			}
+
+
+			#AI Tolerances
+			if = {
+				limit = { 
+					OR = {
+						tag = H31	#Zurzumexia
+						tag = H36	#Valorpoint
+						tag = G91	#Isobelin
+						tag = H54	#West Tipney
+					}
+				}
+				change_variable = {
+					which = ruinborn_race_tolerance_ai
+					value = 100
+				}
+			}
+			else_if = {
+				limit = { 
+					OR = {
+						tag = H35	#Corinsfield
+						tag = H38	#Zanlib
+						tag = H42	#Onyx Legion
+					}
+				}
+				subtract_variable = {
+					which = ruinborn_race_tolerance_ai
+					value = 100
+				}
+			}
+
+		}
+
+	}
+
+	option = {
+		name = anb_miscevents.22.a
+	}
+}	
