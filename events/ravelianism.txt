@@ -10,6 +10,16 @@ province_event = {
 	id = ravelian.1
 	title = ravelian.1.t
 	desc = {
+		trigger = { 
+			has_global_flag = ravelians_have_god_fragment 
+			OR = { 
+				continent = north_america 
+				continent = south_america 
+			}
+		}
+		desc = ravelian.1.dd
+	}
+	desc = {
 		trigger = { has_global_flag = ravelians_have_god_fragment }
 		desc = ravelian.1.dc
 	}
@@ -21,46 +31,30 @@ province_event = {
 		trigger = { NOT = { has_global_flag = ravelian_society_founded } }
 		desc = ravelian.1.db
 	}
-	desc = {
-		trigger = { 
-			has_global_flag = ravelians_have_god_fragment 
-			OR = { 
-				continent = north_america 
-				continent = south_america 
-			}
-		}
-		desc = ravelian.1.dd
-	}
 	picture = ENLIGHTENMENT_eventPicture
 	
 	trigger = {
-		#continent = europe
-		#is_year = 1560
-		NOT = { is_religion_enabled = ravelian }
-		has_global_flag = crimson_deluge
-		religion_group = cannorian
-		if = {
-			limit = { has_global_flag = ravelians_have_god_fragment }
-			if = {
-				limit = { continent = europe }
-				development = 20	#changed this back as ravelians are too strong
-			}
-			else_if = {
-				limit = { 
-					OR = {
-						continent = north_america
-						continent = south_america
-					}
-				}
-				development = 6
-			}
-		}
-		else = { development = 20 }
-		
-		NOT = { has_province_modifier = ravelian_society }
-		NOT = { has_province_flag = denied_ravelian_society }
-		NOT = { has_province_modifier = ravelian_lodge }
-		NOT = { owner = { has_country_flag = no_ravelian_societies } }
+    	#continent = europe
+    	#is_year = 1560
+    	NOT = { is_religion_enabled = ravelian }
+    	has_global_flag = crimson_deluge
+    	religion_group = cannorian
+    	OR = {
+    	    AND = {
+    	        has_global_flag = ravelians_have_god_fragment
+    	        OR = {
+    	            continent = north_america
+    	            continent = south_america
+    	        }
+    	        development = 6
+    	    }
+    	    development = 20
+    	}
+
+    	NOT = { has_province_modifier = ravelian_society }
+    	NOT = { has_province_flag = denied_ravelian_society }
+    	NOT = { has_province_modifier = ravelian_lodge }
+    	NOT = { owner = { has_country_flag = no_ravelian_societies } }
 	}
 	
 	mean_time_to_happen = {
@@ -69,6 +63,19 @@ province_event = {
 			factor = 0.8
 			has_terrain = city_terrain
 		}
+		modifier = {
+			factor = 0.7
+			owner = {full_idea_group = innovativeness_ideas}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {innovativeness = 50}
+		}
+		modifier = {
+			factor = 0.8
+			owner = {innovativeness = 100}
+		}
+		
 		modifier = {
 			factor = 0.8
 			development = 30
@@ -116,13 +123,19 @@ province_event = {
 			factor = 1.5
 			NOT = { is_year = 1600 }
 		}
+		modifier = { #Guaranteed fire in Aranthil
+			factor = 0.001
+			province_id = 898
+			owner = { ai = no }
+			is_year = 1610
+		}
 	}
 
 	immediate = {
 		hidden_effect = {
 			save_event_target_as = ravelian_province
+			set_global_flag = ravelian_society_founded
 		}
-		set_global_flag = ravelian_society_founded
 	}
 	
 	goto = ravelian_province
@@ -131,13 +144,10 @@ province_event = {
 	option = {
 		name = "ravelian.1.a"
 		ai_chance = {
-			factor = 70
+			factor = 50
 			modifier = {
 				factor = 2
-				owner = {
-					innovativeness_ideas = 7
-				}
-				
+				owner = { full_idea_group = innovativeness_ideas }
 			}
 			modifier = {
 				factor = 1.1
@@ -147,9 +157,7 @@ province_event = {
 			}
 			modifier = {
 				factor = 1.5
-				owner = {
-					humanist_ideas = 7
-				}
+				owner = { full_idea_group = humanist_ideas }
 			}
 			modifier = {
 				factor = 1.1
@@ -158,7 +166,7 @@ province_event = {
 				}
 			}
 			modifier = {
-				factor = 1.4
+				factor = 1.2
 				owner = {
 					is_lacking_institutions = yes
 				}
@@ -173,12 +181,10 @@ province_event = {
 	option = {
 		name = "ravelian.1.b"
 		ai_chance = {
-			factor = 30
+			factor = 50
 			modifier = {
 				factor = 2
-				owner = {
-					religious_ideas = 7
-				}
+				owner = { full_idea_group = religious_ideas }
 			}
 			modifier = {
 				factor = 1.2
@@ -186,14 +192,61 @@ province_event = {
 					religious_ideas = 1
 				}
 			}
+			# Escann and Lencenor get fewer
+			modifier = {
+				factor = 1.5
+				OR = {
+					superregion = escann_superregion
+					region = lencenor_region
+				}
+			}
 		}
-		set_province_flag = denied_ravelian_society
+		hidden_effect = { set_province_flag = denied_ravelian_society }
 	}
 	#ban them entirely
 	option = {
 		name = "ravelian.1.c"
-		ai_chance = { factor = 0 }
-		owner = { set_country_flag = no_ravelian_societies }
+		ai_chance = {
+			factor = 10
+			# Much more likely to reject or outright ban if dedicated to a single god
+			modifier = {
+				factor = 5
+				owner = {
+					tag_is_dedicated_to_single_god = yes
+				}
+			}
+		}
+		trigger = {
+			OR = {
+				# Players can ban it
+				owner = {
+					ai = no
+				}
+				# People in Escann or Lecenor can ban it
+				owner = {
+					capital_scope = {
+						OR = {
+							superregion = escann_superregion
+							region = lencenor_region
+						}
+					}
+				}
+				# Tags dedicated to a single god
+				owner = {
+					tag_is_dedicated_to_single_god = yes
+				}
+			}
+		}
+		custom_tooltip = ravelian.1.c.tt
+		hidden_effect = {
+			owner = {
+				set_country_flag = no_ravelian_societies
+				every_owned_province = {
+					remove_province_modifier = ravelian_society
+					remove_province_modifier = ravelian_lodge
+				}
+			}
+		}
 	}
 }
 
@@ -208,9 +261,9 @@ province_event = {
 		has_province_modifier = ravelian_society
 		NOT = { is_religion_enabled = ravelian }
 		religion_group = cannorian
-		Or = {
-			NOT = { region_for_scope_province = { has_province_modifier = ravelian_lodge } }
+		OR = {
 			province_id = 898
+			NOT = { region_for_scope_province = { has_province_modifier = ravelian_lodge } }
 		}
 	}
 	
@@ -255,6 +308,12 @@ province_event = {
 				total_development = 100
 			}
 		}
+		modifier = { #Guaranteed fire in Aranthil
+			factor = 0.001
+			province_id = 898
+			owner = { ai = no }
+			is_year = 1620
+		}
 	}
 	#is_mtth_scaled_to_size = 1
 
@@ -273,9 +332,7 @@ province_event = {
 			factor = 70
 			modifier = {
 				factor = 2
-				owner = {
-					innovativeness_ideas = 7
-				}
+				owner = { full_idea_group = innovativeness_ideas }
 			}
 			modifier = {
 				factor = 1.1
@@ -285,9 +342,7 @@ province_event = {
 			}
 			modifier = {
 				factor = 1.5
-				owner = {
-					humanist_ideas = 7
-				}
+				owner = { full_idea_group = humanist_ideas }
 			}
 			modifier = {
 				factor = 1.1
@@ -296,7 +351,7 @@ province_event = {
 				}
 			}
 			modifier = {
-				factor = 1.4
+				factor = 1.2
 				owner = {
 					is_lacking_institutions = yes
 				}
@@ -317,14 +372,20 @@ province_event = {
 			factor = 30
 			modifier = {
 				factor = 2
-				owner = {
-					religious_ideas = 7
-				}
+				owner = { full_idea_group = religious_ideas }
 			}
 			modifier = {
 				factor = 1.2
 				owner = {
 					religious_ideas = 1
+				}
+			}
+			# Escann and Lencenor get fewer
+			modifier = {
+				factor = 1.5
+				OR = {
+					superregion = escann_superregion
+					region = lencenor_region
 				}
 			}
 		}
@@ -341,39 +402,44 @@ country_event = {
 	picture = RELIGIOUS_CONVERSION_eventPicture
 	
 	major = yes
-	fire_only_once = yes
 
 	trigger = {
 		is_year = 1630
 		has_global_flag = ravelianism_can_be_founded
-		religion_group = cannorian
 		is_religion_enabled = corinite
 		NOT = { is_religion_enabled = ravelian }
+		religion_group = cannorian
+		or = {
+			NOT = { num_of_cities = 6 }
+			ai = no
+		}
 		is_vassal = no
-		#capital_scope = {
-		#	continent = europe
-		#}
-		if = {
-			limit = { has_global_flag = allow_non_ideal_rectorate_candidate }
-			capital_scope = { continent = europe }
-		}
-		else = {
-			capital_scope = {
-				OR = {
-					region = east_dameshead_region
-					region = the_borders_region
-				}
+		OR = {
+			AND = {
+				has_global_flag = allow_non_ideal_rectorate_candidate
+				capital_scope = { continent = europe }
 			}
-			num_of_cities = 3	#tries to get a decent size small dude
-		}
-		NOT = { num_of_cities = 6 }
-		
-		any_owned_province = {
-			has_province_modifier = ravelian_lodge
-			can_have_center_of_reformation_trigger = { RELIGION = ravelian }
+			AND = {
+				capital_scope = {
+					OR = {
+						region = east_dameshead_region
+						region = the_borders_region
+						region = esmaria_region
+					}
+				}
+				num_of_cities = 3	#tries to get a decent size small dude
+			}
 		}
 		is_defender_of_faith = no
 		NOT = { has_reform = papacy_reform }
+		any_owned_province = {
+			has_province_modifier = ravelian_lodge
+			or = {
+				can_have_center_of_reformation_trigger = { RELIGION = ravelian }
+				owner = {ai = no}
+			}
+		}
+		NOT = { has_global_flag = ravelian_state_spawn_event_open }
 	}
 	
 	mean_time_to_happen = {
@@ -404,9 +470,7 @@ country_event = {
 		
 		modifier = {
 			factor = 0.75
-			AND = {
-				NOT = { num_of_cities = 2 }	#city states
-			}
+			NOT = { num_of_cities = 2 }	#city states
 		}
 		
 		modifier = {
@@ -481,69 +545,37 @@ country_event = {
 		}
 	}
 	
+	immediate = { hidden_effect = { set_global_flag = ravelian_state_spawn_event_open } }
+
 	option = {
 		name = "ravelian.3.a"
 		ai_chance = {
 			factor = 70
 		}
 		enable_religion = ravelian
-		random_owned_province = {
-			limit = {
-				can_have_center_of_reformation_trigger = {
-					RELIGION = ravelian
-				}
-				has_province_modifier = ravelian_lodge
-			}
-			change_religion = ravelian
-			add_reform_center = ravelian
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
+		
+		spawn_ravelian_center = {
+			province_type = random_owned_province
 		}
+		
 		capital_scope = {
 			change_religion = ravelian
 			set_province_flag = ravelian_state_capital
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
 			save_global_event_target_as = ravelian_state_spawned_capital
 		}
+		
+		change_religion = ravelian
 		add_country_modifier = {
 			name = "conversion_zeal"
 			duration = 3650
 		}
-		custom_tooltip = ravelian_chapter_lodge_convert_tt
-		hidden_effect = {
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_cardinal = yes
-				remove_province_modifier = ravelian_lodge
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				remove_province_modifier = ravelian_society
-			}
-		}
-		change_religion = ravelian
+		
+		convert_all_lodges_and_societies = yes
+		
 		hidden_effect = {
 			add_reform_desire = -10
 		}
+		
 		change_tag = Z97
 		hidden_effect = { restore_country_name = yes }
 		swap_non_generic_missions = yes
@@ -602,12 +634,10 @@ country_event = {
 						num_of_cities = 6
 					}
 					any_owned_province = {
-						AND = {
-							can_have_center_of_reformation_trigger = {
-								RELIGION = ravelian
-							}
-							has_province_modifier = ravelian_lodge
+						can_have_center_of_reformation_trigger = {
+							RELIGION = ravelian
 						}
+						has_province_modifier = ravelian_lodge
 					}
 				}
 				country_event = {
@@ -618,6 +648,9 @@ country_event = {
 			set_global_flag = allow_non_ideal_rectorate_candidate
 		}
 	}
+
+	after = { clr_global_flag = ravelian_state_spawn_event_open }
+
 }
 
 #ravelian rectorate spawn if no small countries own a headquarters
@@ -627,13 +660,11 @@ country_event = {
 	desc = ravelian.4.d
 	picture = RELIGIOUS_CONVERSION_eventPicture
 
-	fire_only_once = yes
-
 	trigger = {
 		has_global_flag = ravelianism_can_be_founded
-		religion_group = cannorian
 		is_religion_enabled = corinite
 		NOT = { is_religion_enabled = ravelian }
+		religion_group = cannorian
 		is_vassal = no
 		capital_scope = { continent = europe }
 		OR = {
@@ -641,13 +672,14 @@ country_event = {
 			is_year = 1655
 		}
 		num_of_cities = 6
+		is_defender_of_faith = no
+		NOT = { has_reform = papacy_reform }
 		any_owned_province = {
 			has_province_modifier = ravelian_lodge
 			can_have_center_of_reformation_trigger = { RELIGION = ravelian }
 			NOT = { is_capital = yes }
 		}
-		is_defender_of_faith = no
-		NOT = { has_reform = papacy_reform }
+		NOT = { has_global_flag = ravelian_state_spawn_event_open }
 	}
 	
 	mean_time_to_happen = {
@@ -746,6 +778,7 @@ country_event = {
 				}
 				save_event_target_as = ravelian_province
 			}
+			set_global_flag = ravelian_state_spawn_event_open
 		}
 	}
 	goto = ravelian_province
@@ -763,86 +796,8 @@ country_event = {
 		hidden_effect = {
 			enable_religion = ravelian
 			
-			event_target:ravelian_province = {
-				add_core = Z97
-				area = {
-					limit = { is_capital = no }
-					add_core = Z97
-					remove_core = ROOT
-					change_religion = ravelian
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_reform_center = ravelian
-				add_cardinal = yes
-			}
-			release = Z97
-			Z97 = {
-				add_treasury = 1000
-				add_dip_power = 500
-				add_mil_power = 500
-				add_adm_power = 500
-				add_idea_group = innovativeness_ideas
-				add_idea = formalized_officer_corps
-				capital_scope = {
-					build_to_forcelimit = {
-						infantry = 0.6
-						cavalry = 0.1
-						artillery = 0.3
-					}
-				}
-				change_primary_culture = event_target:ravelian_province
-				set_ruler_culture = event_target:ravelian_province
-				set_ruler_religion = ravelian
-				capital_scope = {
-					change_religion = ravelian
-					set_province_flag = ravelian_state_capital
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-				}
-				add_country_modifier = {
-					name = "conversion_zeal"
-					duration = 3650
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_lodge
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					add_cardinal = yes
-					remove_province_modifier = ravelian_lodge
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_society
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					remove_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				hidden_effect = {
-					add_reform_desire = -10
-				}
-				change_government = theocracy
-				add_government_reform = papacy_reform
-				add_curia_treasury = 1000
-				hidden_effect = {
-					set_ruler = torrieth
-				}
-			}
+			setup_the_rectorate_in_ravelian_province = yes
+			
 			every_country = {
 				limit = {
 					OR = {
@@ -865,53 +820,11 @@ country_event = {
 				577 = { province_event = { id = new_sun_cult.8 days = 3650 random = 3650 } } 	#Ravelian missionaries arrive in the Drolas
 			}
 		}
-		random_owned_province = {
-			limit = {
-				can_have_center_of_reformation_trigger = {
-					RELIGION = ravelian
-				}
-				has_province_modifier = ravelian_lodge
-			}
-			change_religion = ravelian
-			add_reform_center = ravelian
-			add_cardinal = yes
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
-		}
-		custom_tooltip = ravelian_chapter_lodge_convert_tt
-		hidden_effect = {
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_cardinal = yes
-				remove_province_modifier = ravelian_lodge
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				remove_province_modifier = ravelian_society
-			}
-		}
+		
+		convert_all_lodges_and_societies = yes
+
 		capital_scope = {
 			change_religion = ravelian
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
 			add_cardinal = yes
 		}
 		change_religion = ravelian
@@ -941,82 +854,10 @@ country_event = {
 
 		hidden_effect = {
 			enable_religion = ravelian
-			event_target:ravelian_province = {
-				add_core = Z97
-				area = {
-					limit = { is_capital = no }
-					add_core = Z97
-					remove_core = ROOT
-					change_religion = ravelian
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_reform_center = ravelian
-				add_cardinal = yes
-			}
-			release = Z97
-			Z97 = {
-				add_treasury = 1000
-				add_dip_power = 400
-				add_mil_power = 400
-				add_adm_power = 400
-				add_idea_group = innovativeness_ideas
-				add_idea = formalized_officer_corps
-				change_primary_culture = event_target:ravelian_province
-				set_ruler_culture = event_target:ravelian_province
-				set_ruler_religion = ravelian
-				capital_scope = {
-					change_religion = ravelian
-					set_province_flag = ravelian_state_capital
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-				}
-				add_country_modifier = {
-					name = "conversion_zeal"
-					duration = 3650
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_lodge
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					add_cardinal = yes
-					remove_province_modifier = ravelian_lodge
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_society
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					remove_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				hidden_effect = {
-					add_reform_desire = -10
-				}
-				change_government = theocracy
-				add_government_reform = papacy_reform
-				add_curia_treasury = 1000
 
-				hidden_effect = {
-					set_ruler = torrieth
-				}
-			}
-			#extra bonus the AI gets if you're not converting
-			Z97 = {
+			setup_the_rectorate_in_ravelian_province = yes
+			Z97 = {		
+				#extra bonus the AI gets if you're not converting
 				add_treasury = 2000
 				add_dip_power = 400
 				add_mil_power = 400
@@ -1060,133 +901,18 @@ country_event = {
 		}
 		hidden_effect = {
 			enable_religion = ravelian
-			random_owned_province = {
-				limit = {
-					can_have_center_of_reformation_trigger = {
-						RELIGION = ravelian
-					}
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_reform_center = ravelian
-				add_cardinal = yes
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_cardinal = yes
-				remove_province_modifier = ravelian_lodge
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				remove_province_modifier = ravelian_society
-			}
+
+			convert_all_lodges_and_societies = yes
+
 			capital_scope = {
 				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
 				add_cardinal = yes
 			}
 			add_country_modifier = {
 				name = "conversion_zeal"
 				duration = 3650
 			}
-			event_target:ravelian_province = {
-				add_core = Z97
-				area = {
-					limit = { is_capital = no }
-					add_core = Z97
-					remove_core = ROOT
-					change_religion = ravelian
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_reform_center = ravelian
-				add_cardinal = yes
-			}
-			change_religion = ravelian
-			add_treasury = 500
-			add_papal_influence = 100
-			release = Z97
-			Z97 = {
-				add_treasury = 1000
-				add_dip_power = 400
-				add_mil_power = 400
-				add_adm_power = 400
-				add_idea_group = innovativeness_ideas
-				add_idea = formalized_officer_corps
-				change_primary_culture = event_target:ravelian_province
-				set_ruler_culture = event_target:ravelian_province
-				set_ruler_religion = ravelian
-				capital_scope = {
-					change_religion = ravelian
-					set_province_flag = ravelian_state_capital
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-				}
-				add_country_modifier = {
-					name = "conversion_zeal"
-					duration = 3650
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_lodge
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					add_cardinal = yes
-					remove_province_modifier = ravelian_lodge
-				}
-				every_owned_province = {
-					limit = {
-						has_province_modifier = ravelian_society
-					}
-					change_religion = ravelian
-					add_permanent_province_modifier = {
-						name = "religious_zeal_at_conv"
-						duration = 9000
-					}
-					remove_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				hidden_effect = {
-					add_reform_desire = -10
-				}
-				change_government = theocracy
-				add_government_reform = papacy_reform
-				add_curia_treasury = 1000
-
-				hidden_effect = {
-					set_ruler = torrieth
-				}
-			}
+			setup_the_rectorate_in_ravelian_province = yes
 			every_country = {
 				limit = {
 					OR = {
@@ -1226,12 +952,10 @@ country_event = {
 					num_of_cities = 6
 					capital_scope = { continent = europe }
 					any_owned_province = {
-						AND = {
-							can_have_center_of_reformation_trigger = {
-								RELIGION = ravelian
-							}
-							has_province_modifier = ravelian_lodge
+						can_have_center_of_reformation_trigger = {
+							RELIGION = ravelian
 						}
+						has_province_modifier = ravelian_lodge
 					}
 				}
 				country_event = {
@@ -1241,6 +965,8 @@ country_event = {
 			}
 		}
 	}
+
+	after = { clr_global_flag = ravelian_state_spawn_event_open }
 }
 
 #ravelian generic convert question - also societies force convert
@@ -1265,12 +991,6 @@ country_event = {
 		name = ravelian.5.a
 		trigger = {
 			OR = {
-				any_owned_province = {
-					has_province_modifier = ravelian_society
-				}
-				any_owned_province = {
-					has_province_modifier = ravelian_lodge
-				}
 				AND = {
 					religion_group = cannorian
 					OR = {
@@ -1278,19 +998,36 @@ country_event = {
 						capital_scope = { continent = south_america }
 					}
 				}
+				any_owned_province = {
+					OR = {
+						has_province_modifier = ravelian_society
+						has_province_modifier = ravelian_lodge
+					}
+				}
+			}
+			NOT = {
+				AND = {
+					has_country_flag = g27_breluslad_flag
+					OR = {
+						religion = ynn_river_reformed
+						religion = ynn_river_worship
+					}
+				}
 			}
 		}
 		ai_chance = {
 			factor = 20
 			modifier = {
-				factor = 2
-				any_owned_province = {
-					has_province_modifier = ravelian_lodge
+				factor = 0
+				NOT = {
+					any_owned_province = {
+						has_province_modifier = ravelian_lodge
+					}
 				}
 			}
 			modifier = {
 				factor = 2
-				innovativeness_ideas = 7
+				full_idea_group = innovativeness_ideas
 			}
 			modifier = {
 				factor = 1.1
@@ -1298,7 +1035,7 @@ country_event = {
 			}
 			modifier = {
 				factor = 1.5
-				humanist_ideas = 7
+				full_idea_group = humanist_ideas
 			}
 			modifier = {
 				factor = 1.1
@@ -1327,26 +1064,7 @@ country_event = {
 			}
 			modifier = {
 				factor = 0.1 #countries dedicated to one regent court god are unlikely to convert
-				OR = {
-					tag = B02
-
-					#these are regent court temples. they're free real estate now.
-					#tag = A10
-					#tag = A41
-					#tag = A43
-					#tag = A53
-
-					tag = G95	#marrliande
-					tag = H44	#shining circle
-					tag = H45	#beggaston
-					tag = H42	#onyx legion
-					tag = H43	#neratica
-					tag = H46	#Istralorian Crusaders
-					tag = H47	#Istranar
-					tag = H35 	#Corinsfield
-					tag = G94	#Balgabar
-					tag = H36	#Valorpoint
-				}
+				tag_is_dedicated_to_single_god = yes
 			}
 			modifier = {
 				factor = 0.75	#regent court temples
@@ -1364,6 +1082,8 @@ country_event = {
 					primary_culture = vernman
 					tag = A45 #Istralore
 					tag = A34 #Bisan
+					tag = H35 #Corinsfield
+					tag = H47 #Istranar
 				}
 			}
 
@@ -1391,6 +1111,7 @@ country_event = {
 				OR = {
 					tag = A35 #Konwell
 					tag = A29 #Busilar
+					tag = H33 #Cestirmark
 				}
 			}
 
@@ -1407,58 +1128,20 @@ country_event = {
 					capital_scope = { continent = south_america }
 				}
 			}
+
+			modifier = {
+				factor = 0	#Converting cannot be an instant process in Breluslad
+				has_country_flag = g27_breluslad_flag
+			}
+
 		}
-		random_owned_province = {
-			limit = {
-				can_have_center_of_reformation_trigger = {
-					RELIGION = ravelian
-				}
-				has_province_modifier = ravelian_lodge
-			}
-			change_religion = ravelian
-			add_reform_center = ravelian
-			add_cardinal = yes
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
-		}
-		custom_tooltip = ravelian_chapter_lodge_convert_tt
-		hidden_effect = {
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				add_cardinal = yes
-				remove_province_modifier = ravelian_lodge
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_society
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				remove_province_modifier = ravelian_society
-			}
-		}
+		convert_all_lodges_and_societies = yes
 		capital_scope = {
 			area = {
 				limit = {
 					NOT = { has_province_modifier = religious_zeal_at_conv }
 				}
 				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
 			}
 		}
 		if = {
@@ -1499,45 +1182,23 @@ country_event = {
 				has_personal_deity = adean
 			}
 		}
-		random_owned_province = {
+
+		if = {
 			limit = {
-				can_have_center_of_reformation_trigger = {
-					RELIGION = ravelian
+				NOT = {
+					has_country_flag = g27_breluslad_flag
 				}
-				has_province_modifier = ravelian_lodge
 			}
-			change_religion = ravelian
-			add_reform_center = ravelian
-			#add_cardinal = yes	#shouldnt actually cos you arent converting
-			add_permanent_province_modifier = {
-				name = "religious_zeal_at_conv"
-				duration = 9000
-			}
+			convert_all_lodges_and_societies_no_cardinals = yes
 		}
-		custom_tooltip = ravelian_chapter_lodge_convert_nc_tt
-		hidden_effect = {
-			every_owned_province = {
+		else = {
+			if = {
 				limit = {
-					has_province_modifier = ravelian_lodge
-				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-						duration = 9000
+					NOT = {
+						has_country_modifier = g27_entrenched_philosophy
 					}
-				#add_cardinal = yes
-				remove_province_modifier = ravelian_lodge
-			}
-			every_owned_province = {
-				limit = {
-					has_province_modifier = ravelian_society
 				}
-				change_religion = ravelian
-				add_permanent_province_modifier = {
-					name = "religious_zeal_at_conv"
-					duration = 9000
-				}
-				remove_province_modifier = ravelian_society
+				convert_all_lodges_and_societies_no_cardinals = yes
 			}
 		}
 	}
@@ -1677,9 +1338,11 @@ country_event = {
 		capital_scope = {
 			continent = europe
 		}
-		OR = {
-			any_owned_province = { has_province_modifier = ravelian_society }
-			any_owned_province = { has_province_modifier = ravelian_lodge }
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
+			}
 		}
 	}
 	
@@ -1862,6 +1525,7 @@ country_event = {
 			days = 1095
 		}
 		hidden_effect = {
+			Z97 = {swap_non_generic_missions = yes}	
 			every_known_country = {
 				limit = {
 					religion = ravelian
@@ -1885,6 +1549,7 @@ country_event = {
 			days = 1095
 		}
 		hidden_effect = {
+			Z97 = {swap_non_generic_missions = yes}	
 			every_known_country = {
 				limit = {
 					religion = ravelian
@@ -1948,7 +1613,19 @@ country_event = {
 		if = {
 			limit = { has_global_flag = third_ravelian_council }
 			set_global_flag = fourth_ravelian_council
-
+		}
+		else_if = {
+			limit = { has_global_flag = second_ravelian_council }
+			set_global_flag = third_ravelian_council
+		}
+		else_if = {
+			limit = { has_global_flag = first_ravelian_council }
+			set_global_flag = second_ravelian_council
+			Z97 = {country_event = {id = ravstate.7 days = 30}} #
+		}
+		else = {
+			set_global_flag = first_ravelian_council
+			
 			if = {
 				limit = {
 					any_country = {
@@ -1959,21 +1636,10 @@ country_event = {
 				set_global_flag = enable_ravelian_epiphany_empire
 			}
 		}
-		else_if = {
-			limit = { has_global_flag = second_ravelian_council }
-			set_global_flag = third_ravelian_council
-		}
-		else_if = {
-			limit = { has_global_flag = first_ravelian_council }
-			set_global_flag = second_ravelian_council
-		}
-		else = {
-			set_global_flag = first_ravelian_council
-		}
 		clr_global_flag = ravelian_council_active
+		Z97 = {swap_non_generic_missions = yes}	
 		#so these flags mean that those councils have happened and are finished. fourth_ravelian_council means all the councils are finished.
 	}
-
 }
 
 #tell countries about it
@@ -2027,6 +1693,7 @@ country_event = {
 			}
 			add_curia_treasury = 100000
 			
+			Z97 = {swap_non_generic_missions = yes}	
 			set_global_flag = ravelian_council_active
 			add_reform_desire = -1
 			country_event = {
@@ -2051,7 +1718,7 @@ country_event = {
 				enable_council = yes
 			}
 			add_curia_treasury = 100000
-			
+			Z97 = {swap_non_generic_missions = yes}	
 			set_global_flag = ravelian_council_active
 			add_reform_desire = -1
 			country_event = {
@@ -2520,30 +2187,32 @@ country_event = {
 	}
 }
 
-#naming this 21 because it's separate from the rest of this. This is the event for monstrous countries to lose conquered ravelian societies
-province_event = {
+# fired from on_province_owner_change for tribals, aelantir natives and monstrous -
+# explainer event noting that the ravelian society has fled from all conquered provinces
+country_event = {
 	id = ravelian.21
 	title = ravelian.21.t
-	desc = ravelian.21.d
+	desc = {
+		trigger = { NOT = { has_country_flag = no_ravelian_societies } }
+		desc = ravelian.21.da
+	}
+	desc = {
+		trigger = { has_country_flag = no_ravelian_societies }
+		desc = ravelian.21.db
+	}
 	picture = BUDDHISM_BAD_eventPicture
-	
-	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
 
-	immediate = {
-		hidden_effect = {
-			save_event_target_as = ravelian_province
-		}
-	}
-	goto = ravelian_province
+	is_triggered_only = yes
+	trigger = { NOT = { has_country_flag = ravelian_society_no_spam } }
 
 	option = {
 		name = "ravelian.21.a"
-		remove_province_modifier = ravelian_society
-		remove_province_modifier = ravelian_lodge
+		custom_tooltip = tooltip_remove_ravelian_chapters
+	}
+	option = {
+		name = "ravelian.21.b"
+		custom_tooltip = tooltip_remove_ravelian_chapters
+		hidden_effect = { set_country_flag = ravelian_society_no_spam }
 	}
 }
 
@@ -2642,7 +2311,7 @@ country_event = {
 					set_province_flag = hre_post_leaguewar_non_reformed_owned
 				}
 			}
-			every_province = {
+			europe = {
 				limit = {
 					is_part_of_hre = yes
 				}
@@ -2690,6 +2359,7 @@ country_event = {
 			}
 			custom_tooltip = incident_reformer_dissension_can_happen_tt
 			set_imperial_incident = incident_reformer_dissension
+			clr_global_flag = enable_ravelian_epiphany_empire
 		}
 		else_if = {	#for non DLC people, they get a version that isnt Imperial Incident but just Emperor's choice in an event
 			limit = {
@@ -2697,6 +2367,7 @@ country_event = {
 				has_global_flag = incident_reformer_dissension_can_happen
 			}
 			emperor = { country_event = { id = reformer_dissension.1 } }
+			clr_global_flag = enable_ravelian_epiphany_empire
 		}
 	}
 
@@ -2727,13 +2398,13 @@ country_event = {
 	
 	trigger = {
 		papacy_active = yes
-		any_owned_province = {
-			has_province_flag = ravelian_state_capital
-		}
 		normal_or_historical_nations = yes
 		religion = ravelian
 		NOT = { exists = Z97 }	#Ravelian State
 		NOT = { has_country_flag = no_support }
+		any_owned_province = {
+			has_province_flag = ravelian_state_capital
+		}
 	}
 	
 	mean_time_to_happen = {
@@ -2825,15 +2496,15 @@ country_event = {
 		is_at_war = no
 		num_of_cities = 2
 		any_owned_province = {
-			is_capital = no
 			religion = ravelian
 			continent = europe
+			is_capital = no
 		}
 		europe = {
 			has_province_flag = ravelian_state_capital
 			owner = {
 				OR = {
-					NOT = { religion = ravelian					}
+					NOT = { religion = ravelian	}
 					has_country_flag = no_support
 				}
 			}
@@ -3126,6 +2797,7 @@ country_event = {
 	title = ravelian.104.t
 	desc = ravelian.104.d
 	picture = UNIVERSITY_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3163,7 +2835,6 @@ country_event = {
 		ai_chance = {
 			factor = 70
 		}
-		goto = ravelian_society_province
 		event_target:ravelian_society_province = {
 			add_base_tax = 1
 		}
@@ -3222,6 +2893,7 @@ country_event = {
 	title = ravelian.106.t
 	desc = ravelian.106.d
 	picture = INVENTION_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3276,21 +2948,20 @@ country_event = {
 	
 	trigger = {
 		NOT = { has_global_flag = ravelians_have_god_fragment }
-		has_estate = estate_church
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
-		any_owned_province = {
-			OR = {
-				has_province_modifier = ravelian_society
-				has_province_modifier = ravelian_lodge
-			}
-		}
 		has_institution = printing_press
-
 		NOT = {
 			has_estate_influence_modifier = {
 				estate = estate_church
 				modifier = EST_VAL_UNDERMINED_BY_RAVELIAN_PAMPHLETS
+			}
+		}
+		has_estate = estate_church
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
 			}
 		}
 
@@ -3337,13 +3008,13 @@ country_event = {
 	trigger = {
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
+		NOT = { has_country_modifier = ravelian_institution_insight }
 		any_owned_province = {
 			OR = {
 				has_province_modifier = ravelian_society
 				has_province_modifier = ravelian_lodge
 			}
 		}
-		NOT = { has_country_modifier = ravelian_institution_insight }
 	}
 
 	mean_time_to_happen = {
@@ -3402,17 +3073,17 @@ country_event = {
 		#NOT = { has_global_flag = ravelians_have_god_fragment }
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
-		any_owned_province = {
-			OR = {
-				has_province_modifier = ravelian_society
-				has_province_modifier = ravelian_lodge
-			}
-		}
 		OR = {
 			ruler_has_personality = babbling_buffoon_personality
 			ruler_has_personality = naive_personality
 			ruler_has_personality = zealot_personality
 			ruler_has_personality = pious_personality
+		}
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
+			}
 		}
 	}
 
@@ -3473,6 +3144,7 @@ country_event = {
 	title = ravelian.200.t
 	desc = ravelian.200.d
 	picture = PROTESTANT_GREAT_REFORMER_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3527,6 +3199,7 @@ country_event = {
 	title = ravelian.201.t
 	desc = ravelian.201.d
 	picture = REFORM_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3594,6 +3267,7 @@ country_event = {
 	title = ravelian.202.t
 	desc = ravelian.202.d
 	picture = SOUP_KITCHEN_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3653,14 +3327,13 @@ country_event = {
 		has_global_flag = ravelians_have_god_fragment
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
+		stability = 2
 		any_owned_province = {
 			OR = {
 				has_province_modifier = ravelian_society
 				has_province_modifier = ravelian_lodge
 			}
 		}
-		stability = 2
-
 		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
 			value = 5
 			OR = {
@@ -3689,6 +3362,7 @@ country_event = {
 	title = ravelian.204.t
 	desc = ravelian.204.d
 	picture = COLONIZATION_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -3764,20 +3438,18 @@ country_event = {
 		has_estate = estate_mages
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
-		any_owned_province = {
-			OR = {
-				has_province_modifier = ravelian_society
-				has_province_modifier = ravelian_lodge
-			}
-		}
-
 		NOT = {
 			has_estate_influence_modifier = {
 				estate = estate_mages
 				modifier = EST_VAL_RAVELIANS_GAINING_POWER
 			}
 		}
-
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
+			}
+		}
 	}
 	
 	#Words are words
@@ -3804,6 +3476,7 @@ country_event = {
 	title = ravelian.206.t
 	desc = ravelian.206.d
 	picture = PROTESTANT_GREAT_REFORMER_eventPicture
+	goto = ravelian_society_province
 
 	is_triggered_only = yes
 	
@@ -3812,18 +3485,6 @@ country_event = {
 		has_estate = estate_church
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
-		any_owned_province = {
-			OR = {
-				has_province_modifier = ravelian_society
-				has_province_modifier = ravelian_lodge
-			}
-		}
-
-		any_owned_province = {
-			NOT = { has_province_modifier = ravelian_society }
-			NOT = { has_province_modifier = ravelian_lodge }
-		}
-
 		NOT = {
 			has_estate_influence_modifier = {
 				estate = estate_church
@@ -3837,7 +3498,16 @@ country_event = {
 				modifier = EST_VAL_SUPPORTED_AGAINST_RAVELIANS
 			}
 		}
-
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
+			}
+		}
+		any_owned_province = {
+			NOT = { has_province_modifier = ravelian_society }
+			NOT = { has_province_modifier = ravelian_lodge }
+		}
 	}
 
 	immediate = {
@@ -3912,13 +3582,6 @@ country_event = {
 		has_estate = estate_artificers
 		NOT = { is_religion_enabled = ravelian }
 		has_global_flag = ravelian_society_founded
-		any_owned_province = {
-			OR = {
-				has_province_modifier = ravelian_society
-				has_province_modifier = ravelian_lodge
-			}
-		}
-
 		NOT = {
 			has_estate_loyalty_modifier = {
 				estate = estate_artificers
@@ -3932,7 +3595,12 @@ country_event = {
 				modifier = EST_VAL_RAVELIAN_ARTIFICER_SCHISM
 			}
 		}
-
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ravelian_society
+				has_province_modifier = ravelian_lodge
+			}
+		}
 	}
 	
 	#Words are words
@@ -4050,11 +3718,7 @@ country_event = {
 		#num_of_cardinals = 1
 		NOT = { has_global_flag = fourth_ravelian_council }
 		NOT = { has_global_flag = ravelian_council_active }
-		any_known_country = {
-			ROOT = {
-				is_rival = PREV
-			}
-		}
+		any_known_country = { is_enemy = ROOT }
 	}
 
 	mean_time_to_happen = {
@@ -4158,6 +3822,7 @@ country_event = {
 	title = ravelian.304.t
 	desc = ravelian.304.d
 	picture = COMET_SIGHTED_eventPicture
+	goto = damestear_province
 	
 	is_triggered_only = yes
 	
@@ -4166,9 +3831,7 @@ country_event = {
 		#num_of_cardinals = 1
 		NOT = { has_global_flag = fourth_ravelian_council }
 		NOT = { has_global_flag = ravelian_council_active }
-		any_owned_province = {
-			trade_goods = damestear
-		}
+		damestear = 1
 	}
 	
 	immediate = {
@@ -4215,6 +3878,7 @@ country_event = {
 	title = ravelian.305.t
 	desc = ravelian.305.d
 	picture = IMPORTANT_STATUE_eventPicture
+	goto = relics_province
 	
 	is_triggered_only = yes
 	
@@ -4223,9 +3887,7 @@ country_event = {
 		#num_of_cardinals = 1
 		NOT = { has_global_flag = fourth_ravelian_council }
 		NOT = { has_global_flag = ravelian_council_active }
-		any_owned_province = {
-			trade_goods = precursor_relics
-		}
+		precursor_relics = 1
 	}
 	
 	immediate = {
@@ -4958,9 +4620,7 @@ country_event = {
 	
 	trigger = {
 		religion = ravelian
-		any_owned_province = {
-			has_building = university
-		}
+		university = 1
 
 		NOT = { has_global_flag = second_ravelian_council }
 		has_global_flag = first_ravelian_council
@@ -5166,6 +4826,9 @@ country_event = {
 	
 	trigger = {
 		religion = ravelian
+		has_global_flag = second_ravelian_council
+		NOT = { has_global_flag = third_ravelian_council }
+		NOT = { has_global_flag = ravelian_council_active }
 		OR = {	#Regent Court cultures
 			culture_group = escanni
 			culture_group = anbennarian
@@ -5174,9 +4837,6 @@ country_event = {
 			culture_group = businori
 		}
 
-		NOT = { has_global_flag = third_ravelian_council }
-		has_global_flag = second_ravelian_council
-		NOT = { has_global_flag = ravelian_council_active }
 		#has_dlc = "Emperor"
 	}
 
@@ -5502,12 +5162,14 @@ country_event = {
 	}
 	
 	immediate = {
-		random_owned_province = {
-			limit = {
-				religion = ravelian
-				has_elven_minority_trigger = yes
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					religion = ravelian
+					has_elven_minority_trigger = yes
+				}
+				save_event_target_as = ravelian_reform_event_target
 			}
-			save_event_target_as = ravelian_reform_event_target
 		}
 	}
 
@@ -5700,6 +5362,7 @@ country_event = {
 	title = ravelian.800.t
 	desc = ravelian.800.d
 	picture = INVENTION_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -5749,6 +5412,7 @@ country_event = {
 	title = ravelian.801.t
 	desc = ravelian.801.d
 	picture = INVENTION_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	
@@ -5806,6 +5470,7 @@ country_event = {
 	title = ravelian.802.t
 	desc = ravelian.802.d
 	picture = INVENTION_eventPicture
+	goto = ravelian_society_province
 	
 	is_triggered_only = yes
 	

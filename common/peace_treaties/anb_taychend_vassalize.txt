@@ -1,0 +1,72 @@
+po_taychend_vassalize = {
+
+	# Values default to 0 or "no" unless otherwise stated
+	
+	category = 6 # Any number between 0 and 6. Represents the tab under which it will be listed. 6 corresponds to "treaties". This value currently defaults to 6.
+	power_projection = vassalized_rival # "power_projection" will only be applied if giver is your rival.
+	power_cost_base = 1.0 # Base factor for diplomatic power cost when treaty is not allowed by casus belli. Scales with war score cost.
+	prestige_base = 0.1 # Base factor for prestige gain and loss. Scales with war score cost.
+	ae_base = 0.45 # Base factor for aggressive expansion. Scales with war score cost.
+	warscore_cost = {
+		# Which of the giver's provinces' war score costs are included and by how much. All entries default to 0. Any combination of entries can be used. Try negative values at your own risk.
+		all_provinces = 0.9 # All the giver's provinces
+		no_provinces = 0.0 # This is just a constant. Equivalent to a single province with with war score cost 1
+		owner_keeps = 0.0 # The provinces that are not of any of the types below
+		conquered = 0.0 # Provinces that are selected by a Demand Province treaty
+		returned_core = 0.0 # Provinces that are selected by a Return Core treaty
+		released_nation = 0.0 # Provinces that will become a part of a selected released-to-be nation
+		cancelled_subject = 0.0 # This one should not be relevant here since Giver can't be a cancelled subject. Including anyway for completeness
+		concede_colonial_region = 0.0 # Ditto
+	}
+	warscore_cap = -1 # Warscore cost will never go above this value. Only enabled if non-negative. This value defaults to -1.
+	requires_demand_independence = yes # Whether this can be demanded by the former subject in an independence war without also demanding independence.
+	is_make_subject = yes # This will make the treaty mutually exclusive with other treaties that makes the giver a subject, or that explicitly frees the giver from their current overlord.
+	requires_is_allowed = yes # If set to "yes", treaty will only be visible when explicitly allowed by casus belli. If not, it will be available but cost diplomatic power.
+	
+	is_visible = { # Defaults to equivalent of "always = yes"
+		religion = gods_of_the_taychend
+	}
+	is_allowed = { # Defaults to equivalent of "always = yes"
+		religion = gods_of_the_taychend
+	}
+	effect = {
+		FROM = {
+			every_war_enemy_country = { 
+				limit = {
+					OR = { 
+						defensive_war_with = FROM # peace out of vassals offensive wars
+						is_in_war = {
+							defender_leader = FROM
+							attacker_leader = THIS
+							casus_belli = cb_independence_war
+						} # to fix a very rare edge case crash when vassalising an overlord fighting an independence war
+					}
+				}
+				white_peace = FROM
+			}
+		}
+		create_subject = {
+			subject = FROM
+			subject_type = vassal
+		}
+		change_variable = {
+			which = TaychendGlory
+			value = 50
+		}
+		update_taychend_glory = yes
+		remove_country_modifier = taychendi_glorious
+	}
+	ai_weight = { # Defaults to always evaluate to 0
+		export_to_variable = {
+			variable_name = ai_value # Mandatory to have entry called "ai_value". Its value at the end of the ai_weight scope is what will be used
+			value = trigger_value:always
+		}
+		set_variable = {
+			ai_value = 2000
+		}
+
+		limit = { # if limit evaluates false, ai_weight will evaluate to 0 regardless
+			NOT = { taychend_has_vassals = yes }
+		}
+	}
+}
