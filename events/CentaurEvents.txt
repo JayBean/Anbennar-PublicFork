@@ -61,6 +61,7 @@ country_event = {
 	}
 
 	trigger = {
+		always = no
 		has_country_modifier = centaur_administration
 		is_subject = no
 		is_at_war = no
@@ -188,25 +189,39 @@ country_event = {
 				add_ruler_personality = cruel_personality
 			}
 			if = {
-				limit = { ai = yes }
-				add_manpower = 10
-				add_treasury = 400
+				limit = {
+					NOT = { tag = I78 }
+				}
+				if = {
+					limit = { ai = yes }
+					add_manpower = 10
+					add_treasury = 400
+					add_country_modifier = {
+						name = centaur_pride_of_the_new_horde
+						duration = 3650
+					}
+					set_ai_personality = {
+						personality = ai_militarist
+						locked = yes
+					}
+				}
+				else = {
+					add_manpower = 5
+					add_treasury = 200
+				}
 			}
-			else = {
-				add_manpower = 5
-				add_treasury = 200
-			}
+
 			if = {
-				limit = { ai = yes }
-				add_country_modifier = {
-					name = centaur_pride_of_the_new_horde
-					duration = 3650
+				limit = {
+					OR = {
+						tag = I78
+						tag = I74
+						tag = I72
+					}
 				}
-				set_ai_personality = {
-					personality = ai_militarist
-					locked = yes
-				}
+				country_event = { id = centaur.200 } # shattered invasion setup
 			}
+
 			capital_scope = {
 				PREV = {
 					cavalry	= PREV
@@ -914,18 +929,24 @@ country_event = {
 
 	trigger = {
 		ai = no
+		always = no
 		has_country_modifier = centaur_administration
 		OR = {
-			northern_isles_region = {
+			north_yarikhoi_region = {
 				owned_by = ROOT
 				culture_group = triunic
 				NOT = { has_province_modifier = triunic_resistance }
 			}
-			southern_isles_region = {
+			south_yarikhoi_region = {
 				owned_by = ROOT
 				culture_group = triunic
 				NOT = { has_province_modifier = triunic_resistance }
 			}
+		}
+		has_country_flag = centaur_special_cb
+		OR = {
+			has_country_modifier = racial_pop_human_purge
+            has_country_modifier = racial_pop_human_expulsion
 		}
 	}
 	
@@ -934,8 +955,8 @@ country_event = {
 			random_owned_province = {
 				limit = {
 					OR = {
-						region = southern_isles_region
-						region = northern_isles_region
+						region = south_yarikhoi_region
+						region = north_yarikhoi_region
 					}
 					culture_group = triunic
 					NOT = { has_province_modifier = triunic_resistance }
@@ -999,7 +1020,119 @@ country_event = {
 	}
 }
 
+#Centaur good herding year random event
+country_event = {
+	id = centaur.25
+	title = centaur.25.t
+	desc = centaur.25.d
+	picture = FEAST_eventPicture
 
+	trigger = {
+		has_country_modifier = centaur_administration
+	
+		OR = {
+			has_adm_advisor_2 = yes
+			adm = 4
+
+		}
+		num_of_owned_provinces_with = {
+			value = 2
+			OR = {
+				has_terrain = grasslands
+				has_terrain = farmlands
+				has_terrain = steppe
+			}
+			superregion = forbidden_lands_superregion
+		}
+		NOT = { has_country_modifier = centaur_a_blessed_year
+		}
+	}
+	is_triggered_only = yes
+	option = {
+		name = centaur.25.a
+		add_years_of_income = 0.5
+		add_prestige = 5
+	}
+	option = {
+		name = centaur.25.b
+		add_country_modifier = {
+			name = centaur_a_blessed_year
+			duration = 1825
+		}
+	}
+}
+
+#make leader a general or face consequences
+country_event = {
+	id = centaur.26
+	title = centaur.26.t
+	desc = centaur.26.d
+	picture = ACCUSATION_eventPicture
+	trigger = {
+		has_country_modifier = centaur_administration
+		has_reform = centaur_horde
+		has_regency = no
+		has_consort_regency = no
+		is_monarch_leader = no
+		NOT = {
+			mil = 5
+			ruler_has_personality = strict_personality
+			ruler_has_personality = inspiring_leader_personality
+			has_ruler_modifier = a_brave_caehn
+			has_ruler_modifier = centaur_rumors_entrenched
+		}
+	}
+	is_triggered_only = yes
+
+	option = {
+		name = centaur.26.a
+		convert_ruler_to_general = 30
+		add_ruler_modifier = {
+			name = a_brave_caehn
+		}
+	}
+	option = {
+		name = centaur.26.b
+		add_prestige = -5
+		add_horde_unity = -5
+		custom_tooltip = centaur.26.tooltip
+		hidden_effect = {
+			random = {
+				chance = 50
+				country_event = {
+					id = centaur.27
+					days = 365
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = centaur.27
+	title = centaur.27.t
+	desc = centaur.27.d
+	picture = ANGRY_MOB_eventPicture
+	is_triggered_only = yes
+	option = {
+		name = centaur.27.a
+		if = {
+			limit = { monthly_income = 50 }
+			add_treasury = -300
+		}
+		else = {
+			add_years_of_income = -0.5
+		}
+		add_horde_unity = 3
+	}
+	option = {
+		name = centaur.27.b
+		add_ruler_modifier = {
+			name = centaur_rumors_entrenched
+			duration = 1825
+		}
+	}
+}
 
 ##################
 ## Background Events
@@ -1169,6 +1302,89 @@ country_event = {
 		every_subject_country = {
 			limit = { is_subject_of_type = centaur_follower }
 			ROOT = { vassalize = PREV }
+		}
+	}
+}
+
+
+country_event = {
+	id = centaur.200
+	title = centaur.200.t
+	desc = centaur.200.d
+	picture = CONQUEST_eventPicture
+	is_triggered_only = yes
+	
+	
+	trigger = {
+		OR = {
+			tag = I78
+			tag = I74
+			tag = I72
+		}
+		NOT = {
+			has_country_flag = shattered_invasion_setup_flag	
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			set_country_flag = shattered_invasion_setup_flag
+			if = {
+				limit = { tag = I78 }
+				add_manpower = -25
+			}
+			if = {
+				limit = {
+					OR = {
+						tag = I74
+						tag = I72
+					}
+				}
+				add_manpower = -12
+			}
+		}
+	}
+	
+	option = {
+		name = centaur.200.a
+		if = {
+			limit = {
+				tag = I78
+			}
+			add_country_modifier = {
+				name = shattered_invasion
+				duration = 10950
+			}
+			add_horde_unity = -95
+			hidden_effect = {
+				every_known_country = {
+					limit = {
+						has_country_modifier = lake_federation_member
+					}
+					add_truce_with = ROOT
+				}	
+			}		
+		}
+		if = {
+			limit = {
+				OR = {
+					tag = I74
+					tag = I72
+				}
+			}
+			add_country_modifier = {
+				name = shattered_invasion_minor
+				duration = 5475
+			}
+			add_horde_unity = -50
+			hidden_effect = {
+				every_known_country = {
+					limit = {
+						has_country_modifier = lake_federation_member
+					}
+					add_truce_with = ROOT
+				}	
+			}			
 		}
 	}
 }
