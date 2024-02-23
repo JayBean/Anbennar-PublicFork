@@ -945,7 +945,7 @@ estate_mages_monopoly_of_damestear = {
 				}
 			}
 			tooltip = JY_LF_not_trading #Anbennar
-			NOT = { any_owned_province = { has_province_modifier = JY_LF_trading } }
+			NOT = { any_owned_province = { has_province_modifier = JY_LF_recent_trade } }
 			# NOT = { has_disaster = french_revolution }
 			# NOT = {
 				# has_disaster_progress = {
@@ -1398,7 +1398,7 @@ estate_adventurers_contain_dangerous_artefacts = {
 				}
 			}
 			tooltip = JY_LF_not_trading #Anbennar
-			NOT = { any_owned_province = { has_province_modifier = JY_LF_trading } }
+			NOT = { any_owned_province = { has_province_modifier = JY_LF_recent_trade } }
 		}
 	}
 	on_granted = { custom_tooltip = estate_containment_gain_land_tt }
@@ -1913,7 +1913,7 @@ estate_adventurers_monopoly_of_slaves = {
 				}
 			}
 			tooltip = JY_LF_not_trading #Anbennar
-			NOT = { any_owned_province = { has_province_modifier = JY_LF_trading } }
+			NOT = { any_owned_province = { has_province_modifier = JY_LF_recent_trade } }
 			# NOT = { has_disaster = french_revolution }
 			# NOT = {
 				# has_disaster_progress = {
@@ -3370,7 +3370,7 @@ estate_daulophs_monopoly_of_metals = {
 				}
 			}
 			tooltip = JY_LF_not_trading #Anbennar
-			NOT = { any_owned_province = { has_province_modifier = JY_LF_trading } }
+			NOT = { any_owned_province = { has_province_modifier = JY_LF_recent_trade } }
 			# NOT = { has_disaster = french_revolution }
 			# NOT = {
 				# has_disaster_progress = {
@@ -3466,7 +3466,7 @@ estate_daulophs_monopoly_of_livestock = {
 				}
 			}
 			tooltip = JY_LF_not_trading #Anbennar
-			NOT = { any_owned_province = { has_province_modifier = JY_LF_trading } }
+			NOT = { any_owned_province = { has_province_modifier = JY_LF_recent_trade } }
 			# NOT = { has_disaster = french_revolution }
 			# NOT = {
 				# has_disaster_progress = {
@@ -9215,5 +9215,231 @@ estate_adventurer_designated_guild_hall = {
 	}
 	ai_will_do = {
 		factor = 0
+	}
+}
+
+
+# G53 - Empkeios - Independent Trading for the Slaver Guilds
+estate_burghers_slaver_independent_trading = {
+	icon = privilege_monopoly_of_goods_slaves
+	conditional_modifier = { trigger = { has_absolutism_reduction_for_estate_privileges = yes } modifier = { max_absolutism = 2 } }
+	loyalty = 0.15
+	influence = 0.1
+	is_valid = {
+		has_country_flag = G53_independent_trading_unlocked_flag
+		any_owned_province = {
+			trade_goods = slaves
+		}
+	}
+	can_select = {
+	}
+	on_granted = {
+		if = {
+			limit = {
+				slaves = 1
+			}
+			add_mercantilism = 1
+		}
+		hidden_effect = {
+			set_variable = {
+				which = slaveincome_cap
+				value = 120
+			}
+			set_variable = {
+				which = slaveincomebase
+				value = 30
+			}
+			set_variable = {
+				which = slaveincomeprov
+				value = 0
+			}
+			set_variable = {
+				which = slaveincomeeff
+				value = 30
+			}
+			every_owned_province = {
+				limit = {
+					trade_goods = slaves
+				}
+				export_to_variable = {
+					which = slaveincomeprov
+					value = trigger_value:base_production
+					who = ROOT
+				}
+				change_variable = {
+					which = slaveincomebase
+					which = slaveincomeprov
+				}
+			}
+			divide_variable = {
+				which = slaveincomebase
+				which = slaveincomeeff
+			}
+			if = {
+				limit = {
+					variable_arithmetic_trigger = {
+						check_variable = {
+							which = slaveincomebase
+							which = slaveincome_cap
+						}
+					}
+				}
+				set_variable = {
+					which = slaveincomebase
+					value = slaveincome_cap
+				}
+			}
+			else_if = {
+				limit = { 
+					NOT = {
+						check_variable = {
+							which = slaveincomebase
+							value = 10
+						}
+					}
+				}
+				set_variable = {
+					which = slaveincomebase
+					value = 10
+				}
+			}
+		}
+		custom_tooltip = empkeios_slaveIncome_tt
+		hidden_effect = {
+			country_event = {
+				id = empkeios_events.2603
+			}
+		}
+	}
+	on_granted_province = {
+		if = {
+			limit = {
+				trade_goods = slaves
+			}
+			add_province_modifier = {
+				name = estate_burghers_empkeios_independent_slave_trade_mod
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = {
+				has_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+			}
+			remove_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+		}
+	}
+	on_revoked = {
+		custom_tooltip = estate_burghers_empkeios_independent_trading_revoke_tt
+	}
+	on_revoked_province = {
+		if = {
+			limit = {
+				has_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+			}
+			remove_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+		}
+	}
+	on_invalid = {
+		custom_tooltip = estate_burghers_empkeios_independent_trading_revoke_tt
+	}
+	on_invalid_province = {
+		if = {
+			limit = {
+				has_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+			}
+			remove_province_modifier = estate_burghers_empkeios_independent_slave_trade_mod
+		}
+	}
+	penalties = {
+	}
+	benefits = {
+	}
+
+	cooldown_years = 10
+	conditional_modifier = {
+		trigger = {
+			has_country_flag = buffed_monopolies
+		}
+		modifier = {
+			burghers_privilege_slots = 1
+		}
+	}
+	on_cooldown_expires = {
+		country_event = { id = empkeios_events.2602 }
+	}
+	ai_will_do = {
+		factor = 0
+	}
+}
+
+# G53 - Empkeios - Slaver Guilds
+estate_burghers_empkeios_slaver_guilds = {
+	icon = privilege_recruit_minister
+	loyalty = 0.1
+	influence = 0.2
+	max_absolutism = -10
+	conditional_modifier = { trigger = { has_absolutism_reduction_for_estate_privileges = yes } modifier = { max_absolutism = 1 } }
+	is_valid = {
+		has_country_flag = G53_slaver_guilds_flag
+		any_owned_province = {
+			trade_goods = slaves
+		}
+	}
+	can_select = {
+		any_owned_province = {
+			trade_goods = slaves
+		}
+	}
+	on_granted = {
+		custom_tooltip = G53_Slaver_Guilds_effect_tooltip
+	}
+	on_granted_province = {
+		if = {
+			limit = {
+				trade_goods = slaves
+			}
+			add_province_modifier = {
+				name = G53_Slaver_Guilds_prov_mod
+				duration = -1
+			}
+		}
+	}
+	can_revoke = {
+		always = no
+	}
+	on_revoked = {
+	}
+	on_revoked_province = {
+		if = {
+			limit = {
+				has_province_modifier = G53_Slaver_Guilds_prov_mod
+			}
+			remove_province_modifier = G53_Slaver_Guilds_prov_mod
+		}
+		else_if = {
+			limit = {
+				has_province_modifier = G53_Slaver_Guilds_prov_mod
+			}
+			remove_province_modifier = G53_Slaver_Guilds_prov_mod
+		}
+	}
+	on_invalid = {
+	}
+	on_invalid_province = {
+		if = {
+			limit = {
+				has_province_modifier = G53_Slaver_Guilds_prov_mod
+			}
+			remove_province_modifier = G53_Slaver_Guilds_prov_mod
+		}
+	}
+	benefits = {
+		all_estate_loyalty_equilibrium = 0.05
+		global_trade_power  = 0.05
+	}
+	penalties = {
+	}
+	ai_will_do = {
+		factor = 100
 	}
 }
