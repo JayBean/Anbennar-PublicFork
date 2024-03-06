@@ -1803,6 +1803,42 @@ on_battle_won_country_effect = {
 		}
 		change_variable = { which = EduzVacynEnboldenEledas value = 1 }
 	}
+	if = {
+		limit = { #Command is winning a war against a great power
+			has_country_flag = absolute_domination_cb_unlocked_flag
+			NOT = { has_country_flag = command_leadership_flag_@FROM }
+			is_in_war = {
+				casus_belli = cb_absolute_domination
+				attacker_leader = ROOT
+				defender_leader = FROM
+				war_score = 80
+			}
+		}
+		set_country_flag = command_leadership_flag_@FROM
+	}
+	if = { # G53 - Empkeios Slave Rebellion win
+		limit = {
+			ROOT = {
+				tag = G53
+				has_country_flag = G53_Slave_Rebellion
+			}
+			NOT = {
+				ROOT = {
+					num_of_rebel_armies = 1
+				}
+			}
+			NOT = {
+				ROOT = {
+					num_of_rebel_controlled_provinces = 1
+				}
+			}
+		}
+		G53 = {
+			country_event = {
+				id = empkeios_events.1306
+			}
+		}
+	}
 }
 
 on_battle_lost_country_effect = {
@@ -1831,6 +1867,20 @@ on_battle_lost_country_effect = {
 			value = 5
 		}
 		update_taychend_glory = yes
+	}
+	if = {
+		limit = { #Command has started to lose against a great power
+			has_country_flag = command_leadership_flag_@FROM
+			NOT = {
+				is_in_war = {
+					casus_belli = cb_absolute_domination
+					attacker_leader = ROOT
+					defender_leader = FROM
+					war_score = 50
+				}
+			}
+		}
+		clr_country_flag = command_leadership_flag_@FROM
 	}
 	g27_civil_war_end_no_subject_effect = yes
 }
@@ -3139,6 +3189,46 @@ on_province_culture_change_effect = {
 			duration = -1
 		}
 	}
+
+	if = {	
+		limit = { province_group = fey_abundant_goods_provinces }
+			if = {	#If you're friends with the fey you get good stuff
+				limit = {			
+					is_fey_attuned_culture = yes
+					NOT = { owner = { has_country_flag = abundant_goods_improved } }
+				}
+				remove_province_modifier = fey_dummy_goods
+				remove_province_modifier = fey_abundant_goods_improved
+				add_permanent_province_modifier = {
+					name = fey_abundant_goods
+					duration = -1
+				}
+			}
+			else_if = {	#If you've improved your abundant goods in mission tree you get this
+				limit = {
+					is_fey_attuned_culture = yes
+					owner = { has_country_flag = abundant_goods_improved }
+				}
+				remove_province_modifier = fey_dummy_goods
+				remove_province_modifier = fey_abundant_goods
+				add_permanent_province_modifier = {
+					name = fey_abundant_goods_improved
+					duration = -1
+				}
+			}
+			else_if = {	#If you're not friends with the fey you get nothing
+				limit = {
+					province_group = fey_abundant_goods_provinces
+					is_fey_attuned_culture = no
+				}
+				remove_province_modifier = fey_abundant_goods
+				remove_province_modifier = fey_abundant_goods_improved
+				add_permanent_province_modifier = {
+					name = fey_dummy_goods
+					duration = -1
+				}
+			}
+		}
 }
 
 on_province_culture_converted_effect = {
@@ -3843,7 +3933,6 @@ on_main_war_won_effect = {
 			value = -5
 		}
 	}
-	
 	if = {
 		limit = {
 			FROM = {
@@ -3867,6 +3956,60 @@ on_main_war_won_effect = {
 			value = 1
 		}
 	}
+	if = {
+		limit = { 
+			has_government_attribute = plundered_knowledge_reform_effect
+			FROM = {
+				NOT = { has_country_modifier = monstrous_nation }
+			}
+		}
+		change_government_reform_progress = 20
+	}
+	if = { #Anbennar
+		limit = {
+			ROOT = { has_country_modifier = lake_federation_member }
+			FROM = { has_country_modifier = centaur_administration }
+		}
+		set_country_flag = federation_cohesion_triumph
+	}
+	if = { #Taychend Glory
+		limit = {
+			has_country_flag = taychendi_coalition_defender
+		}
+		clr_country_flag = taychendi_coalition_defender
+		change_variable = {
+			which = TaychendGlory
+			value = 100
+		}
+		every_known_country = {
+			limit = {
+				NOT = {
+					has_opinion_modifier = {
+						who = ROOT
+						modifier = aggressive_expansion
+						value = -75
+					}
+				}
+			}
+			remove_opinion = {
+				who = ROOT
+				modifier = aggressive_expansion
+			}
+		}
+		every_subject_country = {
+			remove_opinion = {
+				who = ROOT
+				modifier = aggressive_expansion
+			}
+		}
+		update_taychend_glory = yes
+	}
+	#brelar
+	g27_boats_uprising_check_effect = yes
+	#feast_of_the_gods stuff
+	feast_of_the_gods_won_war_count = yes
+	#dragon cult
+	kobold_dragon_cult_won_war = yes
 }
 
 on_change_tag_effect = {
@@ -4884,7 +5027,7 @@ startup_1444_effects = {
 		#Khom civil war events START
 		if = {
 			limit = {
-				tag = Y67	#Ma Hoang
+				tag = Y67	#Mo Hoang
 			}
 			country_event = {
 				id = khom_civilwar.1
@@ -4946,7 +5089,7 @@ startup_1444_effects = {
 		}
 		if = {
 			limit = {
-				tag = Y67	#Ma Hoang
+				tag = Y67	#Mo Hoang
 			}
 			country_event = {
 				id = khom_civilwar.26
@@ -5225,6 +5368,13 @@ startup_1444_effects = {
 				ai = yes
 			}
 			country_event = { id = flavor_wex.2 }
+		}
+
+		if = {
+			limit = {
+				tag = R51
+			}
+			country_event = { id = rahenraj.90 days = 120 random = 60 }
 		}
 	}
 }
