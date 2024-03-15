@@ -10,13 +10,15 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		NOT = { has_country_modifier = setup_for_races_modifier } # Hidden modifier
+		NOT = { has_country_flag = setup_for_races_flag }
 	}
 	
 	hidden = yes
 	
 	immediate = {
 		hidden_effect = {
+			set_country_flag = setup_for_races_flag
+
 			# Sets where the limits are
 			set_variable = {	# Maxes out at 100
 				which = max_race_tolerance
@@ -2849,11 +2851,6 @@ country_event = {
 	
 	option = {
 		name = race_setup_events.1.a
-		add_country_modifier = {
-			name = setup_for_races_modifier
-			duration = -1
-			hidden = yes
-		}
 	}
 }
 
@@ -2881,6 +2878,12 @@ country_event = {
 	# TODO: more factors to change it? if its past 1650 we remove the hate monsters goal
 	immediate = {
 		hidden_effect = {
+			add_country_modifier = {
+				name = setup_for_races_modifier_ai
+				duration = 3650	# Temporary so it can be corrected in the future (checks every 10 years)
+				hidden = yes
+			}
+
 			# Sets up basic goal (coexistence)
 			set_variable = {
 				which = dwarven_race_tolerance_ai
@@ -8998,11 +9001,6 @@ country_event = {
 	
 	option = {
 		name = race_setup_events.2.a
-		add_country_modifier = {
-			name = setup_for_races_modifier_ai
-			duration = 3650	# Temporary so it can be corrected in the future (checks every 10 years)
-			hidden = yes
-		}
 	}
 }
 
@@ -10240,5 +10238,55 @@ province_event = {
 	
 	option = {
 		name = race_setup_events.21.a
+	}
+}
+
+province_event = {
+	id = race_setup_events.22
+	title = race_setup_events.22.t
+	desc = race_setup_events.22.d
+	picture = WAR_OF_THE_ROSES_eventPicture
+
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			NOT = { num_of_cities = 2 }
+			NOT = { has_country_flag = initial_setup_from_cede_province }
+		}
+	} # nation just got its first city
+
+	immediate = {
+		owner = {
+			set_country_flag = initial_setup_from_cede_province
+			#log = "[Root.Owner.GetName]: [Root.GetName] triggered first time set up via on_province_owner_change with 1 city"
+
+			country_event = { id = anbennar_setup.9 } # grant racial admin/mil
+
+			country_event = { id = race_setup_events.1 } #Player
+			country_event = { id = race_setup_events.2 } #AI
+			country_event = { id = race_setup_events.6 } #Player
+			country_event = { id = racial_modifiers.7 } #AI
+			country_event = { id = race_setup_events.19 } # fix tolerances on new land
+
+			if = {
+				limit = {
+					monstrous_culture = yes
+					NOT = { has_country_flag = no_longer_monstrous }
+				}
+				add_country_modifier = { name = monstrous_nation duration = -1 }
+			}
+			# grant monstrous country modifier
+
+			country_event = { id = monstrous.100 days = 1 } # setup monstrous opinion
+		}
+		# heavy events of these include a check if these events have fired before,
+		# so they won't fire again if a nation that existed before is released again
+		# or in edge cases, like migratory tribes migrating
+	}
+
+	option = {
+		name = race_setup_events.22.a
 	}
 }
