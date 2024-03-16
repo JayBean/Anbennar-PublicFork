@@ -15,6 +15,7 @@ on_startup = {
 	startup_1444_effects = yes
 
 	events = {
+	
 		# muslim_school_events.20 #Pick School
 		high_philosophy_events.0
 		sarhalevents.2
@@ -25,6 +26,7 @@ on_startup = {
 		#lilac_wars.1c
 		#initialization.1
 		centaur_nomad.100
+		race_setup_events.7		# set up <race>_present prov flags and majorities for uncolonised provinces
 		anbennar_setup.1		#Sets up Monstrous Opinions
 		anbennar_setup.2		#Sets up Lilac Wars Parties
 		#anbennar_setup.3		#Sets up discovered regions #### Heavy event, might need to be broken down with the addition of new province/country if Black Screen Crash at startup ######
@@ -153,9 +155,9 @@ on_startup = {
 	}
 
 	#########     Racial Pop Stuff     ###########
-	country_event = { id = race_setup_events.1 days = 1 }
-	country_event = { id = race_setup_events.2 days = 1 }
-	country_event = { id = race_setup_events.16 days = 1 }
+	country_event = { id = race_setup_events.1 days = 1 } # tolerance
+	country_event = { id = race_setup_events.2 days = 1 } # ai tolerance
+	country_event = { id = race_setup_events.16 days = 1 } # owned province majority setup, <race>_present flags and pop count
 
 	#country_event = { id = race_setup_events.20 days = 1 } # not necessary for startup
 
@@ -2402,7 +2404,6 @@ on_new_monarch = {
 		#flavor_sugamber.15		# Pro-Ethelbert rebels win the war
 		flavor_sugamber.999		# Lisolette's legitimacy called into question
 
-		#anbennar_setup.9
 		rahenraj.5				#To ensure Harimari rulers in Rahen
 		rahenraj.1000			#To make sure newly independent Prabhi and Senapti have the proper government
 		the_command.3			#Hobgoblin faction influence
@@ -7828,9 +7829,9 @@ on_four_year_pulse_2 = {
 		800 = hobgoblin_tolerance_events.0 # Ditto
 		800 = gnoll_tolerance_events.0 # Ditto
 		800 = troll_tolerance_events.0 # Ditto
-		800 = ruinborn_tolerance_events.0 # Ditto
+		#800 = ruinborn_tolerance_events.0 # Ditto - TODO: UNCOMMENT ONCE THESE HAVE ACTUAL TOLERANCE EVENTS
 		800 = ogre_tolerance_events.0 # Ditto
-		800 = centaur_tolerance_events.0 # Ditto
+		#800 = centaur_tolerance_events.0 # Ditto - TODO: UNCOMMENT ONCE THESE HAVE ACTUAL TOLERANCE EVENTS
 		800 = lizardfolk_tolerance_events.0 # Ditto
 
 		800 = racial_pop_events_centaur.0
@@ -9662,6 +9663,8 @@ on_convert_by_trade_policy = {
 on_province_owner_change = {
 	events = {
 		# japan.1
+		race_setup_events.21 # re-add province flags for present races to newly emptied provinces (we have the define that clears these on uncolonise) - must fire before race_setup_events.17
+		race_setup_events.22 # if the nation receiving this province is lacking init flags, set up their tolerances
 		race_setup_events.17 # update tolerances for new owner
 		one_xia.1
 		rahenraj.1
@@ -11477,6 +11480,8 @@ on_dependency_lost = {
 # ROOT = New vassal, FROM = Overlord
 on_create_vassal = {
 	on_religion_change_estate_privileges_effect = yes
+
+	#Anbennar	
 	if = {
 		limit = {
 			monstrous_culture = yes
@@ -11487,6 +11492,21 @@ on_create_vassal = {
 	if = { limit = { capital_scope = { continent = serpentspine } }
 		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
 	}
+
+	#country_event = { id = monstrous.100 days = 1 }
+	#country_event = { id = anbennar_setup.9 }              # Sets up racial admin/mil
+	#country_event = { id = race_setup_events.1 }           # Sets up Racial Tolerance Level
+	#country_event = { id = race_setup_events.2 }           # Ai only event for preferred tolerace
+	#country_event = { id = race_setup_events.19 }
+	# unnecessary due to race_setup_events.22
+
+	if = {
+		limit = { NOT = { is_year = 1445 } }
+		country_event = { id = race_setup_events.16 }
+		country_event = { id = race_setup_events.19 } # recalculate tolerances
+		# edge case - update majorities for vassals released on day 1 before the startup event was done
+	}
+
 	if = {
 		limit = {
 			has_dlc = "Emperor"
@@ -11512,19 +11532,7 @@ on_create_vassal = {
 		set_country_flag = released_in_1444
 	}
 
-	#Anbennar
-	country_event = { id = monstrous.100 days = 1 }
 	country_event = { id = new_sun_cult.11 days = 1 }
-
-	country_event = { id = anbennar_setup.9 }              # Sets up racial admin/mil
-	country_event = { id = race_setup_events.1 }           # Sets up Racial Tolerance Level
-	country_event = { id = race_setup_events.2 }           # Ai only event for preferred tolerace
-	if = {
-		limit = { NOT = { is_year = 1445 } }
-		country_event = { id = race_setup_events.16 }
-		# edge case - update majorities for vassals released on day 1 before the startup event was done
-	}
-	country_event = { id = race_setup_events.19 } # recalculate tolerances
 
 	if = { #Makes vassals of ynnic overlords into iosahar
 		limit = {
@@ -11722,7 +11730,37 @@ on_flagship_destroyed = {
 }
 
 # this = Released country, FROM = Releasing country
+#NOTE: as of 1.36, only fires when releasing a nation via peace treaty and not via "release = <tag>" effect
 on_country_released = {
+	#log = "[Root.GetName] released"
+
+	#Anbennar
+	if = {
+		limit = {
+			monstrous_culture = yes
+			NOT = { has_country_flag = no_longer_monstrous }
+		}
+		add_country_modifier = { name = monstrous_nation duration = -1 }
+	}
+	if = { limit = { capital_scope = { continent = serpentspine } }
+		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
+	}
+
+	#country_event = { id = anbennar_setup.19 }
+	#country_event = { id = anbennar_setup.9 }              # Sets up racial admin/mil
+	#country_event = { id = race_setup_events.1 }           # Sets up Racial Tolerance Level
+	#country_event = { id = race_setup_events.2 }           # Ai only event for preferred tolerace
+	#country_event = { id = monstrous.100 days = 1 }
+	# unnecessary due to race_setup_events.22
+
+	if = {
+		limit = { NOT = { is_year = 1445 } }
+		country_event = { id = race_setup_events.16 }
+		country_event = { id = race_setup_events.19 } # recalculate tolerances
+		# edge case - update majorities for countries released on day 1 before the startup event was done
+	}
+
+
 	if = { # Anbennar: changed to ravelian rectorate, our papacy
 		limit = {
 			tag = Z97
@@ -11753,17 +11791,7 @@ on_country_released = {
 		set_country_flag = released_in_1444
 	}
 
-	#Anbennar
-	if = {
-		limit = {
-			monstrous_culture = yes
-			NOT = { has_country_flag = no_longer_monstrous }
-		}
-		add_country_modifier = { name = monstrous_nation duration = -1 }
-	}
-	if = { limit = { capital_scope = { continent = serpentspine } }
-		add_country_modifier = { name = reclaiming_dwarovar duration = -1 }
-	}
+	
 	if = {
 		limit = {
 			capital_scope = {
@@ -11795,13 +11823,6 @@ on_country_released = {
 		}
 		add_government_reform = indep_xiaken
 	}
-	country_event = {
-		id = anbennar_setup.19
-	}
-	country_event = { id = anbennar_setup.9 }              # Sets up racial admin/mil
-	country_event = { id = race_setup_events.1 }           # Sets up Racial Tolerance Level
-	country_event = { id = race_setup_events.2 }           # Ai only event for preferred tolerace
-	country_event = { id = monstrous.100 days = 1 }
 
 	if = {
 		limit = { NOT = { has_dlc = "Emperor" } }
