@@ -1,0 +1,613 @@
+
+namespace = racial_pop_events_hobgoblin
+
+#Event Manager
+country_event = {
+	id = racial_pop_events_hobgoblin.0
+	title = racial_pop_events_hobgoblin.0.t
+	desc = racial_pop_events_hobgoblin.0.d
+	picture = DEBATE_REPUBLICAN_eventPicture
+	
+	hidden = yes
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 10
+			has_country_modifier = racial_focus_hobgoblin
+		}
+		modifier = {
+			factor = 5
+			has_country_modifier = command_enthusiasm_for_life
+		}
+	}
+	
+	option = {
+		name = racial_pop_events_hobgoblin.0.a
+		random_list = {
+			1 = { }
+			# ensure there's an empty option first in case none of the others are available
+			# and also because it seems this one might be picked rarely even if the others are available...
+
+			#events 1-3 are reserved for making external migration stuff function
+			10 = { #random pop growth
+				trigger = {
+					any_owned_province = {
+						has_small_hobgoblin_minority_trigger = yes
+						OR = {
+							is_prosperous = yes
+							development = 20
+						}
+					}
+				}
+				modifier = { factor = 5 has_country_modifier = command_enthusiasm_for_life }
+				random_owned_province = {
+					limit = {
+						has_small_hobgoblin_minority_trigger = yes
+						OR = {
+							is_prosperous = yes
+							development = 20
+						}
+					}
+					province_event = { id = racial_pop_events_hobgoblin.4 }
+				}
+			}
+			10 = { #random pop shrinkage
+				trigger = {
+					any_owned_province = {
+						has_hobgoblin_minority_trigger = yes
+						OR = {
+							unrest = 10
+							devastation = 25
+							AND = {
+								has_oppressed_hobgoblin_minority_trigger = yes
+								owner = { NOT = { has_country_modifier = hobgoblin_slaves_in_colonies } }
+							}
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					OR = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+				}
+				random_owned_province = {
+					limit = {
+						has_hobgoblin_minority_trigger = yes
+						OR = {
+							unrest = 10
+							devastation = 25
+							AND = {
+								has_oppressed_hobgoblin_minority_trigger = yes
+								owner = { NOT = { has_country_modifier = hobgoblin_slaves_in_colonies } }
+							}
+						}
+					}
+					province_event = { id = racial_pop_events_hobgoblin.5 }
+				}
+			}
+			10 = { #Internal migration occurs
+				trigger = {
+					pop_internal_migration_trigger = { race = hobgoblin }
+				}
+				choose_pop_destination_province = { race = hobgoblin }
+				event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.6 } }
+			}
+			10 = { #Migration from neighboring country
+				trigger = {
+					pop_external_migration_trigger = { neighbor = yes race = hobgoblin }
+				}
+				choose_pop_destination_province = { race = hobgoblin }
+				event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.7 } }
+			}
+			10 = { #Migration from overlord
+				trigger = {
+					pop_external_migration_trigger = { overlord = yes race = hobgoblin }
+				}
+				choose_pop_destination_province = { race = hobgoblin }
+				event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.8 } }
+			}
+			10 = { #Migration from vassal
+				trigger = {
+					pop_external_migration_trigger = { vassal = yes race = hobgoblin }
+				}
+				choose_pop_destination_province = { race = hobgoblin }
+				event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.9 } }
+			}
+		}
+	}
+}
+
+#generic migration arrival notif - for destination
+province_event = {
+	id = racial_pop_events_hobgoblin.1
+	title = racial_pop_events_hobgoblin.1.t
+	desc = racial_pop_events_hobgoblin.1.d
+	picture = CITY_DEVELOPMENT_eventPicture
+	goto = ROOT
+
+	is_triggered_only = yes
+
+	option = {
+		name = racial_pop_events_hobgoblin.1.a
+		ai_chance = { factor = 1 }
+		racial_pop_migration_arrive = { race = hobgoblin }
+	}
+}
+
+#generic migration refusal notif - for destination
+province_event = {
+	id = racial_pop_events_hobgoblin.2
+	title = racial_pop_events_hobgoblin.2.t
+	desc = racial_pop_events_hobgoblin.2.d
+	picture = BAD_WITH_MONARCH_eventPicture
+	goto = ROOT
+
+	is_triggered_only = yes
+
+	option = {
+		name = racial_pop_events_hobgoblin.2.a
+		ai_chance = { factor = 1 }
+		add_prestige = -5
+	}
+}
+
+#generic migration choice notif - for origin
+province_event = {
+	id = racial_pop_events_hobgoblin.3
+	title = racial_pop_events_hobgoblin.3.t
+	desc = racial_pop_events_hobgoblin.3.d
+	picture = REFUGEES_ESCAPING_eventPicture
+	goto = ROOT
+
+	is_triggered_only = yes
+
+	option = { #good luck in [destination country]!
+		ai_chance = {
+			factor = 1
+		}
+		generic_remove_race_minority_size_effect = { race = hobgoblin }
+		FROM = {
+			province_event = { id = racial_pop_events_hobgoblin.1 }
+		}
+	}
+	option = { #stop them! they are our rightful subjects!
+		ai_chance = {
+			factor = 0
+		}
+		add_dip_power = -10
+		small_decrease_of_hobgoblin_tolerance_effect = yes
+		FROM = {
+			province_event = { id = racial_pop_events_hobgoblin.2 }
+		}
+	}
+}
+
+#Independent Pop Grow - small to large
+province_event = {
+	id = racial_pop_events_hobgoblin.4
+	title = racial_pop_events_hobgoblin.4.t
+	desc = racial_pop_events_hobgoblin.4.d
+	picture = STREET_SPEECH_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	option = {		#The more the merrier?
+		name = racial_pop_events_hobgoblin.4.a
+		ai_chance = {
+			factor = 50
+		}
+		add_hobgoblin_minority_size_effect = yes
+	}
+	
+}
+
+#Independent Pop Decrease - large/small decrease
+province_event = {
+	id = racial_pop_events_hobgoblin.5
+	title = racial_pop_events_hobgoblin.5.t
+	desc = racial_pop_events_hobgoblin.5.d
+	picture = WOUNDED_SOLDIERS_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = racial_pop_events_hobgoblin.5.a
+		ai_chance = {
+			factor = 50
+		}
+		generic_remove_race_minority_size_effect = { race = hobgoblin }
+	}
+}
+
+#Pop Migrates - Within Country
+province_event = {
+	id = racial_pop_events_hobgoblin.6
+	title = racial_pop_events_hobgoblin.6.t
+	desc = racial_pop_events_hobgoblin.6.d
+	picture = COLONIZATION_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	
+	immediate = {
+		hidden_effect = {
+			choose_pop_origin_province = { race = hobgoblin minority = yes }
+		}
+	}
+	
+	#Fund the migration
+	option = {
+		name = racial_pop_events_hobgoblin.6.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		add_adm_power = -10
+		generic_increase_of_racial_tolerance_effect = { race = hobgoblin small = yes }
+		event_target:origin_province = {
+			generic_remove_race_minority_size_effect = { race = hobgoblin }
+			generic_remove_race_minority_size_effect = { race = hobgoblin }
+		}
+		racial_pop_migration_arrive = { race = hobgoblin }
+		racial_pop_migration_arrive = { race = hobgoblin }
+	}
+	
+	#They can do as they please
+	option = {		
+		name = racial_pop_events_hobgoblin.6.b
+		ai_chance = {
+			factor = 50
+		}
+		event_target:origin_province = {
+			generic_remove_race_minority_size_effect = { race = hobgoblin }
+		}
+		racial_pop_migration_arrive = { race = hobgoblin }
+	}
+	
+	#Prevent migration
+	option = {		
+		name = racial_pop_events_hobgoblin.6.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_hobgoblin_purge
+					has_country_modifier = racial_pop_hobgoblin_expulsion
+				}
+			}
+		}
+		add_adm_power = -10
+		generic_decrease_of_racial_tolerance_effect = { race = hobgoblin small = yes }
+	}
+}
+
+#External migration - neighbor
+province_event = {
+	id = racial_pop_events_hobgoblin.7
+	title = racial_pop_events_hobgoblin.7.t
+	desc = racial_pop_events_hobgoblin.7.d
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		save_event_target_as = destination_province
+		random_neighbor_country = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 }
+				OR = {
+					OR = {
+						has_country_modifier = racial_pop_hobgoblin_purge
+						has_country_modifier = racial_pop_hobgoblin_expulsion
+					}
+					any_owned_province = {
+						fast_has_pop_of_race = { race = hobgoblin }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = hobgoblin amount = 20 } }
+							NOT = { preferred_terrain = { hobgoblin = yes } }
+						}
+					}
+				}
+			}
+			choose_pop_origin_province = { race = hobgoblin }
+		}
+	}
+	
+	#Invite the migrants
+	option = {		
+		name = racial_pop_events_hobgoblin.7.a
+		trigger = {
+			NOT = {
+				has_country_modifier = racial_pop_hobgoblin_purge
+				has_country_modifier = racial_pop_hobgoblin_expulsion
+
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				stability = 1
+			}
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				event_target:origin_province = { owner = { is_at_war = yes } }
+			}
+		}
+		add_dip_power = -10
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+		generic_increase_of_racial_tolerance_effect = { race = hobgoblin small = yes }
+	}
+	
+	#Let them do as they wish 
+	option = {		
+		name = racial_pop_events_hobgoblin.7.b
+		ai_chance = {
+			factor = 50
+		}
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+	}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_hobgoblin.7.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				NOT = { stability = 0 }
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_hobgoblin_purge
+					has_country_modifier = racial_pop_hobgoblin_expulsion
+				}
+			}
+		}
+		add_dip_power = -10
+		small_decrease_of_hobgoblin_tolerance_effect = yes
+	}
+}
+
+#External migration - overlord
+province_event = {
+	id = racial_pop_events_hobgoblin.8
+	title = racial_pop_events_hobgoblin.8.t
+	desc = racial_pop_events_hobgoblin.8.d
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		save_event_target_as = destination_province
+		overlord = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 }
+				OR = {
+					OR = {
+						has_country_modifier = racial_pop_hobgoblin_purge
+						has_country_modifier = racial_pop_hobgoblin_expulsion
+					}
+					any_owned_province = {
+						fast_has_pop_of_race = { race = hobgoblin }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = hobgoblin amount = 20 } }
+							NOT = { preferred_terrain = { hobgoblin = yes } }
+						}
+					}
+				}
+			}
+			choose_pop_origin_province = { race = hobgoblin }
+		}
+	}
+	
+	#Invite the migrants
+	option = {		
+		name = racial_pop_events_hobgoblin.7.a
+		trigger = {
+			NOT = {
+				has_country_modifier = racial_pop_hobgoblin_purge
+				has_country_modifier = racial_pop_hobgoblin_expulsion
+
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				stability = 1
+			}
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				event_target:origin_province = { owner = { is_at_war = yes } }
+			}
+		}
+		add_dip_power = -10
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+		generic_increase_of_racial_tolerance_effect = { race = hobgoblin small = yes }
+	}
+	
+	#Let them do as they wish 
+	option = {		
+		name = racial_pop_events_hobgoblin.7.b
+		ai_chance = {
+			factor = 50
+		}
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+	}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_hobgoblin.7.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				NOT = { stability = 0 }
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_hobgoblin_purge
+					has_country_modifier = racial_pop_hobgoblin_expulsion
+				}
+			}
+		}
+		add_dip_power = -10
+		small_decrease_of_hobgoblin_tolerance_effect = yes
+	}
+}
+
+#External migration - vassal
+province_event = {
+	id = racial_pop_events_hobgoblin.9
+	title = racial_pop_events_hobgoblin.9.t
+	desc = racial_pop_events_hobgoblin.9.d
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		save_event_target_as = destination_province
+		random_subject_country = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 }
+				OR = {
+					OR = {
+						has_country_modifier = racial_pop_hobgoblin_purge
+						has_country_modifier = racial_pop_hobgoblin_expulsion
+					}
+					any_owned_province = {
+						fast_has_pop_of_race = { race = hobgoblin }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = hobgoblin amount = 20 } }
+							NOT = { preferred_terrain = { hobgoblin = yes } }
+						}
+					}
+				}
+			}
+			choose_pop_origin_province = { race = hobgoblin }
+		}
+	}
+	
+	#Invite the migrants
+	option = {		
+		name = racial_pop_events_hobgoblin.7.a
+		trigger = {
+			NOT = {
+				has_country_modifier = racial_pop_hobgoblin_purge
+				has_country_modifier = racial_pop_hobgoblin_expulsion
+
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				stability = 1
+			}
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				event_target:origin_province = { owner = { is_at_war = yes } }
+			}
+		}
+		add_dip_power = -10
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+		generic_increase_of_racial_tolerance_effect = { race = hobgoblin small = yes }
+	}
+	
+	#Let them do as they wish 
+	option = {		
+		name = racial_pop_events_hobgoblin.7.b
+		ai_chance = {
+			factor = 50
+		}
+		hidden_effect = {
+			racial_pop_migration_attempt = { race = hobgoblin }
+		}
+	}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_hobgoblin.7.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 2
+				NOT = { stability = 0 }
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_hobgoblin_purge
+					has_country_modifier = racial_pop_hobgoblin_expulsion
+				}
+			}
+		}
+		add_dip_power = -10
+		small_decrease_of_hobgoblin_tolerance_effect = yes
+	}
+}
