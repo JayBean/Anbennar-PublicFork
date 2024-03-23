@@ -4455,6 +4455,7 @@ pop_menu_calculations = {
 	#			is_state_core = ROOT
 	#		}
 	#	]
+	#} #closing bracket so vscode doesn't get angry
 	# 1.35 TODO - originally every_owned_province,
 	# this errors (but not as badly as the other scripted effect - see below)
 	# (yes, they broke every_owned_province again)
@@ -6428,4 +6429,112 @@ update_consort_racial_flag = {
 		}
 		set_consort_flag = ruinborn_consort
 	}
+}
+racial_pop_migration_attempt = {
+	random_list = {
+		1 = {
+			event_target:destination_province = {
+				province_event = { id = racial_events_$race$.1 random = 365 }
+			}
+		}
+		1 = {
+			event_target:origin_province = {
+				province_event = { id = racial_events_$race$.3 } #arrival time randomized in the event
+			}
+			modifier = {
+				factor = 0
+				event_target:origin_province = {
+					has_$race$_majority_trigger = yes
+				}
+			}
+		}
+	}
+}
+racial_pop_migration_arrive = {
+	if = {
+		limit = {
+			has_$race$_majority_trigger = no
+			has_large_$race$_minority_trigger = no
+		}
+		generic_add_race_minority_size_effect = { race = $race$ }
+	}
+	else = {
+		random_list = {
+			33 = { add_base_tax = 1 }
+			33 = { add_base_production = 1 }
+			33 = { add_base_manpower = 1 }
+		}
+	}
+	add_local_autonomy = 10
+}
+choose_pop_destination_province = {
+	random_list = {
+		5 = {
+			trigger = {
+				any_owned_province = {
+					preferred_terrain = { $race$ = yes }
+				}
+			}
+			modifier = {
+				factor = 5
+				NOT = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } }
+			}
+			random_owned_province = {
+				limit = { preferred_terrain = { $race = yes } }
+				save_event_target_as = destination_province
+			}
+		}
+		5 = {
+			trigger = {
+				any_owned_province = {
+					development = 20
+				}
+			}
+			modifier = {
+				factor = 2
+				NOT = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } }
+			}
+			random_owned_province = {
+				limit = { development = 20 }
+				save_event_target_as = destination_province
+			}
+		}
+		1 = {
+			modifier = {
+				factor = 5
+				fast_owns_num_pops_of_race = { race = $race$ amount = 20 }
+			}
+			random_owned_province = {
+				save_event_target_as = destination_province
+			}
+		}
+	}
+}
+choose_pop_origin_province = {
+	random_owned_province = {
+		limit = {
+			fast_has_pop_of_race = { race = $race$ }
+			OR = {
+				devastation = 25
+				unrest = 10
+				NOT = { development = 10 fast_owns_num_pops_of_race = { race = $race$ amount = 20 } }
+				NOT = { preferred_terrain = { $race$ = yes } }
+			}
+		}
+		save_event_target_as = origin_province
+	}
+	[[minority]
+		random_owned_province = {
+			limit = {
+				has_$race$_minority_trigger = yes
+				OR = {
+					devastation = 25
+					unrest = 10
+					NOT = { development = 10 fast_owns_num_pops_of_race = { race = $race$ amount = 20 } }
+					NOT = { preferred_terrain = { $race$ = yes } }
+				}
+			}
+			save_event_target_as = origin_province
+		}
+	]
 }

@@ -9,16 +9,16 @@ country_event = {
 	picture = DEBATE_REPUBLICAN_eventPicture
 	goto = racial_pop_province_target
 	
-	trigger = {
-		fast_owns_num_pops_of_race = { race = orcish amount = 1 }
-	}
-	
 	hidden = yes
 	
 	is_triggered_only = yes
 	
 	mean_time_to_happen = {
 		days = 1
+		modifier = {
+			factor = 10
+			has_country_modifier = racial_focus_orcish
+		}
 	}
 	
 	option = {
@@ -28,59 +28,8 @@ country_event = {
 			# ensure there's an empty option first in case none of the others are available
 			# and also because it seems this one might be picked rarely even if the others are available...
 
-			10 = {
-				trigger = {
-					NOT = { has_country_modifier = orcish_administration }
-					any_owned_province = {
-						NOT = { local_autonomy = 50 }
-						is_capital = no
-						has_orcish_minority_trigger = yes
-					}
-				}
-				country_event = { id = racial_pop_events_orcish.1 }
-			}
-			10 = {
-				trigger = {
-					NOT = { has_country_modifier = orcish_administration }
-					OR = {
-						stability = 1
-						in_golden_age = yes
-						ruler_has_personality = tolerant_personality
-						ruler_has_personality = kind_hearted_personality
-						ruler_has_personality = benevolent_personality
-						has_idea_group = humanist_ideas
-						
-						any_ally = {
-							has_country_modifier = orcish_administration
-						}
-					}
-				}
-				country_event = { id = racial_pop_events_orcish.2 }
-			}
-			10 = {
-				trigger = {
-					NOT = { has_country_modifier = orcish_administration }
-					OR = {
-						NOT = { stability = 0 }
-						is_bankrupt = yes
-						inflation = 25
-						AND = {
-							is_at_war = yes
-							NOT = { war_score = 20 }
-						}
-						war_exhaustion = 10
-						ruler_has_personality = cruel_personality
-						ruler_has_personality = malevolent_personality
-						ruler_has_personality = conqueror_personality
-						
-						any_rival_country = {
-							has_country_modifier = orcish_administration
-						}
-					}
-				}
-				country_event = { id = racial_pop_events_orcish.3 }
-			}
-			10 = {
+			#events 1-3 are reserved for making external migration stuff function
+			10 = { #random pop growth
 				trigger = {
 					any_owned_province = {
 						has_small_orcish_minority_trigger = yes
@@ -90,15 +39,24 @@ country_event = {
 						}
 					}
 				}
-				country_event = { id = racial_pop_events_orcish.4 }
+				random_owned_province = {
+					limit = {
+						has_small_orcish_minority_trigger = yes
+						OR = {
+							is_prosperous = yes
+							development = 20
+						}
+					}
+					province_event = { id = racial_pop_events_orcish.4 }
+				}
 			}
-			10 = {
+			10 = { #random pop shrinkage
 				trigger = {
 					any_owned_province = {
 						has_orcish_minority_trigger = yes
 						OR = {
-							unrest = 15
-							devastation = 50
+							unrest = 10
+							devastation = 25
 							AND = {
 								has_oppressed_orcish_minority_trigger = yes
 								owner = { NOT = { has_country_modifier = orcish_slaves_in_colonies } }
@@ -106,401 +64,171 @@ country_event = {
 						}
 					}
 				}
-				country_event = { id = racial_pop_events_orcish.5 }
-			}
-			10 = {
-				trigger = {
-					num_of_cities = 2	#you have something to migrate to
-					any_owned_province = {
-						has_orcish_minority_trigger = yes
-						OR = {
-							devastation = 33
-							unrest = 10
-							NOT = { development = 10 }
-						}
+				modifier = {
+					factor = 2
+					OR = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
 					}
 				}
-				country_event = { id = racial_pop_events_orcish.6 }
-			}
-			10 = {
-				trigger = {
-					num_of_cities = 2	#you have something to migrate to
-					#Country that tolerates race
-					any_neighbor_country = { 
-						NOT = { low_tolerance_orcish_race_trigger = yes }
-					}
-					any_owned_province = {
+				random_owned_province = {
+					limit = {
 						has_orcish_minority_trigger = yes
 						OR = {
-							devastation = 33
 							unrest = 10
-							NOT = { development = 10 }
-							has_oppressed_orcish_minority_trigger = yes
+							devastation = 25
+							AND = {
+								has_oppressed_orcish_minority_trigger = yes
+								owner = { NOT = { has_country_modifier = orcish_slaves_in_colonies } }
+							}
 						}
 					}
+					province_event = { id = racial_pop_events_orcish.5 }
 				}
-				country_event = { id = racial_pop_events_orcish.7 }
 			}
-			10 = {
+			10 = { #Internal migration occurs
 				trigger = {
-					num_of_cities = 2	#you have something to migrate to
-					
-					#Country that tolerates race
-					any_subject_country = { 
-						is_colonial_nation = yes
-					}
-					any_owned_province = {
-						has_orcish_minority_trigger = yes
-						OR = {
-							devastation = 33
-							unrest = 10
-							NOT = { development = 10 }
-							has_oppressed_orcish_minority_trigger = yes
-						}
-					}
+					pop_internal_migration_trigger = { race = orcish }
 				}
-				country_event = { id = racial_pop_events_orcish.8 }
+				choose_pop_destination_province = { race = orcish }
+				event_target:destination_province = { province_event = { id = racial_pop_events_orcish.6 } }
+			}
+			10 = { #Migration from neighboring country
+				trigger = {
+					pop_external_migration_trigger = { neighbor = yes race = orcish }
+				}
+				choose_pop_destination_province = { race = orcish }
+				event_target:destination_province = { province_event = { id = racial_pop_events_orcish.7 } }
+			}
+			10 = { #Migration from overlord
+				trigger = {
+					pop_external_migration_trigger = { overlord = yes race = orcish }
+				}
+				choose_pop_destination_province = { race = orcish }
+				event_target:destination_province = { province_event = { id = racial_pop_events_orcish.8 } }
+			}
+			10 = { #Migration from vassal
+				trigger = {
+					pop_external_migration_trigger = { vassal = yes race = orcish }
+				}
+				choose_pop_destination_province = { race = orcish }
+				event_target:destination_province = { province_event = { id = racial_pop_events_orcish.9 } }
 			}
 		}
 	}
 }
 
-#Demand Representation
-country_event = {
+#generic migration arrival notif - for destination
+province_event = {
 	id = racial_pop_events_orcish.1
 	title = racial_pop_events_orcish.1.t
 	desc = racial_pop_events_orcish.1.d
-	picture = DEBATE_REPUBLICAN_eventPicture
-	goto = racial_pop_province_target
-	
-	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-	immediate = {
-		hidden_effect = {
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					is_capital = no
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { local_autonomy = 50 }
-					is_capital = no
-					has_orcish_minority_trigger = yes
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { local_autonomy = 50 }
-					is_capital = no
-					has_orcish_minority_trigger = yes
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-		}
-	}
-	
-	option = {		#Granted!
-		name = racial_pop_events_orcish.1.a
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_increase_tolerance_orcish = yes
-			}
-		}
-		
-		add_adm_power = -40
-		
-		medium_increase_of_orcish_tolerance_effect = yes
-		
-		event_target:racial_pop_province_target = {
-			add_local_autonomy = 25
-		}
-	}
-	
-	option = {		#Make some concessions
-		name = racial_pop_events_orcish.1.b
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_maintain_tolerance_orcish = yes
-			}
-			modifier = {
-				factor = 0.5
-				average_autonomy = 10
-			}
-		}
-		
-		add_adm_power = -20
-		
-		event_target:racial_pop_province_target = {
-			add_local_autonomy = 10
-		}
+	picture = CITY_DEVELOPMENT_eventPicture
+	goto = ROOT
 
-	}
-	
-	option = {		#No. Haven't we given them enough?!
-		name = racial_pop_events_orcish.1.c
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_decrease_tolerance_orcish = yes
-			}
-		}
-		
-		medium_decrease_of_orcish_tolerance_effect = yes
-		
-	}
-	
-	option = {		#Special: Make empty promises
-		name = racial_pop_events_orcish.1.e
-		trigger = { ruler_has_personality = charismatic_negotiator_personality }
-		highlight = yes
-		ai_chance = {
-			factor = 100
-			modifier = {
-				factor = 0.25
-				wants_to_decrease_tolerance_orcish = yes
-			}
-			modifier = {
-				factor = 1.5
-				average_autonomy = 10
-			}
-		}
-		
-		add_dip_power = -10
-		
-		small_increase_of_orcish_tolerance_effect = yes
-		
-		event_target:racial_pop_province_target = {
-			add_local_autonomy = 1
-		}
-		
+	is_triggered_only = yes
+
+	option = {
+		name = racial_pop_events_orcish.1.a
+		ai_chance = { factor = 1 }
+		racial_pop_migration_arrive = { race = orcish }
 	}
 }
 
-
-#Tolerance Increase
-country_event = {
+#generic migration refusal notif - for destination
+province_event = {
 	id = racial_pop_events_orcish.2
 	title = racial_pop_events_orcish.2.t
 	desc = racial_pop_events_orcish.2.d
-	picture = GOOD_WITH_MONARCH_eventPicture
-	
+	picture = BAD_WITH_MONARCH_eventPicture
+	goto = ROOT
+
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-	immediate = {
-		hidden_effect = {
-		
-			random_list = {
-				75 = {
-					set_country_flag = racial_pop_small_increase
-				}
-				25 = {
-					set_country_flag = racial_pop_medium_increase
-				}
-			}
-		}
-	}
-	
-	option = {		#Good for them
+
+	option = {
 		name = racial_pop_events_orcish.2.a
-		ai_chance = {
-			factor = 50
-		}
-		
-		trigger_switch = {
-			on_trigger = has_country_flag
-			racial_pop_small_increase = { small_increase_of_orcish_tolerance_effect = yes }
-			racial_pop_medium_increase = { medium_increase_of_orcish_tolerance_effect = yes }
-		}
-		
-		clear_racial_pop_tolerance_chance_flags = yes
-		
+		ai_chance = { factor = 1 }
+		add_prestige = -5
 	}
-	
 }
 
-
-#Tolerance Decrease
-country_event = {
+#generic migration choice notif - for origin
+province_event = {
 	id = racial_pop_events_orcish.3
 	title = racial_pop_events_orcish.3.t
 	desc = racial_pop_events_orcish.3.d
-	picture = BAD_WITH_MONARCH_eventPicture
-	
+	picture = REFUGEES_ESCAPING_eventPicture
+	goto = ROOT
+
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-	immediate = {
-		hidden_effect = {
-		
-			random_list = {
-				75 = {
-					set_country_flag = racial_pop_small_decrease
-				}
-				25 = {
-					set_country_flag = racial_pop_medium_decrease
-				}
-			}
-		}
-	}
-	
-	option = {		#That's unfortunate
-		name = racial_pop_events_orcish.3.a
+
+	option = { #good luck in [destination country]!
 		ai_chance = {
-			factor = 50
+			factor = 1
 		}
-		
-		trigger_switch = {
-			on_trigger = has_country_flag
-			racial_pop_small_decrease = { small_decrease_of_orcish_tolerance_effect = yes }
-			racial_pop_medium_decrease = { medium_decrease_of_orcish_tolerance_effect = yes }
+		generic_remove_race_minority_size_effect = { race = orcish }
+		FROM = {
+			province_event = { id = racial_pop_events_orcish.1 random = 365 }
 		}
-		
-		clear_racial_pop_tolerance_chance_flags = yes
-		
 	}
-	
+	option = { #stop them! they are our rightful subjects!
+		ai_chance = {
+			factor = 0
+		}
+		add_dip_power = -10
+		small_decrease_of_orcish_tolerance_effect = yes
+		FROM = {
+			province_event = { id = racial_pop_events_orcish.2 random = 365 }
+		}
+	}
 }
 
-
 #Independent Pop Grow - small to large
-country_event = {
+province_event = {
 	id = racial_pop_events_orcish.4
 	title = racial_pop_events_orcish.4.t
 	desc = racial_pop_events_orcish.4.d
 	picture = STREET_SPEECH_eventPicture
-	goto = racial_pop_province_target
+	goto = ROOT
 	
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
-	immediate = {
-		hidden_effect = {
-			random_owned_province = {
-				limit = {
-					has_small_orcish_minority_trigger = yes
-					is_prosperous = yes
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			#random_owned_province = {
-			#	limit = {
-			#		has_small_orcish_minority_trigger = yes
-			#		is_capital = yes
-			#	}
-			#	save_event_target_as = racial_pop_province_target
-			#}
-			random_owned_province = {
-				limit = {
-					has_small_orcish_minority_trigger = yes
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-		}
-	}
 	
 	option = {		#The more the merrier?
 		name = racial_pop_events_orcish.4.a
 		ai_chance = {
 			factor = 50
 		}
-	
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
-		}
+		add_orcish_minority_size_effect = yes
 	}
 	
 }
 
-
 #Independent Pop Decrease - large/small decrease
-country_event = {
+province_event = {
 	id = racial_pop_events_orcish.5
 	title = racial_pop_events_orcish.5.t
 	desc = racial_pop_events_orcish.5.d
 	picture = WOUNDED_SOLDIERS_eventPicture
-	goto = racial_pop_province_target
+	goto = ROOT
 	
 	is_triggered_only = yes
 	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
-	immediate = {
-		hidden_effect = {
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-		}
-	}
-	
-	option = {		#Large minority decreases to small
+	option = {
 		name = racial_pop_events_orcish.5.a
-		trigger = {
-			event_target:racial_pop_province_target = {
-				has_large_orcish_minority_trigger = yes
-			}
-		}
 		ai_chance = {
 			factor = 50
 		}
-	
-		event_target:racial_pop_province_target = {
-			remove_orcish_minority_size_effect = yes
-		}
-	}
-	
-	option = {		#Small minority is removed (becomes insignificant)
-		name = racial_pop_events_orcish.5.b
-		trigger = {
-			event_target:racial_pop_province_target = {
-				has_small_orcish_minority_trigger = yes
-			}
-		}
-		ai_chance = {
-			factor = 50
-		}
-	
-		event_target:racial_pop_province_target = {
-			remove_orcish_minority_size_effect = yes
-		}
+		generic_remove_race_minority_size_effect = { race = orcish }
 	}
 }
 
-
-
 #Pop Migrates - Within Country
-country_event = {
+province_event = {
 	id = racial_pop_events_orcish.6
 	title = racial_pop_events_orcish.6.t
 	desc = racial_pop_events_orcish.6.d
 	picture = COLONIZATION_eventPicture
-	goto = racial_pop_province_target
+	goto = ROOT
 	
 	is_triggered_only = yes
 	
@@ -510,128 +238,13 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			#Origin Province Setter
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					NOT = { development = 10 }
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					unrest = 10 
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					devastation = 33
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			
-			#Target Province Setter
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					NOT = { has_large_orcish_minority_trigger = yes }
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					NOT = { has_large_orcish_minority_trigger = yes }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					NOT = { has_large_orcish_minority_trigger = yes }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
-			random_owned_province = {
-				limit = {
-					NOT = { province_id = event_target:racial_pop_province_origin }
-					NOT = { has_large_orcish_minority_trigger = yes }
-					OR = {
-						NOT = { devastation = 33 }
-						NOT = { unrest = 10 }
-					}
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
+			choose_pop_origin_province = { race = orcish minority = yes }
 		}
 	}
 	
-	#Welcome to [new province]!
-	option = {		
+	#Fund the migration
+	option = {
 		name = racial_pop_events_orcish.6.a
-		trigger = {
-			
-		}
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -639,50 +252,37 @@ country_event = {
 				wants_to_increase_tolerance_orcish = yes
 			}
 		}
-		
-		#Remove Minority from Origin Province
-		event_target:racial_pop_province_origin = {
-			remove_orcish_minority_size_effect = yes
+		add_adm_power = -10
+		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
+		event_target:origin_province = {
+			generic_remove_race_minority_size_effect = { race = orcish }
+			generic_remove_race_minority_size_effect = { race = orcish }
 		}
+		racial_pop_migration_arrive = { race = orcish }
+		racial_pop_migration_arrive = { race = orcish }
+	}
 	
-		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
+	#They can do as they please
+	option = {		
+		name = racial_pop_events_orcish.6.b
+		ai_chance = {
+			factor = 50
 		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_orcish_minority_trigger = yes
-						has_orcish_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
+		event_target:origin_province = {
+			generic_remove_race_minority_size_effect = { race = orcish }
 		}
+		racial_pop_migration_arrive = { race = orcish }
 	}
 	
 	#Prevent migration
 	option = {		
-		name = racial_pop_events_orcish.6.b
-		trigger = {
-			
-		}
+		name = racial_pop_events_orcish.6.c
 		ai_chance = {
 			factor = 50
 			modifier = {
 				factor = 1.5
 				wants_to_decrease_tolerance_orcish = yes
 			}
-			
-			#If Persecuting
 			modifier = {
 				factor = 3
 				OR = {
@@ -691,136 +291,55 @@ country_event = {
 				}
 			}
 		}
-		
 		add_adm_power = -10
-		
-		small_decrease_of_orcish_tolerance_effect = yes
-		
+		generic_decrease_of_racial_tolerance_effect = { race = orcish small = yes }
 	}
-	
 }
 
-
-
-#Pop Migrates - Outside Country
-country_event = {
+#External migration - neighbor
+province_event = {
 	id = racial_pop_events_orcish.7
 	title = racial_pop_events_orcish.7.t
 	desc = racial_pop_events_orcish.7.d
-	picture = REFUGEES_ESCAPING_eventPicture
-	goto = racial_pop_province_origin
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
 	
 	is_triggered_only = yes
 	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
 	immediate = {
-	
-		#Origin Province Setter
-		hidden_effect = {
-			random_owned_province = {
-				limit = {
-					has_oppressed_orcish_minority_trigger = yes 
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					NOT = { development = 10 }
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					unrest = 10 
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					devastation = 33
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-		}
-			
-			
-		#Which country to migrate to
-		hidden_effect = {
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
-					any_owned_province = {
-						development = 20
-					}
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
-					medium_tolerance_orcish_race_trigger = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
-					medium_tolerance_orcish_race_trigger = yes
-					any_owned_province = {
-						development = 20
-					}
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
-					high_tolerance_orcish_race_trigger = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_orcish_purge }
-					NOT = { has_country_modifier = racial_pop_orcish_expulsion }
+		save_event_target_as = destination_province
+		random_neighbor_country = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				OR = {
 					OR = {
-						medium_tolerance_orcish_race_trigger = yes
-						high_tolerance_orcish_race_trigger = yes
+						has_country_modifier = racial_pop_orcish_purge
+						has_country_modifier = racial_pop_orcish_expulsion
 					}
 					any_owned_province = {
-						development = 20
-						NOT = { has_orcish_minority_trigger = yes }
-						NOT = { has_orcish_majority_trigger = yes }
+						fast_has_pop_of_race = { race = orcish }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = orcish amount = 20 } }
+							NOT = { preferred_terrain = { orcish = yes } }
+						}
 					}
 				}
-				save_event_target_as = racial_pop_migration_country
 			}
+			choose_pop_origin_province = { race = orcish }
 		}
-		
 	}
 	
-	#Good luck in [new country]!
+	#Invite the migrants
 	option = {		
 		name = racial_pop_events_orcish.7.a
 		trigger = {
-			
+			NOT = {
+				has_country_modifier = racial_pop_orcish_purge
+				has_country_modifier = racial_pop_orcish_expulsion
+
+			}
 		}
 		ai_chance = {
 			factor = 50
@@ -830,41 +349,30 @@ country_event = {
 			}
 			modifier = {
 				factor = 2
-				NOT = { stability = 1 }
+				stability = 1
 			}
 			modifier = {	#this is to push refugees essentially
 				factor = 1.5
-				is_at_war = yes
-			}
-			
-			#This is the same as expelling them but voluntarily so they're good with it
-			modifier = {
-				factor = 3
-				has_country_modifier = racial_pop_orcish_expulsion
+				event_target:origin_province = { owner = { is_at_war = yes } }
 			}
 		}
-		
-		#Remove Minority from Origin Province
-		event_target:racial_pop_province_origin = {
-			remove_orcish_minority_size_effect = yes
-		}
-	
-		#Calls Migrants Arrive to Migration Country
-		event_target:racial_pop_migration_country  = {
-			country_event = {
-				id = racial_pop_events_orcish.9
-				days = 14
-				random = 31
-			}
-		}
+		add_dip_power = -10
+		racial_pop_migration_attempt = { race = orcish }
+		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
 	}
 	
-	#Prevent migration
+	#Let them do as they wish 
 	option = {		
 		name = racial_pop_events_orcish.7.b
-		trigger = {
-			
+		ai_chance = {
+			factor = 50
 		}
+		racial_pop_migration_attempt = { race = orcish }
+	}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_orcish.7.c
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -873,145 +381,8 @@ country_event = {
 			}
 			modifier = {
 				factor = 2
-				stability = 2
+				NOT = { stability = 0 }
 			}
-			modifier = {	#they're integrated so they technically want them to stay
-				factor = 1.5
-				high_tolerance_orcish_race_trigger = yes
-			}
-			
-			#Purgers dont want them to get away
-			modifier = {
-				factor = 3
-				has_country_modifier = racial_pop_orcish_purge
-			}
-		}
-		
-		add_dip_power = -10
-		
-		small_decrease_of_orcish_tolerance_effect = yes
-		
-	}
-	
-}
-
-
-#Pop Migrates - To Colony
-country_event = {
-	id = racial_pop_events_orcish.8
-	title = racial_pop_events_orcish.8.t
-	desc = racial_pop_events_orcish.8.d
-	picture = CARIBBEAN_PIRATE_FORT_eventPicture
-	goto = racial_pop_province_origin
-	
-	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
-	immediate = {
-	
-		#Origin Province Setter
-		hidden_effect = {
-			random_owned_province = {
-				limit = {
-					has_oppressed_orcish_minority_trigger = yes 
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					NOT = { development = 10 }
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					unrest = 10 
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-			random_owned_province = {
-				limit = {
-					has_orcish_minority_trigger = yes
-					devastation = 33
-				}
-				save_event_target_as = racial_pop_province_origin
-			}
-		}
-			
-			
-		#Which country to migrate to
-		hidden_effect = {
-			random_subject_country = {
-				limit = {
-					is_colonial_nation = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_subject_country = {
-				limit = {
-					any_owned_province = {
-						development = 20
-					}
-					is_colonial_nation = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-		}
-		
-	}
-	
-	#[colonyname] could use the help!
-	option = {		
-		name = racial_pop_events_orcish.8.a
-		trigger = {
-			
-		}
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 2
-				personality = ai_colonialist 
-			}
-			modifier = {
-				factor = 2
-				has_idea_group = expansion_ideas
-			}
-		}
-		
-		#Remove Minority from Origin Province
-		event_target:racial_pop_province_origin = {
-			remove_orcish_minority_size_effect = yes
-		}
-	
-		#Calls Migrants Arrive to Migration Country
-		event_target:racial_pop_migration_country  = {
-			country_event = {
-				id = racial_pop_events_orcish.9
-				days = 14
-				random = 31
-			}
-		}
-	}
-	
-	#Prevent them from leaving, they belong at home
-	option = {		
-		name = racial_pop_events_orcish.8.b
-		trigger = {
-			
-		}
-		ai_chance = {
-			factor = 30
-			modifier = {
-				factor = 2
-				ruler_has_personality = careful_personality
-			}
-			
-			#If Persecuting
 			modifier = {
 				factor = 3
 				OR = {
@@ -1020,96 +391,55 @@ country_event = {
 				}
 			}
 		}
-		
 		add_dip_power = -10
-		
 		small_decrease_of_orcish_tolerance_effect = yes
 	}
-	
 }
 
-
-#Migrants Arrive
-country_event = {
-	id = racial_pop_events_orcish.9
-	title = racial_pop_events_orcish.9.t
-	desc = racial_pop_events_orcish.9.d
-	picture = REFUGEES_ESCAPING_eventPicture
-	goto = racial_pop_province_target
-	
-	trigger = {
-	
-	}
+#External migration - overlord
+province_event = {
+	id = racial_pop_events_orcish.8
+	title = racial_pop_events_orcish.8.t
+	desc = racial_pop_events_orcish.8.d
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
 	
 	is_triggered_only = yes
 	
-	mean_time_to_happen = {
-		days = 1
-	}
-	
 	immediate = {
-		hidden_effect = {
-			
-			#Target Province Setter
-			random_owned_province = {
-				limit = {
+		save_event_target_as = destination_province
+		overlord = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				OR = {
+					OR = {
+						has_country_modifier = racial_pop_orcish_purge
+						has_country_modifier = racial_pop_orcish_expulsion
+					}
+					any_owned_province = {
+						fast_has_pop_of_race = { race = orcish }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = orcish amount = 20 } }
+							NOT = { preferred_terrain = { orcish = yes } }
+						}
+					}
 				}
-				save_event_target_as = racial_pop_province_target
 			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_orcish_minority_trigger = yes }
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_orcish_minority_trigger = yes }
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_orcish_minority_trigger = yes }
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_orcish_minority_trigger = yes }
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
+			choose_pop_origin_province = { race = orcish }
 		}
 	}
 	
-	#Welcome to [new province]!
+	#Invite the migrants
 	option = {		
-		name = racial_pop_events_orcish.9.a
+		name = racial_pop_events_orcish.7.a
 		trigger = {
-			
+			NOT = {
+				has_country_modifier = racial_pop_orcish_purge
+				has_country_modifier = racial_pop_orcish_expulsion
+
+			}
 		}
 		ai_chance = {
 			factor = 50
@@ -1119,114 +449,30 @@ country_event = {
 			}
 			modifier = {
 				factor = 2
-				high_tolerance_orcish_race_trigger = yes
+				stability = 1
 			}
-			modifier = {
-				factor = 2
-				OR = {
-					is_colonial_nation = yes
-					is_subject_of = ROOT
-				}
-			}
-			modifier = {
-				factor = 2
-				OR = {
-					ruler_has_personality = tolerant_personality
-					ruler_has_personality = kind_hearted_personality
-					ruler_has_personality = benevolent_personality
-				}
-			}
-			modifier = {
-				factor = 3
-				has_idea_group = humanist_ideas
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				event_target:origin_province = { owner = { is_at_war = yes } }
 			}
 		}
-	
-		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_orcish_minority_trigger = yes
-						has_orcish_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
+		add_dip_power = -10
+		racial_pop_migration_attempt = { race = orcish }
+		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
 	}
 	
-	#They can settle, for a price
+	#Let them do as they wish 
 	option = {		
-		name = racial_pop_events_orcish.9.b
-		trigger = {
-			
-		}
+		name = racial_pop_events_orcish.7.b
 		ai_chance = {
 			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_decrease_tolerance_orcish = yes
-			}
-			modifier = {
-				factor = 1.5
-				is_bankrupt = yes
-			}
-			modifier = {
-				factor = 2
-				ruler_has_personality = greedy_personality
-			}
-			modifier = {
-				factor = 1.5
-				has_personal_deity = ara
-			}
 		}
-		
-		add_years_of_income = 0.1
-	
-		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_orcish_minority_trigger = yes
-						has_orcish_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
-		
-		small_decrease_of_orcish_tolerance_effect = yes
-		
+		racial_pop_migration_attempt = { race = orcish }
 	}
-	
-	#Reject migrants
-	option = {		
-		name = racial_pop_events_orcish.9.c
-		trigger = {
-			
-		}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_orcish.7.c
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -1235,21 +481,8 @@ country_event = {
 			}
 			modifier = {
 				factor = 2
-				low_tolerance_orcish_race_trigger = yes
+				NOT = { stability = 0 }
 			}
-			modifier = {
-				factor = 2
-				OR = {
-					ruler_has_personality = malevolent_personality
-					ruler_has_personality = cruel_personality
-				}
-			}
-			modifier = {
-				factor = 1.5
-				ruler_has_personality = careful_personality
-			}
-			
-			#If Persecuting
 			modifier = {
 				factor = 3
 				OR = {
@@ -1258,15 +491,110 @@ country_event = {
 				}
 			}
 		}
-		
-		add_mil_power = -10
-		
+		add_dip_power = -10
 		small_decrease_of_orcish_tolerance_effect = yes
-		
 	}
-	
 }
 
+#External migration - vassal
+province_event = {
+	id = racial_pop_events_orcish.9
+	title = racial_pop_events_orcish.9.t
+	desc = racial_pop_events_orcish.9.d
+	picture = EUROPEAN_REFUGEES_eventPicture
+	goto = ROOT
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		save_event_target_as = destination_province
+		random_subject_country = {
+			limit = {
+				fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				OR = {
+					OR = {
+						has_country_modifier = racial_pop_orcish_purge
+						has_country_modifier = racial_pop_orcish_expulsion
+					}
+					any_owned_province = {
+						fast_has_pop_of_race = { race = orcish }
+						OR = {
+							devastation = 25
+							unrest = 10
+							NOT = { development = 10 fast_owns_num_pops_of_race = { race = orcish amount = 20 } }
+							NOT = { preferred_terrain = { orcish = yes } }
+						}
+					}
+				}
+			}
+			choose_pop_origin_province = { race = orcish }
+		}
+	}
+	
+	#Invite the migrants
+	option = {		
+		name = racial_pop_events_orcish.7.a
+		trigger = {
+			NOT = {
+				has_country_modifier = racial_pop_orcish_purge
+				has_country_modifier = racial_pop_orcish_expulsion
+
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_orcish = yes
+			}
+			modifier = {
+				factor = 2
+				stability = 1
+			}
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				event_target:origin_province = { owner = { is_at_war = yes } }
+			}
+		}
+		add_dip_power = -10
+		racial_pop_migration_attempt = { race = orcish }
+		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
+	}
+	
+	#Let them do as they wish 
+	option = {		
+		name = racial_pop_events_orcish.7.b
+		ai_chance = {
+			factor = 50
+		}
+		racial_pop_migration_attempt = { race = orcish }
+	}
+
+	#Close your borders
+	option = {
+		name = racial_pop_events_orcish.7.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_orcish = yes
+			}
+			modifier = {
+				factor = 2
+				NOT = { stability = 0 }
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_orcish_purge
+					has_country_modifier = racial_pop_orcish_expulsion
+				}
+			}
+		}
+		add_dip_power = -10
+		small_decrease_of_orcish_tolerance_effect = yes
+	}
+}
 
 #Refugees Arrive - First Try
 country_event = {
@@ -1276,15 +604,7 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	goto = racial_pop_province_target
 	
-	trigger = {
-	
-	}
-	
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
 	
 	immediate = {
 		hidden_effect = {
@@ -1477,7 +797,7 @@ country_event = {
 	option = {		
 		name = racial_pop_events_orcish.10.b
 		trigger = {
-			
+			culture_is_orcish = no
 		}
 		ai_chance = {
 			factor = 50
@@ -1502,31 +822,22 @@ country_event = {
 		add_years_of_income = 0.2
 	
 		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
-			add_local_autonomy = 10
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_orcish_minority_trigger = yes
-						has_orcish_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
+		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = orcish } }
 		
 		medium_decrease_of_orcish_tolerance_effect = yes
 		
+	}
+
+	#special option for primary culture 
+	option = {
+		name = racial_pop_events_orcish.10.p
+		highlight = yes
+		trigger = {
+			culture_is_orcish = yes
+		}
+		ai_chance = 1000
+		add_years_of_income = 0.2
+		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = orcish } }
 	}
 	
 	#There's no room for you here!
@@ -1764,31 +1075,22 @@ country_event = {
 		add_years_of_income = 0.15
 	
 		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_orcish_minority_size_effect = yes
-			add_local_autonomy = 10
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_orcish_minority_trigger = yes
-						has_orcish_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
+		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = orcish } }
 		
 		medium_decrease_of_orcish_tolerance_effect = yes
 		
+	}
+
+	#special option for primary culture 
+	option = {
+		name = racial_pop_events_orcish.10.p
+		highlight = yes
+		trigger = {
+			culture_is_orcish = yes
+		}
+		ai_chance = 1000
+		add_years_of_income = 0.15
+		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = orcish } }
 	}
 	
 	#Prevent them with force, if necessary
