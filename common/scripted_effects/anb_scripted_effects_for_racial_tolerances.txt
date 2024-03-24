@@ -6431,20 +6431,23 @@ update_consort_racial_flag = {
 	}
 }
 racial_pop_migration_attempt = {
-	random_list = {
-		1 = {
-			event_target:destination_province = {
-				province_event = { id = racial_pop_events_$race$.1 days = 1 random = 364 }
-			}
-		}
-		1 = {
-			trigger = {
-				event_target:origin_province = {
-					has_$race$_majority_trigger = yes
+	custom_tooltip = racial_pop_migration_attempt_tt
+	hidden_effect = {
+		random_list = {
+			1 = {
+				event_target:destination_province = {
+					province_event = { id = racial_pop_events_$race$.1 random = 365 }
 				}
 			}
-			event_target:origin_province = {
-				province_event = { id = racial_pop_events_$race$.3 days = 1 random = 364 }
+			1 = {
+				trigger = {
+					event_target:origin_province = {
+						has_$race$_majority_trigger = no
+					}
+				}
+				event_target:origin_province = {
+					province_event = { id = racial_pop_events_$race$.3 random = 365 }
+				}
 			}
 		}
 	}
@@ -6468,14 +6471,14 @@ racial_pop_migration_arrive = {
 }
 choose_pop_destination_province = {
 	random_list = {
-		5 = {
+		1 = {
 			trigger = {
 				any_owned_province = {
 					preferred_terrain = { $race$ = yes }
 				}
 			}
 			modifier = {
-				factor = 5
+				factor = 3
 				NOT = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } }
 			}
 			random_owned_province = {
@@ -6483,7 +6486,7 @@ choose_pop_destination_province = {
 				save_event_target_as = destination_province
 			}
 		}
-		5 = {
+		1 = {
 			trigger = {
 				any_owned_province = {
 					development = 20
@@ -6499,10 +6502,6 @@ choose_pop_destination_province = {
 			}
 		}
 		1 = {
-			modifier = {
-				factor = 5
-				fast_owns_num_pops_of_race = { race = $race$ amount = 20 }
-			}
 			random_owned_province = {
 				save_event_target_as = destination_province
 			}
@@ -6522,18 +6521,192 @@ choose_pop_origin_province = {
 		}
 		save_event_target_as = origin_province
 	}
-	[[minority]
-		random_owned_province = {
-			limit = {
-				has_$race$_minority_trigger = yes
-				OR = {
-					devastation = 25
-					unrest = 10
-					NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
-					NOT = { preferred_terrain = { $race$ = yes } }
+}
+choose_pop_minority_origin_province = {
+	random_owned_province = {
+		limit = {
+			has_$race$_minority_trigger = yes
+			OR = {
+				devastation = 25
+				unrest = 10
+				NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
+				NOT = { preferred_terrain = { $race$ = yes } }
+			}
+		}
+		save_event_target_as = origin_province
+	}
+}
+ai_pop_migration_arrive = {
+	random_list = {
+		1 = {
+			random_owned_province = {
+				limit = { has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
+				generic_add_race_minority_size_effect = { race = $race$ }
+			}
+		}
+		3 = {
+			trigger = {
+				any_owned_province = {
+					preferred_terrain = { $race$ = yes }
 				}
 			}
-			save_event_target_as = origin_province
+			random_owned_province = {
+				limit = { preferred_terrain = { $race$ = yes } has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
+				generic_add_race_minority_size_effect = { race = $race$ }
+			}
 		}
-	]
+		2 = {
+			trigger = { any_owned_province = { development = 20 } }
+			random_owned_province = {
+				limit = { development = 20 has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
+				generic_add_race_minority_size_effect = { race = $race$ }
+			}
+		}
+	}
+}
+ai_pop_migration_leave = {
+	random_list = {
+		1 = {
+			random_owned_province = {
+				limit = { OR = { has_small_$race$_minority_trigger = yes has_large_$race$_minority_trigger = yes } }
+				generic_remove_race_minority_size_effect = { race = $race$ }
+			}
+		}
+		3 = {
+			trigger = {
+				any_owned_province = {
+					OR = {
+						has_small_$race$_minority_trigger = yes
+						has_large_$race$_minority_trigger = yes
+					}
+					OR = {
+						devastation = 25
+						unrest = 10
+						NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
+						NOT = { preferred_terrain = { $race$ = yes } }
+					}
+				}
+			}
+			random_owned_province = {
+				limit = {
+					OR = {
+						has_small_$race$_minority_trigger = yes
+						has_large_$race$_minority_trigger = yes
+					}
+					OR = {
+						devastation = 25
+						unrest = 10
+						NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
+						NOT = { preferred_terrain = { $race$ = yes } }
+					}
+				}
+				generic_remove_race_minority_size_effect = { race = $race$ }
+			}
+		}
+	}
+	random_list = {
+		3 = {}
+		1 = {
+			trigger = { num_of_allies = 1 }
+			random_ally = {
+				ai_pop_migration_arrive = { race = $race$ }
+			}
+		}
+		1 = {
+			trigger = { is_subject = yes }
+			overlord = {
+				ai_pop_migration_arrive = { race = $race$ }
+			}
+		}
+		1 = {
+			trigger = { num_of_subjects = 1 }
+			random_subject_country = {
+				ai_pop_migration_arrive = { race = $race$ }
+			}
+		}
+	}
+}
+choose_refugee_country_target = {
+	random_list = {
+		1 = {
+			random_neighbor_country = {
+				limit = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+				}
+				save_event_target_as = racial_pop_migration_country
+			}
+		}
+		1 = {
+			trigger = {
+				any_neighbor_country = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					OR = {
+						medium_tolerance_$race$_race_trigger = yes
+						high_tolerance_$race$_race_trigger = yes
+					}
+				}
+			}
+			random_neighbor_country = {
+				limit = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					OR = {
+						medium_tolerance_$race$_race_trigger = yes
+						high_tolerance_$race$_race_trigger = yes
+					}
+				}
+				save_event_target_as = racial_pop_migration_country
+			}
+		}
+		1 = {
+			trigger = {
+				any_neighbor_country = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					high_tolerance_$race$_race_trigger = yes
+				}
+			}
+			random_neighbor_country = {
+				limit = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					high_tolerance_$race$_race_trigger = yes
+				}
+				save_event_target_as = racial_pop_migration_country
+			}
+		}
+		1 = {
+			trigger = {
+				any_neighbor_country = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					culture_is_$race$ = yes
+				}
+			}
+			random_neighbor_country = {
+				limit = {
+					NOT = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+					}
+					culture_is_$race$ = yes
+				}
+				save_event_target_as = racial_pop_migration_country
+			}
+		}
+	}
 }
