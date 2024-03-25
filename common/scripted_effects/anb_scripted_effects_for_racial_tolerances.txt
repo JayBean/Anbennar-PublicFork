@@ -6494,8 +6494,19 @@ choose_pop_destination_province = {
 			}
 		}
 		1 = {
+			trigger = {
+				any_owned_province = {
+					NOT = { fast_has_pop_of_race = { race = $race$ } }
+				}
+			}
+			random_owned_province = {
+				limit = { NOT = { fast_has_pop_of_race = { race = $race$ } } }
+				save_event_target_as = destination_province
+			}
+		}
+		1 = {
 			modifier = {
-				factor = 2
+				factor = 3
 				fast_owns_num_pops_of_race = { race = $race$ amount = 20 }
 			}
 			random_owned_province = {
@@ -6504,7 +6515,50 @@ choose_pop_destination_province = {
 		}
 	}
 }
-choose_pop_origin_province = {
+choose_pop_internal_destination_province = {
+	random_list = {
+		6 = {
+			random_owned_province = {
+				limit = { NOT = { province_id = event_target:origin_province } }
+				save_event_target_as = destination_province
+			}
+		}
+		1 = {
+			trigger = {
+				any_owned_province = {
+					preferred_terrain = { $race$ = yes }
+				}
+			}
+			random_owned_province = {
+				limit = { preferred_terrain = { $race$ = yes } NOT = { province_id = event_target:origin_province } }
+				save_event_target_as = destination_province
+			}
+		}
+		1 = {
+			trigger = {
+				any_owned_province = {
+					development = 20
+				}
+			}
+			random_owned_province = {
+				limit = { development = 20 NOT = { province_id = event_target:origin_province } }
+				save_event_target_as = destination_province
+			}
+		}
+		1 = {
+			trigger = {
+				any_owned_province = {
+					NOT = { fast_has_pop_of_race = { race = $race$ } }
+				}
+			}
+			random_owned_province = {
+				limit = { NOT = { fast_has_pop_of_race = { race = $race$ } province_id = event_target:origin_province } }
+				save_event_target_as = destination_province
+			}
+		}
+	}
+}
+choose_pop_origin_province = { #for use inside of a country scope, while ROOT refers back to another country (probably the player)
 	random_owned_province = {
 		limit = {
 			fast_has_pop_of_race = { race = $race$ }
@@ -6512,8 +6566,20 @@ choose_pop_origin_province = {
 				devastation = 25
 				unrest = 10
 				NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
-				NOT = { preferred_terrain = { $race$ = yes } }
-				owner = { OR = { has_country_modifier = racial_pop_$race$_purge has_country_modifier = racial_pop_$race$_expulsion } }
+				AND = {
+					ROOT = { has_country_modifier = racial_focus_$race$ }
+					NOT = { preferred_terrain = { $race$ = yes } }
+				}
+				owner = {
+					OR = {
+						has_country_modifier = racial_pop_$race$_purge
+						has_country_modifier = racial_pop_$race$_expulsion
+						AND = {
+							low_tolerance_$race$_race_trigger = yes
+							ROOT = { low_tolerance_$race$_race_trigger = no }
+						}
+					}
+				}
 			}
 		}
 		save_event_target_as = origin_province
@@ -6535,18 +6601,14 @@ choose_pop_minority_origin_province = {
 }
 ai_pop_migration_arrive = {
 	random_list = {
-		1 = {
+		3 = {
 			random_owned_province = {
 				limit = { has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
 				generic_add_race_minority_size_effect = { race = $race$ }
 			}
 		}
 		1 = {
-			trigger = {
-				any_owned_province = {
-					preferred_terrain = { $race$ = yes }
-				}
-			}
+			trigger = { any_owned_province = { preferred_terrain = { $race$ = yes } } }
 			random_owned_province = {
 				limit = { preferred_terrain = { $race$ = yes } has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
 				generic_add_race_minority_size_effect = { race = $race$ }
@@ -6556,6 +6618,13 @@ ai_pop_migration_arrive = {
 			trigger = { any_owned_province = { development = 20 } }
 			random_owned_province = {
 				limit = { development = 20 has_$race$_majority_trigger = no has_large_$race$_minority_trigger = no }
+				generic_add_race_minority_size_effect = { race = $race$ }
+			}
+		}
+		1 = {
+			trigger = { any_owned_province = { NOT = { fast_has_pop_of_race = { race = $race$ } } } }
+			random_owned_province = {
+				limit = { NOT = { fast_has_pop_of_race = { race = $race$ } } }
 				generic_add_race_minority_size_effect = { race = $race$ }
 			}
 		}
@@ -6604,26 +6673,25 @@ ai_pop_migration_leave = {
 	random_list = {
 		3 = {}
 		1 = {
-			trigger = { num_of_allies = 1 }
-			random_ally = {
+			random_neighbor_country = {
 				limit = { ai = yes }
 				ai_pop_migration_arrive = { race = $race$ }
 			}
 		}
-		1 = {
-			trigger = { is_subject = yes }
-			overlord = {
-				limit = { ai = yes }
-				ai_pop_migration_arrive = { race = $race$ }
-			}
-		}
-		1 = {
-			trigger = { num_of_subjects = 1 }
-			random_subject_country = {
-				limit = { ai = yes }
-				ai_pop_migration_arrive = { race = $race$ }
-			}
-		}
+		#1 = {
+		#	trigger = { is_subject = yes }
+		#	overlord = {
+		#		limit = { ai = yes }
+		#		ai_pop_migration_arrive = { race = $race$ }
+		#	}
+		#}
+		#1 = {
+		#	trigger = { num_of_subjects = 1 }
+		#	random_subject_country = {
+		#		limit = { ai = yes }
+		#		ai_pop_migration_arrive = { race = $race$ }
+		#	}
+		#}
 	}
 }
 choose_refugee_country_target = {
