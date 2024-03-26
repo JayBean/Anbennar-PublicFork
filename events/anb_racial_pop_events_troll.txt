@@ -13,11 +13,15 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		OR = {
+		if = {
+			limit = { ai = no }
+			OR = {
+				fast_owns_num_pops_of_race = { race = troll amount = 1 }
+				any_neighbor_country = { fast_owns_num_pops_of_race = { race = troll amount = 1 } }
+			}
+		}
+		else = {
 			fast_owns_num_pops_of_race = { race = troll amount = 1 }
-			any_neighbor_country = { fast_owns_num_pops_of_race = { race = troll amount = 1 } }
-			overlord = { fast_owns_num_pops_of_race = { race = troll amount = 1 } }
-			any_subject_country = { fast_owns_num_pops_of_race = { race = troll amount = 1 } }
 		}
 	}
 	
@@ -32,12 +36,22 @@ country_event = {
 	option = {
 		name = racial_pop_events_troll.0.a
 		random_list = {
-			1 = { }
+			2 = { }
 			# ensure there's an empty option first in case none of the others are available
-			# and also because it seems this one might be picked rarely even if the others are available...
+			# and also because this one should be picked rarely even if the others are available
 
+			###the following are ai-only scripted effects meant to simulate migration
+			#10 = {
+			#	trigger = { ai = yes }
+			#	ai_pop_migration_arrive = { race = troll }
+			#}
+			#10 = {
+			#	trigger = { ai = yes fast_owns_num_pops_of_race = { race = troll amount = 2 } }
+			#	ai_pop_migration_leave = { race = troll }
+			#}
+			#
 			#events 1-3 are reserved for making external migration stuff function
-			10 = { #random pop growth
+			15 = { #random pop growth
 				trigger = {
 					any_owned_province = {
 						has_small_troll_minority_trigger = yes
@@ -58,25 +72,23 @@ country_event = {
 					province_event = { id = racial_pop_events_troll.4 }
 				}
 			}
-			10 = { #random pop shrinkage
+			15 = { #random pop shrinkage
 				trigger = {
+					if = { limit = { ai = yes } fast_owns_num_pops_of_race = { race = troll amount = 2 } }
 					any_owned_province = {
 						has_troll_minority_trigger = yes
 						OR = {
 							unrest = 10
 							devastation = 25
-							AND = {
-								has_oppressed_troll_minority_trigger = yes
-								owner = { NOT = { has_country_modifier = troll_slaves_in_colonies } }
-							}
+							has_oppressed_troll_minority_trigger = yes
 						}
 					}
 				}
 				modifier = {
 					factor = 2
 					OR = {
-						has_country_modifier = racial_pop_$race$_purge
-						has_country_modifier = racial_pop_$race$_expulsion
+						has_country_modifier = racial_pop_troll_purge
+						has_country_modifier = racial_pop_troll_expulsion
 					}
 				}
 				random_owned_province = {
@@ -85,43 +97,85 @@ country_event = {
 						OR = {
 							unrest = 10
 							devastation = 25
-							AND = {
-								has_oppressed_troll_minority_trigger = yes
-								owner = { NOT = { has_country_modifier = troll_slaves_in_colonies } }
-							}
+							has_oppressed_troll_minority_trigger = yes
 						}
 					}
 					province_event = { id = racial_pop_events_troll.5 }
 				}
 			}
-			10 = { #Internal migration occurs
+			5 = { #Internal migration occurs
 				trigger = {
 					pop_internal_migration_trigger = { race = troll }
 				}
-				choose_pop_destination_province = { race = troll }
-				event_target:destination_province = { province_event = { id = racial_pop_events_troll.6 } }
+				modifier = {
+					factor = 2
+					fast_owns_num_pops_of_race = { race = troll amount = 4 }
+				}
+				choose_pop_internal_origin_province = { race = troll }
+				event_target:origin_province = { province_event = { id = racial_pop_events_troll.6 } }
 			}
-			10 = { #Migration from neighboring country
+			1 = { #Migration from neighboring country
 				trigger = {
 					pop_external_migration_trigger = { neighbor = yes race = troll }
 				}
+				modifier = {
+					factor = 2
+					has_country_modifier = racial_focus_troll
+				}
+				modifier = {
+					factor = 2
+					AND = {
+						has_country_modifier = racial_focus_troll
+						NOT = { fast_owns_num_pops_of_race = { race = troll amount = 1 } }
+					}
+				}
+				modifier = {
+					factor = 1.5
+					num_of_cities = 10
+					NOT = { fast_owns_num_pops_of_race = { race = troll amount = 5 } }
+				}
+				modifier = {
+					factor = 1.5
+					num_of_cities = 25
+					NOT = { fast_owns_num_pops_of_race = { race = troll amount = 10 } }
+				}
+				modifier = {
+					factor = 1.5
+					num_of_cities = 50
+					NOT = { fast_owns_num_pops_of_race = { race = troll amount = 25 } }
+				}
+				modifier = {
+					factor = 1.5
+					num_of_cities = 100
+					NOT = { fast_owns_num_pops_of_race = { race = troll amount = 50 } }
+				}
+				modifier = {
+					factor = 0.5
+					low_tolerance_troll_race_trigger = yes
+				}
+				modifier = {
+					factor = 2
+					culture_is_troll = yes
+				}
+				
 				choose_pop_destination_province = { race = troll }
 				event_target:destination_province = { province_event = { id = racial_pop_events_troll.7 } }
 			}
-			10 = { #Migration from overlord
-				trigger = {
-					pop_external_migration_trigger = { overlord = yes race = troll }
-				}
-				choose_pop_destination_province = { race = troll }
-				event_target:destination_province = { province_event = { id = racial_pop_events_troll.8 } }
-			}
-			10 = { #Migration from vassal
-				trigger = {
-					pop_external_migration_trigger = { vassal = yes race = troll }
-				}
-				choose_pop_destination_province = { race = troll }
-				event_target:destination_province = { province_event = { id = racial_pop_events_troll.9 } }
-			}
+			#10 = { #Migration from overlord
+			#	trigger = {
+			#		pop_external_migration_trigger = { overlord = yes race = troll }
+			#	}
+			#	choose_pop_destination_province = { race = troll }
+			#	event_target:destination_province = { province_event = { id = racial_pop_events_troll.8 } }
+			#}
+			#10 = { #Migration from vassal
+			#	trigger = {
+			#		pop_external_migration_trigger = { vassal = yes race = troll }
+			#	}
+			#	choose_pop_destination_province = { race = troll }
+			#	event_target:destination_province = { province_event = { id = racial_pop_events_troll.9 } }
+			#}
+			#events 100-200 are reserved for custom migration events, put their triggers here
 		}
 	}
 }
@@ -138,7 +192,6 @@ province_event = {
 
 	option = {
 		name = racial_pop_events_troll.1.a
-		ai_chance = { factor = 1 }
 		racial_pop_migration_arrive = { race = troll }
 	}
 }
@@ -155,7 +208,6 @@ province_event = {
 
 	option = {
 		name = racial_pop_events_troll.2.a
-		ai_chance = { factor = 1 }
 		add_prestige = -5
 	}
 }
@@ -171,22 +223,26 @@ province_event = {
 	is_triggered_only = yes
 
 	option = { #good luck in [destination country]!
-		ai_chance = {
-			factor = 1
-		}
+		name = racial_pop_events_troll.3.a
+		ai_chance = { factor = 1 }
+
 		generic_remove_race_minority_size_effect = { race = troll }
-		FROM = {
-			province_event = { id = racial_pop_events_troll.1 }
+		hidden_effect = {
+			FROM = {
+				province_event = { id = racial_pop_events_troll.1 }
+			}
 		}
 	}
 	option = { #stop them! they are our rightful subjects!
-		ai_chance = {
-			factor = 0
-		}
+		name = racial_pop_events_troll.3.b
+		ai_chance = { factor = 0 }
+
 		add_dip_power = -10
 		small_decrease_of_troll_tolerance_effect = yes
-		FROM = {
-			province_event = { id = racial_pop_events_troll.2 }
+		hidden_effect = {
+			FROM = {
+				province_event = { id = racial_pop_events_troll.2 }
+			}
 		}
 	}
 }
@@ -203,9 +259,7 @@ province_event = {
 	
 	option = {		#The more the merrier?
 		name = racial_pop_events_troll.4.a
-		ai_chance = {
-			factor = 50
-		}
+		ai_chance = { factor = 1 }
 		add_troll_minority_size_effect = yes
 	}
 	
@@ -223,9 +277,7 @@ province_event = {
 	
 	option = {
 		name = racial_pop_events_troll.5.a
-		ai_chance = {
-			factor = 50
-		}
+		ai_chance = { factor = 1 }
 		generic_remove_race_minority_size_effect = { race = troll }
 	}
 }
@@ -246,7 +298,8 @@ province_event = {
 	
 	immediate = {
 		hidden_effect = {
-			choose_pop_origin_province = { race = troll minority = yes }
+			save_event_target_as = origin_province
+			choose_pop_internal_destination_province = { race = troll }
 		}
 	}
 	
@@ -266,8 +319,10 @@ province_event = {
 			generic_remove_race_minority_size_effect = { race = troll }
 			generic_remove_race_minority_size_effect = { race = troll }
 		}
-		racial_pop_migration_arrive = { race = troll }
-		racial_pop_migration_arrive = { race = troll }
+		event_target:destination_province = {
+			racial_pop_migration_arrive = { race = troll }
+			racial_pop_migration_arrive = { race = troll }
+		}
 	}
 	
 	#They can do as they please
@@ -279,7 +334,9 @@ province_event = {
 		event_target:origin_province = {
 			generic_remove_race_minority_size_effect = { race = troll }
 		}
-		racial_pop_migration_arrive = { race = troll }
+		event_target:destination_province = {
+			racial_pop_migration_arrive = { race = troll }
+		}
 	}
 	
 	#Prevent migration
@@ -318,37 +375,15 @@ province_event = {
 		save_event_target_as = destination_province
 		random_neighbor_country = {
 			limit = {
-				fast_owns_num_pops_of_race = { race = troll amount = 1 }
-				OR = {
-					OR = {
-						has_country_modifier = racial_pop_troll_purge
-						has_country_modifier = racial_pop_troll_expulsion
-					}
-					any_owned_province = {
-						fast_has_pop_of_race = { race = troll }
-						OR = {
-							devastation = 25
-							unrest = 10
-							NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = troll amount = 20 } } }
-							NOT = { preferred_terrain = { troll = yes } }
-						}
-					}
-				}
+				pop_wants_to_leave = { province_root = yes race = troll }
 			}
-			choose_pop_origin_province = { race = troll }
+			choose_pop_origin_province = {province_root = yes race = troll }
 		}
 	}
 	
 	#Invite the migrants
 	option = {		
 		name = racial_pop_events_troll.7.a
-		trigger = {
-			NOT = {
-				has_country_modifier = racial_pop_troll_purge
-				has_country_modifier = racial_pop_troll_expulsion
-
-			}
-		}
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -365,9 +400,7 @@ province_event = {
 			}
 		}
 		add_dip_power = -10
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
+		racial_pop_migration_attempt = { race = troll }
 		generic_increase_of_racial_tolerance_effect = { race = troll small = yes }
 	}
 	
@@ -377,12 +410,10 @@ province_event = {
 		ai_chance = {
 			factor = 50
 		}
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
+		racial_pop_migration_attempt = { race = troll }
 	}
 
-	#Close your borders
+	#Close our borders
 	option = {
 		name = racial_pop_events_troll.7.c
 		ai_chance = {
@@ -407,215 +438,6 @@ province_event = {
 		small_decrease_of_troll_tolerance_effect = yes
 	}
 }
-
-#External migration - overlord
-province_event = {
-	id = racial_pop_events_troll.8
-	title = racial_pop_events_troll.8.t
-	desc = racial_pop_events_troll.8.d
-	picture = EUROPEAN_REFUGEES_eventPicture
-	goto = ROOT
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		save_event_target_as = destination_province
-		overlord = {
-			limit = {
-				fast_owns_num_pops_of_race = { race = troll amount = 1 }
-				OR = {
-					OR = {
-						has_country_modifier = racial_pop_troll_purge
-						has_country_modifier = racial_pop_troll_expulsion
-					}
-					any_owned_province = {
-						fast_has_pop_of_race = { race = troll }
-						OR = {
-							devastation = 25
-							unrest = 10
-							NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = troll amount = 20 } } }
-							NOT = { preferred_terrain = { troll = yes } }
-						}
-					}
-				}
-			}
-			choose_pop_origin_province = { race = troll }
-		}
-	}
-	
-	#Invite the migrants
-	option = {		
-		name = racial_pop_events_troll.7.a
-		trigger = {
-			NOT = {
-				has_country_modifier = racial_pop_troll_purge
-				has_country_modifier = racial_pop_troll_expulsion
-
-			}
-		}
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_increase_tolerance_troll = yes
-			}
-			modifier = {
-				factor = 2
-				stability = 1
-			}
-			modifier = {	#this is to push refugees essentially
-				factor = 1.5
-				event_target:origin_province = { owner = { is_at_war = yes } }
-			}
-		}
-		add_dip_power = -10
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
-		generic_increase_of_racial_tolerance_effect = { race = troll small = yes }
-	}
-	
-	#Let them do as they wish 
-	option = {		
-		name = racial_pop_events_troll.7.b
-		ai_chance = {
-			factor = 50
-		}
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
-	}
-
-	#Close your borders
-	option = {
-		name = racial_pop_events_troll.7.c
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_decrease_tolerance_troll = yes
-			}
-			modifier = {
-				factor = 2
-				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_troll_purge
-					has_country_modifier = racial_pop_troll_expulsion
-				}
-			}
-		}
-		add_dip_power = -10
-		small_decrease_of_troll_tolerance_effect = yes
-	}
-}
-
-#External migration - vassal
-province_event = {
-	id = racial_pop_events_troll.9
-	title = racial_pop_events_troll.9.t
-	desc = racial_pop_events_troll.9.d
-	picture = EUROPEAN_REFUGEES_eventPicture
-	goto = ROOT
-	
-	is_triggered_only = yes
-	
-	immediate = {
-		save_event_target_as = destination_province
-		random_subject_country = {
-			limit = {
-				fast_owns_num_pops_of_race = { race = troll amount = 1 }
-				OR = {
-					OR = {
-						has_country_modifier = racial_pop_troll_purge
-						has_country_modifier = racial_pop_troll_expulsion
-					}
-					any_owned_province = {
-						fast_has_pop_of_race = { race = troll }
-						OR = {
-							devastation = 25
-							unrest = 10
-							NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = troll amount = 20 } } }
-							NOT = { preferred_terrain = { troll = yes } }
-						}
-					}
-				}
-			}
-			choose_pop_origin_province = { race = troll }
-		}
-	}
-	
-	#Invite the migrants
-	option = {		
-		name = racial_pop_events_troll.7.a
-		trigger = {
-			NOT = {
-				has_country_modifier = racial_pop_troll_purge
-				has_country_modifier = racial_pop_troll_expulsion
-
-			}
-		}
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_increase_tolerance_troll = yes
-			}
-			modifier = {
-				factor = 2
-				stability = 1
-			}
-			modifier = {	#this is to push refugees essentially
-				factor = 1.5
-				event_target:origin_province = { owner = { is_at_war = yes } }
-			}
-		}
-		add_dip_power = -10
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
-		generic_increase_of_racial_tolerance_effect = { race = troll small = yes }
-	}
-	
-	#Let them do as they wish 
-	option = {		
-		name = racial_pop_events_troll.7.b
-		ai_chance = {
-			factor = 50
-		}
-		hidden_effect = {
-			racial_pop_migration_attempt = { race = troll }
-		}
-	}
-
-	#Close your borders
-	option = {
-		name = racial_pop_events_troll.7.c
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_decrease_tolerance_troll = yes
-			}
-			modifier = {
-				factor = 2
-				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_troll_purge
-					has_country_modifier = racial_pop_troll_expulsion
-				}
-			}
-		}
-		add_dip_power = -10
-		small_decrease_of_troll_tolerance_effect = yes
-	}
-}
-
 
 #Refugees Arrive - First Try
 country_event = {
@@ -625,144 +447,23 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	goto = racial_pop_province_target
 	
-	trigger = {
-	
-	}
-	
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
 	
 	immediate = {
 		hidden_effect = {
-			
-			#Target Province Setter
-			random_owned_province = {
-				limit = {
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
+			choose_pop_destination_province = { race = troll }
+			choose_refugee_country_target = { race = troll }
 		}
-		
-		#Which country to migrate to
-		hidden_effect = {
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-					any_owned_province = {
-						development = 20
-					}
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-					medium_tolerance_troll_race_trigger = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-					medium_tolerance_troll_race_trigger = yes
-					any_owned_province = {
-						development = 20
-					}
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-					high_tolerance_troll_race_trigger = yes
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-			random_neighbor_country = {
-				limit = {
-					NOT = { has_country_modifier = racial_pop_troll_purge }
-					NOT = { has_country_modifier = racial_pop_troll_expulsion }
-					OR = {
-						medium_tolerance_troll_race_trigger = yes
-						high_tolerance_troll_race_trigger = yes
-					}
-					any_owned_province = {
-						development = 20
-						NOT = { has_troll_minority_trigger = yes }
-						NOT = { has_troll_majority_trigger = yes }
-					}
-				}
-				save_event_target_as = racial_pop_migration_country
-			}
-		}
-		
 	}
 	
 	#Let them in
 	option = {		
 		name = racial_pop_events_troll.10.a
 		trigger = {
-			
+			NOT = {
+				has_country_modifier = racial_pop_troll_purge
+				has_country_modifier = racial_pop_troll_expulsion
+			}
 		}
 		ai_chance = {
 			factor = 50
@@ -791,35 +492,12 @@ country_event = {
 			}
 			modifier = {
 				factor = 3
-				has_idea_group = humanist_ideas
+				has_idea_group = trollist_ideas
 			}
 		}
 	
-		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_troll_minority_size_effect = yes
-			add_local_autonomy = 10
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_troll_minority_trigger = yes
-						has_troll_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
-		
-		small_increase_of_troll_tolerance_effect = yes
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
+		generic_increase_of_racial_tolerance_effect = { race = troll small = yes }
 	}
 	
 	#Confiscate their valuables in return
@@ -849,12 +527,8 @@ country_event = {
 		}
 		
 		add_years_of_income = 0.2
-	
-		#Add Minority to New Province
-		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = troll } }
-		
-		medium_decrease_of_troll_tolerance_effect = yes
-		
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
+		generic_decrease_of_racial_tolerance_effect = { race = troll medium = yes }
 	}
 
 	#special option for primary culture 
@@ -866,15 +540,12 @@ country_event = {
 		}
 		ai_chance = { factor = 1000}
 		add_years_of_income = 0.2
-		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = troll } }
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
 	}
 	
 	#There's no room for you here!
 	option = {		
 		name = racial_pop_events_troll.10.c
-		trigger = {
-			
-		}
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -896,8 +567,6 @@ country_event = {
 				factor = 1.5
 				ruler_has_personality = careful_personality
 			}
-			
-			#If Persecuting
 			modifier = {
 				factor = 3
 				OR = {
@@ -906,18 +575,7 @@ country_event = {
 				}
 			}
 		}
-		
-		if = {
-			limit = {
-				has_saved_event_target = racial_pop_migration_country
-				event_target:racial_pop_migration_country = {
-					OR = {
-						NOT = { has_country_modifier = racial_pop_troll_purge  }
-						NOT = { has_country_modifier = racial_pop_troll_expulsion  }
-					}
-				}
-			}
-			#Calls Migrants Arrive to Migration Country
+		hidden_effect = {
 			event_target:racial_pop_migration_country  = {
 				country_event = {
 					id = racial_pop_events_troll.11
@@ -926,13 +584,9 @@ country_event = {
 				}
 			}
 		}
-		
 		add_mil_power = -20
-		
-		medium_decrease_of_troll_tolerance_effect = yes
-		
+		generic_decrease_of_racial_tolerance_effect = { race = troll medium = yes }
 	}
-	
 }
 
 
@@ -944,80 +598,17 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	goto = racial_pop_province_target
 	
-	trigger = {
-	
-	}
-	
 	is_triggered_only = yes
-	
-	mean_time_to_happen = {
-		days = 1
-	}
 	
 	immediate = {
 		hidden_effect = {
-			
-			#Target Province Setter
-			random_owned_province = {
-				limit = {
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 10
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 15
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					NOT = { has_troll_minority_trigger = yes }
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			random_owned_province = {
-				limit = {
-					development = 20
-				}
-				save_event_target_as = racial_pop_province_target
-			}
-			
+			choose_pop_destination_province = { race = troll }
 		}
 	}
 	
 	#Let those poor souls in
 	option = {		
-		name = racial_pop_events_troll.11.a
-		trigger = {
-			
-		}
+		name = racial_pop_events_troll.11.a #no trigger, already checked to not be purging
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -1045,35 +636,13 @@ country_event = {
 			}
 			modifier = {
 				factor = 3
-				has_idea_group = humanist_ideas
+				has_idea_group = trollist_ideas
 			}
 		}
 	
 		#Add Minority to New Province
-		event_target:racial_pop_province_target = {
-			add_troll_minority_size_effect = yes
-			add_local_autonomy = 10
-		}
-		
-		#Boost Dev if Large already
-		if = {
-			limit = {
-				event_target:racial_pop_province_target = {
-					OR = {
-						has_large_troll_minority_trigger = yes
-						has_troll_majority_trigger = yes
-					}
-				}
-			}
-			event_target:racial_pop_province_target = {
-				random = {
-					chance = 50
-					add_base_production = 1
-				}
-			}
-		}
-		
-		small_increase_of_troll_tolerance_effect = yes
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
+		generic_increase_of_racial_tolerance_effect = { race = troll small = yes }
 	}
 	
 	#Confiscate what they have in return
@@ -1105,10 +674,8 @@ country_event = {
 		add_years_of_income = 0.15
 	
 		#Add Minority to New Province
-		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = troll } }
-		
-		medium_decrease_of_troll_tolerance_effect = yes
-		
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
+		generic_decrease_of_racial_tolerance_effect = { race = troll medium = yes }
 	}
 
 	#special option for primary culture 
@@ -1120,15 +687,12 @@ country_event = {
 		}
 		ai_chance = { factor = 1000}
 		add_years_of_income = 0.15
-		event_target:racial_pop_province_target = { racial_pop_migration_arrive = { race = troll } }
+		event_target:destination_province = { racial_pop_migration_arrive = { race = troll } }
 	}
 	
 	#Prevent them with force, if necessary
 	option = {		
 		name = racial_pop_events_troll.11.c
-		trigger = {
-			
-		}
 		ai_chance = {
 			factor = 50
 			modifier = {
@@ -1150,8 +714,6 @@ country_event = {
 				factor = 1.5
 				ruler_has_personality = careful_personality
 			}
-			
-			#If Persecuting
 			modifier = {
 				factor = 3
 				OR = {
@@ -1162,40 +724,12 @@ country_event = {
 		}
 		
 		random = {
-		chance = 50
-		
-			event_target:racial_pop_province_target = {
-				add_troll_minority_size_effect = yes
-				add_local_autonomy = 10
-			}
-			
-			#Boost Dev if Large already
-			if = {
-				limit = {
-					event_target:racial_pop_province_target = {
-						OR = {
-							has_large_troll_minority_trigger = yes
-							has_troll_majority_trigger = yes
-						}
-					}
-				}
-				event_target:racial_pop_province_target = {
-					random = {
-						chance = 50
-						add_base_production = 1
-					}
-				}
-			}
+			chance = 50
+			event_target:destination_province = { racial_pop_migration_arrive = { race = troll} }
 		}
-		
-		
 		add_mil_power = -30
-		
-		large_decrease_of_troll_tolerance_effect = yes
-		
-		
+		generic_decrease_of_racial_tolerance_effect = { race = troll large = yes }
 	}
-	
 }
 #Pop Menu
 country_event = {

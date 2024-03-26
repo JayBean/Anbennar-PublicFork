@@ -9553,7 +9553,7 @@ preferred_terrain = {
 	]
 	[[elven]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = woods
 			has_terrain = forest
 			has_terrain = ancient_forest
@@ -9575,7 +9575,7 @@ preferred_terrain = {
 	]
 	[[gnomish]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = farmlands
 			has_terrain = grasslands
 			has_terrain = coastline
@@ -9593,24 +9593,24 @@ preferred_terrain = {
 	]
 	[[half_elven]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 		}
 	]
 	[[half_orcish]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 		}
 	]
 	[[halfling]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = farmlands
 			has_terrain = grasslands
 		}
 	]
 	[[harimari]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = jungle
 		}
 	]
@@ -9640,7 +9640,7 @@ preferred_terrain = {
 	]
 	[[kobold]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = hills
 			has_terrain = mountain
 			has_terrain = dwarven_hold
@@ -9651,7 +9651,7 @@ preferred_terrain = {
 	]
 	[[lizardfolk]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = jungle
 			has_terrain = marsh
 			has_terrain = farmlands
@@ -9673,7 +9673,7 @@ preferred_terrain = {
 	]
 	[[orcish]
 		OR = {
-			has_terrain = urban
+			has_terrain = city_terrain
 			has_terrain = woods
 			has_terrain = forest
 			has_terrain = farmlands
@@ -9722,48 +9722,76 @@ pop_external_migration_trigger = {
 	}
 	[[neighbor]
 		any_neighbor_country = {
-			pop_wants_to_leave = { race = orcish }
+			pop_wants_to_leave = { country_root = yes race = $race$ }
 		}
 	]
 	[[overlord]
 		overlord = {
-			pop_wants_to_leave = { race = orcish }
+			pop_wants_to_leave = { country_root = yes race = $race$ }
 		}
 	]
 	[[vassal]
 		any_subject_country = {
-			pop_wants_to_leave = { race = orcish }
+			pop_wants_to_leave = { country_root = yes race = $race$ }
 		}
 	]
 	[[ally]
 		any_ally = {
-			pop_wants_to_leave = { race = orcish }
+			pop_wants_to_leave = { country_root = yes race = $race$ }
 		}
 	]
 }
 pop_wants_to_leave = { #for use inside of a country scope, while ROOT refers back to another country (probably the player)
 	fast_owns_num_pops_of_race = { race = $race$ amount = 1 }
-	OR = {
-		has_country_modifier = racial_pop_$race$_purge
-		has_country_modifier = racial_pop_$race$_expulsion
-		AND = {
-			low_tolerance_$race$_race_trigger = yes
-			ROOT = {
-				OR = {
-					low_tolerance_$race$_race_trigger = no
-					has_country_modifier = racial_focus_$race$
+	if = {
+		limit = {
+			OR = {
+				has_country_modifier = racial_pop_$race$_purge
+				has_country_modifier = racial_pop_$race$_expulsion
+				AND = {
+					low_tolerance_$race$_race_trigger = yes
+					ROOT = {
+						[[province_root]
+							owner = {
+								OR = {
+									low_tolerance_$race$_race_trigger = no
+									has_country_modifier = racial_focus_$race$
+								}
+							}
+						]
+						[[country_root]
+							OR = {
+								low_tolerance_$race$_race_trigger = no
+								has_country_modifier = racial_focus_$race$
+							}
+						]
+					}
 				}
 			}
 		}
 		any_owned_province = {
 			fast_has_pop_of_race = { race = $race$ }
+			NOT = { has_province_modifier = $race$_migration_cooldown}
+		}
+	}
+	else = {
+		any_owned_province = {
+			fast_has_pop_of_race = { race = $race$ }
+			NOT = { has_province_modifier = $race$_migration_cooldown}
 			OR = {
 				devastation = 25
 				unrest = 10
 				NOT = { development = 10 owner = { fast_owns_num_pops_of_race = { race = $race$ amount = 20 } } }
 				AND = {
 					NOT = { preferred_terrain = { $race$ = yes } }
-					ROOT = { has_country_modifier = racial_focus_$race$ }
+					ROOT = {
+						[[province_root]
+							owner = { has_country_modifier = racial_focus_$race$ }
+						]
+						[[country_root]
+							has_country_modifier = racial_focus_$race$
+						]
+					}
 				}
 			}
 		}
