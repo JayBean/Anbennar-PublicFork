@@ -111,8 +111,7 @@ country_event = {
 					factor = 2
 					fast_owns_num_pops_of_race = { race = dwarven amount = 4 }
 				}
-				choose_pop_internal_origin_province = { race = dwarven }
-				event_target:origin_province = { province_event = { id = racial_pop_events_dwarven.6 } }
+				country_event = { id = racial_pop_events_dwarven.6 }
 			}
 			1 = { #Migration from neighboring country
 				trigger = {
@@ -158,8 +157,7 @@ country_event = {
 					culture_is_dwarven = yes
 				}
 				
-				choose_pop_destination_province = { race = dwarven }
-				event_target:destination_province = { province_event = { id = racial_pop_events_dwarven.7 } }
+				country_event = { id = racial_pop_events_dwarven.7 }
 			}
 			#10 = { #Migration from overlord
 			#	trigger = {
@@ -181,28 +179,36 @@ country_event = {
 }
 
 #generic migration arrival notif - for destination
-province_event = {
+country_event = {
 	id = racial_pop_events_dwarven.1
 	title = racial_pop_events_dwarven.1.t
 	desc = racial_pop_events_dwarven.1.d
 	picture = CITY_DEVELOPMENT_eventPicture
-	goto = ROOT
+	goto = destination_province
 
 	is_triggered_only = yes
 
+	trigger = {
+		event_target:destination_province = {
+			owned_by = ROOT
+		}
+	}
+
 	option = {
 		name = racial_pop_events_dwarven.1.a
-		racial_pop_migration_arrive = { race = dwarven }
+		event_target:destination_province = {
+			racial_pop_migration_arrive = { race = dwarven }
+		}
 	}
 }
 
 #generic migration refusal notif - for destination
-province_event = {
+country_event = {
 	id = racial_pop_events_dwarven.2
 	title = racial_pop_events_dwarven.2.t
 	desc = racial_pop_events_dwarven.2.d
 	picture = BAD_WITH_MONARCH_eventPicture
-	goto = ROOT
+	goto = origin_province
 
 	is_triggered_only = yes
 
@@ -213,35 +219,56 @@ province_event = {
 }
 
 #generic migration choice notif - for origin
-province_event = {
+country_event = {
 	id = racial_pop_events_dwarven.3
 	title = racial_pop_events_dwarven.3.t
 	desc = racial_pop_events_dwarven.3.d
 	picture = REFUGEES_ESCAPING_eventPicture
-	goto = ROOT
+	goto = origin_province
 
 	is_triggered_only = yes
 
 	option = { #good luck in [destination country]!
 		name = racial_pop_events_dwarven.3.a
-		ai_chance = { factor = 1 }
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_dwarven = yes
+			}
+			modifier = {
+				factor = 2
+				NOT = { stability = 0 }
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					has_country_modifier = racial_pop_dwarven_purge
+					has_country_modifier = racial_pop_dwarven_expulsion
+				}
+			}
+			modifier = {	#this is to push refugees essentially
+				factor = 1.5
+				is_at_war = yes
+			}
+		}
 
 		generic_remove_race_minority_size_effect = { race = dwarven }
 		hidden_effect = {
 			FROM = {
-				province_event = { id = racial_pop_events_dwarven.1 }
+				country_event = { id = racial_pop_events_dwarven.1 days = 1 random = 364 }
 			}
 		}
 	}
 	option = { #stop them! they are our rightful subjects!
 		name = racial_pop_events_dwarven.3.b
-		ai_chance = { factor = 0 }
+		ai_chance = { factor = 50 }
 
 		add_dip_power = -10
 		small_decrease_of_dwarven_tolerance_effect = yes
 		hidden_effect = {
 			FROM = {
-				province_event = { id = racial_pop_events_dwarven.2 }
+				country_event = { id = racial_pop_events_dwarven.2 days = 1 random = 364 }
 			}
 		}
 	}
@@ -283,12 +310,12 @@ province_event = {
 }
 
 #Pop Migrates - Within Country
-province_event = {
+country_event = {
 	id = racial_pop_events_dwarven.6
 	title = racial_pop_events_dwarven.6.t
 	desc = racial_pop_events_dwarven.6.d
 	picture = COLONIZATION_eventPicture
-	goto = ROOT
+	goto = destination_province
 	
 	is_triggered_only = yes
 	
@@ -298,7 +325,7 @@ province_event = {
 	
 	immediate = {
 		hidden_effect = {
-			save_event_target_as = origin_province
+			choose_pop_internal_origin_province = { race = dwarven }
 			choose_pop_internal_destination_province = { race = dwarven }
 		}
 	}
@@ -315,7 +342,7 @@ province_event = {
 		}
 		add_adm_power = -10
 		generic_increase_of_racial_tolerance_effect = { race = dwarven small = yes }
-		event_target:origin_province = {
+		event_target:origin_province = { #yes I know this gets you an extra pop if it starts out small shhhhh
 			generic_remove_race_minority_size_effect = { race = dwarven }
 			generic_remove_race_minority_size_effect = { race = dwarven }
 		}
@@ -362,22 +389,24 @@ province_event = {
 }
 
 #External migration - neighbor
-province_event = {
+country_event = {
 	id = racial_pop_events_dwarven.7
 	title = racial_pop_events_dwarven.7.t
 	desc = racial_pop_events_dwarven.7.d
 	picture = EUROPEAN_REFUGEES_eventPicture
-	goto = ROOT
+	goto = destination_province
 	
 	is_triggered_only = yes
 	
 	immediate = {
-		save_event_target_as = destination_province
-		random_neighbor_country = {
-			limit = {
-				pop_wants_to_leave = { province_root = yes race = dwarven }
+		hidden_effect = {
+			choose_pop_destination_province = { race = dwarven }
+			random_neighbor_country = {
+				limit = {
+					pop_wants_to_leave = { race = dwarven }
+				}
+				choose_pop_origin_province = { race = dwarven }
 			}
-			choose_pop_origin_province = {province_root = yes race = dwarven }
 		}
 	}
 	
@@ -394,13 +423,12 @@ province_event = {
 				factor = 2
 				stability = 1
 			}
-			modifier = {	#this is to push refugees essentially
-				factor = 1.5
-				event_target:origin_province = { owner = { is_at_war = yes } }
-			}
 		}
-		add_dip_power = -10
-		racial_pop_migration_attempt = { race = dwarven }
+		add_dip_power = -50
+		event_target:origin_province = {
+			generic_remove_race_minority_size_effect = { race = dwarven }
+		}
+		country_event = { id = racial_pop_events_dwarven.1 days = 1 random = 364 }
 		generic_increase_of_racial_tolerance_effect = { race = dwarven small = yes }
 	}
 	
@@ -418,21 +446,6 @@ province_event = {
 		name = racial_pop_events_dwarven.7.c
 		ai_chance = {
 			factor = 50
-			modifier = {
-				factor = 1.5
-				wants_to_decrease_tolerance_dwarven = yes
-			}
-			modifier = {
-				factor = 2
-				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_dwarven_purge
-					has_country_modifier = racial_pop_dwarven_expulsion
-				}
-			}
 		}
 		add_dip_power = -10
 		small_decrease_of_dwarven_tolerance_effect = yes
