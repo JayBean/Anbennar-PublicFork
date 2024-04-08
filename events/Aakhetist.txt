@@ -160,7 +160,7 @@ country_event = {
 		add_prestige = -15
 		change_aakhet_approval = { value = 5 }
 		if = {
-			limit = { NOT = { has_country_flag = current_aakhet_host } }
+			limit = { NOT = { has_country_flag = current_aakhet_host has_global_flag = aakhet_hostless } }
 			custom_tooltip = aakhetist_current_host_approval_tooltip
 		}
 	}
@@ -227,7 +227,7 @@ country_event = {
 		}
 		change_aakhet_approval = { value = 15 }
 		if = {
-			limit = { NOT = { has_country_flag = current_aakhet_host } }
+			limit = { NOT = { has_country_flag = current_aakhet_host has_global_flag = aakhet_hostless } }
 			custom_tooltip = aakhetist_current_host_approval_tooltip
 		}
 	}
@@ -265,7 +265,7 @@ country_event = {
 		else = { add_years_of_income = -1.5 }
 		change_aakhet_approval = { value = 15 }
 		if = {
-			limit = { NOT = { has_country_flag = current_aakhet_host } }
+			limit = { NOT = { has_country_flag = current_aakhet_host has_global_flag = aakhet_hostless } }
 			custom_tooltip = aakhetist_current_host_approval_tooltip
 		}
 	}
@@ -293,7 +293,7 @@ country_event = {
 		add_mil_power = -75
 		change_aakhet_approval = { value = 30 }
 		if = {
-			limit = { NOT = { has_country_flag = current_aakhet_host } }
+			limit = { NOT = { has_country_flag = current_aakhet_host has_global_flag = aakhet_hostless } }
 			custom_tooltip = aakhetist_current_host_approval_tooltip
 		}
 	}
@@ -345,7 +345,7 @@ country_event = {
 			change_aakhet_approval = { value = 10 }
 		}
 		if = {
-			limit = { NOT = { has_country_flag = current_aakhet_host } }
+			limit = { NOT = { has_country_flag = current_aakhet_host has_global_flag = aakhet_hostless } }
 			custom_tooltip = aakhetist_current_host_approval_tooltip
 		}
 	}
@@ -457,11 +457,10 @@ country_event = {
 
 	option = {
 		name = aakhetist.27.a
+		change_aakhet_approval = { value = -10 }
 		event_target:event_province = {
-			tooltip = {
-				change_siege = 25
-				add_devastation = 50
-			}
+			change_siege = 25
+			add_devastation = 50
 			hidden_effect = { province_event = { id = aakhetist.39 } }
 		}
 	}
@@ -503,6 +502,18 @@ country_event = {
 
 	option = {
 		name = aakhetist.28.a
+		#mp cost
+		if = {
+			limit = { 
+				ai = no 
+				event_target:event_country = { ai = no }
+			}
+			change_aakhet_approval = { value = -25 }
+		}
+		#sp cost
+		else = { change_aakhet_approval = { value = -10 } }
+
+		#extra cost
 		if = {
 			limit = {
 				event_target:event_country = {
@@ -622,7 +633,7 @@ country_event = {
 					NOT = { total_development = 200 }
 				}
 			}
-			reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT }
+			reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT months = 60 }
 		}
 	}
 }
@@ -644,7 +655,24 @@ country_event = {
 				has_heir = yes
 				NOT = { heir_mil = 6 }
 			}
-			change_heir_mil = 1
+			random_list = {
+				80 = { 
+					change_heir_mil = 1
+					modifier = {
+						factor = 0.8
+						heir_mil = 3
+					}
+					modifier = {
+						factor = 0.9
+						heir_mil = 4
+					}
+					modifier = {
+						factor = 0.8
+						heir_mil = 5
+					}
+				}
+				20 = {}
+			}
 		}
 		else = { 
 			add_mil_power = 100 
@@ -835,11 +863,7 @@ country_event = {
 		ai_chance = { factor = 50 }
 		custom_tooltip = aakhetist.35.tooltip1
 		hidden_effect = {
-			if = {
-				limit = { has_country_flag = aakhet_duel_mirror } #you destroy it
-				change_variable = { player_duel_score = 1 }
-			}
-			else = { change_variable = { aakhet_duel_score = 1 } } #magic jammer lol
+			change_variable = { aakhet_duel_score = 1 } #magic jammer or there's no monster lol
 		}
 	}
 
@@ -1079,8 +1103,10 @@ province_event = {
 
 	option = {
 		name = aakhetist.39.a
-		change_siege = 25
-		add_devastation = 50
+		tooltip = {
+			change_siege = 25
+			add_devastation = 50
+		}
 	}
 }
 
@@ -1167,7 +1193,6 @@ country_event = {
 			kill_leader = { type = general }
 			kill_leader = { type = general }
 			kill_leader = { type = general }
-			kill_leader = { type = general }
 		}
 	}
 }
@@ -1188,11 +1213,17 @@ country_event = {
 		religion = aakhetist
 		has_country_flag = current_aakhet_host
 		is_at_war = no
+		OR = {
+			is_subject = no
+			is_subject_of_type = tributary_state
+			is_subject_of_type = tributary_state_anb
+		}
 
 		any_neighbor_country = {
 			truce_with = ROOT
 			NOT = {
 				is_subject_of = ROOT
+				alliance_with = ROOT
 			}
 		}
 	}
@@ -1207,6 +1238,7 @@ country_event = {
 				truce_with = ROOT 
 				NOT = {
 					is_subject_of = ROOT
+					alliance_with = ROOT
 				}
 			}
 			save_event_target_as = event_country
@@ -1216,18 +1248,44 @@ country_event = {
 	#obey
 	option = {
 		name = aakhetist.50.a
-		add_stability_or_adm_power = yes
-		change_aakhet_approval = { value = 5 }
 		declare_war_with_cb = {
 			casus_belli = cb_aakhet_war
 			who = event_target:event_country
+		}
+		hidden_effect = {
+			add_stability = -1
+			every_known_country = {
+				limit = {
+					OR = {
+						same_continent = ROOT
+						same_continent = event_target:event_country
+					}
+				}
+				if = {
+					limit = { religion_group = event_target:event_country }
+					add_aggressive_expansion = { who = ROOT value = 5 }
+				}
+				if = {
+					limit = { religion = event_target:event_country }
+					add_aggressive_expansion = { who = ROOT value = 5 }
+				}
+				if = {
+					limit = { primary_culture = event_target:event_country }
+					add_aggressive_expansion = { who = ROOT value = 5 }
+				}
+				if = {
+					limit = { culture_group = event_target:event_country }
+					add_aggressive_expansion = { who = ROOT value = 5 }
+				}
+				add_aggressive_expansion = { who = ROOT value = 10 }
+			}
 		}
 	}
 
 	#no lol
 	option = {
 		name = aakhetist.50.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -20 }
 	}
 }
 
@@ -1244,7 +1302,11 @@ country_event = {
 		religion = aakhetist
 		has_country_flag = current_aakhet_host
 		is_at_war = no
-
+		OR = {
+			is_subject = no
+			is_subject_of_type = tributary_state
+			is_subject_of_type = tributary_state_anb
+		}
 		any_neighbor_country = {
 			NOT = { 
 				truce_with = ROOT
@@ -1287,7 +1349,7 @@ country_event = {
 	#no lol
 	option = {
 		name = aakhetist.51.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -20 }
 	}
 }
 
@@ -1306,6 +1368,7 @@ country_event = {
 
 		has_heir = yes
 		heir_age = 10
+		is_adventurer = no
 	}
 
 	mean_time_to_happen = {
@@ -1327,7 +1390,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.52.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }
 
@@ -1404,7 +1467,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.53.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }
 
@@ -1440,7 +1503,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.54.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -20 }
 	}
 }
 
@@ -1475,7 +1538,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.55.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }
 
@@ -1491,7 +1554,12 @@ country_event = {
 	trigger = { 
 		religion = aakhetist
 		has_country_flag = current_aakhet_host
-
+		is_at_war = no
+		OR = {
+			is_subject = no
+			is_subject_of_type = tributary_state
+			is_subject_of_type = tributary_state_anb
+		}
 		any_owned_province = {
 			any_core_country = {
 				exists = no
@@ -1523,14 +1591,28 @@ country_event = {
 			limit = { any_core_country = { exists = no } }
 			random_core_country = {
 				limit = { exists = no }
-				ROOT = { create_subject = { subject_type = march who = PREV } }
+				ROOT = {
+					release = PREV
+					create_subject = { subject_type = march who = PREV } 
+				}
+				hidden_effect = { save_event_target_as = event_country }
+			}
+		}
+		hidden_effect = {
+			event_target:event_country = {
+				capital_scope = {
+					event_target:event_country = {
+						change_religion = PREV 
+						change_primary_culture = PREV 
+					}
+				}
 			}
 		}
 	}
 
 	option = {
 		name = aakhetist.56.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }
 
@@ -1634,7 +1716,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.57.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }
 
@@ -1687,7 +1769,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.58.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -20 }
 	}
 }
 
@@ -1735,7 +1817,7 @@ country_event = {
 
 	option = {
 		name = aakhetist.59.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -20 }
 	}
 }
 
@@ -1818,6 +1900,6 @@ country_event = {
 
 	option = {
 		name = aakhetist.60.b
-		change_aakhet_approval = { value = -10 }
+		change_aakhet_approval = { value = -15 }
 	}
 }

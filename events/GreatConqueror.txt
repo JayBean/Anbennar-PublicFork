@@ -14,7 +14,11 @@ country_event = {
 			has_global_flag = mythical_conqueror 
 		}
 		is_subject = no
-		is_year = 1445
+		#If delayed conquerors are on, then it can't be the age of discovery.
+		OR = {
+			NOT = { has_global_flag = delayed_conquerors }
+			NOT = { current_age = age_of_discovery }
+		}
 		ai = yes
 	}
 	
@@ -47,7 +51,7 @@ country_event = {
 	option = {
 		name = great_conqueror.0.a
 		ai_chance = { 
-			factor = 95
+			factor = 0
 			
 			modifier = {
 				factor = 1.5
@@ -104,7 +108,7 @@ country_event = {
 				OR = {
 					if = {
 						limit = { has_global_flag = mythical_conqueror }
-						REB = { check_variable = { nbGC = 13 } }									#No more than 10 Great Conqueror in the world
+						REB = { check_variable = { nbGC = 13 } }									#No more than 13 Great Conqueror in the world
 					}
 					else = {
 						REB = { check_variable = { nbGC = 10 } }									#No more than 10 Great Conqueror in the world
@@ -319,5 +323,196 @@ country_event = {
 			}
 			log = "GREAT CONQUEROR ---------------- [Root.GetName] |[Root.ownDev.GetValue]| became a Great Conqueror in [GetYear] [GetMonth]. It's a [Root.GovernmentName] | Number of GC: [REB.nbGC.GetValue]"
 		}
+
+		#Randomly spawns a variant conqueror
+		random_list = {
+			#Variant Conqueror
+			1 = {
+				modifier = {
+					factor = 5
+					ruler_has_personality = mythical_conqueror_personality
+				}
+				modifier = {
+					factor = 0
+					NOT = { has_global_flag = variant_conqueror }
+				}
+				modifier = {
+					factor = 0
+					NOT = {
+						any_known_country = {
+							ai = no
+						}
+					}
+				}
+				#Vampire Conqueror
+				if = {
+					limit = {
+						has_estate = estate_vampires
+					}
+					country_event = { id = great_conqueror.3 }
+				}
+				#Lich Conqueror
+				else = {
+					country_event = { id = great_conqueror.1 }
+				}
+				# TODO - ADD MORE VARIANTS
+			}
+			#No Variant Conqueror
+			30 = {
+			}
+		}
+	}
+}
+
+#Lich-King (AI)
+country_event = {
+	id = great_conqueror.1
+	title = great_conqueror.1.t
+	desc = great_conqueror.1.d
+	picture = LOOMING_DEATH_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	option = {
+		name = great_conqueror.1.a
+		if = {
+			limit = { ruler_has_personality = mythical_conqueror_personality }
+			clear_ruler_personalities = yes
+			set_ruler_flag = long_lived_ruler
+			set_ruler_flag = immortal_ruler
+			add_ruler_personality = mage_personality
+			add_ruler_personality = mythical_conqueror_personality
+		}
+		else = {
+			clear_ruler_personalities = yes
+			set_ruler_flag = long_lived_ruler
+			set_ruler_flag = immortal_ruler
+			add_ruler_personality = mage_personality
+			add_ruler_personality = great_conqueror_personality
+		}
+		set_ruler_flag = necromancy_1
+		set_ruler_flag = necromancy_2
+		set_ruler_flag = necromancy_3
+		increase_witch_king_points_large = yes
+		increase_witch_king_points_large = yes
+		increase_witch_king_points_large = yes
+		increase_witch_king_points_large = yes
+		increase_witch_king_points_large = yes
+		set_ruler_flag = is_a_lich
+		set_ruler_flag = is_a_secret_lich
+		set_country_flag = lich_ruler
+		set_country_flag = lich_ruler_has_phylactery
+		set_country_flag = exposed_lich_ruler
+		if = {
+			limit = { is_female = yes }
+			set_country_flag = lich_ruler_female
+		}
+		else = {
+			set_country_flag = lich_ruler_male
+		}
+		add_ruler_modifier = {
+			name = lich_ruler
+			duration = -1
+		}
+		if = { limit = { NOT = { has_country_modifier = undead_military } }
+			clear_racial_military = yes
+			add_country_modifier = { name = undead_military duration = -1 }
+		}
+		if = {
+			limit = {
+				NOT = { unit_type = tech_undead }
+				has_any_racial_military = yes
+			}
+			change_unit_type = tech_undead
+		}
+		capital_scope = {
+			save_event_target_as = capital_province
+		}
+		every_country = {
+			limit = { ai = no }
+			country_event = { id = great_conqueror.2 }
+		}
+	}
+}
+
+#Lich-King (player)
+country_event = {
+	id = great_conqueror.2
+	title = great_conqueror.2.t
+	desc = great_conqueror.2.d
+	picture = LOOMING_DEATH_eventPicture
+	goto = capital_province
+
+	is_triggered_only = yes
+
+	option = {
+		name = great_conqueror.2.a
+		custom_tooltip = lich_king_tt
+	}
+}
+
+#Vampire-King (AI)
+country_event = {
+	id = great_conqueror.3
+	title = great_conqueror.3.t
+	desc = great_conqueror.3.d
+	picture = LOOMING_DEATH_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	option = {
+		name = great_conqueror.3.a
+		save_ruler_stats = yes
+		save_ruler_dynasty = yes
+		#Reset the timer on how long a vampire has ruled
+		if = {
+			limit = { OR = { has_country_flag = new_vampire NOT = { has_country_flag = vampire_ruler } } }
+			clr_country_flag = new_vampire
+			ruler_new_vampire = yes
+		}
+		set_ruler_flag = is_a_vampire
+		if = {
+			limit = { is_female = yes }
+			clr_country_flag = vampire_ruler_male
+			set_country_flag = vampire_ruler_female
+		}
+		else = {
+			clr_country_flag = vampire_ruler_female
+			set_country_flag = vampire_ruler_male
+		}
+		if = {
+			limit = { ruler_has_mage_personality = yes }
+			set_country_flag = mage_vampire
+		}
+		else = {
+			clr_country_flag = mage_vampire
+		}
+		clear_ruler_personalities = yes
+		if = {
+			limit = { ruler_has_personality = mythical_conqueror_personality }
+			clear_ruler_personalities = yes
+			set_ruler_flag = long_lived_ruler
+			if = {
+				limit = { has_country_flag = mage_vampire }
+				add_ruler_personality = mage_personality
+			}
+			add_ruler_personality = mythical_conqueror_personality
+		}
+		else = {
+			clear_ruler_personalities = yes
+			set_ruler_flag = long_lived_ruler
+			if = {
+				limit = { has_country_flag = mage_vampire }
+				add_ruler_personality = mage_personality
+			}
+			add_ruler_personality = great_conqueror_personality
+		}
+		set_ruler_flag = exposed_vampire_ruler
+		#every_country = {
+		#	limit = { ai = no }
+		#	country_event = { id = great_conqueror.4 }
+		#}
 	}
 }
