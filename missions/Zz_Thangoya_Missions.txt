@@ -1,13 +1,3 @@
-#Copy board
-#province_id = 
-#Az: 4787-Lek, 4789-Az, 4790-VM, 5425-Phak 
-#LN: 4777-Hub, 4781-Phud, 4940-Phun 
-#KE: 4788-ElP, 4791-Yema, 4792-KK 
-#Th: 4778-Kes, 4779-Haib, 4780-Mas, 4943-Sik
-#tag = 
-#Y58 - LD, Y63 - VO, Y88 - Hinphat, Y71 - KK, Y72 - CB, Y66 - Hon Sai, Y67 - Mo Hoang
-#
-
 thangoya_1 = {
     slot = 1
     generic = no
@@ -160,16 +150,11 @@ thangoya_1 = {
                 infrastructure_ideas = 3
             }
             if = {
-                limit = {
-                    custom_trigger_tooltip = {
-                        tooltip = thangoya_thirabnir_mission_tt
-                        has_country_modifier = thangoya_thirabnir_ruler
-                    }
-                }
+                limit = { thirabnir_mission = yes }
                 AND = {
                     OR = {
                         any_owned_province = { culture_is_dwarven = yes }
-                        any_country = {
+                        any_known_country = {
                             if = { limit = { any_owned_province = { culture_is_dwarven = yes } } }
                             reverse_has_opinion = {
                                 who = PREV #Thangoya
@@ -179,7 +164,7 @@ thangoya_1 = {
                     }
                     OR = {
                         any_owned_province = { culture_is_harpy = yes }
-                        any_country = {
+                        any_known_country = {
                             if = { limit = { any_owned_province = { culture_is_harpy = yes } } }
                             reverse_has_opinion = {
                                 who = PREV #Thangoya
@@ -263,25 +248,8 @@ thangoya_1 = {
         }
     
         trigger = {
-            calc_true_if = { #Perhaps tooltip?
-                AND = {
-                    kaiden_area = {
-                        type = all
-                        has_manufactory_trigger = yes
-                    }
-                    phakphon_area = {
-                        type = all
-                        has_manufactory_trigger = yes
-                    }
-                    ngoen_area = {
-                        type = all
-                        has_manufactory_trigger = yes
-                    }
-                    thirabnir_area = {
-                        type = all
-                        has_manufactory_trigger = yes
-                    }
-                }
+            calc_true_if = {
+                sikai_townships_group = { has_manufactory_trigger = yes }
                 amount = 4
             }
         }
@@ -343,11 +311,40 @@ thangoya_1 = {
         effect = {
             set_estate_privilege = estate_mages_cast_spells
             add_country_modifier = {
-                name = magic_estate_aiding_construction_2
+                name = thangoya_state_employed_mages
                 duration = 3650
             }
-            custom_tooltip = thangoya_appease_the_estates_tt
-            hidden_effect = { set_country_flag = thangoya_appease_the_estates }
+            custom_tooltip = thangoya_appease_the_estates_tt #Unlock "Appease the Estates"
+            custom_tooltip = thangoya_khao_elnak_mission_tt
+            tooltip = {
+                add_country_modifier = {
+                    name = magic_estate_aiding_construction_3
+                    duration = 3650
+                }
+            }
+            custom_tooltip = thangoya_no_mission_tt
+            tooltip = {
+                add_country_modifier = {
+                    name = magic_estate_aiding_construction_2
+                    duration = 3650
+                }
+            }
+            hidden_effect = { 
+                set_country_flag = thangoya_appease_the_estates 
+                if = { 
+                    limit = { khao_elnak_mission = yes }
+                    add_country_modifier = {
+                        name = magic_estate_aiding_construction_3
+                        duration = 3650
+                    }
+                }
+                else = {
+                    add_country_modifier = {
+                        name = magic_estate_aiding_construction_2
+                        duration = 3650
+                    }
+                }
+            }
         }
     }
 
@@ -454,6 +451,10 @@ thangoya_1 = {
                     }
                 }
             }
+            custom_tooltip = thangoya_lo_ngoen_mission_tt
+            tooltip = {
+                add_inflation = -5
+            }
             hidden_effect = {
                 if = {
                     limit = { 4940 = { has_building = state_house } } #Phungoen
@@ -475,6 +476,10 @@ thangoya_1 = {
                         }
                     }
                 }
+                if = {
+                    limit = { lo_ngoen_mission = yes }
+                    add_inflation = -5
+                }
             }
         }
     }
@@ -495,20 +500,61 @@ thangoya_2 = {
         icon = jap_balance_shinokosho
         position = 5
         
-        required_missions = {
-            
-        }
+        required_missions = {} #First row
         
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
-    
+        provinces_to_highlight = {
+            AND = {
+                province_id = 4789 #Azkare
+                NOT = { has_building = temple }
+            }
+            AND = {
+                province_id = 4787 #Lektonmai
+                NOT = { has_building = temple }
+            }
+            AND = {
+                province_id = 4940 #Phungoen
+                NOT = { has_building = temple }
+            }
+            AND = {
+                province_id = 4777 #Huban
+                NOT = { has_building = temple }
+            }
+        }
+
         trigger = {
-            #<trigger>
+            if = {
+                limit = { lo_ngoen_mission = yes }
+                calc_true_if = {
+                    OR = {
+                        4789 = { has_building = temple } #Azkare
+                        4787 = { has_building = temple } #Lektonmai
+                        4940 = { has_building = temple } #Phungoen
+                        4777 = { has_building = temple } #Huban
+                    }
+                    amount = 2
+                }
+                army_size = 20
+            }
+            else = {
+                4789 = { has_building = temple } #Azkare
+                4787 = { has_building = temple } #Lektonmai
+                4940 = { has_building = temple } #Phungoen
+                4777 = { has_building = temple } #Huban
+                OR = {
+                    any_known_country = {
+                        has_reform = wulin 
+                        NOT = { army_size = Z62 } #Thangoya #This is jank. Idk how to make it better
+                    }
+                    army_size = 25
+                }
+            }
         }
         
         effect = {
-            #<effect>
+            custom_tooltip = thangoya_lo_ngoen_mission_tt
+            tooltip = { country_event = { id = thangoya_event.3 } }
+            custom_tooltip = thangoya_no_mission_tt
+            tooltip = { country_event = { id = thangoya_event.2 } }
         }
     }
 
@@ -520,16 +566,86 @@ thangoya_2 = {
             thangoya_2_5
         }
         
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
+        provinces_to_highlight = {
+            AND = {
+                area = jilin_anb_area
+                NOT = { country_or_non_sovereign_subject_holds = ROOT } #Thangoya
+            }
+            AND = {
+                area = zhonglin_area
+                NOT = { country_or_non_sovereign_subject_holds = ROOT } #Thangoya
+            }
+            AND = {
+                area = aoshan_area
+                NOT = { country_or_non_sovereign_subject_holds = ROOT } #Thangoya
+            }
+            AND = {
+                area = pevyirer_area
+                NOT = { country_or_non_sovereign_subject_holds = ROOT } #Thangoya
+            }
+            AND = {
+                area = dekaipnam_area
+                NOT = {
+                    OR = {
+                        country_or_non_sovereign_subject_holds = ROOT #Thangoya
+                        country_or_non_sovereign_subject_holds = Y58 #Lot Dekkhang
+                    }
+                }
+            }
+        }
     
         trigger = {
-            #<trigger>
+            jilin_anb_area = {
+                type = all
+                country_or_non_sovereign_subject_holds = ROOT #Thangoya
+            }
+            zhonglin_area = {
+                type = all
+                country_or_non_sovereign_subject_holds = ROOT #Thangoya
+            }
+            aoshan_area = {
+                type = all
+                country_or_non_sovereign_subject_holds = ROOT #Thangoya
+            }
+            pevyirer_area = {
+                type = all
+                country_or_non_sovereign_subject_holds = ROOT #Thangoya
+            }
+            dekaipnam_area = {
+                type = all
+                country_or_non_sovereign_subject_holds = ROOT #Thangoya
+                country_or_non_sovereign_subject_holds = Y58 #Lot Dekkhang
+            }
+            accepted_culture = western_yan #Szitu
         }
         
         effect = {
-            #<effect>
+            add_country_modifier = {
+                name = thangoya_custodians_of_xianjie
+                duration = -1
+            }
+            country_event = { id = thangoya_event.9 }
+            custom_tooltip = thangoya_wulin_humiliated_tt
+            tooltip = {
+                add_prestige = 20
+                add_adm_power = 50
+                add_dip_power = 50
+                add_mil_power = 50
+            }
+            hidden_effect = {
+                if = {
+                    limit = {
+                        any_known_country = {
+                            has_reform = wulin 
+                            humiliated_by = PREV #Thangoya
+                        }
+                    }
+                    add_prestige = 20
+                    add_adm_power = 50
+                    add_dip_power = 50
+                    add_mil_power = 50
+                }
+            }
         }
     }
 
@@ -541,17 +657,31 @@ thangoya_2 = {
             thangoya_1_7
 			thangoya_3_7
         }
-        
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
     
         trigger = {
-            #<trigger>
+            OR = {
+                calc_true_if = { #Perhaps tooltip?
+                    sikai_townships_group = { has_building = workshop }
+                    amount = 8
+                }
+                workshop = 15
+            }
+            has_church_aspect = meditation_through_farming
         }
         
         effect = {
-            #<effect>
+            custom_tooltip = thangoya_fund_an_industrial_project_tt
+            custom_tooltip = thangoya_25_dev_prov_tt
+            hidden_effect = {
+                sikai_townships_group = {
+                    limit = {
+                        any_province_in_state = {
+                            development = 25
+                        }
+                    }
+                    add_next_institution_embracement = 50
+                }
+            }
         }
     }
 
@@ -563,16 +693,37 @@ thangoya_2 = {
 			thangoya_2_8
         }
         
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
+        provinces_to_highlight = {
+            province_group = sikai_townships_group
+            if = {
+                limit = {
+                    has_dlc = "Leviathan"
+                }
+                num_of_times_expanded_infrastructure = 2
+            }
+            else = { development = 15 }
+        }
     
         trigger = {
-            #<trigger>
+            sikai_townships_group = {
+                type = all
+                if = {
+                    limit = {
+                        has_dlc = "Leviathan"
+                    }
+                    num_of_times_expanded_infrastructure = 2
+                }
+                else = { development = 15 }
+            }
         }
         
         effect = {
-            #<effect>
+            sikai_townships_group = {
+                add_province_modifier = {
+                    name = growing_economy
+                    duration = 9125
+                }
+            }
         }
     }
 
@@ -583,17 +734,51 @@ thangoya_2 = {
         required_missions = {
 			thangoya_2_9
         }
-        
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
     
+        provinces_to_highlight = {
+            province_group = sikai_townships_group
+            NOT = {
+                AND = {
+                    OR = {
+                        can_build = farm_estate
+                        trade_goods = salt
+                    }
+                    has_manufactory_trigger = yes
+                    has_building = barracks
+                    num_free_building_slots = 1 #can't scope to manufactory building slots :/    
+                }
+            }
+        }
+
         trigger = {
-            #<trigger>
+            calc_true_if = {
+                sikai_townships_group = {
+                    OR = {
+                        can_build = farm_estate
+                        trade_goods = salt
+                    }
+                    has_manufactory_trigger = yes
+                    has_building = barracks
+                    num_free_building_slots = 1 #can't scope to manufactory building slots :/
+                }
+                amount = 4
+            }
         }
         
         effect = {
-            #<effect>
+            sikai_townships_group = {
+                limit = {
+                    OR = {
+                        can_build = farm_estate
+                        trade_goods = salt
+                    }
+                    has_manufactory_trigger = yes
+                    has_building = barracks
+                    num_free_building_slots = 1 #can't scope to manufactory building slots :/
+                }
+                remove_building = barracks
+                add_building = soldier_households
+            }
         }
     }
 
@@ -607,12 +792,53 @@ thangoya_2 = {
 			thangoya_3_11
         }
         
-        #provinces_to_highlight = {
-            #<trigger>
-        #}
+        provinces_to_highlight = {
+            province_group = sikai_townships_group
+            AND = {
+                NOT = { num_of_times_expanded_infrastructure = 2 }
+                has_manufactory_no_custom_tooltip_trigger = no
+            }
+            AND = {
+                OR = {
+                    province_id = 4788 #Elnak Phakphon
+                    province_id = 4778 #Kesanthi
+                    province_id = 4789 #Azkare
+                    province_id = 4777 #Huban
+                }
+                NOT = { 
+                    AND = {
+                        num_of_times_expanded_infrastructure = 3
+                        has_building = state_house
+                    }
+                }
+            }
+        }
     
         trigger = {
-            #<trigger>
+            sikai_townships_group = {
+                num_of_times_expanded_infrastructure = 2
+                custom_trigger_tooltip = {
+                    tooltip = Y91_has_manufactory_tt #Thank you, Nuugdan Tsarai dev, I'll be stealing that
+                    has_manufactory_no_custom_tooltip_trigger = yes
+                }
+            }
+            4788 = { #Elnak Phakphon
+                num_of_times_expanded_infrastructure = 3
+                has_building = state_house
+            }
+            4778 = { #Kesanthi
+                num_of_times_expanded_infrastructure = 3
+                has_building = state_house
+            }
+            4789 = { #Azkare
+                num_of_times_expanded_infrastructure = 3
+                has_building = state_house
+            }
+            4777 = { #Huban
+                num_of_times_expanded_infrastructure = 3
+                has_building = state_house
+            }
+            
         }
         
         effect = {
