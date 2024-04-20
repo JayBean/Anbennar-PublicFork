@@ -184,20 +184,6 @@ country_event = {
 				
 				country_event = { id = racial_pop_events_hobgoblin.7 }
 			}
-			#10 = { #Migration from overlord
-			#	trigger = {
-			#		pop_external_migration_trigger = { overlord = yes race = hobgoblin }
-			#	}
-			#	choose_pop_destination_province = { race = hobgoblin }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.8 } }
-			#}
-			#10 = { #Migration from vassal
-			#	trigger = {
-			#		pop_external_migration_trigger = { vassal = yes race = hobgoblin }
-			#	}
-			#	choose_pop_destination_province = { race = hobgoblin }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_hobgoblin.9 } }
-			#}
 			#events 100-200 are reserved for custom migration events, put their triggers here
 		}
 	}
@@ -259,18 +245,11 @@ country_event = {
 			factor = 50
 			modifier = {
 				factor = 1.5
-				wants_to_decrease_tolerance_hobgoblin = yes
+				low_tolerance_hobgoblin_race_trigger = yes
 			}
 			modifier = {
 				factor = 2
 				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_hobgoblin_purge
-					has_country_modifier = racial_pop_hobgoblin_expulsion
-				}
 			}
 			modifier = {	#this is to push refugees essentially
 				factor = 1.5
@@ -278,19 +257,37 @@ country_event = {
 			}
 		}
 
-		event_target:origin_province = { racial_pop_migration_leave = { race = hobgoblin } }
-		hidden_effect = {
-			FROM = {
-				country_event = { id = racial_pop_events_hobgoblin.1 days = 1 random = 364 }
+		if = {
+			limit = {
+				has_country_flag = migration_bribe_@FROM
 			}
+			clr_country_flag = migration_bribe_@FROM
+			add_dip_power = 50
+		}
+		racial_pop_migration_random_leave = { race = hobgoblin }
+		FROM = {
+			country_event = { id = racial_pop_events_hobgoblin.1 days = 1 random = 364 }
 		}
 	}
 	option = { #stop them! they are our rightful subjects!
 		name = racial_pop_events_hobgoblin.3.b
-		ai_chance = { factor = 50 }
-
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_country_modifier = racial_pop_hobgoblin_purge
+					has_country_modifier = racial_pop_hobgoblin_expulsion
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = migration_bribe_@FROM
+			}
+		}
 		add_dip_power = -10
 		small_decrease_of_hobgoblin_tolerance_effect = yes
+		clr_country_flag = migration_bribe_@FROM
 		hidden_effect = {
 			FROM = {
 				country_event = { id = racial_pop_events_hobgoblin.2 days = 1 random = 364 }
@@ -444,18 +441,30 @@ country_event = {
 			}
 		}
 		add_dip_power = -50
-		event_target:origin_province = { racial_pop_migration_leave = { race = hobgoblin } }
-		country_event = { id = racial_pop_events_hobgoblin.1 days = 1 random = 364 }
+		if = {
+			limit = { event_target:origin_province = { owner = { ai = yes } } }
+			custom_tooltip = racial_pop_migration_happens_tt
+			tooltip = { country_event = { id = racial_pop_events_hobgoblin.1 days = 1 random = 364 } }
+		}
+		else = {
+			custom_tooltip = racial_pop_migration_bribe_tt
+		}
+		event_target:origin_province = { owner = { set_country_flag = migration_bribe_@ROOT country_event = { id = racial_pop_events_hobgoblin.3 } } }
 		generic_increase_of_racial_tolerance_effect = { race = hobgoblin small = yes }
 	}
 	
 	#Let them do as they wish 
-	option = {		
+	option = {
 		name = racial_pop_events_hobgoblin.7.b
 		ai_chance = {
 			factor = 50
 		}
-		racial_pop_migration_attempt = { race = hobgoblin }
+		custom_tooltip = racial_pop_migration_attempt_tt
+		event_target:origin_province = {
+			owner = {
+				country_event = { id = racial_pop_events_hobgoblin.3 }
+			}
+		}
 	}
 
 	#Close our borders
@@ -868,12 +877,7 @@ country_event = {
 			modifier = { #+Lots of oppressed 
 				factor = 1.5
 				low_tolerance_hobgoblin_race_trigger = yes
-				calc_true_if = {
-					all_owned_province = {
-						has_oppressed_hobgoblin_pop_trigger = yes	
-					}
-					amount = 20
-				}
+				fast_owns_num_pops_of_race = { race = hobgoblin amount = 20 }
 			}
 			modifier = { #+Negative stability blames issues on other races
 				factor = 1.25
@@ -1201,12 +1205,7 @@ country_event = {
 			modifier = {#+Lots of oppressed 
 				factor = 1.5
 				low_tolerance_hobgoblin_race_trigger = yes
-				calc_true_if = {
-					all_owned_province = {
-						has_oppressed_hobgoblin_pop_trigger = yes	
-					}
-					amount = 20
-				}
+				fast_owns_num_pops_of_race = { race = hobgoblin amount = 20 }
 			}
 			modifier = { #+Negative stability blames issues on other races
 				factor = 1.25
@@ -1558,6 +1557,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	hidden = yes
 	
@@ -1615,6 +1617,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1640,6 +1645,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1665,6 +1673,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1692,7 +1703,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_expulsion
-		
+	
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_hobgoblin_minority_trigger = yes
 		}
@@ -1706,6 +1718,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -1715,6 +1728,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -1724,6 +1738,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2013,7 +2028,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_expulsion
-		
+	
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_hobgoblin_majority_trigger = yes
 			#culture_is_hobgoblin = yes
@@ -2029,6 +2045,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2039,6 +2056,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2049,6 +2067,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2337,7 +2356,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_hobgoblin_minority_trigger = yes
 		}
@@ -2351,6 +2371,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2360,6 +2381,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2369,6 +2391,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2576,6 +2599,7 @@ country_event = {
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_purge
 		
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster
 		any_owned_province = {
 			has_hobgoblin_majority_trigger = yes
 			#culture_is_hobgoblin = yes
@@ -2591,6 +2615,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2601,6 +2626,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2611,6 +2637,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -2826,7 +2853,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_hobgoblin_minority_trigger = yes
 		}
@@ -2840,6 +2868,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2849,6 +2878,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -2858,6 +2888,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_minority_trigger = yes
@@ -3119,7 +3150,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_hobgoblin_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_hobgoblin_majority_trigger = yes
 			#culture_is_hobgoblin = yes
@@ -3135,6 +3167,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -3145,6 +3178,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
@@ -3155,6 +3189,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = hobgoblin amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_hobgoblin_majority_trigger = yes
