@@ -155,7 +155,7 @@ bahar_c = { # Done
 			NOT = { exists = U14 }
 			527 = {
 				num_of_units_in_province = {
-					who = F23
+					who = ROOT
 					amount = 5 
 					type = infantry
 				}
@@ -791,6 +791,7 @@ uthojdihr_a = { # Make sure Extending our Reach trigger works properly.
 		} 
 
 		trigger = {  
+			reform_level = 5 
 			1259 = { OR = { is_strongest_trade_power = ROOT is_strongest_trade_power = U17 } } # Divenhal Gates
 			1296 = { OR = { is_strongest_trade_power = ROOT is_strongest_trade_power = U17 } } # Eborthil
 			1303 = { OR = { is_strongest_trade_power = ROOT is_strongest_trade_power = U17 } } # Flooded Coast
@@ -806,9 +807,8 @@ uthojdihr_a = { # Make sure Extending our Reach trigger works properly.
 		effect = {  
 			add_country_modifier = { name = "thalassocracy" duration = -1 }
 			unlock_government_reform = { government_reform = thalassocracy_reform }
-			change_government_reform_progress = 50			
-			add_government_reform = ovdal_tungr_uthojdihr_rule_reform
-			custom_tooltip = F23_divenhal_dominion_trading_post_confederacy_unlock
+			unlock_government_reform = { government_reform = F23_uthojdihr_backing }
+			unlock_government_reform = { government_reform = F23_trading_post_confederacy }
 		} 
 	}
 }
@@ -1011,40 +1011,71 @@ overseas_a = { # Done. Probably. Sweetport culture event needs testing.
 	has_country_shield = yes
 	potential = { tag = F23 } 
 
-	F23_southern_expansion = {
+	F23_seeking_southern_sarhal = {
 		icon = mission_exploration
-		position = 10
+		position = 9
 		required_missions = { F23_divenhal_dominion } 
-		provinces_to_highlight = {  } 
+		provinces_to_highlight = { 
+			OR = {
+				province_id = 5710
+				province_id = 5813
+				province_id = 6599
+			}
+			AND = {
+				NOT = { F23_owned_by_friendly_nation = yes }
+				NOT = { owner = { has_spy_network_from = { who = ROOT value = 30 } } }
+			}
+		 } 
 
 		trigger = {  
-			OR = {
-				exploration_ideas = 3
-				expansion_ideas = 3
-				AND = { adm = 150 dip = 150 }
+			5710 = {
+				has_discovered = ROOT
+				OR = {
+					F23_owned_by_friendly_nation = yes
+					owner = { has_spy_network_from = { who = ROOT value = 30 } }
+				}
+			}
+			5813 = {
+				has_discovered = ROOT
+				OR = {
+					F23_owned_by_friendly_nation = yes
+					owner = { has_spy_network_from = { who = ROOT value = 30 } }
+				}
+			}
+			6599 = {
+				has_discovered = ROOT
+				OR = {
+					F23_owned_by_friendly_nation = yes
+					owner = { has_spy_network_from = { who = ROOT value = 30 } }
+				}
+			}
+			402 = { # TODO OT, this doesn't seem to work?
+				heavy_ships_in_province = 25
+				light_ships_in_province = 25
 			}
 		} 
 
 		effect = {  
-			if = {
-				limit = { NOT = { OR = { exploration_ideas = 3 expansion_ideas = 3 } } }
-				add_adm_power = -150
-				add_dip_power = -150
-			}
-			add_country_modifier = { name = F23_southern_expansion_buff duration = 18250 }
 			add_country_modifier = { name = F23_sarhali_interests duration = -1 }
+			402 = {
+				kill_units = { who = ROOT type = heavy_ship amount = 25 }
+				kill_units = { who = ROOT type = light_ship amount = 25 }
+			}
 		} 
 	}
 
 	F23_seizing_the_sweetport = {
 		icon = mission_secure_hajj_ports
-		position = 11
-		required_missions = { F23_southern_expansion } 
+		position = 10
+		required_missions = { F23_seeking_southern_sarhal } 
 		provinces_to_highlight = {  
 			province_id = 6632
 		} 
 
 		trigger = {  
+			1458 = { trade_share = { country = ROOT share = 50 } }
+			3082 = { trade_share = { country = ROOT share = 75 } }
+			3084 = { trade_share = { country = ROOT share = 50 } }
 			6632 = { # Teramzadai
 				owned_by = ROOT
 				has_dock_building_trigger = yes
@@ -1056,19 +1087,15 @@ overseas_a = { # Done. Probably. Sweetport culture event needs testing.
 					limit = { has_dlc = "Leviathan" } 
 					num_of_times_expanded_infrastructure = 2
 				}
-				OR = {
-					culture_group = vyzemby
-					culture_group = lizardfolk					
-				}
 			}
+			adm_power = 100
 		} 
 
 		effect = {  
-			6632 = { # Teramzadai
-				province_event = { id = flavour_ovdal_tungr.3 } # TODO OT, needs to be tested.
-			}
 			custom_tooltip = F23_seizing_the_sweetport_tt_1
+			hidden_effect = { set_country_flag = lizardfolk_port_enabled }
 			add_country_modifier = { name = F23_clove_colonies duration = 18250 }
+			add_adm_power = -100
 			custom_tooltip = F23_seizing_the_sweetport_tt_2
 			F23_seizing_the_sweetport_custom_effect = { culture = amezatany }
 			F23_seizing_the_sweetport_custom_effect = { culture = mboala }
@@ -1080,7 +1107,7 @@ overseas_a = { # Done. Probably. Sweetport culture event needs testing.
 
 	F23_the_cloves_monopoly = {
 		icon = mission_rb_colonise_spice_islands
-		position = 13
+		position = 12
 		required_missions = {
 			F23_seizing_the_sweetport
 			F23_the_path_to_haless
@@ -1143,8 +1170,8 @@ overseas_b = { # Code here is done. Some events, and could really do with some c
 
 	F23_safe_sarhali_seas = {
 		icon = mission_raid_christian_trade
-		position = 11
-		required_missions = { F23_southern_expansion } 
+		position = 10
+		required_missions = { F23_seeking_southern_sarhal } 
 		provinces_to_highlight = {  
 			OR = {
 				province_id = 1449
@@ -1153,59 +1180,105 @@ overseas_b = { # Code here is done. Some events, and could really do with some c
 				province_id = 3082
 				province_id = 1465
 			}
-			NOT = { is_strongest_trade_power = ROOT }
+			NOT = { trade_share = { country = ROOT share = 50 } }
 			NOT = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } } 
 		} 
 
 		trigger = {  
 			# Dao Nako
 			1465 = { 
-				is_strongest_trade_power = ROOT
+				trade_share = { country = ROOT share = 50 }
 				F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } 
 			}
-			custom_trigger_tooltip = {
-				tooltip = F23_safe_sarhali_seas_trigger_tt
-				# Biya Mubidya
-				1449 = { 
-					is_strongest_trade_power = ROOT
+			# Biya Mubidya
+			1449 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } 
 				}
-				# Khazynas Gulf
-				1458 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Khazynas Gulf
+			1458 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt		
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } 
 				}
-				# Sea of Lel
-				3084 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Sea of Lel
+			3084 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } 
 				}
-				# Clovesight
-				3082 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Clovesight
+			3082 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } 
 				}
 			}
 		} 
 
 		effect = {  
+			# TODO OT, copper sheathing demand
 			add_country_modifier = { name = F23_safe_sarhali_seas_mod duration = -1 }
 			custom_tooltip = F23_safe_sarhali_seas_tt
 			hidden_effect = {
 				set_country_flag = F23_distance_negation_sarhal
+			}
+			custom_tooltip = F23_safe_sarhali_seas_tt_2
+			hidden_effect = {
+				1465 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1449 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1458 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				3084 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				3082 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
 			}
 		} 
 	}
 	
 	F23_the_path_to_haless = {
 		icon = mam_highway_empire
-		position = 12
+		position = 11
 		required_missions = { F23_safe_sarhali_seas } 
 		provinces_to_highlight = {  
 			province_id = 6000
 		} 
 
 		trigger = {  
+			any_known_country = { 
+				culture_group = baashidi
+				has_opinion = { who = ROOT value = 150 }
+			}
+			# Biya Mubidya
+			1449 = { 
+				trade_share = { country = ROOT share = 75 }
+			}
 			owns = 6000
 			OR = {
 				6000 = {
@@ -1264,6 +1337,12 @@ overseas_b = { # Code here is done. Some events, and could really do with some c
 				}
 				add_treasury = -20000
 			}
+			custom_tooltip = F23_the_path_to_haless_tt # Baashidi provinces gain 50 local autonomy.
+			hidden_effect = {
+				every_owned_province = { limit = { culture_group = baashidi }
+					add_local_autonomy = 50
+				}
+			}
 		} 
 	}
 	F23_the_copper_seaway = {
@@ -1283,62 +1362,86 @@ overseas_b = { # Code here is done. Some events, and could really do with some c
 				province_id = 1364
 				province_id = 1366
 			}
-			NOT = { is_strongest_trade_power = ROOT }
+			NOT = { trade_share = { country = ROOT share = 50 } }
 			NOT = { F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } } 
 		} 
 
 		trigger = { 
-			# TODO OT, really needs custom tooltip.
+			# TODO OT, steamer interaction
 			# Gulf of Rahen
 			1361 = { 
-				is_strongest_trade_power = ROOT
+				trade_share = { country = ROOT share = 50 }
 				F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 			}
-			custom_trigger_tooltip = {
-				tooltip = F23_safe_sarhali_seas_trigger_tt
-				# Biya Mubidya 
-				1449 = { 
-					is_strongest_trade_power = ROOT
+			# Biya Mubidya 
+			1449 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Khazynas Gulf
-				1458 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Khazynas Gulf
+			1458 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Sea of Lel
-				3084 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Sea of Lel
+			3084 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Clovesight
-				3082 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Clovesight
+			3082 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Dao Nako
-				1465 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Dao Nako
+			1465 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Coffee Coast
-				1343 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Coffee Coast
+			1343 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Dakinshi Ahunanja
-				1339 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Dakinshi Ahunanja
+			1339 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Cay Cam Sinh
-				1364 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Cay Cam Sinh
+			1364 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
-				# Arawkelin
-				1366 = { 
-					is_strongest_trade_power = ROOT
+			}
+			# Arawkelin
+			1366 = { 
+				custom_trigger_tooltip = {
+					tooltip = F23_safe_sarhali_seas_trigger_tt
+					trade_share = { country = ROOT share = 50 }
 					F23_trade_node_requirements = { expand_infra_req = 2 heavy_ship_num = 10 } 
 				}
 			}
@@ -1348,12 +1451,66 @@ overseas_b = { # Code here is done. Some events, and could really do with some c
 		} 
 
 		effect = {  
+			# TODO OT, steamer interaction
 			custom_tooltip = F23_the_copper_seaway_tt
 			hidden_effect = {
 				set_country_flag = F23_distance_negation_haless
 			}
 			remove_country_modifier = F23_safe_sarhali_seas_mod
 			add_country_modifier = { name = F23_the_copper_seaway_mod duration = -1 }
+			custom_tooltip = F23_safe_sarhali_seas_tt_2
+			hidden_effect = {
+				1465 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1449 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1458 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				3084 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				3082 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1361 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1343 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1339 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1364 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+				1366 = { 
+					random_trade_node_member_province = { limit = { F23_trade_node_requirements = { expand_infra_req = 1 heavy_ship_num = 10 } }
+						kill_units = { who = ROOT type = heavy_ship amount = 10 }
+					}
+				}
+			}
 		} 
 	}
 }
