@@ -85,7 +85,19 @@ country_event = {
 	id =  magic_duel.1
 	title =  magic_duel.1.t
 	desc =  magic_duel.1.d
-	picture = MAGIC_DUEL_ANIMATED_eventPicture
+	picture = {
+		picture = JORGUREM_FIGHT_ANIMATED_eventPicture
+		trigger = {
+			event_target:defender = { has_ruler = "Jorgurem the Frozen" }
+		}
+	}
+	
+	picture = {
+		picture = MAGIC_DUEL_ANIMATED_eventPicture
+		trigger = {
+			always = yes
+		}
+	}
 	
 	is_triggered_only = yes
 	
@@ -951,6 +963,9 @@ country_event = {
 					}
 					subtract_variable = { dotFoo = 1 }
 				}
+				multiply_variable = { mag_dot = 0.9 }
+				divide_variable = { mag_dot = 1000 }
+				multiply_variable = { mag_dot = 1000 }
 			}
 			#Heal Over Time
 			if = {
@@ -960,6 +975,9 @@ country_event = {
 					limit = { check_variable = { which = current_hp which = mag_hp } }
 					set_variable = { which = current_hp which = mag_hp }
 				}
+				multiply_variable = { mag_hot = 0.9 }
+				divide_variable = { mag_hot = 1000 }
+				multiply_variable = { mag_hot = 1000 }
 			}
 			#Damage
 			set_variable = { which = tempDam which = mag_damage }
@@ -1010,6 +1028,9 @@ country_event = {
 					}
 					subtract_variable = { dotFoo = 1 }
 				}
+				multiply_variable = { mag_dot = 0.9 }
+				divide_variable = { mag_dot = 1000 }
+				multiply_variable = { mag_dot = 1000 }
 			}
 			#Heal Over Time
 			if = {
@@ -1019,6 +1040,9 @@ country_event = {
 					limit = { check_variable = { which = current_hp which = mag_hp } }
 					set_variable = { which = current_hp which = mag_hp }
 				}
+				multiply_variable = { mag_hot = 0.9 }
+				divide_variable = { mag_hot = 1000 }
+				multiply_variable = { mag_hot = 1000 }
 			}
 			#Damage
 			set_variable = { which = tempDam which = mag_damage }
@@ -1190,7 +1214,7 @@ country_event = {
 			}
 			add_ruler_modifier = {
 				name = recent_blackpurgis_duel
-				duration = 180
+				duration = 90
 			}
 			if = {
 				limit = { event_target:attacker = { tag = Z99 } NOT = { tag = Z99 } }
@@ -1203,6 +1227,56 @@ country_event = {
 			}
 			add_prestige_excess_to_splendour_effect = { VAL=3 }
 			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_won }
+			country_event = { id = flavour_tluukt.55 } #Annex Zokka
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige_excess_to_splendour_effect = { VAL=10 }
+			if = {
+				limit = { tag = F28 } #Tluukt
+				add_ruler_modifier = { name = tluukt_wins_carodir duration = 1825 }
+				tooltip = {
+					F42 = {
+						kill_ruler = yes
+						capital_scope = {
+							change_controller = ROOT
+							every_neighbor_province = {
+								limit = { country_or_non_sovereign_subject_holds = F42 }
+								change_controller = ROOT
+							}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { tag = F42 } #Varamhar
+				capital_scope = {
+					change_controller = ROOT
+					kill_units = {
+						who = F28
+						type = infantry
+						amount = 5
+					}
+					every_neighbor_province = {
+						limit = {
+							controlled_by = F28
+							country_or_non_sovereign_subject_holds = F42
+						}
+						change_controller = ROOT
+					}
+				}
+				tooltip = {
+					F28 = {
+						kill_ruler = yes
+						add_country_modifier = { name = tluukt_loses_carodir duration = 1825 }
+					}
+				}
+			}
 		}
 		else = {
 			add_prestige_excess_to_splendour_effect = { VAL=10 }
@@ -1256,6 +1330,16 @@ country_event = {
 			}
 			add_prestige = -2.5
 			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_drew }
+			country_event = { id = flavour_tluukt.55 } #Declare war
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige = -5
 		}
 		else = {
 			add_prestige = -5
@@ -1313,6 +1397,52 @@ country_event = {
 			}
 			add_prestige = -5
 			update_blackpurgis = yes
+		}
+		else_if = { #Challenging Zokka to magical duel
+			limit = { has_country_flag = tluukt_the_challenge }
+			hidden_effect = { set_country_flag = tluukt_challenge_lost }
+			country_event = { id = flavour_tluukt.55 } #Retreat in shame, declare war
+		}
+		else_if = { #Carodir vs. Tluukt magical duel rematch
+			limit = { has_country_flag = tluukt_vs_carodir }
+			clr_country_flag = tluukt_vs_carodir
+			add_prestige = -10
+			if = {
+				limit = { tag = F42 } #Varamhar
+				kill_ruler = yes
+				capital_scope = {
+					change_controller = F28
+					every_neighbor_province = {
+						limit = { country_or_non_sovereign_subject_holds = ROOT }
+						change_controller = F28
+					}
+				}
+				tooltip = { F28 = { add_ruler_modifier = { name = tluukt_wins_carodir duration = 1825 } } }
+			}
+			else_if = {
+				limit = { tag = F28 } #Tluukt
+				kill_ruler = yes
+				add_country_modifier = { name = tluukt_loses_carodir duration = 1825 }
+				tooltip = {
+					F42 = {
+						capital_scope = {
+							change_controller = F42
+							kill_units = {
+								who = ROOT
+								type = infantry
+								amount = 5
+							}
+							every_neighbor_province = {
+								limit = {
+									controlled_by = ROOT
+									country_or_non_sovereign_subject_holds = F42
+								}
+								change_controller = F42
+							}
+						}
+					}
+				}
+			}
 		}
 		else = {
 			add_prestige = -10

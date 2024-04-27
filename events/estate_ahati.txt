@@ -1,0 +1,2601 @@
+
+###########################################################
+# Events for the Ahati Estate
+###########################################################
+
+namespace = ahati_events
+
+####
+#1-29 base system/estate required stuff
+#30-99 random flavor
+#100+ disaster
+
+
+
+#Establishing the Ahati
+country_event = {
+	id = ahati_events.1
+	title = ahati_events.1.t
+	desc = ahati_events.1.d
+	picture = DHIMMI_ESTATE_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		is_emperor_of_china = yes
+	}
+	goto = 466
+
+	option = {
+		name = ahati_events.1.a
+		if = {
+			limit = { religion_group = khetist }
+			set_estate_privilege = estate_ahati_khetist_recruitment
+		}
+		else = { set_estate_privilege = estate_ahati_non_khet_steward }
+		466 = {
+			if = {
+				limit = { NOT = { religion = aakhetist } }
+				hidden_effect = { change_religion = aakhetist }
+			}
+			add_province_modifier = { name = ahati_aakheta_base duration = -1 }
+		}
+		
+		change_estate_land_share = { estate = estate_ahati share = 10 }
+
+		#AI should do this always but it dies with no mandate
+		if = {
+			limit = { ai = yes }
+			add_mandate = 80
+			change_estate_land_share = { estate = estate_nobles share = -3 }
+			change_estate_land_share = { estate = estate_burghers share = -3 }
+			change_estate_land_share = { estate = estate_church share = -3 }
+		}
+		if = {
+			limit = { has_country_flag = free_ahati }
+			clr_country_flag = free_ahati
+			add_mandate = 70
+			add_stability = 1
+		}
+
+		hidden_effect = { country_event = { id = ahati_events.2 } }
+	}
+}
+
+#timer
+country_event = {
+	id = ahati_events.2
+	title = ahati_events.1.t
+	desc = ahati_events.1.d
+	picture = DHIMMI_ESTATE_eventPicture
+	
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		is_emperor_of_china = yes
+		NOT = {
+			has_global_flag = aakheta_crushed
+			has_global_flag = ahati_rebellion_succeeded
+			has_global_flag = ahati_rebellion_crushed
+		}
+	}
+
+	option = {
+		name = ahati_events.1.a
+		add_country_modifier = { name = ahati_disaster_timer duration = 9125 hidden = yes } #25 years
+		ai_chance = { factor = 50 }
+	}
+
+	option = {
+		name = ahati_events.1.a
+		add_country_modifier = { name = ahati_disaster_timer duration = 12775 hidden = yes } #35 years
+		ai_chance = { factor = 50 }
+	}
+}
+
+
+
+###########################################################
+# Flavor Events
+###########################################################
+#an ahati distinguishes himself
+country_event = {
+	id = ahati_events.30
+	title = ahati_events.30.t
+	desc = ahati_events.30.d
+	picture = ADVISOR_eventPicture
+	
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		estate_loyalty = { estate = estate_ahati loyalty = 30 }
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	#he will make a fine addition
+	option = {
+		name = ahati_events.30.a
+		random_list = {
+			33 = { 
+				define_advisor = {
+					type = army_organiser
+					skill = 3
+					discount = yes
+					culture = hapremiti
+					religion = aakhetist
+				}
+			}
+			33 = { 
+				define_advisor = {
+					type = trader
+					skill = 3
+					discount = yes
+					culture = hapremiti
+					religion = aakhetist
+				}
+			}
+			33 = { 
+				define_advisor = {
+					type = army_reformer
+					skill = 3
+					discount = yes
+					culture = hapremiti
+					religion = aakhetist
+				}
+			}
+		}
+	}
+}
+
+#ahati and governor are in conflict
+country_event = {
+	id = ahati_events.31
+	title = ahati_events.31.t
+	desc = ahati_events.31.d
+	picture = ACCUSATION_eventPicture
+	
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		dip_power = 80
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { region = kheterata_region }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#fix the issue
+	option = {
+		name = ahati_events.31.a
+		add_dip_power = -100
+		add_mandate = 2
+	}
+
+	#idc
+	option = {
+		name = ahati_events.31.b
+		event_target:event_province = {
+			add_unrest = 5
+			add_local_autonomy = 35
+		}
+		add_mandate = -2
+	}
+}
+
+#ahati kills drunk noble
+country_event = {
+	id = ahati_events.32
+	title = ahati_events.32.t
+	desc = ahati_events.32.d
+	picture = SEJM_eventPicture
+	
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate = estate_nobles
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	#arrest the Ahati
+	option = {
+		name = ahati_events.32.a
+		add_mil_power = -25
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+	}
+
+	#compensate the nobles
+	option = {
+		name = ahati_events.32.b
+		add_dip_power = -25
+		add_years_of_income = -1
+	}
+
+	#the noble deserved it
+	option = {
+		name = ahati_events.32.c
+		add_estate_loyalty = { estate = estate_nobles loyalty = -15 }
+	}
+}
+
+#corrupt ahati selling out caravans to bandits
+country_event = {
+	id = ahati_events.33
+	title = ahati_events.33.t
+	desc = ahati_events.33.d
+	picture = CORRUPTION_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			region = kheterata_region 
+			province_has_center_of_trade_of_level = 1
+			NOT = { has_province_modifier = ahati_corrupt_trade_route }
+		}
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					region = kheterata_region 
+					province_has_center_of_trade_of_level = 1
+					NOT = { has_province_modifier = ahati_corrupt_trade_route }
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#arrest him
+	option = {
+		name = ahati_events.33.a
+		add_estate_loyalty = { estate = estate_ahati loyalty = -5 }
+		if = {
+			limit = { has_estate = estate_burghers }
+			add_estate_loyalty = { estate = estate_burghers loyalty = 5 }
+		}
+		add_mandate = 2
+	}
+
+	#let me in on this
+	option = {
+		name = ahati_events.33.b
+		add_years_of_income = 1
+		add_corruption = 1
+		if = {
+			limit = { ruler_has_max_personalities = no NOT = { ruler_has_personality = greedy_personality } }
+			random_list = {
+				30 = { add_ruler_personality = greedy_personality }
+				70 = {}
+			}
+		}
+		event_target:event_province = { add_province_modifier = { name = ahati_corrupt_trade_route duration = 1825 } }
+	}
+}
+
+#ahati garrison a fort
+country_event = {
+	id = ahati_events.34
+	title = ahati_events.34.t
+	desc = ahati_events.34.d
+	picture = FORT_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			is_capital = no
+			has_fort_building_trigger = yes
+			OR = {
+				region = kheterata_region
+				region = gol_region
+				region = khetapera_region
+				region = akasik_region
+				region = west_salahad_region
+			}
+			NOT = { has_province_modifier = ahati_fort_garrison }
+		}
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					is_capital = no
+					has_fort_building_trigger = yes
+					OR = {
+						region = kheterata_region
+						region = gol_region
+						region = khetapera_region
+						region = akasik_region
+						region = west_salahad_region
+					}
+					NOT = { has_province_modifier = ahati_fort_garrison }
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#allow it
+	option = {
+		name = ahati_events.34.a
+		event_target:event_province = {
+			add_province_modifier = { name = ahati_fort_garrison duration = -1 }
+			add_local_autonomy = 50
+		}
+	}
+
+	#no
+	option = {
+		name = ahati_events.34.b
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+	}
+}
+
+#ahati build a barracks
+country_event = {
+	id = ahati_events.35
+	title = ahati_events.35.t
+	desc = ahati_events.35.d
+	picture = MILITARY_CAMP_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			is_capital = no
+			has_manpower_building_trigger = no
+			OR = {
+				region = kheterata_region
+				region = gol_region
+				region = khetapera_region
+				region = akasik_region
+				region = west_salahad_region
+			}
+			NOT = { has_province_flag = ahati_barracks }
+		}
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					is_capital = no
+					has_manpower_building_trigger = no
+					OR = {
+						region = kheterata_region
+						region = gol_region
+						region = khetapera_region
+						region = akasik_region
+						region = west_salahad_region
+					}
+					NOT = { has_province_flag = ahati_barracks }
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#allow it
+	option = {
+		name = ahati_events.35.a
+		event_target:event_province = { add_building_construction = { building = barracks cost = 0.5 speed = 1 } set_province_flag = ahati_barracks }
+		add_prestige = -10
+	}
+
+	#no
+	option = {
+		name = ahati_events.35.b
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+	}
+}
+
+#ahati establish themselves in a CoT
+country_event = {
+	id = ahati_events.36
+	title = ahati_events.36.t
+	desc = ahati_events.36.d
+	picture = FORTIFIED_CITY_WITH_CARAVAN_OUTSIDE_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			is_capital = no
+			province_has_center_of_trade_of_level = 1
+			OR = {
+				region = kheterata_region
+				region = gol_region
+				region = khetapera_region
+				region = akasik_region
+				region = west_salahad_region
+			}
+			NOT = { has_province_modifier = ahati_cot }
+		}
+		NOT = { 
+			has_country_flag = ahati_disaster_start
+			has_global_flag = aakheta_released 
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					is_capital = no
+					province_has_center_of_trade_of_level = 1
+					OR = {
+						region = kheterata_region
+						region = gol_region
+						region = khetapera_region
+						region = akasik_region
+						region = west_salahad_region
+					}
+					NOT = { has_province_modifier = ahati_cot }
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#allow it
+	option = {
+		name = ahati_events.36.a
+		event_target:event_province = { 
+			add_province_modifier = { name = ahati_cot duration = -1 } 
+			add_local_autonomy = 15
+		}
+		add_treasury = -25
+	}
+
+	#no
+	option = {
+		name = ahati_events.36.b
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+	}
+}
+
+#regicide
+country_event = {
+	id = ahati_events.37
+	title = ahati_events.37.t
+	desc = ahati_events.37.d
+	picture = ASSASSINATION_eventPicture
+
+	mean_time_to_happen = {
+		years = 40
+		modifier = {
+			factor = 0.9
+			NOT = { imperial_mandate = 80 }
+		}
+		modifier = {
+			factor = 0.9
+			NOT = { imperial_mandate = 60 }
+		}
+		modifier = {
+			factor = 0.9
+			NOT = { estate_loyalty = { estate = estate_ahati loyalty = 20 } }
+		}
+		modifier = {
+			factor = 0.8
+			OR = {
+				ruler_has_personality = embezzler_personality
+				ruler_has_personality = drunkard_personality
+				ruler_has_personality = sinner_personality
+				ruler_has_personality = greedy_personality
+				ruler_has_personality = cruel_personality
+				ruler_has_personality = malevolent_personality
+				ruler_has_personality = petty_personality
+				ruler_has_personality = craven_personality
+			}
+		}
+		modifier = {
+			factor = 0.8
+			culture_group = gnollish
+		}
+		modifier = {
+			factor = 1.3
+			has_global_flag = ahati_rebellion_crushed
+		}
+	}
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		estate_influence = { estate = estate_ahati influence = 60 }
+		NOT = { estate_loyalty = { estate = estate_ahati loyalty = 30 } }
+		OR = {
+			government = monarchy
+			government = theocracy
+		}
+		NOT = { tag = U04 }
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.37.a
+		kill_ruler = yes
+		add_mandate = -20
+	}
+}
+
+#ahati buying up all the calligraphy
+country_event = {
+	id = ahati_events.38
+	title = ahati_events.38.t
+	desc = ahati_events.38.d
+	picture = INVENTION_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			region = kheterata_region
+			has_gnomish_minority_trigger = yes
+		}
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	#issue a temporary ban
+	option = {
+		name = ahati_events.38.a
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_loyalty = { estate = estate_nobles loyalty = 5 }
+		}
+		if = {
+			limit = { has_estate = estate_burghers }
+			add_estate_loyalty = { estate = estate_burghers loyalty = 5 }
+		}
+		if = {
+			limit = { has_estate = estate_church }
+			add_estate_loyalty = { estate = estate_church loyalty = 5 }
+		}
+		if = {
+			limit = { has_estate = estate_mages }
+			add_estate_loyalty = { estate = estate_mages loyalty = 5 }
+		}
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+		small_decrease_of_gnomish_tolerance_effect = yes
+	}
+
+	#just be rich smh
+	option = {
+		name = ahati_events.38.b
+		add_prestige = 10
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_loyalty = { estate = estate_nobles loyalty = -5 }
+		}
+		if = {
+			limit = { has_estate = estate_burghers }
+			add_estate_loyalty = { estate = estate_burghers loyalty = -5 }
+		}
+		if = {
+			limit = { has_estate = estate_church }
+			add_estate_loyalty = { estate = estate_church loyalty = -5 }
+		}
+		if = {
+			limit = { has_estate = estate_mages }
+			add_estate_loyalty = { estate = estate_mages loyalty = -5 }
+		}
+	}
+}
+
+#ahati and noble argue over inheritance
+country_event = {
+	id = ahati_events.39
+	title = ahati_events.39.t
+	desc = ahati_events.39.d
+	picture = DHIMMI_ESTATE_ANGRY_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate = estate_nobles
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	#give it to the ahati
+	option = {
+		name = ahati_events.39.a
+		add_estate_loyalty = { estate = estate_ahati loyalty = 5 }
+		add_estate_loyalty = { estate = estate_nobles loyalty = -10 }
+		change_estate_land_share = { estate = estate_nobles share = -1 }
+		change_estate_land_share = { estate = estate_ahati share = 1 }
+	}
+
+	#give it to the noble
+	option = {
+		name = ahati_events.39.b
+		add_estate_loyalty = { estate = estate_nobles loyalty = 5 }
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+		change_estate_land_share = { estate = estate_ahati share = -1 }
+		change_estate_land_share = { estate = estate_nobles share = 1 }
+	}
+
+	#take it for the state
+	option = {
+		name = ahati_events.39.c
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+		add_estate_loyalty = { estate = estate_nobles loyalty = -10 }
+		random_list = {
+			50 = { change_estate_land_share = { estate = estate_ahati share = -1 } }
+			50 = { change_estate_land_share = { estate = estate_nobles share = -1 } }
+		}
+	}
+}
+
+#ahati do really well in foreign markets
+country_event = {
+	id = ahati_events.40
+	title = ahati_events.40.t
+	desc = ahati_events.40.d
+	picture = WESTERNISATION_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_active_trade_node = {
+			OR = {
+				NOT = { continent = africa }
+				superregion = bulwar_superregion
+			}
+			has_merchant = PREV
+		}
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_active_trade_node = {
+				limit = {
+					OR = {
+						NOT = { continent = africa }
+						superregion = bulwar_superregion
+					}
+					has_merchant = PREV
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#reward them
+	option = {
+		name = ahati_events.40.a
+		add_years_of_income = -0.2
+		add_dip_power = -25
+		add_estate_loyalty = { estate = estate_ahati loyalty = 10 }
+		add_estate_influence_modifier = { estate = estate_ahati influence = 10 duration = 3650 desc = ahati_trade_influence_modifier }
+		event_target:event_province = { add_trade_modifier = { who = ROOT power = 15 duration = 3650 key = ahati_merchant }	}
+	}
+
+	#good job
+	option = {
+		name = ahati_events.40.b
+		add_estate_influence_modifier = { estate = estate_ahati influence = 10 duration = 3650 desc = ahati_trade_influence_modifier }
+		event_target:event_province = { add_trade_modifier = { who = ROOT power = 10 duration = 3650 key = ahati_merchant }	}
+	}
+}
+
+#ahati attack gnolls in a province
+country_event = {
+	id = ahati_events.41
+	title = ahati_events.41.t
+	desc = ahati_events.41.d
+	picture = IMPALED_SOLDIERS_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		any_owned_province = {
+			OR = {
+				culture_group = gnollish
+				has_gnollish_minority_trigger = yes
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					OR = {
+						culture_group = gnollish
+						has_gnollish_minority_trigger = yes
+					}
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#stop them
+	option = {
+		name = ahati_events.41.a
+		if = {
+			limit = { event_target:event_province = { culture_group = gnollish } }
+			add_mil_power = -50
+			add_yearly_manpower = -0.25
+			add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+		}
+		else = {
+			add_mil_power = -25
+			add_yearly_manpower = -0.15
+			add_estate_loyalty = { estate = estate_ahati loyalty = -5 }
+		}
+	}
+
+	#let them
+	option = {
+		name = ahati_events.41.b
+		trigger = { NOT = { culture_group = gnollish } }
+		add_mandate = -2
+		medium_decrease_of_gnollish_tolerance_effect = yes
+		event_target:event_province = {
+			if = {
+				limit = { culture_group = gnollish }
+				change_culture = hapremiti
+				if = {
+					limit = { religion_group = gnollish }
+					change_religion = ROOT
+				}
+				add_devastation = 50
+				add_local_autonomy = 25
+			}
+			else = { remove_gnollish_minority_size_effect = yes add_devastation = 15 }
+		}
+	}
+
+	#try to work it out
+	option = {
+		name = ahati_events.41.c
+		trigger = { culture_group = gnollish }
+		highlight = yes
+		add_mandate = -2
+		add_dip_power = -75
+		small_increase_of_human_tolerance_effect = yes
+		event_target:event_province = { add_unrest = 8 }
+	}
+}
+
+#soldiers join ahati
+country_event = {
+	id = ahati_events.42
+	title = ahati_events.42.t
+	desc = ahati_events.42.d
+	picture = DISCIPLINED_SOLDIERS_eventPicture
+	
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		estate_influence = { estate = estate_ahati influence = 40 }
+		years_of_manpower = 2
+		NOT = { has_disaster = ahati_disaster }
+	}
+
+	#let them
+	option = {
+		name = ahati_events.42.a
+		add_yearly_manpower = -2
+		add_army_tradition = -5
+	}
+	#discipline them
+	option = {
+		name = ahati_events.42.b
+		add_mil_power = -50
+		add_estate_loyalty = { estate = estate_ahati loyalty = -10 }
+	}
+}
+
+
+
+###########################################################
+# Disaster
+###########################################################
+
+#timer start
+country_event = {
+	id = ahati_events.100
+	title = ahati_events.100.t
+	desc = ahati_events.100.d
+	picture = ASSASSINATION_eventPicture
+
+	fire_only_once = yes
+	mean_time_to_happen = {
+		years = 30
+		modifier = {
+			factor = 0.9
+			NOT = { imperial_mandate = 80 }
+		}
+		modifier = {
+			factor = 0.9
+			NOT = { imperial_mandate = 60 }
+		}
+		modifier = {
+			factor = 0.8
+			NOT = { estate_loyalty = { estate = estate_ahati loyalty = 30 } }
+		}
+		modifier = {
+			factor = 0.8
+			OR = {
+				ruler_has_personality = embezzler_personality
+				ruler_has_personality = drunkard_personality
+				ruler_has_personality = sinner_personality
+				ruler_has_personality = greedy_personality
+				ruler_has_personality = cruel_personality
+				ruler_has_personality = malevolent_personality
+				ruler_has_personality = petty_personality
+				ruler_has_personality = craven_personality
+			}
+		}
+		modifier = {
+			factor = 0.8
+			culture_group = gnollish
+		}
+		modifier = {
+			factor = 0.8
+			total_development = 500
+		}
+		modifier = {
+			factor = 0.8
+			estate_influence = { estate = estate_ahati influence = 50 }
+		}
+		modifier = {
+			factor = 0.8
+			estate_influence = { estate = estate_ahati influence = 70 }
+		}
+	}
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		NOT = { has_country_modifier = ahati_disaster_timer }
+		is_year = 1500 #at least
+		total_development = 400
+		estate_influence = { estate = estate_ahati influence = 40 }
+	}
+
+	immediate = {
+		hidden_effect = { add_country_modifier = { name = rising_ahati_threat duration = -1 hidden = yes } } #to prevent revoking bad privileges early
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.100.a
+		kill_ruler = yes
+		add_mandate = -20
+
+		custom_tooltip = ahati_events.100.tooltip
+		set_country_flag = ahati_disaster_start
+	}
+}
+
+#disaster start
+country_event = {
+	id = ahati_events.101
+	title = ahati_events.101.t
+	desc = ahati_events.101.d
+	picture = BAD_WITH_MONARCH_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.101.a
+		add_disaster_modifier = { name = ahati_disaster_regiments duration = -1 disaster = ahati_disaster }
+
+		custom_tooltip = ahati_events.101.tooltip
+
+		if = {
+			limit = { has_estate_privilege = estate_ahati_khetist_recruitment }
+			remove_estate_privilege = estate_ahati_khetist_recruitment
+		}
+		else = { remove_estate_privilege = estate_ahati_non_khet_steward }
+		set_estate_privilege = estate_ahati_rebellious
+		change_estate_land_share = { estate = estate_ahati share = 15 }
+
+		466 = { add_core = U04 } #aakheta
+		464 = { add_core = U04 } #hapkes
+		467 = { add_core = U04 } #puhuu
+
+		hidden_effect = { 
+			if = {
+				limit = { 466 = { has_great_project = { type = bronze_dragon_academy } } }
+				466 = { province_event = { id = ahati_events.102 days = 10 } }
+			}
+			if = {
+				limit = { has_country_flag = current_aakhet_host }
+				country_event = { id = ahati_events.103 days = 5 }
+			}
+			country_event = { id = ahati_events.110 days = 40 } #privileges, disabled for AI
+			country_event = { id = ahati_events.170 days = 1825 } #5 years
+			remove_country_modifier = rising_ahati_threat
+		}
+	}
+}
+
+#academy fortifications
+province_event = {
+	id = ahati_events.102
+	title = ahati_events.102.t
+	desc = ahati_events.102.d
+	picture = muslimgfx_GREAT_BUILDING_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { is_emperor_of_china = yes }
+	}
+	goto = ROOT
+
+	option = {
+		name = ahati_events.102.a
+		if = {
+			limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+			add_latest_building = { builder = ROOT fort = yes }
+		}
+		if = {
+			limit = { NOT = { has_building = ramparts } }
+			add_building = ramparts
+		}
+		add_province_modifier = { name = ahati_academy_forts duration = -1 } 
+		add_local_autonomy = 50
+	}
+}
+
+#Aakhet sits out
+country_event = {
+	id = ahati_events.103
+	title = ahati_events.103.t
+	desc = ahati_events.103.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_country_flag = current_aakhet_host
+	}
+
+	immediate = {
+		hidden_effect = { add_church_power = -200 }
+	}
+
+	#aakhet says skill issue
+	option = {
+		name = ahati_events.103.a
+		add_church_power = -200
+		add_country_modifier = { name = ahati_aakhet_skill_issue duration = -1 }
+	}
+}
+
+
+
+
+#privilege replacer control event
+country_event = {
+	id = ahati_events.110
+	title = ahati_events.101.t
+	desc = ahati_events.101.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		ai = no
+	}
+
+	#give event
+	option = {
+		name = ahati_events.101.a
+		trigger = {
+			OR = {
+				has_estate_privilege = estate_ahati_noble_titles
+				has_estate_privilege = estate_ahati_meritocratic_recruitment
+				has_estate_privilege = estate_ahati_ahati_commanders
+				has_estate_privilege = estate_ahati_ahati_education
+				has_estate_privilege = estate_ahati_guaranteed_privileges
+				has_estate_privilege = estate_ahati_sponsor_guilds
+				has_estate_privilege = estate_ahati_ahati_overseers
+			}
+		}
+		random_list = {
+			1 = {}
+
+			500 = { 
+				trigger = { has_estate_privilege = estate_ahati_noble_titles }
+				country_event = { id = ahati_events.111 }
+			}
+			500 = { 
+				trigger = { has_estate_privilege = estate_ahati_meritocratic_recruitment }
+				country_event = { id = ahati_events.112 }
+			}
+			500 = { 
+				trigger = { has_estate_privilege = estate_ahati_ahati_commanders }
+				country_event = { id = ahati_events.113 }
+			}
+			500 = { 
+				trigger = { has_estate_privilege = estate_ahati_ahati_education }
+				country_event = { id = ahati_events.114 }
+			}
+			500 = { 
+				trigger = { OR = { has_estate_privilege = estate_ahati_guaranteed_privileges has_estate_privilege = estate_ahati_sponsor_guilds } }
+				country_event = { id = ahati_events.115 }
+			}
+			500 = { 
+				trigger = { has_estate_privilege = estate_ahati_ahati_overseers }
+				country_event = { id = ahati_events.116 }
+			}
+		}
+
+
+	}
+
+	#stop
+	option = {
+		name = ahati_events.101.a
+		trigger = {
+			NOT = {
+				has_estate_privilege = estate_ahati_noble_titles
+				has_estate_privilege = estate_ahati_meritocratic_recruitment
+				has_estate_privilege = estate_ahati_ahati_commanders
+				has_estate_privilege = estate_ahati_ahati_education
+				has_estate_privilege = estate_ahati_guaranteed_privileges
+				has_estate_privilege = estate_ahati_sponsor_guilds
+				has_estate_privilege = estate_ahati_ahati_overseers
+			}
+		}
+		ai_chance = { factor = 5 }
+	}
+}
+
+#disloyal nobility
+country_event = {
+	id = ahati_events.111
+	title = ahati_events.111.t
+	desc = ahati_events.111.d
+	picture = NOBLE_ESTATE_TAKE_OVER_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate_privilege = estate_ahati_noble_titles
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.111.a
+		remove_estate_privilege = estate_ahati_noble_titles
+		set_estate_privilege = estate_ahati_disloyal_nobility
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+#seditious regiments
+country_event = {
+	id = ahati_events.112
+	title = ahati_events.112.t
+	desc = ahati_events.112.d
+	picture = NOT_DISCIPLINED_SOLDIERS_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate_privilege = estate_ahati_meritocratic_recruitment
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.112.a
+		remove_estate_privilege = estate_ahati_meritocratic_recruitment
+		set_estate_privilege = estate_ahati_seditious_regiments
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+#independent commanders
+country_event = {
+	id = ahati_events.113
+	title = ahati_events.113.t
+	desc = ahati_events.113.d
+	picture = SCOTTISH_MERCENARIES_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate_privilege = estate_ahati_ahati_commanders
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.113.a
+		remove_estate_privilege = estate_ahati_ahati_commanders
+		set_estate_privilege = estate_ahati_independent_leadership
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+#untrustworthy advisors
+country_event = {
+	id = ahati_events.114
+	title = ahati_events.114.t
+	desc = ahati_events.114.d
+	picture = SPY_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate_privilege = estate_ahati_ahati_education
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.114.a
+		remove_estate_privilege = estate_ahati_ahati_education
+		set_estate_privilege = estate_ahati_untrustworthy_advisors
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+#autonomous sectors
+country_event = {
+	id = ahati_events.115
+	title = ahati_events.115.t
+	desc = ahati_events.115.d
+	picture = MERCHANTS_ARGUING_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		OR = {
+			has_estate_privilege = estate_ahati_guaranteed_privileges
+			has_estate_privilege = estate_ahati_sponsor_guilds
+		}
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.115.a
+		if = {
+			limit = { has_estate_privilege = estate_ahati_guaranteed_privileges }
+			remove_estate_privilege = estate_ahati_guaranteed_privileges
+		}
+		if = {
+			limit = { has_estate_privilege = estate_ahati_sponsor_guilds }
+			remove_estate_privilege = estate_ahati_sponsor_guilds
+		}
+		set_estate_privilege = estate_ahati_autonomous_sectors
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+#unruly subjects
+country_event = {
+	id = ahati_events.116
+	title = ahati_events.116.t
+	desc = ahati_events.116.d
+	picture = TRIBUTARY_FLEET_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+		has_estate_privilege = estate_ahati_ahati_overseers
+	}
+
+	#oh shit
+	option = {
+		name = ahati_events.116.a
+		remove_estate_privilege = estate_ahati_ahati_overseers
+		set_estate_privilege = estate_ahati_unruly_subjects
+
+		hidden_effect = { country_event = { id = ahati_events.110 days = 20 random = 20 } }
+	}
+}
+
+
+
+#aakheta cores event manager
+country_event = {
+	id = ahati_events.130
+	title = ahati_events.101.t
+	desc = ahati_events.101.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		any_owned_province = {
+			OR = {
+				has_province_modifier = ahati_fort_garrison
+				has_province_modifier = ahati_cot
+				has_province_flag = ahati_barracks
+			}
+			NOT = { is_core = U04 }
+		}
+		NOT = { has_global_flag = aakheta_released }
+	}
+
+	option = {
+		name = ahati_events.101.a
+		trigger = { any_owned_province = { has_province_modifier = ahati_fort_garrison } }
+		random_owned_province = {
+			limit = { has_province_modifier = ahati_fort_garrison NOT = { is_core = U04 } }
+			province_event = { id = ahati_events.131 }
+		}
+		ai_chance = { factor = 33 }
+	}
+	option = {
+		name = ahati_events.101.a
+		trigger = { any_owned_province = { has_province_modifier = ahati_cot NOT = { is_core = U04 } } }
+		random_owned_province = {
+			limit = { has_province_modifier = ahati_cot NOT = { is_core = U04 } }
+			province_event = { id = ahati_events.132 }
+		}
+		ai_chance = { factor = 33 }
+	}
+	option = {
+		name = ahati_events.101.a
+		trigger = { any_owned_province = { has_province_flag = ahati_barracks NOT = { is_core = U04 } } }
+		random_owned_province = {
+			limit = { has_province_flag = ahati_barracks NOT = { is_core = U04 } }
+			province_event = { id = ahati_events.133 }
+		}
+		ai_chance = { factor = 33 }
+	}
+}
+
+#fort
+province_event = {
+	id = ahati_events.131
+	title = ahati_events.131.t
+	desc = ahati_events.131.d
+	picture = FORT_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { is_emperor_of_china = yes }
+	}
+	goto = ROOT
+
+	option = {
+		name = ahati_events.131.a
+		add_core = U04
+		set_province_flag = ahati_fort
+		ai_chance = { factor = 33 }
+	}
+}
+#cot
+province_event = {
+	id = ahati_events.132
+	title = ahati_events.132.t
+	desc = ahati_events.132.d
+	picture = BANKRUPTCY_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { is_emperor_of_china = yes }
+	}
+	goto = ROOT
+
+	option = {
+		name = ahati_events.132.a
+		add_core = U04
+		set_province_flag = ahati_cot
+		ai_chance = { factor = 33 }
+	}
+}
+#barracks
+province_event = {
+	id = ahati_events.133
+	title = ahati_events.133.t
+	desc = ahati_events.133.d
+	picture = MILITARY_CAMP_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { is_emperor_of_china = yes }
+	}
+	goto = ROOT
+
+	option = {
+		name = ahati_events.133.a
+		add_core = U04
+		ai_chance = { factor = 33 }
+	}
+}
+
+######Random events
+#governor supports ahati
+country_event = {
+	id = ahati_events.150
+	title = ahati_events.150.t
+	desc = ahati_events.150.d
+	picture = ADVISOR_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 0.5
+			num_of_owned_provinces_with = {
+				value = 10
+				is_core = U04
+			}
+		}
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		any_owned_province = {
+			OR = {
+				region = kheterata_region
+				region = akasik_region
+				region = gol_region
+			}
+			is_potential_aakheta_core = no
+		}
+		NOT = { has_global_flag = aakheta_released }
+		ai = no
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					OR = {
+						region = kheterata_region
+						region = akasik_region
+						region = gol_region
+					}
+					is_potential_aakheta_core = no
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#shit
+	option = {
+		name = ahati_events.150.a
+		event_target:event_province = { add_core = U04 }
+		ai_chance = { factor = 50 }
+	}
+}
+
+#corrupt general
+country_event = {
+	id = ahati_events.151
+	title = ahati_events.151.t
+	desc = ahati_events.151.d
+	picture = SCOTTISH_MERCENARIES_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 1.5
+			has_global_flag = aakheta_crushed
+		}
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		OR = {
+			num_of_generals = 3
+			AND = {
+				num_of_generals = 2
+				NOT = {
+					AND = {
+						is_monarch_leader = yes
+						is_heir_leader = yes
+					}
+				}
+			}
+			AND = {
+				num_of_generals = 1
+				NOT = {
+					is_monarch_leader = yes
+					is_heir_leader = yes
+				}
+			}
+		}
+		NOT = { has_global_flag = aakheta_released }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	
+	#kill him
+	option = {
+		name = ahati_events.151.a
+		kill_leader = { type = general }
+		add_army_tradition = -3
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 50 }
+	}
+	#do nothing
+	option = {
+		name = ahati_events.151.b
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+#beg the khetarch
+country_event = {
+	id = ahati_events.152
+	title = ahati_events.152.t
+	desc = ahati_events.152.d
+	picture = CATHOLIC_RULERS_PRAYING_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 1.5
+			has_global_flag = aakheta_crushed
+		}
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		meritocracy = 5
+	}
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+	
+	#kick them out
+	option = {
+		name = ahati_events.152.a
+		add_meritocracy = -5
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 50 }
+	}
+	option = {
+		name = ahati_events.152.b
+		add_prestige = 15
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+#ally offers aid
+country_event = {
+	id = ahati_events.153
+	title = ahati_events.153.t
+	desc = ahati_events.153.d
+	picture = CONQUEST_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 1.5
+			has_global_flag = aakheta_crushed
+		}
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		num_of_allies = 1
+	}
+	immediate = {
+		hidden_effect = {
+			random_ally = { save_event_target_as = event_country }
+			random_owned_province = {
+				limit = { is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	
+	#thanks
+	option = {
+		name = ahati_events.153.a
+		event_target:event_country = { add_favors = { who = ROOT amount = 10 } }
+		add_prestige = -10
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 50 }
+	}
+	#no way
+	option = {
+		name = ahati_events.153.b
+		event_target:event_country = { add_trust = { who = ROOT value = -5 } }
+		if = {
+			limit = { NOT = { has_global_flag = aakheta_released } }
+			event_target:event_province = { add_core = U04 }
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+#pirate raids
+country_event = {
+	id = ahati_events.154
+	title = ahati_events.154.t
+	desc = ahati_events.154.d
+	picture = BARBARY_PIRATES_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 1.5
+			has_global_flag = aakheta_crushed
+		}
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		any_owned_province = {
+			has_port = yes
+			superregion = north_salahad_superregion
+			is_potential_aakheta_core = no
+		}
+	}
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						U07 = { exists = yes num_of_ports = 1 } #viakkoc
+						U10 = { exists = yes num_of_ports = 1 } #brrtekuh
+						F28 = { exists = yes num_of_ports = 1 } #tluukt
+						F29 = { exists = yes num_of_ports = 1 } #zokka
+					}
+				}
+				random_country = {
+					limit = {
+						OR = {
+							tag = U07
+							tag = U10
+							tag = F28
+							tag = F29
+						}
+						num_of_ports = 1
+					}
+					save_event_target_as = event_country
+				}
+			}
+			else_if = {
+				limit = { any_rival_country = { exists = yes } }
+				random_rival_country = {
+					save_event_target_as = event_country
+				}
+			}
+			random_owned_province = {
+				limit = { has_port = yes superregion = north_salahad_superregion is_potential_aakheta_core = no }
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	
+	#fight them off
+	option = {
+		name = ahati_events.154.a
+		if = {
+			limit = { ai = yes }
+			add_yearly_sailors = -1.25
+			add_yearly_manpower = -0.5
+		}
+		else = {
+			add_yearly_sailors = -1.5
+			add_yearly_manpower = -1
+		}
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 75 }
+	}
+	#oh shit
+	option = {
+		name = ahati_events.154.b
+		event_target:event_province = {
+			add_devastation = 15
+			remove_loot = { who = event_target:event_country amount = 100 }
+			if = {
+				limit = { NOT = { has_global_flag = aakheta_released } }
+				add_core = U04
+			}
+		}
+		ai_chance = { factor = 25 }
+	}
+}
+
+#gnomes are selling them gems
+country_event = {
+	id = ahati_events.155
+	title = ahati_events.155.t
+	desc = ahati_events.155.d
+	picture = CORRUPTION_eventPicture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		any_owned_province = {
+			region = kheterata_region
+			has_gnomish_minority_trigger = yes
+			is_potential_aakheta_core = no
+		}
+		NOT = { has_global_flag = aakheta_released }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					region = kheterata_region
+					has_gnomish_minority_trigger = yes
+					is_potential_aakheta_core = no
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#arrest the gnomes
+	option = {
+		name = ahati_events.155.a
+		small_decrease_of_gnomish_tolerance_effect = yes
+		if = {
+			limit = { ai = yes }
+			event_target:event_province = { spawn_rebels = { type = ahati_rebels size = 0.75 } }
+		}
+		else = { event_target:event_province = { spawn_rebels = { type = ahati_rebels size = 1.5 } } }
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 50 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.155.b
+		if = {
+			limit = { has_estate = estate_burghers }
+			add_estate_loyalty = { estate = estate_burghers loyalty = -5 }
+		}
+		if = {
+			limit = { has_estate = estate_mages }
+			add_estate_loyalty = { estate = estate_mages loyalty = -5 }
+		}
+		event_target:event_province = { add_core = U04 }
+		ai_chance = { factor = 50 }
+	}
+}
+
+#southern brotherhoods send aid
+country_event = {
+	id = ahati_events.156
+	title = ahati_events.156.t
+	desc = ahati_events.156.d
+	picture = CARAVAN_EVENT_Picture
+
+	is_triggered_only = yes
+
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		any_owned_province = {
+			OR = {
+				area = golkora_stretch_area
+				area = hapmot_area
+			}
+			is_potential_aakheta_core = no
+		}
+		NOT = { has_global_flag = aakheta_released }
+	}
+
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { 
+					OR = {
+						area = golkora_stretch_area
+						area = hapmot_area
+					}
+					is_potential_aakheta_core = no
+				}
+				save_event_target_as = event_province
+			}
+		}
+	}
+	goto = event_province
+
+	#stop them
+	option = {
+		name = ahati_events.156.a
+		if = {
+			limit = { ai = yes }
+			add_adm_power = -25
+			add_mil_power = -25
+		}
+		else = {
+			add_corruption = 0.5
+			add_adm_power = -50
+			add_mil_power = -50
+		}
+		reduce_ahati_influence_disaster_effect = { VAL = -4 }
+		ai_chance = { factor = 75 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.156.b
+		event_target:event_province = { 
+			add_local_autonomy = 50
+			add_base_tax = -1
+			add_base_production = -1
+			add_core = U04
+		}
+		ai_chance = { factor = 25 }
+	}
+}
+
+#granary seizing
+country_event = {
+	id = ahati_events.157
+	title = ahati_events.157.t
+	desc = ahati_events.157.d
+	picture = FARMING_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		mothers_delta_area = { type = all country_or_subject_holds = ROOT }
+		coast_of_tears_area = { type = all country_or_subject_holds = ROOT }
+		NOT = { has_global_flag = aakheta_released }
+		ai = no
+	}
+	goto = 466
+
+	#stop them
+	option = {
+		name = ahati_events.157.a
+		466 = { spawn_rebels = { type = ahati_rebels size = 3 win = yes } }
+		464 = { spawn_rebels = { type = ahati_rebels size = 2 win = yes } }
+		467 = { spawn_rebels = { type = ahati_rebels size = 2 win = yes } }
+		468 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+		coast_of_tears_area = { spawn_rebels = { type = ahati_rebels size = 1 } }
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
+		ai_chance = { factor = 50 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.157.b
+		add_years_of_income = -4
+		468 = { add_core = U04 }
+		coast_of_tears_area = { add_core = U04 }
+		ai_chance = { factor = 50 }
+	}
+}
+
+#anarat looting
+country_event = {
+	id = ahati_events.158
+	title = ahati_events.158.t
+	desc = ahati_events.158.d
+	picture = PLAGUE_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		owns_or_non_sovereign_subject_of = 469
+		NOT = { has_global_flag = aakheta_released }
+	}
+	goto = 469
+
+	#stop them
+	option = {
+		name = ahati_events.158.a
+		469 = { 
+			spawn_rebels = { type = ahati_rebels size = 4 }
+			spawn_rebels = { type = ahati_rebels size = 2 }
+			spawn_rebels = { type = ahati_rebels size = 2 }
+			add_devastation = 25
+		}
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
+		ai_chance = { factor = 0 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.158.b
+		469 = { 
+			add_core = U04
+			add_devastation = 50
+			add_base_tax = -2
+			add_base_production = -2
+		}
+		ai_chance = { factor = 50 }
+	}
+}
+
+#nirat desecration
+country_event = {
+	id = ahati_events.159
+	title = ahati_events.159.t
+	desc = ahati_events.159.d
+	picture = NOT_DISCIPLINED_SOLDIERS_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		owns_or_non_sovereign_subject_of = 473
+		NOT = { has_global_flag = aakheta_released }
+	}
+	goto = 473
+
+	#stop them
+	option = {
+		name = ahati_events.159.a
+		if = {
+			limit = { ai = yes }
+			473 = { 
+				spawn_rebels = { type = ahati_rebels size = 1 }
+				add_devastation = 25
+			}
+			472 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+			491 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+		}
+		else = {
+			473 = { 
+				spawn_rebels = { type = ahati_rebels size = 4 }
+				add_devastation = 25
+			}
+			472 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+			491 = { spawn_rebels = { type = ahati_rebels size = 2 } }
+		}
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
+		ai_chance = { factor = 90 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.159.b
+		473 = { 
+			add_core = U04
+			add_devastation = 50
+			if = {
+				limit = { has_building = cathedral }
+				remove_building = cathedral
+			}
+			else_if = {
+				limit = { has_building = temple }
+				remove_building = temple
+			}
+		}
+		472 = { add_core = U04 }
+		491 = { add_core = U04 }
+		if = {
+			limit = { has_estate = estate_church }
+			add_estate_loyalty = { estate = estate_church loyalty = -20 }
+		}
+		ai_chance = { factor = 10 }
+	}
+}
+
+#gnoll extermination
+country_event = {
+	id = ahati_events.160
+	title = ahati_events.160.t
+	desc = ahati_events.160.d
+	picture = IMPALED_SOLDIERS_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	mean_time_to_happen = {
+		days = 1
+	}
+	trigger = {
+		is_emperor_of_china = yes
+		culture_group = gnollish
+		num_of_owned_provinces_with = {
+			value = 4
+			culture_group = gnollish
+		}
+		NOT = { has_global_flag = aakheta_released }
+	}
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = { culture_group = gnollish }
+				save_event_target_as = event_province1
+			}
+			random_owned_province = {
+				limit = { culture_group = gnollish NOT = { province_id = event_target:event_province1 } }
+				save_event_target_as = event_province2
+			}
+			random_owned_province = {
+				limit = { culture_group = gnollish NOT = { province_id = event_target:event_province1 province_id = event_target:event_province2 } }
+				save_event_target_as = event_province3
+			}
+			random_owned_province = {
+				limit = { culture_group = gnollish NOT = { province_id = event_target:event_province1 province_id = event_target:event_province2 province_id = event_target:event_province3 } }
+				save_event_target_as = event_province4
+			}
+		}
+	}
+
+	#stop them
+	option = {
+		name = ahati_events.160.a
+		if = {
+			limit = { ai = yes }
+			capital_scope = { spawn_rebels = { type = ahati_rebels size = 2 } }
+			event_target:event_province1 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+			event_target:event_province2 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+			event_target:event_province3 = { spawn_rebels = { type = ahati_rebels size = 1 } }
+		}
+		else = {
+			capital_scope = { spawn_rebels = { type = ahati_rebels size = 4 } }
+			event_target:event_province1 = { spawn_rebels = { type = ahati_rebels size = 3 } }
+			event_target:event_province2 = { spawn_rebels = { type = ahati_rebels size = 3 } }
+			event_target:event_province3 = { spawn_rebels = { type = ahati_rebels size = 3 } }
+			event_target:event_province4 = { spawn_rebels = { type = ahati_rebels size = 3 } }
+		}
+		reduce_ahati_influence_disaster_effect = { VAL = -15 }
+		ai_chance = { factor = 50 }
+	}
+	#leave them
+	option = {
+		name = ahati_events.160.b
+		capital_scope = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		event_target:event_province1 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		event_target:event_province2 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		event_target:event_province3 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		event_target:event_province4 = { add_devastation = 50 add_base_tax = -1 add_base_production = -1 add_base_manpower = -1 }
+		add_mandate = -10
+		ai_chance = { factor = 0 }
+	}
+}
+
+
+#rise of aakheta
+country_event = {
+	id = ahati_events.170
+	title = ahati_events.170.t
+	desc = ahati_events.170.d
+	picture = RELIGIOUS_WARS_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_estate = estate_ahati
+	}
+
+	immediate = {
+		hidden_effect = {
+			set_global_flag = aakheta_released
+			U04 = { every_core_province = { change_religion = aakhetist } }
+			release_with_religion_and_culture = { tag = U04 religion = aakhetist culture = hapremiti }
+			U04 = {
+				#base setup
+				change_government = theocracy
+				add_government_reform = monastic_order_reform
+				set_capital = 466
+				add_manpower = 50
+				add_treasury = 3000
+				add_country_modifier = { name = aakheta_uprising_modifier duration = -1 }
+				define_ruler = {
+					adm = 3
+					dip = 4
+					mil = 6
+					age = 39
+					claim = 100
+					male = yes
+					culture = hapremiti
+					religion = aakhetist
+					name = "Hazan"
+					dynasty = "'the Vengeful'"
+				}
+				add_ruler_personality = strict_personality
+				add_ruler_personality = conqueror_personality
+				add_ruler_personality = martial_educator_personality
+				add_adm_power = 100
+				add_dip_power = 100
+				add_mil_power = 100
+
+				#troops
+				capital_scope = { spawn_aakheta_army = yes }
+				if = {
+					limit = { ROOT = { ai = no } }
+					random_owned_province = { 
+						limit = { NOT = { area = mothers_delta_area } }
+						spawn_aakheta_army = yes 
+					}
+				}
+				define_ruler_to_general = {
+					fire = 5
+					shock = 7
+					manuever = 4
+					siege = 3
+					trait = ruthless_personality
+				}
+				define_general = {
+					fire = 2
+					shock = 2
+					manuever = 6
+					siege = 4
+					name = "Dagan 'the Reckless'"
+					trait = goal_oriented_personality
+				}
+				#ships
+				if = {
+					limit = { any_owned_province = { has_port = yes } }
+					random_owned_province = {
+						limit = { has_port = yes }
+						spawn_aakheta_fleet = yes
+					}
+					define_admiral = {
+						fire = 4
+						shock = 3
+						manuever = 5
+						siege = 3
+						name = "Sepeh 'the Turbulent'"
+						trait = naval_cannoneer_personality
+					}
+				}
+				#more troops
+				if = {
+					limit = { num_of_cities = 8 }
+					random_owned_province = { 
+						limit = { NOT = { area = mothers_delta_area } }
+						spawn_aakheta_army = yes
+						if = {
+							limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+							add_latest_building = { builder = ROOT fort = yes }
+						}
+					}
+					define_general = {
+						fire = 5
+						shock = 5
+						manuever = 1
+						siege = 0
+						name = "Arhab 'the Unbreaking'"
+						trait = frontline_holder_personality
+					}
+				}
+				if = {
+					limit = { num_of_cities = 13 }
+					random_owned_province = { 
+						limit = { NOT = { area = mothers_delta_area } }
+						spawn_aakheta_army = yes
+						if = {
+							limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+							add_latest_building = { builder = ROOT fort = yes }
+						}
+					}
+					define_general = {
+						fire = 1
+						shock = 6
+						manuever = 6
+						siege = 0
+						name = "Tozan 'the Thunderous'"
+						trait = born_to_the_saddle_personality
+					}
+				}
+				if = {
+					limit = { num_of_cities = 17 ROOT = { ai = no } }
+					random_owned_province = { 
+						limit = { NOT = { area = mothers_delta_area } }
+						spawn_aakheta_army = yes
+						if = {
+							limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+							add_latest_building = { builder = ROOT fort = yes }
+						}
+					}
+					define_general = {
+						fire = 6
+						shock = 2
+						manuever = 0
+						siege = 5
+						name = "Rabon 'the Calamitous'"
+						trait = cannoneer_personality
+					}
+				}
+				
+				##anti player cheese
+				466 = {
+					if = {
+						limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+						add_latest_building = { builder = ROOT fort = yes }
+					}
+					if = {
+						limit = { NOT = { has_building = ramparts } }
+						add_building = ramparts
+					}
+					#aakheta academy buffs
+					if = {
+						limit = { has_great_project = { type = bronze_dragon_academy } }
+						add_province_modifier = { name = ahati_academy_forts duration = -1 }
+					}
+					add_province_modifier = { name = ahati_aakheta_base duration = -1 }
+				}
+				#add 2 more forts
+				random_owned_province = {
+					limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+					add_latest_building = { builder = ROOT fort = yes }
+				}
+				random_owned_province = {
+					limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+					add_latest_building = { builder = ROOT fort = yes }
+				}
+				#readd other modifiers
+				every_owned_province = {
+					if = {
+						limit = { has_province_flag = ahati_fort }
+						if = {
+							limit = { NOT = { province_has_current_tech_fort_trigger = yes } }
+							add_latest_building = { builder = ROOT fort = yes }
+						}
+						add_province_modifier = { name = ahati_fort_garrison duration = -1 }
+						clr_province_flag = ahati_fort
+					}
+					else_if = {
+						limit = { has_province_flag = ahati_cot }
+						add_province_modifier = { name = ahati_cot duration = -1 }
+						clr_province_flag = ahati_cot
+					}
+					clr_province_flag = ahati_barracks
+				}
+			}
+			country_event = { id = ahati_events.175 days = 1 }
+		}
+	}
+
+	#oh shit
+	option = {
+        name = ahati_events.170.a
+        ai_chance = { factor = 100 }
+		custom_tooltip = ahati_events.170.tooltip
+	}
+	#Play as them
+	option = {
+        name = ahati_events.170.b
+        ai_chance = { factor = 0 }
+		custom_tooltip = ahati_events.170.tooltip2
+		switch_tag = U04
+	}
+	after = {
+		U04 = {
+			hidden_effect = {
+				remove_country_modifier = restructuring_military
+				remove_country_modifier = restructuring_administration
+			}
+		}
+	}
+}
+
+#steward victory
+country_event = {
+	id = ahati_events.171
+	title = ahati_events.171.t
+	desc = ahati_events.171.d
+	picture = REFORM_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+	}
+
+	#yay
+	option = {
+        name = ahati_events.171.a
+		custom_tooltip = ahati_events.171.tooltip
+		hidden_effect = { U04 = { disband_all_units = yes } }
+		inherit = U04
+		add_estate_loyalty = { estate = estate_ahati loyalty = 30 }
+        add_estate_influence_modifier = { estate = estate_ahati influence = -75 duration = 3650 desc = ahati_defeated }
+		add_mandate = 20
+		set_global_flag = aakheta_crushed
+		ai_chance = { factor = 100 }
+	}
+	after = {
+		every_owned_province = {
+			remove_province_modifier = ahati_cot
+			remove_province_modifier = ahati_academy_forts
+			remove_province_modifier = ahati_fort_garrison
+			clr_province_flag = ahati_barracks
+			clr_province_flag = ahati_cot
+			clr_province_flag = ahati_fort
+			remove_core = U04
+		}
+		466 = {
+			add_province_modifier = { name = ahati_aakheta_base duration = -1 }
+			change_religion = aakhetist
+		}
+		if = {
+			limit = { mission_completed = mandate_mt_kheterata_kheterat }
+			475 = { add_province_modifier = { name = mandate_mt_kheterat duration = -1 } }
+		}
+		if = {
+			limit = { mission_completed = mandate_mt_nirat_nirat }
+			473 = { add_province_modifier = { name = mandate_mt_nirat duration = -1 } }
+		}
+		if = {
+			limit = { mission_completed = mandate_mt_koroshesh_koroshesh }
+			503 = { add_province_modifier = { name = mandate_mt_koroshesh duration = -1 } }
+		}
+		if = {
+			limit = { has_country_modifier = ahati_aakhet_skill_issue }
+			if = {
+				limit = { has_country_flag = current_aakhet_host }
+				country_event = { id = ahati_events.180 days = 10 }
+			}
+			else = { remove_country_modifier = ahati_aakhet_skill_issue }
+		}
+	}
+}
+
+#aakheta victory
+country_event = {
+	id = ahati_events.172
+	title = ahati_events.172.t
+	desc = ahati_events.172.d
+	picture = REFORM_eventPicture
+
+	is_triggered_only = yes
+	major = yes
+	trigger = {
+		tag = U04
+	}
+
+	immediate = {
+		hidden_effect = { 
+			event_target:EmperorOfChina = { 
+				disband_all_units = yes 
+				save_event_target_as = event_country 
+			}
+			remove_country_modifier = restructuring_military
+			remove_country_modifier = restructuring_administration
+		}
+	}
+
+	#name change
+	option = {
+        name = ahati_events.172.a
+		add_government_reform = aakheta_ahati_reform
+		set_emperor_of_china = ROOT
+		if = {
+			limit = { event_target:event_country = { government_rank = 3 } }
+			set_government_rank = 3
+		}
+		else_if = {
+			limit = { NOT = { government_rank = 2 } }
+			set_government_rank = 2
+		}
+		inherit = event_target:event_country
+		override_country_name = KHETERATA
+		ai_chance = { factor = 100 }
+	}
+	#no name change
+	option = {
+        name = ahati_events.172.b
+		add_government_reform = aakheta_ahati_reform
+		set_emperor_of_china = ROOT
+		if = {
+			limit = { event_target:event_country = { government_rank = 3 } }
+			set_government_rank = 3
+		}
+		else_if = {
+			limit = { NOT = { government_rank = 2 } }
+			set_government_rank = 2
+		}
+		inherit = event_target:event_country
+		ai_chance = { factor = 0 }
+	}
+
+	after = {
+		set_global_flag = ahati_rebellion_succeeded
+		remove_country_modifier = aakheta_uprising_modifier
+		every_owned_province = {
+			remove_province_modifier = ahati_cot
+			remove_province_modifier = ahati_academy_forts
+			remove_province_modifier = ahati_fort_garrison
+			clr_province_flag = ahati_barracks
+			clr_province_flag = ahati_cot
+			clr_province_flag = ahati_fort
+			remove_core = event_target:event_country
+			if = {
+				limit = { ROOT = { ai = yes } }
+				change_religion = aakhetist
+			}
+		}
+		if = {
+			limit = { ai = yes NOT = { religion = aakhetist } }
+			change_religion = aakhetist
+		}
+		country_event = { id = ahati_events.173 days = 5 }
+	}
+}
+
+#aakheta rewards
+country_event = {
+	id = ahati_events.173
+	title = ahati_events.173.t
+	desc = ahati_events.173.d
+	picture = EXPLORERS_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+	}
+
+	#yay
+	option = {
+        name = ahati_events.173.a
+		add_stability = 2
+		set_mandate = 100
+		set_meritocracy = 50
+		add_country_modifier = { name = aakheta_victory duration = 18250 }
+		if = {
+			limit = { ai = yes }
+			add_country_modifier = { name = aakheta_victory2 duration = 1825 }
+			#otherwise stupid ai goes bankrupt
+			disband_all_units = yes
+			capital_scope = {
+				spawn_aakheta_army = yes 
+				if = { 
+					limit = { ROOT = { total_development = 300 } } 
+					spawn_aakheta_army = yes
+				}
+			}
+		}
+		else = { add_country_modifier = { name = aakheta_victory2 duration = 9125 } }
+		change_aakhet_approval = { value = 50 }
+
+		custom_tooltip = ahati_events.173.tooltip
+		set_country_flag = free_ahati
+		ai_chance = { factor = 100 }
+	}
+}
+
+
+#1 day war delay because ai doesn't change troops mid war
+country_event = {
+	id = ahati_events.175
+	title = ahati_events.173.t
+	desc = ahati_events.173.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+	}
+
+	#yay
+	option = {
+        name = ahati_events.172.a
+		U04 = { 
+			remove_country_modifier = restructuring_military
+			remove_country_modifier = restructuring_administration
+			if = {
+				limit = { NOT = { religion = aakhetist } }
+				change_religion = aakhetist
+			}
+			declare_war_with_cb = { who = ROOT casus_belli = cb_aakheta_uprising } 
+		}
+
+		ai_chance = { factor = 100 }
+	}
+}
+
+
+#Aakhet comes back
+country_event = {
+	id = ahati_events.180
+	title = ahati_events.180.t
+	desc = ahati_events.180.d
+	picture = EXPLORERS_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_emperor_of_china = yes
+		has_country_flag = current_aakhet_host
+	}
+
+	#yay
+	option = {
+        name = ahati_events.180.a
+		remove_country_modifier = ahati_aakhet_skill_issue
+		add_church_power = 100
+		change_aakhet_approval = { value = 50 }
+	}
+}
+
+
+#disaster end
+country_event = {
+	id = ahati_events.200
+	title = ahati_events.200.t
+	desc = ahati_events.200.d
+	picture = DHIMMI_ESTATE_eventPicture
+
+	is_triggered_only = yes
+	major = yes
+	trigger = {
+		is_emperor_of_china = yes
+	}
+
+	immediate = {
+		hidden_effect = { set_global_flag = ahati_rebellion_crushed }
+	}
+
+	#yay
+	option = {
+        name = ahati_events.200.a
+		add_stability = 3
+		set_mandate = 100
+		set_meritocracy = 100
+		add_country_modifier = { name = mandate_steward_victory duration = 18250 }
+
+		remove_estate_privilege = estate_ahati_rebellious
+		if = {
+			limit = { religion_group = khetist }
+			set_estate_privilege = estate_ahati_khetist_recruitment
+		}
+		else = { set_estate_privilege = estate_ahati_non_khet_steward }
+		
+		ai_chance = { factor = 100 }
+	}
+}

@@ -1,0 +1,351 @@
+country_decisions = {
+	temple_restoration = {
+		major = yes
+		potential = {
+			OR = {
+				has_country_flag = owns_high_temple
+				any_subject_country = { has_country_flag = owns_high_temple }
+			}
+			temple_province_group = {
+				country_or_non_sovereign_subject_holds = ROOT
+				OR = {
+					has_province_modifier = damaged_temple_complex
+					has_province_modifier = derelict_temple_complex
+				}
+				NOT = { has_province_modifier = temple_restoration_efforts }
+			}
+			NOT = { has_country_flag = temple_restoration_menu_open }
+			OR = {
+				ai = no
+				NOT = { has_country_modifier = temple_cooldown }
+			} #TODO: infinite recursion temporary crash fix
+		}
+		
+		provinces_to_highlight = {
+			OR = {
+				has_province_modifier = damaged_temple_complex
+				has_province_modifier = derelict_temple_complex
+			}
+			NOT = { has_province_modifier = temple_restoration_efforts }
+			country_or_non_sovereign_subject_holds = ROOT
+		}
+		
+		allow = {
+			OR = {
+				AND = {
+					hidden_trigger = {
+						has_country_flag = owns_high_temple
+					}
+					any_owned_province = {
+						OR = {
+							has_province_modifier = damaged_temple_complex
+							has_province_modifier = derelict_temple_complex
+						}
+						hidden_trigger = { NOT = { has_province_flag = temple_being_plundered } }
+						is_core = ROOT
+					}
+				}
+				any_subject_country = {
+					AND = {
+						hidden_trigger = {
+							has_country_flag = owns_high_temple
+						}
+						any_owned_province = {
+							OR = {
+								has_province_modifier = damaged_temple_complex
+								has_province_modifier = derelict_temple_complex
+							}
+							hidden_trigger = { NOT = { has_province_flag = temple_being_plundered } }
+							is_core = PREV
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_subject = yes }
+				overlord = { NOT = { has_country_flag = temple_restoration_menu_open } }
+			}
+			is_at_war = no
+			adm_power = 25
+			dip_power = 25
+			mil_power = 25
+			treasury = 100	
+		}
+		
+		effect = {
+			country_event = { id = spirits.005 }
+			hidden_effect = {
+				set_country_flag = temple_restoration_menu_open
+				if = { 
+					limit = { 
+						ai = yes
+					}
+					add_country_modifier = { name = temple_cooldown duration = 1825 hidden = yes } #TODO: infinite recursion temporary crash fix
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 400
+			
+			modifier = {
+				factor = 0
+				NOT = {
+					capital_scope = { superregion = south_haless_superregion }
+					capital_scope = { superregion = yanshen_superregion }
+					capital_scope = { superregion = rahen_superregion }
+					capital_scope = { superregion = north_haless_superregion }
+				}
+			}
+			modifier = {
+				factor = 0
+				religion = lefthand_path
+			}
+
+			modifier = {
+				factor = 0
+				check_variable = {
+					which = NumTemplesRestoring
+					value = 1
+				}
+			}
+		}
+	}
+	
+	temple_corruption = {
+		major = yes
+		potential = {
+			religion = lefthand_path
+			OR = {
+				AND = {
+					NOT = { tag = Y01 }
+					has_country_flag = lefthand_temple_secrets
+				}
+				AND = {
+					tag = Y01
+					mission_completed = Y01_way_forward
+				}
+			}
+			NOT = { has_country_flag = temple_corruption_menu_open }
+		}
+		
+		provinces_to_highlight = {
+			OR = {
+				has_province_modifier = temple_complex
+				has_province_modifier = damaged_temple_complex
+				has_province_modifier = derelict_temple_complex
+			}
+			owned_by = ROOT
+		}
+		
+		allow = {
+			religion = lefthand_path
+			any_owned_province = {
+				OR = {
+					has_province_modifier = temple_complex
+					has_province_modifier = damaged_temple_complex
+					has_province_modifier = derelict_temple_complex
+				}
+				is_core = ROOT
+			}
+			custom_trigger_tooltip = {
+				tooltip = lhp_discovered_heart_tooltip
+				any_owned_province = { has_province_modifier = temple_heart_discovered has_non_ruined_or_corrupted_temple_complex = yes }
+			}
+			is_at_war = no
+			adm_power = 50
+			dip_power = 50
+			mil_power = 50
+			church_power = 100
+			if = {
+				limit = {
+					has_estate = estate_mages
+				}
+				estate_loyalty = {
+					estate = estate_mages
+					loyalty = 30
+				}
+			}
+			else_if = {
+				limit = {
+					has_estate = estate_khelorvalshi
+				}
+				estate_loyalty = {
+					estate = estate_khelorvalshi
+					loyalty = 30
+				}
+			}
+		}
+		
+		effect = {
+			country_event = { id = spirits.602 }
+			hidden_effect = { set_country_flag = temple_corruption_menu_open }
+		}
+		
+		ai_will_do = {
+			factor = 1000
+		}
+	}
+	
+	temple_purification = {
+		major = yes
+		potential = {
+			hidden_trigger = {
+				has_country_flag = owns_high_temple
+			}
+			OR = {
+				religion_group = halessi
+				religion_group = raheni
+				religion = godlost
+			}
+			NOT = { religion = lefthand_path }
+			temple_province_group = {
+				owned_by = ROOT
+				has_province_modifier = corrupted_temple_complex
+			}
+		}
+		
+		provinces_to_highlight = {
+			has_province_modifier = corrupted_temple_complex
+			owned_by = ROOT
+		}
+		
+		allow = {
+			hidden_trigger = {
+				has_country_flag = owns_high_temple
+			}
+			any_owned_province = {
+				has_province_modifier = corrupted_temple_complex
+				is_core = ROOT
+			}
+			is_at_war = no
+			adm_power = 50
+			dip_power = 50
+			mil_power = 50
+			if = {
+				limit = { religion = righteous_path }
+				church_power = 100
+			}
+		}
+		
+		effect = {
+			country_event = { id = spirits.007 }
+			hidden_effect = { set_country_flag = temple_purification_menu_open }
+		}
+		
+		ai_will_do = {
+			factor = 1000
+		}
+	}
+	
+	plunder_the_temples = {
+		major = yes
+		potential = {
+			has_global_flag = korashi_drill_invented_flag
+			if = {
+				limit = { ai = yes }
+				has_estate_privilege = artifice_invention_korashi_drills
+			}
+			temple_province_group = {
+				owned_by = ROOT
+				OR = {
+					has_province_modifier = temple_complex
+					has_province_modifier = damaged_temple_complex
+					has_province_modifier = derelict_temple_complex
+					has_province_modifier = corrupted_temple_complex
+					has_province_modifier = ruined_temple_complex
+				}
+			}
+			NOT = { religion = lefthand_path }
+		}
+		
+		provinces_to_highlight = {
+			OR = {
+				has_province_modifier = temple_complex
+				has_province_modifier = damaged_temple_complex
+				has_province_modifier = derelict_temple_complex
+				has_province_modifier = corrupted_temple_complex
+				has_province_modifier = ruined_temple_complex
+			}
+			owned_by = ROOT
+		}
+		
+		allow = {
+			hidden_trigger = {
+				has_global_flag = korashi_drill_invented_flag
+			}
+			has_estate_privilege = artifice_invention_korashi_drills
+			any_owned_province = {
+				OR = {
+					has_province_modifier = temple_complex
+					has_province_modifier = damaged_temple_complex
+					has_province_modifier = derelict_temple_complex
+					has_province_modifier = corrupted_temple_complex
+					has_province_modifier = ruined_temple_complex
+				}
+				custom_trigger_tooltip = {
+					tooltip = spirits_not_already_plundered_tooltip
+					NOT = { has_province_flag = already_plundered }
+				}
+			}
+			is_at_war = no
+			treasury = 250
+			adm_power = 50
+			NOT = {
+				AND = {
+					ai = yes
+					is_subject_of = R62
+				}
+			}
+		}
+		
+		effect = {
+			country_event = { id = spirits.009 }
+			hidden_effect = { set_country_flag = temple_plundering_menu_open }
+		}
+		
+		ai_will_do = {
+			factor = 100
+			
+			modifier = {
+				factor = 0
+				religion_group = raheni
+			}
+			
+			modifier = {	#not sure if this even does anything, just want native AI to not immediately start plundering every temple the moment they can
+				factor = 0.1
+				religion_group = halessi
+			}
+			
+			modifier = {
+				factor = 30
+				religion = mystic_accord
+			}
+		}
+	}
+
+	lhp_summon_spirit = {
+		major = yes
+		potential = {
+			religion = lefthand_path
+			any_owned_province = {
+				has_active_triggered_province_modifier = corrupted_temple_complex
+			}
+			NOT = { has_country_flag = temple_summoning_menu_open }
+		}
+		
+		allow = {
+			NOT = { has_country_modifier = lhp_summon_cooldown }
+			church_power = 15
+		}
+
+		effect = {
+			country_event = {
+				id = spirits.625
+			}
+			hidden_effect = { set_country_flag = temple_summoning_menu_open }
+		}
+
+		ai_will_do = { factor = 100 }
+	}
+}

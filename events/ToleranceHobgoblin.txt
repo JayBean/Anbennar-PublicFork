@@ -1,0 +1,932 @@
+namespace = hobgoblin_tolerance_events
+
+# Event organizer for the hobgoblin tolerance events - should be a huge improvement to performance - having 1 overall check for having the minority instead of one for EACH new event that gets added
+country_event = {
+	id = hobgoblin_tolerance_events.0
+	title = race_setup_events.1.d
+	desc = race_setup_events.1.d
+	picture = BORDER_TENSION_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		fast_owns_num_pops_of_race = { race = hobgoblin amount = 1 }
+		NOT = { has_country_modifier = hobgoblin_administration }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+		modifier = {
+			factor = 10
+			has_country_modifier = racial_focus_hobgoblin
+		}
+	}
+
+	option = {
+		random_list = {
+			1 = { }
+			# ensure there's an empty option first in case none of the others are available
+			# and also because it seems this one might be picked rarely even if the others are available...
+
+			
+			#generic demand autonomy
+			10 = {
+				trigger = {
+					any_owned_province = {
+						NOT = { local_autonomy = 50 }
+						is_capital = no
+						has_hobgoblin_minority_trigger = yes
+					}
+				}
+				country_event = { id = hobgoblin_tolerance_events.1 }
+			}
+			#generic tolerance increase
+			10 = {
+				trigger = {
+					OR = {
+						stability = 1
+						in_golden_age = yes
+						ruler_has_personality = tolerant_personality
+						ruler_has_personality = kind_hearted_personality
+						ruler_has_personality = benevolent_personality
+						has_idea_group = humanist_ideas
+						
+						any_ally = {
+							has_country_modifier = hobgoblin_administration
+						}
+					}
+				}
+				country_event = { id = hobgoblin_tolerance_events.2 }
+			}
+			#generic tolerance decrease
+			10 = {
+				trigger = {
+					OR = {
+						NOT = { stability = 0 }
+						is_bankrupt = yes
+						inflation = 25
+						AND = {
+							is_at_war = yes
+							NOT = { war_score = 20 }
+						}
+						war_exhaustion = 10
+						ruler_has_personality = cruel_personality
+						ruler_has_personality = malevolent_personality
+						ruler_has_personality = conqueror_personality
+						
+						any_rival_country = {
+							has_country_modifier = hobgoblin_administration
+						}
+					}
+				}
+				country_event = { id = hobgoblin_tolerance_events.3 }
+			}
+			#hobgoblin minister
+			10 = {
+				modifier = {
+					factor = 1.5
+					medium_tolerance_hobgoblin_race_trigger = yes
+				}
+				modifier = {
+					factor = 2
+					high_tolerance_hobgoblin_race_trigger = yes
+				}
+				country_event = {
+					id = hobgoblin_tolerance_events.4
+				}
+			}
+			#hobgoblin generic
+			10 = {
+				trigger = {
+					has_estate = estate_mages
+				}
+				country_event = {
+					id = hobgoblin_tolerance_events.5
+				}
+			}
+			#hobgoblin military failure
+			10 = {
+				trigger = {
+					has_estate = estate_nobles
+					has_estate = estate_burghers
+					NOT = { has_country_modifier = hobgoblin_in_military }
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { check_variable = { army_tradition = 30 } }
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { check_variable = { army_professionalism = 0.25 } }
+				}
+				country_event = {
+					id = hobgoblin_tolerance_events.6
+				}
+			}
+		}
+	}
+}
+
+#Demand Representation
+country_event = {
+	id = hobgoblin_tolerance_events.1
+	title = hobgoblin_tolerance_events.1.t
+	desc = hobgoblin_tolerance_events.1.d
+	picture = DEBATE_REPUBLICAN_eventPicture
+	goto = racial_pop_province_target
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	immediate = {
+		hidden_effect = {
+			random_owned_province = {
+				limit = {
+					has_hobgoblin_minority_trigger = yes
+					is_capital = no
+				}
+				save_event_target_as = racial_pop_province_target
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { local_autonomy = 50 }
+					is_capital = no
+					has_hobgoblin_minority_trigger = yes
+				}
+				save_event_target_as = racial_pop_province_target
+			}
+			random_owned_province = {
+				limit = {
+					NOT = { local_autonomy = 50 }
+					is_capital = no
+					has_hobgoblin_minority_trigger = yes
+					development = 10
+				}
+				save_event_target_as = racial_pop_province_target
+			}
+		}
+	}
+	
+	option = {		#Granted!
+		name = hobgoblin_tolerance_events.1.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		
+		add_adm_power = -40
+		
+		medium_increase_of_hobgoblin_tolerance_effect = yes
+		
+		event_target:racial_pop_province_target = {
+			add_local_autonomy = 25
+		}
+	}
+	
+	option = {		#Make some concessions
+		name = hobgoblin_tolerance_events.1.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_maintain_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 0.5
+				average_autonomy = 10
+			}
+		}
+		
+		add_adm_power = -20
+		
+		event_target:racial_pop_province_target = {
+			add_local_autonomy = 10
+		}
+
+	}
+	
+	option = {		#No. Haven't we given them enough?!
+		name = hobgoblin_tolerance_events.1.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.5
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+		}
+		
+		medium_decrease_of_hobgoblin_tolerance_effect = yes
+		
+	}
+	
+	option = {		#Special: Make empty promises
+		name = hobgoblin_tolerance_events.1.e
+		trigger = { ruler_has_personality = charismatic_negotiator_personality }
+		highlight = yes
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.25
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 1.5
+				average_autonomy = 10
+			}
+		}
+		
+		add_dip_power = -10
+		
+		small_increase_of_hobgoblin_tolerance_effect = yes
+		
+		event_target:racial_pop_province_target = {
+			add_local_autonomy = 1
+		}
+		
+	}
+}
+
+
+#Tolerance Increase
+country_event = {
+	id = hobgoblin_tolerance_events.2
+	title = hobgoblin_tolerance_events.2.t
+	desc = hobgoblin_tolerance_events.2.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	immediate = {
+		hidden_effect = {
+		
+			random_list = {
+				75 = {
+					set_country_flag = racial_pop_small_increase
+				}
+				25 = {
+					set_country_flag = racial_pop_medium_increase
+				}
+			}
+		}
+	}
+	
+	option = {		#Good for them
+		name = hobgoblin_tolerance_events.2.a
+		ai_chance = {
+			factor = 50
+		}
+		
+		trigger_switch = {
+			on_trigger = has_country_flag
+			racial_pop_small_increase = { small_increase_of_hobgoblin_tolerance_effect = yes }
+			racial_pop_medium_increase = { medium_increase_of_hobgoblin_tolerance_effect = yes }
+		}
+		
+		clear_racial_pop_tolerance_chance_flags = yes
+		
+	}
+	
+}
+
+
+#Tolerance Decrease
+country_event = {
+	id = hobgoblin_tolerance_events.3
+	title = hobgoblin_tolerance_events.3.t
+	desc = hobgoblin_tolerance_events.3.d
+	picture = BAD_WITH_MONARCH_eventPicture
+	
+	is_triggered_only = yes
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+	immediate = {
+		hidden_effect = {
+		
+			random_list = {
+				75 = {
+					set_country_flag = racial_pop_small_decrease
+				}
+				25 = {
+					set_country_flag = racial_pop_medium_decrease
+				}
+			}
+		}
+	}
+	
+	option = {		#That's unfortunate
+		name = hobgoblin_tolerance_events.3.a
+		ai_chance = {
+			factor = 50
+		}
+		
+		trigger_switch = {
+			on_trigger = has_country_flag
+			racial_pop_small_decrease = { small_decrease_of_hobgoblin_tolerance_effect = yes }
+			racial_pop_medium_decrease = { medium_decrease_of_hobgoblin_tolerance_effect = yes }
+		}
+		
+		clear_racial_pop_tolerance_chance_flags = yes
+		
+	}
+	
+}
+
+#hobgoblin minister
+country_event = {
+	id = hobgoblin_tolerance_events.4
+	title = hobgoblin_tolerance_events.4.t
+	desc = hobgoblin_tolerance_events.4.d
+	picture = ADVISOR_eventPicture
+	
+	is_triggered_only = yes
+
+	# If you have a hobgoblin culture province, that's the one the advisor comes from
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					any_owned_province = {
+						culture_group = hobgoblin
+					}
+				}
+				random_owned_province = {
+					limit = { culture_group = hobgoblin }
+					save_event_target_as = hobgoblin_advisor_culture_province
+				}
+				set_country_flag = hobgoblin_advisor_culture_set
+			}
+		}
+	}
+
+	# Recruit the hobgoblin
+	option = {
+		name = hobgoblin_tolerance_events.4.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.5
+				wants_to_maintain_tolerance_hobgoblin = yes
+			}
+			modifier = {
+				factor = 0.1
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+		}
+		small_increase_of_hobgoblin_tolerance_effect = yes
+		if = {
+			limit = { has_country_flag = hobgoblin_advisor_culture_set }
+			if = {
+				limit = { monthly_income = 50 }
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 3
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 3
+							discount = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { monthly_income = 25 }
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 2
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 2
+							discount = yes
+						}
+					}
+				}
+			}
+			else = {
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 1
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = event_target:hobgoblin_advisor_culture_province
+							religion = event_target:hobgoblin_advisor_culture_province
+							skill = 1
+							discount = yes
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { 
+				tag = Y00
+			}
+			if = {
+				limit = { monthly_income = 50 }
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = fenghuang_command
+							skill = 3
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = fenghuang_command
+							skill = 3
+							discount = yes
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { monthly_income = 25 }
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = fenghuang_command
+							skill = 2
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = fenghuang_command
+							skill = 2
+							discount = yes
+						}
+					}
+				}
+			}
+			else = {
+				random_list = {
+					1 = {
+						define_advisor = {
+							type = army_organiser
+							culture = fenghuang_command
+							skill = 1
+							discount = yes
+						}
+					}
+					1 = {
+						define_advisor = {
+							type = quartermaster
+							culture = fenghuang_command
+							skill = 1
+							discount = yes
+						}
+					}
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = { monthly_income = 50 }
+				random_list = {
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = boar_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = wolf_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = lion_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = swallow_command
+									skill = 3
+									discount = yes
+								}
+							}
+						}
+					}
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = boar_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = wolf_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = lion_command
+									skill = 3
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = swallow_command
+									skill = 3
+									discount = yes
+								}
+							}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { monthly_income = 25 }
+				random_list = {
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = boar_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = wolf_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = lion_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = swallow_command
+									skill = 2
+									discount = yes
+								}
+							}
+						}
+					}
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = boar_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = wolf_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = lion_command
+									skill = 2
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = swallow_command
+									skill = 2
+									discount = yes
+								}
+							}
+						}
+					}
+				}
+			}
+			else = {
+				random_list = {
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = boar_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = wolf_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = lion_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = army_organiser
+									culture = swallow_command
+									skill = 1
+									discount = yes
+								}
+							}
+						}
+					}
+					1 = {
+						random_list = {
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = boar_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = wolf_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = lion_command
+									skill = 1
+									discount = yes
+								}
+							}
+							1 = {
+								define_advisor = {
+									type = quartermaster
+									culture = swallow_command
+									skill = 1
+									discount = yes
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	# A true exemplar of their race
+	option = {
+		name = hobgoblin_tolerance_events.4.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		medium_increase_of_hobgoblin_tolerance_effect = yes
+	}
+
+	# We dun give a shit
+	option = {
+		name = hobgoblin_tolerance_events.4.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 2
+				wants_to_decrease_tolerance_hobgoblin = yes
+			}
+		}
+		small_decrease_of_hobgoblin_tolerance_effect = yes
+	}
+
+	after = {
+		clr_country_flag = hobgoblin_advisor_culture_set
+	}
+}
+
+#hobgoblin generic
+country_event = {
+	id = hobgoblin_tolerance_events.5
+	title = hobgoblin_tolerance_events.5.t
+	desc = hobgoblin_tolerance_events.5.d
+	picture = DEBATE_REPUBLICAN_eventPicture
+	
+	is_triggered_only = yes
+		
+	#control the mages
+	option = {	
+		name = hobgoblin_tolerance_events.5.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		add_estate_loyalty = {
+			estate = estate_mages
+			loyalty = -10
+		}
+		add_estate_influence_modifier = {
+			estate = estate_mages
+			desc = EST_VAL_HOBGOBLIN_SIDED_HOBGOBLIN
+			influence = -10
+			duration = 3650
+		}
+		largest_increase_of_hobgoblin_tolerance_effect = yes
+	}
+	
+	#argue somewhere else
+	option = {
+		name = hobgoblin_tolerance_events.5.b
+		ai_chance = {
+			factor = 50
+		}
+		small_increase_of_hobgoblin_tolerance_effect = yes
+		reduce_estate_mages_loyalty_effect = yes
+	}
+	
+	#we will not tolerate this!
+	option = {
+		name = hobgoblin_tolerance_events.5.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		medium_decrease_of_hobgoblin_tolerance_effect = yes
+		add_estate_mages_loyalty_effect = yes
+		add_estate_influence_modifier = {
+			estate = estate_mages
+			desc = EST_VAL_HOBGOBLIN_SIDED_MAGES
+			influence = 10
+			duration = 3650
+		}
+		add_country_modifier = {
+			name = hobgoblin_mages_rebellion
+			duration = 3650
+		}
+	}
+}
+
+#hobgoblin military failure
+country_event = {
+	id = hobgoblin_tolerance_events.6
+	title = hobgoblin_tolerance_events.6.t
+	desc = hobgoblin_tolerance_events.6.d
+	picture = LAND_MILITARY_eventPicture
+	
+	is_triggered_only = yes
+		
+	#god damnit
+	option = {	
+		name = hobgoblin_tolerance_events.6.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.1
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		add_corruption = 0.5
+		add_army_professionalism = -0.01
+	}
+	
+	#replace them with hobgoblins
+	option = {
+		name = hobgoblin_tolerance_events.6.b
+		ai_chance = {
+			factor = 50
+		}
+		add_country_modifier = { name = hobgoblin_in_military duration = 3650 }
+		small_increase_of_hobgoblin_tolerance_effect = yes
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = -15
+		}
+		add_estate_loyalty = {
+			estate = estate_burghers
+			loyalty = -15
+		}
+		add_estate_influence_modifier = {
+			estate = estate_nobles
+			desc = EST_VAL_HOBGOBLIN_IN_MILITARY
+			influence = -15
+			duration = 3650
+		}
+		add_estate_influence_modifier = {
+			estate = estate_burghers
+			desc = EST_VAL_HOBGOBLIN_IN_MILITARY
+			influence = -15
+			duration = 3650
+		}
+	}
+	
+	#hob-scapegoat
+	option = {
+		name = hobgoblin_tolerance_events.6.c
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.5
+				wants_to_increase_tolerance_hobgoblin = yes
+			}
+		}
+		medium_decrease_of_hobgoblin_tolerance_effect = yes
+		add_corruption = 0.5
+		add_army_professionalism = -0.01
+		add_years_of_income = 1
+		add_estate_nobles_loyalty_effect = yes
+		add_estate_influence_modifier = {
+			estate = estate_burghers
+			desc = EST_VAL_HOBGOBLIN_SCAPEGOAT
+			influence = 10
+			duration = 3650
+		}
+	}
+}
