@@ -801,12 +801,26 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
-			random_country = {
+			if = {
 				limit = {
-					has_country_modifier = I25_friend_in_dwarovar
-					NOT = { tag = I25 }
+					any_known_country = { 
+						NOT = { tag = I25 }
+						has_country_modifier = I25_friend_in_dwarovar
+					}
 				}
-				save_event_target_as = verkal_dromak_enemy
+				random_country = {
+					limit = {
+						has_country_modifier = I25_friend_in_dwarovar
+						NOT = { tag = I25 }
+					}
+					save_event_target_as = verkal_dromak_enemy
+				}
+			}
+			else = { 
+				random_neighbor_country = {
+					limit = { culture_group = dwarven }
+					save_event_target_as = verkal_dromak_enemy
+				}
 			}
 		}
 	}
@@ -819,11 +833,32 @@ country_event = {
 			every_owned_province = {
 				add_claim = ROOT
 			}
-			remove_country_modifier = I25_friend_in_dwarovar
+			if = {
+				limit = { has_country_modifier = I25_friend_in_dwarovar }
+				remove_country_modifier = I25_friend_in_dwarovar
+			}
 		}
-		declare_war_with_cb = {
-			who = event_target:verkal_dromak_enemy
-			casus_belli = cb_vassalize_mission
+		if = {
+			limit = { 
+				event_target:verkal_dromak_enemy = { is_subject_of = ROOT }
+			}
+			add_opinion = {
+				who = event_target:verkal_dromak_enemy
+				modifier = scornfully_insulted
+			}
+			event_target:verkal_dromak_enemy = {
+				add_opinion = {
+					who = ROOT
+					modifier = scornfully_insulted
+				}
+				add_liberty_desire = 50
+			}
+		}
+		else = {
+			declare_war_with_cb = {
+				who = event_target:verkal_dromak_enemy
+				casus_belli = cb_vassalize_mission
+			}
 		}
 	}
 }
@@ -2600,15 +2635,16 @@ country_event = {
 					# 	value = 5
 					# }
 				}
-				add_country_modifier = {
-					name = I25_special_relic
-					duration = -1
-				}
 				random_owned_province = {
 					limit = {
 						trade_goods = precursor_relics
 					}
 					set_province_flag = permanent_precursor_relics
+					add_permanent_province_modifier = {
+						name = I25_special_relic
+						duration = -1
+						hidden = yes
+					}
 				}
 			}
 		}
@@ -4113,33 +4149,5 @@ country_event = {
 	# continue event chain - expell mages
 	option = {	
 		name = verkaldromak.177.a
-	}
-}
-
-
-#New Country Formed - Verkal Dromak - needs to disable republic because of heirs :-/
-country_event = {
-	id = verkaldromak.201
-	title = marcher.1.t
-	desc = marcher.1.d
-	picture = STREET_SPEECH_eventPicture
-	
-	is_triggered_only = yes
-	
-	trigger = {
-		#government_type = adventurer
-		#government_rank = 2
-	}
-	
-	option = {		# Despotic Monarchy
-		name = marcher.1.a
-		hidden_effect = {
-			lose_reforms = 10 # Reset reform progress
-		}
-		if = {
-			limit = { NOT = { government = monarchy } }
-			change_government = monarchy
-		}
-		add_government_reform = dwarovar_dwarven_clan_reform
 	}
 }
