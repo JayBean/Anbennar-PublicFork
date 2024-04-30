@@ -174,20 +174,6 @@ country_event = {
 				
 				country_event = { id = racial_pop_events_half_elven.7 }
 			}
-			#10 = { #Migration from overlord
-			#	trigger = {
-			#		pop_external_migration_trigger = { overlord = yes race = half_elven }
-			#	}
-			#	choose_pop_destination_province = { race = half_elven }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_half_elven.8 } }
-			#}
-			#10 = { #Migration from vassal
-			#	trigger = {
-			#		pop_external_migration_trigger = { vassal = yes race = half_elven }
-			#	}
-			#	choose_pop_destination_province = { race = half_elven }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_half_elven.9 } }
-			#}
 			#events 100-200 are reserved for custom migration events, put their triggers here
 		}
 	}
@@ -249,18 +235,11 @@ country_event = {
 			factor = 50
 			modifier = {
 				factor = 1.5
-				wants_to_decrease_tolerance_half_elven = yes
+				low_tolerance_half_elven_race_trigger = yes
 			}
 			modifier = {
 				factor = 2
 				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_half_elven_purge
-					has_country_modifier = racial_pop_half_elven_expulsion
-				}
 			}
 			modifier = {	#this is to push refugees essentially
 				factor = 1.5
@@ -268,19 +247,37 @@ country_event = {
 			}
 		}
 
-		event_target:origin_province = { racial_pop_migration_leave = { race = half_elven } }
-		hidden_effect = {
-			FROM = {
-				country_event = { id = racial_pop_events_half_elven.1 days = 1 random = 364 }
+		if = {
+			limit = {
+				has_country_flag = migration_bribe_@FROM
 			}
+			clr_country_flag = migration_bribe_@FROM
+			add_dip_power = 50
+		}
+		racial_pop_migration_random_leave = { race = half_elven }
+		FROM = {
+			country_event = { id = racial_pop_events_half_elven.1 days = 1 random = 364 }
 		}
 	}
 	option = { #stop them! they are our rightful subjects!
 		name = racial_pop_events_half_elven.3.b
-		ai_chance = { factor = 50 }
-
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_country_modifier = racial_pop_half_elven_purge
+					has_country_modifier = racial_pop_half_elven_expulsion
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = migration_bribe_@FROM
+			}
+		}
 		add_dip_power = -10
 		small_decrease_of_half_elven_tolerance_effect = yes
+		clr_country_flag = migration_bribe_@FROM
 		hidden_effect = {
 			FROM = {
 				country_event = { id = racial_pop_events_half_elven.2 days = 1 random = 364 }
@@ -434,18 +431,30 @@ country_event = {
 			}
 		}
 		add_dip_power = -50
-		event_target:origin_province = { racial_pop_migration_leave = { race = half_elven } }
-		country_event = { id = racial_pop_events_half_elven.1 days = 1 random = 364 }
+		if = {
+			limit = { event_target:origin_province = { owner = { ai = yes } } }
+			custom_tooltip = racial_pop_migration_happens_tt
+			tooltip = { country_event = { id = racial_pop_events_half_elven.1 days = 1 random = 364 } }
+		}
+		else = {
+			custom_tooltip = racial_pop_migration_bribe_tt
+		}
+		event_target:origin_province = { owner = { set_country_flag = migration_bribe_@ROOT country_event = { id = racial_pop_events_half_elven.3 } } }
 		generic_increase_of_racial_tolerance_effect = { race = half_elven small = yes }
 	}
 	
 	#Let them do as they wish 
-	option = {		
+	option = {
 		name = racial_pop_events_half_elven.7.b
 		ai_chance = {
 			factor = 50
 		}
-		racial_pop_migration_attempt = { race = half_elven }
+		custom_tooltip = racial_pop_migration_attempt_tt
+		event_target:origin_province = {
+			owner = {
+				country_event = { id = racial_pop_events_half_elven.3 }
+			}
+		}
 	}
 
 	#Close our borders
@@ -1547,6 +1556,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	hidden = yes
 	
@@ -1604,6 +1616,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1629,6 +1644,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1654,6 +1672,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
