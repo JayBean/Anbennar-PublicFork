@@ -2,14 +2,23 @@ country_decisions = {
 	temple_restoration = {
 		major = yes
 		potential = {
+			OR = {
+				has_country_flag = owns_high_temple
+				any_subject_country = { has_country_flag = owns_high_temple }
+			}
 			temple_province_group = {
-				owned_by = ROOT
+				country_or_non_sovereign_subject_holds = ROOT
 				OR = {
 					has_province_modifier = damaged_temple_complex
 					has_province_modifier = derelict_temple_complex
 				}
+				NOT = { has_province_modifier = temple_restoration_efforts }
 			}
 			NOT = { has_country_flag = temple_restoration_menu_open }
+			OR = {
+				ai = no
+				NOT = { has_country_modifier = temple_cooldown }
+			} #TODO: infinite recursion temporary crash fix
 		}
 		
 		provinces_to_highlight = {
@@ -17,32 +26,63 @@ country_decisions = {
 				has_province_modifier = damaged_temple_complex
 				has_province_modifier = derelict_temple_complex
 			}
-			owned_by = ROOT
+			NOT = { has_province_modifier = temple_restoration_efforts }
+			country_or_non_sovereign_subject_holds = ROOT
 		}
 		
 		allow = {
-			any_owned_province = {
-				OR = {
-					has_province_modifier = damaged_temple_complex
-					has_province_modifier = derelict_temple_complex
+			OR = {
+				AND = {
+					hidden_trigger = {
+						has_country_flag = owns_high_temple
+					}
+					any_owned_province = {
+						OR = {
+							has_province_modifier = damaged_temple_complex
+							has_province_modifier = derelict_temple_complex
+						}
+						hidden_trigger = { NOT = { has_province_flag = temple_being_plundered } }
+						is_core = ROOT
+					}
 				}
-				hidden_trigger = { NOT = { has_province_flag = temple_being_plundered } }
-				is_core = ROOT
+				any_subject_country = {
+					AND = {
+						hidden_trigger = {
+							has_country_flag = owns_high_temple
+						}
+						any_owned_province = {
+							OR = {
+								has_province_modifier = damaged_temple_complex
+								has_province_modifier = derelict_temple_complex
+							}
+							hidden_trigger = { NOT = { has_province_flag = temple_being_plundered } }
+							is_core = PREV
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_subject = yes }
+				overlord = { NOT = { has_country_flag = temple_restoration_menu_open } }
 			}
 			is_at_war = no
 			adm_power = 25
 			dip_power = 25
 			mil_power = 25
-			treasury = 100
-			custom_trigger_tooltip = {
-				tooltip = not_restoring_temple_tooltip
-				NOT = { has_country_flag = currently_restoring_temple }
-			}
+			treasury = 100	
 		}
 		
 		effect = {
 			country_event = { id = spirits.005 }
-			hidden_effect = { set_country_flag = temple_restoration_menu_open }
+			hidden_effect = {
+				set_country_flag = temple_restoration_menu_open
+				if = { 
+					limit = { 
+						ai = yes
+					}
+					add_country_modifier = { name = temple_cooldown duration = 1825 hidden = yes } #TODO: infinite recursion temporary crash fix
+				}
+			}
 		}
 		
 		ai_will_do = {
@@ -60,6 +100,14 @@ country_decisions = {
 			modifier = {
 				factor = 0
 				religion = lefthand_path
+			}
+
+			modifier = {
+				factor = 0
+				check_variable = {
+					which = NumTemplesRestoring
+					value = 1
+				}
 			}
 		}
 	}
@@ -91,6 +139,7 @@ country_decisions = {
 		}
 		
 		allow = {
+			religion = lefthand_path
 			any_owned_province = {
 				OR = {
 					has_province_modifier = temple_complex
@@ -126,18 +175,6 @@ country_decisions = {
 					loyalty = 30
 				}
 			}
-			custom_trigger_tooltip = {
-				tooltip = not_corrupting_temple_tooltip
-				NOT = {
-					any_owned_province = {
-						OR = {
-							has_province_modifier = rite_of_corruption
-							has_province_modifier = azjakuma_rite_of_corruption
-						}
-					}
-				}
-			}
-			# NOT = { has_country_flag = currently_corrupting_temple }
 		}
 		
 		effect = {
@@ -153,9 +190,13 @@ country_decisions = {
 	temple_purification = {
 		major = yes
 		potential = {
+			hidden_trigger = {
+				has_country_flag = owns_high_temple
+			}
 			OR = {
 				religion_group = halessi
 				religion_group = raheni
+				religion = godlost
 			}
 			NOT = { religion = lefthand_path }
 			temple_province_group = {
@@ -170,6 +211,9 @@ country_decisions = {
 		}
 		
 		allow = {
+			hidden_trigger = {
+				has_country_flag = owns_high_temple
+			}
 			any_owned_province = {
 				has_province_modifier = corrupted_temple_complex
 				is_core = ROOT
@@ -181,15 +225,6 @@ country_decisions = {
 			if = {
 				limit = { religion = righteous_path }
 				church_power = 100
-			}
-			estate_loyalty = {
-				estate = estate_mages
-				loyalty = 30
-			}
-			custom_trigger_tooltip = {
-				tooltip = not_purifying_temple_tooltip
-				NOT = { has_country_flag = currently_purifying_temple }
-				#might need to be changed at some point to be aligned with temple corruption, I'm not doing it
 			}
 		}
 		
@@ -206,6 +241,11 @@ country_decisions = {
 	plunder_the_temples = {
 		major = yes
 		potential = {
+			has_global_flag = korashi_drill_invented_flag
+			if = {
+				limit = { ai = yes }
+				has_estate_privilege = artifice_invention_korashi_drills
+			}
 			temple_province_group = {
 				owned_by = ROOT
 				OR = {
@@ -216,11 +256,6 @@ country_decisions = {
 					has_province_modifier = ruined_temple_complex
 				}
 			}
-			OR = {
-				has_estate = estate_artificers
-				has_estate = estate_dragon_command
-			}
-			has_global_flag = korashi_drill_invented_flag
 			NOT = { religion = lefthand_path }
 		}
 		
@@ -236,6 +271,10 @@ country_decisions = {
 		}
 		
 		allow = {
+			hidden_trigger = {
+				has_global_flag = korashi_drill_invented_flag
+			}
+			has_estate_privilege = artifice_invention_korashi_drills
 			any_owned_province = {
 				OR = {
 					has_province_modifier = temple_complex
@@ -252,7 +291,6 @@ country_decisions = {
 			is_at_war = no
 			treasury = 250
 			adm_power = 50
-			has_estate_privilege = artifice_invention_korashi_drills
 			NOT = {
 				AND = {
 					ai = yes
