@@ -6288,7 +6288,8 @@ generic_end_purge = {
 				limit = { ai = yes }
 				country_event = { id = racial_pop_events_$race$.16 days = 1 }
 			}
-			else = {
+			if = {
+				limit = { ai = no }
 				country_event = { id = race_setup_events.9 days = 1 }
 			}
 		}
@@ -6304,7 +6305,8 @@ generic_end_expulsion = {
 				limit = { ai = yes }
 				country_event = { id = racial_pop_events_$race$.15 days = 1 }
 			}
-			else = {
+			if = {
+				limit = { ai = no }
 				country_event = { id = race_setup_events.9 days = 1 }
 			}
 		}
@@ -6902,10 +6904,11 @@ choose_pop_destination_province = {
 			trigger = {
 				any_owned_province = {
 					preferred_terrain = { $race$ = yes }
+					has_any_blorc_camp = no
 				}
 			}
 			random_owned_province = {
-				limit = { preferred_terrain = { $race$ = yes } }
+				limit = { preferred_terrain = { $race$ = yes } has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -6913,10 +6916,11 @@ choose_pop_destination_province = {
 			trigger = {
 				any_owned_province = {
 					development = 20
+					has_any_blorc_camp = no
 				}
 			}
 			random_owned_province = {
-				limit = { development = 20 }
+				limit = { development = 20 has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -6937,6 +6941,7 @@ choose_pop_destination_province = {
 				fast_owns_num_pops_of_race = { race = $race$ amount = 20 }
 			}
 			random_owned_province = {
+				limit = { has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -6946,7 +6951,7 @@ choose_pop_internal_destination_province = {
 	random_list = {
 		6 = {
 			random_owned_province = {
-				limit = { NOT = { province_id = event_target:origin_province } }
+				limit = { NOT = { province_id = event_target:origin_province } has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -6955,10 +6960,11 @@ choose_pop_internal_destination_province = {
 				any_owned_province = {
 					preferred_terrain = { $race$ = yes }
 					NOT = { province_id = event_target:origin_province }
+					has_any_blorc_camp = no
 				}
 			}
 			random_owned_province = {
-				limit = { preferred_terrain = { $race$ = yes } NOT = { province_id = event_target:origin_province } }
+				limit = { preferred_terrain = { $race$ = yes } NOT = { province_id = event_target:origin_province } has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -6967,10 +6973,11 @@ choose_pop_internal_destination_province = {
 				any_owned_province = {
 					development = 20
 					NOT = { province_id = event_target:origin_province }
+					has_any_blorc_camp = no
 				}
 			}
 			random_owned_province = {
-				limit = { development = 20 NOT = { province_id = event_target:origin_province } }
+				limit = { development = 20 NOT = { province_id = event_target:origin_province } has_any_blorc_camp = no }
 				save_event_target_as = destination_province
 			}
 		}
@@ -7307,6 +7314,125 @@ choose_refugee_country_target = {
 					has_country_modifier = racial_focus_$race$
 				}
 				save_event_target_as = racial_pop_migration_country
+			}
+		}
+	}
+}
+
+calculate_refugee_exploit_rewards = {
+	event_target:racial_pop_province_origin = {
+		export_to_variable = { #setup for calculating the ducats gained
+			which = ducats_gained_on_exploit
+			value = base_production
+		}
+		export_to_variable = {
+			which = base_tax_var
+			value = base_tax
+		}
+		export_to_variable = { #we only need a single variable for this so no base_manpower_var
+			which = manpower_gained_on_exploit
+			value = base_manpower
+		}
+		change_variable = {
+			which = ducats_gained_on_exploit
+			which = base_tax_var
+		}
+		multiply_variable = { #you get 1.2 ducats per tax/production development
+			which = ducats_gained_on_exploit
+			value = 1.2
+		}
+		multiply_variable = { #you get 250 manpower per manpower development
+			which = manpower_gained_on_exploit
+			value = 0.25
+		}
+		if = { #the sanity check—you will never go below 10 ducats and 1000 manpower from a 0 devastation province
+			limit = {
+				NOT = {
+					check_variable = {
+						which = ducats_gained_on_exploit
+						value = 10
+					}
+				}
+			}
+			set_variable = {
+				which = ducats_gained_on_exploit
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					check_variable = {
+						which = manpower_gained_on_exploit
+						value = 1
+					}
+				}
+			}
+			set_variable = {
+				which = manpower_gained_on_exploit
+				value = 1
+			}
+		}
+		if = { #now we scale with devastation
+			limit = { devastation = 80 }
+			multiply_variable = {
+				which = ducats_gained_on_exploit
+				value = 0.2
+			}
+			multiply_variable = {
+				which = manpower_gained_on_exploit
+				value = 0.2
+			}
+		}
+		else_if = {
+			limit = { devastation = 60 }
+			multiply_variable = {
+				which = ducats_gained_on_exploit
+				value = 0.4
+			}
+			multiply_variable = {
+				which = manpower_gained_on_exploit
+				value = 0.4
+			}
+		}
+		else_if = {
+			limit = { devastation = 40 }
+			multiply_variable = {
+				which = ducats_gained_on_exploit
+				value = 0.6
+			}
+			multiply_variable = {
+				which = manpower_gained_on_exploit
+				value = 0.6
+			}
+		}
+		else_if = {
+			limit = { devastation = 20 }
+			multiply_variable = {
+				which = ducats_gained_on_exploit
+				value = 0.8
+			}
+			multiply_variable = {
+				which = manpower_gained_on_exploit
+				value = 0.8
+			}
+		}
+		ROOT = { #now we scope back to the nation that's taking in the refugees
+			set_variable = {
+				which = ducats_gained_on_exploit
+				which = PREV
+			}
+			set_variable = { #now you see why we didn't call it base_manpower_var
+				which = manpower_gained_on_exploit
+				which = PREV
+			}
+			set_variable = { #this is for use in tooltip only
+				which = manpower_in_ones_gained_on_exploit
+				which = manpower_gained_on_exploit
+			}
+			multiply_variable = {
+				which = manpower_in_ones_gained_on_exploit
+				value = 1000
 			}
 		}
 	}
