@@ -19,26 +19,34 @@ pasiragha_missions_beginning_1 = {
 		trigger = {
 			OR = {
 				AND ={ 
-					overlord = {
-						has_opinion = {
-							who = ROOT
-							value = 200
+					ROOT = {
+						overlord = {
+							has_reform = raja_reform
+							has_opinion = {
+								who = ROOT
+								value = 200
+							}
+							any_subject_country = {
+								is_subject_of_type = great_daimyo_vassal
+								alliance_with = ROOT
+							}
 						}
-						any_subject_country = {
-							is_subject_of_type = great_daimyo_vassal
-							alliance_with = ROOT
-						}
-							
 					}
 					has_country_modifier = raj_mandate_right_to_expansion
 				}
 				AND = {
-					is_vassal = no
+					NOT = {
+						ROOT = {
+							is_subject_of_type = great_daimyo_vassal
+						}
+					}
 					num_of_allies = 2
 					4362 = {
-						has_spy_network_in = {
-							who = owner
-							value = 20
+						owner ={
+							has_spy_network_from = {
+								who = ROOT
+								value = 20
+							}
 						}
 					}				
 				}
@@ -52,25 +60,62 @@ pasiragha_missions_beginning_1 = {
 			4361 = {
 				add_permanent_claim = ROOT
 			}
-			4364 = {
+			4363 = {
 				add_permanent_claim = ROOT
 			}
 			if = {
-				limit = { 
-					is_vassal = yes
+				limit = {
+					is_subject = yes
 				}
-				add_favors = {
-					who = overlord
-					amount = 10
+				overlord = {
+					ROOT = {
+						add_favors = {
+							who = PREV
+							amount = 10
+						}
+					}	
 				}
 			}
-			if = {
-				limit = {
-					is_vassal = no
-				}
+			else = {
+				#Find out who has the most development within scope.
 				every_ally = {
+					hidden_effect = {
+						export_to_variable = {
+							which = dev_new
+							value = total_development 
+							who = THIS
+						}
+						if = {
+							limit = {
+								NOT = {
+									has_saved_event_target = highestdev
+								}
+							}
+							save_event_target_as = highestdev
+							set_variable = {
+								which = dev_old
+								which = total_development 
+							}
+						}
+						else_if= {
+							limit = {
+								#checks if new dev value is higher than old dev valus 
+								check_variable = {
+									which = dev_new
+									which = dev_old
+								}
+							}
+							set_variable = {
+								which = dev_old
+								which = dev_new
+							}
+							save_event_target_as = highestdev
+						}
+					}	
+				}
+				ROOT = {
 					add_favors = {
-						who = ROOT
+						who = event_target:highestdev
 						amount = 10
 					}
 				}
@@ -130,9 +175,11 @@ pasiragha_missions_beginning_2 = {
 			army_size_percentage = 0.90
 			has_mil_advisor = yes
 			4427 = {
-				has_spy_network_in = {
-					who = owner
-					value = 25
+				owner = {
+					has_spy_network_from = {
+						who = ROOT
+						value = 25
+					}
 				}
 			}
 		}
@@ -251,18 +298,6 @@ pasiragha_missions_beginning_3 = {
 								}
 							}
 						}
-						4373 = {
-							owner = {
-								trust = {
-									who = ROOT
-									value = 70
-								}
-								has_opinion = {
-									who = ROOT
-									value = 200
-								}
-							}
-						}
 					}
 				}
 				AND = {
@@ -334,31 +369,43 @@ pasiragha_missions_beginning_3 = {
 		}
 
 		provinces_to_highlight = {
-			
+			AND = {
+				NOT = {
+					num_of_times_improved_by_owner = 3
+				}
+				province_group = pasiragha_pilgrim_path
+			}
 		}
 
 		trigger = {
 			has_estate_privilege = estate_lowercastes_maintained_infrastructure
 			any_country = {
-				limit = {
+				AND = {
 					is_neighbor_of = ROOT
-				}
-				OR = {
-					has_opinion = {
-						who = ROOT
-						value = 75
+					OR = {
+						has_opinion = {
+							who = ROOT
+							value = 75
+						}
+						is_rival = ROOT
 					}
-					is_rival = ROOT
 				}
 			}
-			#EACH MARKED PROVINCE DEVELOPED 3 TIMES
+			pasiragha_pilgrim_path = {
+				type = all
+				num_of_times_improved_by_owner = 3
+			}
 		}
 
 		effect = {
-			
+			pasiragha_pilgrim_path = {
+				add_permanent_province_modifier = {
+					name = pasiragha_mod_pilgrim_path
+					duration = -1
+				}
+			}
 		}
 	}
-
 }
 
 pasiragha_missions_beginning_4 = {
@@ -377,15 +424,28 @@ pasiragha_missions_beginning_4 = {
 		}
 
 		provinces_to_highlight = {
-
+			province_id = 4435
 		}
 
 		trigger = {
-
+			4435 = {
+				base_manpower = 8
+				has_building = temple
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Indranayar I finally knows true peace."
+				hidden_trigger = {
+					overlord = {
+						NOT = {
+							has_ruler_flag = is_indranayar
+						}
+					}
+				}
+			}
 		}
 
 		effect = {
-
+			country_event = { id = flavor_pasiragha.4 }
 		}
 	}
 
@@ -396,6 +456,40 @@ pasiragha_missions_beginning_4 = {
 			pasiragha_future_of_hall
 		}
 
+		provinces_to_highlight = {
+			province_id = 4434
+		}
+
+		trigger = {
+			treasury = 150
+			mil_power = 100
+			NOT = {
+				corruption = 1
+			}
+			4434 = {
+				num_of_units_in_province = {
+					who = ROOT
+					amount = 9
+					type = infantry
+				}
+			}
+		}
+
+		effect = {
+			add_mil_power = -100
+			add_treasury = -150
+			hidden_effect = {
+				country_event = { id = flavor_pasiragha.5 }
+			}
+			4434 = {
+				kill_units = {
+					who = ROOT
+					type = infantry
+					amount = 9
+				}
+			}
+		}
+
 	}
 	
 	pasiragha_defend_interior = {
@@ -403,6 +497,60 @@ pasiragha_missions_beginning_4 = {
  		position = 4
  		required_missions = {
 			pasiragha_western_estates
+		}
+
+		provinces_to_highlight = {
+			OR = {
+				province_id = 4365
+				province_id = 4433
+				province_id = 4431
+				province_id = 4430
+				province_id = 4437
+				province_id = 4368
+			}
+			NOT = {
+				AND = {
+					owned_by = ROOT
+					is_core = ROOT
+				}
+			}
+		}
+
+		trigger = {
+			4430 = {
+				fort_level = 2
+				is_core = ROOT
+			}
+			4437 = {
+				fort_level = 2
+				is_core = ROOT
+			}
+			4368 = {
+				fort_level = 2
+				is_core = ROOT
+			} 
+			4365 = {
+				is_core = ROOT
+			}
+			4433 = {
+				is_core = ROOT
+			}
+			4431 = {
+				is_core = ROOT
+			}
+			has_country_modifier = orange_sash_scholar_modifier
+		}
+
+		effect = {
+			add_stability = 1
+			pasiragha_area = {
+				add_base_production = 1
+				add_base_tax = 1
+			}
+			4434 = {
+				add_base_manpower = 1
+				add_base_tax = -1
+			}
 		}
 
 	}
@@ -416,6 +564,33 @@ pasiragha_missions_beginning_4 = {
 			pasiragha_entice_thinkers
 		}
 
+		provinces_to_highlight = {
+			province_id = 4435
+		}
+
+		trigger = {
+			4435 = {
+				has_building = workshop
+				development = 35
+			}
+			OR ={
+				4435 = {
+					num_of_times_expanded_infrastructure = 2
+				}
+				adm_power = 100
+			}
+			has_estate_privilege = estate_middlecastes_patronage_of_the_arts
+		}
+
+		effect = {
+			4435 = {
+				add_permanent_province_modifier  = {
+					name = pasiragha_mod_scholastic_district
+					duration = -1
+				}
+			}
+		}
+
 	}
 
 	pasiragha_painful_birth = {
@@ -424,6 +599,26 @@ pasiragha_missions_beginning_4 = {
  		required_missions = {
 			pasiragha_hall_to_district
 
+		}
+
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = "The followers of Guru Suhan have made their choice, and you have made yours."
+				hidden_trigger = {
+					OR = {
+						has_country_flag = pasiragha_flag_chose_sp #95 reasons I hate the church
+						has_country_flag = pasiragha_flag_chose_hp #I like being defenestrated
+					}	
+				}				
+			}
+		}
+
+		effect = {
+			custom_tooltip = "Unlock new missions"
+			hidden_effect = {
+				set_country_flag = pasiragha_intro_complete
+				swap_non_generic_missions = yes
+			}
 		}
 
 	}
@@ -446,6 +641,54 @@ pasiragha_missions_beginning_5 = {
 			pasiragha_ravanars_plan
 		}
 
+		provinces_to_highlight = {
+			OR = {
+				province_id = 4859
+				province_id = 4435
+			}
+		}
+
+		trigger = {
+			OR = {
+				AND ={ 
+					hidden_trigger = {
+						overlord = {
+							has_reform = raja_reform
+						}	
+					}
+					has_country_modifier = raj_mandate_ministry_lectures
+				}
+				AND = {
+					is_subject = no
+					dip_power = 50				
+				}
+			}
+			4435 = {
+				province_has_center_of_trade_of_level = 2
+			}
+			OR = {
+				advisor = artist
+				advisor = natural_scientist
+			}
+			treasury = 150
+			4859 = {
+				owner = {
+					has_opinion = {
+						who = ROOT
+						value = 100
+					}
+				}
+			}
+		}
+
+		effect = {
+			add_treasury = -150
+			4435 = {
+				add_kobold_minority_size_effect = yes
+			}
+			large_increase_of_kobold_tolerance_effect = yes
+			country_event = { id = flavor_pasiragha.6 }
+		}
 	}
 
 	pasiragha_entice_thinkers = {
@@ -455,8 +698,49 @@ pasiragha_missions_beginning_5 = {
 			pasiragha_expand_school
 		}
 
-	}
-	
+		provinces_to_highlight = {
+			owner = {
+				is_subject_of_type = great_daimyo_vassal
+				OR = {
+					NOT = {
+						is_rival = ROOT
+					}
+					NOT = {
+						has_10_opinion_sent_gift = {
+							target = ROOT
+						}
+					}
+				}
+			}
+		}
+
+		trigger = {
+			diplomatic_reputation = 3
+			has_country_modifier = golden_palace_scholar_modifier
+			any_country = {
+				AND = {
+					is_subject_of_type = great_daimyo_vassal
+					NOT = {
+						is_rival = ROOT
+					}
+					has_10_opinion_sent_gift = {
+						target = ROOT
+					}
+				}
+			}
+		}
+
+		effect = {
+			add_country_modifier = {
+				name = pasiragha_mod_forward_thinking
+				duration = 3650
+			}
+			custom_tooltip = "Inviting a scholar now also creates a hireable philosopher advisor."
+			hidden_effect = {
+				set_country_flag = pasiragha_flag_create_philosoper
+			}
+		}
+	}	
 }
 
 pasiragha_missions_middle_1 = {
@@ -475,6 +759,66 @@ pasiragha_missions_middle_1 = {
 		required_missions = {
 			pasiragha_develop_port
 		}
+
+		provinces_to_highlight = {
+			OR = {
+				province_id = 3119
+				province_id = 1364
+				province_id = 1365
+				province_id = 4859
+				trade_node = 1348
+			}
+		}
+
+		trigger = {
+			has_estate_privilege = estate_middlcastes_private_trade_fleets
+			1348 = { has_trader = ROOT }
+			if = {
+				limit = { has_dlc = "Cradle of Civilization" }
+				trading_policy_in_node = {
+					node = 1348
+					policy = establish_communities
+				}
+			}
+			4859 = {
+				owner = {
+					owes_favors = {
+						who = ROOT
+						value = 10
+					}
+				}
+			}
+			any_known_country = {
+				limit = {
+					OR = {
+						is_neighbor_of_province = 3119
+						is_neighbor_of_province = 1364
+						is_neighbor_of_province = 1365
+					}
+				}
+				gives_fleet_basing_rights_to = ROOT
+				has_opinion = {
+					who = ROOT
+					value = 110
+				}
+			}
+		}
+
+		effect = {
+			telekenid_islands_area = {
+				type = all
+				add_permanent_claim = ROOT
+			}
+			4805 = {
+				add_permanent_claim = ROOT
+			} 
+			custom_tooltip = "Unlocks the ability to invite scholars from outside of High Philosophy."
+			custom_tooltip = "Unlocks Righteous Path, Mystic Accord, and The Jadd as invitable external scholars."
+			hidden_effect = {
+				set_country_flag = pasiragha_flag_external_invites
+				set_country_flag = pasiragha_flag_rp_ma_jadd
+			}
+		}
 		
 	}
 
@@ -483,6 +827,54 @@ pasiragha_missions_middle_1 = {
 		position = 8
 		required_missions = {
 			pasiragha_broadening_scope
+		}
+
+		provinces_to_highlight = {
+			OR = {
+				area = telekenid_islands_area
+				province_id = 4805
+			}
+			NOT = {
+				AND = {
+					owned_by = ROOT
+					is_core = ROOT
+					has_building = naval_battery
+				}
+			}			
+		}
+
+		trigger = {
+			4805 = {
+				owned_by = ROOT
+				is_core = ROOT
+				has_building = naval_battery
+				development = 10
+				fort_level = 2
+			}
+			telekenid_islands_area = {
+				owned_by = ROOT
+				is_core = ROOT
+				has_building = naval_battery
+			}
+		}
+
+		effect = {
+			4805 = {
+				center_of_trade = 1
+				add_permanent_province_modifier = {
+					name = pasiragha_mod_naval_base
+					duration = -1
+				}
+			}
+			4700 = {
+				add_permanent_claim = ROOT
+			}
+			ringlet_isles_region = {
+				limit = {
+					owned_by = Y64
+				}
+				add_permanent_claim = ROOT
+			}
 		}
 		
 	}
@@ -494,6 +886,45 @@ pasiragha_missions_middle_1 = {
 			pasiragha_gulf_bases
 		}
 		
+		provinces_to_highlight = {
+			OR = {
+				region = ringlet_isles_region
+			}
+			NOT = {
+				owned_by = Y64
+			}
+		}
+
+		trigger = {
+			NOT = {
+				ringlet_isles_region = {
+					owned_by = Y64
+				}
+			}
+			OR = {
+				navy_tradition = 30
+				dip_power = 75
+			}
+		}
+
+		effect = {
+			1364 = {
+				add_trade_modifier = {
+					who = ROOT
+					duration = -1
+					power = 30
+					key = pasiragha_mod_secure_convoys
+				}
+			}
+			pasiragha_hp_colonies = {
+				type = all
+				add_permanent_claim = ROOT
+			}
+			custom_tooltip = "Unlocks Rinta Seekers, and The Hunt as external scholars."
+			hidden_effect = {
+				set_country_flag = pasiragha_flag_rs_hunt
+			}
+		}
 	}
 
 	pasiragha_colonial_truth = {
@@ -501,6 +932,45 @@ pasiragha_missions_middle_1 = {
 		position = 12
 		required_missions = {
 			pasiragha_convoy_security
+		}
+
+		provinces_to_highlight = {
+			province_group = pasiragha_hp_colonies
+			NOT = {
+				AND = {
+					owned_by = ROOT
+					is_core = ROOT
+					OR = {
+						religion_group = raheni
+					}
+				}
+			}
+		}
+
+		trigger = {
+			pasiragha_hp_colonies = {
+				type = all
+				owned_by = ROOT
+				is_core = ROOT
+				religion_group = raheni
+			}
+			5505 = {
+				fort_level = 2
+				province_has_center_of_trade_of_level = 2
+			}
+		}
+
+		effect = {
+			5689 = {
+				add_permanent_claim = ROOT
+			}
+			5590 = {
+				add_permanent_claim = ROOT
+			}
+			5593 = {
+				add_permanent_claim = ROOT
+			}
+			add_mercantilism = 5
 		}
 		
 	}
@@ -524,6 +994,31 @@ pasiragha_missions_middle_2 = {
 			pasiragha_broadening_scope
 		}
 
+		trigger = {
+			has_adm_advisor_of_level = 2
+			has_dip_advisor_of_level = 2
+			has_mil_advisor_of_level = 2
+			has_estate_privilege = estate_uppercastes_all_school_diplomats
+			estate_loyalty = {
+				estate = estate_uppercastes
+				loyalty = 60
+			}
+			estate_influence = {
+				estate = estate_uppercastes
+				influence = 60
+			}
+			OR = {
+				caste_fluidity_is_fluid = yes
+				caste_fluidity_is_neutral = yes
+			}
+		}
+
+		effect = {
+			custom_tooltip = "The Philosopher advisor created from inviting a scholar now provides an additional benefit depending on which High Philosophy school has been invited."
+			hidden_effect = {
+				set_country_flag = pasiragha_flag_improved_philosophers
+			}
+		}
 	}
 
 	pasiragha_promote_residents = {
@@ -532,6 +1027,39 @@ pasiragha_missions_middle_2 = {
  		required_missions = {
 			pasiragha_convoy_security
 			pasiragha_inter_school_coop
+		}
+
+		provinces_to_highlight = {
+			province_id = 4362
+			NOT = {
+				province_has_center_of_trade_of_level = 3
+			}
+		}
+
+		trigger = {
+			num_accepted_cultures = 3
+			diplomatic_reputation = 4
+			4362 = {
+				province_has_center_of_trade_of_level = 3
+			}
+		}
+
+		effect = {
+			4362 = {
+				add_permanent_province_modifier = {
+					name = pasiragha_mod_foreign_quarter
+					duration = -1
+				}
+				add_elven_minority_size_effect = yes
+				add_harpy_minority_size_effect = yes
+			}
+			4435 = {
+				add_elven_minority_size_effect = yes
+				add_harpy_minority_size_effect = yes
+			}
+			hidden_effect = {
+				country_event = { id = flavor_pasiragha.7 }
+			}
 		}
 
 	}
@@ -544,8 +1072,76 @@ pasiragha_missions_middle_2 = {
 			pasiragha_upgrade_paths
 		}
 
-	}
+		provinces_to_highlight = {
+			province_id = 4362
+			NOT = {
+				has_building = state_house
+			}
+		}
 
+		trigger = {
+			government_reform_progress = 50
+			4362 = {
+				has_building = state_house
+			}
+			any_owned_province = {
+				has_integrated_dwarven_pop_trigger = yes
+			}
+			custom_trigger_tooltip = {
+				tooltip = "The fires have burned, and a proposal has been made."
+				hidden_trigger = {
+					has_country_flag = pasiragha_flag_exilarch_proposal
+				}
+			}
+		}
+
+		effect = {
+			change_government_reform_progress = -50
+			if = {
+				limit = {
+					NOT = {
+						check_variable = {
+							which = philosophical_lean
+							value = -33
+						}
+					}
+				}
+				add_government_reform = pasiragha_gov_t3_n
+			}
+			else_if = {
+				limit = {
+					AND = {
+						check_variable = {
+							which = philosophical_lean
+							value = -33
+						}
+						NOT = {
+							check_variable = {
+								which = philosophical_lean
+								value = 33
+							}
+						}
+					}
+					
+				}
+				add_government_reform = pasiragha_gov_t3_z
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						which = philosophical_lean
+						value = 33
+					}
+				}
+				add_government_reform = pasiragha_gov_t3_p
+			}
+			custom_tooltip = "Unlocks new missions"
+			hidden_effect = {
+				set_country_flag = pasiragha_middle_complete
+				swap_non_generic_missions = yes
+			}
+		}
+	}
 }
 
 pasiragha_missions_middle_3 = {
@@ -566,6 +1162,93 @@ pasiragha_missions_middle_3 = {
 			pasiragha_new_dogma
 		}
 
+		trigger = {
+			OR = {
+				AND = {
+					OR = {
+						has_global_modifier_value = {
+							which = global_missionary_strength
+							value = 0.05
+						}
+						has_global_modifier_value = {
+							which = tolerance_heretic
+							value = 1
+						}
+					}
+					dip_power = 100
+					OR = {
+						overlord = {
+							has_opinion = {
+								who = ROOT
+								value = 95
+							}
+							owes_favors = {
+								who = ROOT
+								value = 40
+							}
+						}
+						any_ally = {
+							has_opinion = {
+								who = ROOT
+								value = 95
+							}
+							owes_favors = {
+								who = ROOT
+								value = 40
+							}
+						}
+					}
+				}
+				#just in case you are the last of your kind
+				hidden_trigger = {
+					NOT ={
+						any_country = {
+							AND = {
+								NOT = {
+									ROOT
+								}
+								religion_group = raheni
+							}		
+						}
+					}
+				}
+			}
+		}
+
+		effect = {
+			add_dip_power = -100
+			if = {
+				limit = {
+					is_subject = yes
+				}
+				overlord = {
+					country_event = { 
+						id = flavor_pasiragha.8
+						days = 15
+						random = 30 
+					}
+				}
+			}
+			else = {
+				random_ally = {
+					limit = {
+						has_opinion = {
+							who = ROOT
+							value = 95
+						}
+						owes_favors = {
+							who = ROOT
+							value = 40
+						}
+					}
+					country_event = { 
+						id = flavor_pasiragha.8
+						days = 15
+						random = 30 
+					}
+				}
+			}
+		}
 	}
 
 	pasiragha_upgrade_paths = {
@@ -575,8 +1258,53 @@ pasiragha_missions_middle_3 = {
 			pasiragha_western_authority
 		}
 
-	}
+		provinces_to_highlight = {
+			OR = {
+				AND = {
+					province_group = pasiragha_debate_road
+					NOT = {
+						num_of_times_improved_by_owner = 3
+					}
+				}
+				AND = {
+					province_group = pasiragha_pilgrim_path
+					NOT = {
+						num_of_times_improved_by_owner = 5
+					}
+				}
+			}
+		}
 
+		trigger = {
+			pasiragha_pilgrim_path = {
+				num_of_times_improved_by_owner = 5
+			}
+			pasiragha_debate_road = {
+				num_of_times_improved_by_owner = 3
+			}
+			num_of_owned_provinces_with = {
+				limit = {
+					province_group = pasiragha_road_group_1
+				}
+				value = 5
+				has_building = courthouse
+			}
+		}
+
+		effect = {
+			pasiragha_pilgrim_path = {
+				remove_province_modifier = pasiragha_mod_pilgrim_path
+				add_permanent_province_modifier = {
+					name = pasiragha_mod_debate_road
+				}
+			}
+			pasiragha_debate_road = {
+				add_permanent_province_modifier = {
+					name = pasiragha_mod_debate_road
+				}
+			} 
+		}
+	}
 }
 
 pasiragha_missions_middle_4 = {
@@ -596,6 +1324,19 @@ pasiragha_missions_middle_4 = {
 			pasiragha_painful_birth
 		}
 
+		trigger = {
+			#survive philsophical strife disaster
+		}
+
+		effect = {
+			add_stability = 1
+			add_casus_belli = {
+				target = ROOT
+				type = cb_heretic
+				months = -1
+			}
+		}
+
 	}
 
 	pasiragha_western_authority = {
@@ -604,6 +1345,132 @@ pasiragha_missions_middle_4 = {
  		required_missions = {
 			pasiragha_battle_of_will
 			pasiragha_battle_of_body
+		}
+
+		provinces_to_highlight = {
+			OR = {
+				region = rakhadesh_region
+				area = sarkhashabid_area
+				area = avhavubhiya_area
+				province_id = 4368
+			}
+			NOT = {
+				if = {
+					limit = {
+						ROOT = {
+							religion = suhans_praxis
+						}
+					}
+					province_religion = suhans_praxis
+				}
+				else_if = {
+					limit = {
+						ROOT = {
+							religion = high_philosophy
+						}
+					}
+					province_religion = high_philosophy
+				}
+			}
+			
+		}
+
+		trigger = {
+			rakhadesh_region = {
+				if = {
+					limit = {
+						ROOT = {
+							religion = suhans_praxis
+						}
+					}
+					province_religion = suhans_praxis
+				}
+				else_if = {
+					limit = {
+						ROOT = {
+							religion = high_philosophy
+						}
+					}
+					province_religion = high_philosophy
+				}
+			}
+			sarkhashabid_area = {
+				if = {
+					limit = {
+						ROOT = {
+							religion = suhans_praxis
+						}
+					}
+					province_religion = suhans_praxis
+				}
+				else_if = {
+					limit = {
+						ROOT = {
+							religion = high_philosophy
+						}
+					}
+					province_religion = high_philosophy
+				}
+			}
+			avhavubhiya_area = {
+				if = {
+					limit = {
+						ROOT = {
+							religion = suhans_praxis
+						}
+					}
+					province_religion = suhans_praxis
+				}
+				else_if = {
+					limit = {
+						ROOT = {
+							religion = high_philosophy
+						}
+					}
+					province_religion = high_philosophy
+				}
+			}
+			4368 = {
+				if = {
+					limit = {
+						ROOT = {
+							religion = suhans_praxis
+						}
+					}
+					province_religion = suhans_praxis
+				}
+				else_if = {
+					limit = {
+						ROOT = {
+							religion = high_philosophy
+						}
+					}
+					province_religion = high_philosophy
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Suhan's reformation is 30 years old."
+				hidden_trigger = {
+					had_global_flag = {
+						flag = suhan_goes_sicko_mode
+						days = 10950
+					}
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					NOT = {
+						has_global_flag = destroyed_raj
+					}
+				}
+				country_event = { id = flavor_pasiragha.9 }
+			}
+			else = {
+				country_event = { id = flavor_pasiragha.10 }
+			}
 		}
 
 	}
@@ -615,6 +1482,100 @@ pasiragha_missions_middle_4 = {
 			pasiragha_legacy_of_reformation
 		}
 
+		trigger = {
+			religious_unity = 0.90
+			custom_trigger_tooltip = {
+				tooltip = "You have embraced either humanist or religious ideas. Your reward will differ depending on which one."
+				OR = {
+					has_idea_group = humanist_ideas
+					has_idea_group = religious_ideas
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "It has been 20 years since Suhan met his end."
+				hidden_trigger = {
+					had_global_flag = {
+						flag = suhan_reformation_over
+						days = 7300
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited a Golden Palace Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_golden_palace_invites
+						value = 1
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited an Orange Sash Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_orange_sash_invites
+						value = 1
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited a Ascendant Soul Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_ascendant_soul_invites
+						value = 1
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited a Silken Turban Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_silken_turban_invites
+						value = 1
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited a Unbroken Claw Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_unbroken_claw_invites
+						value = 1
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = "Has invited a Radiant Sun Scholar"
+				hidden_trigger = {
+					check_variable = {
+						which = pasiragha_radiant_sun_invites
+						value = 1
+					}
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					has_idea_group = religious_ideas
+				}
+				add_country_modifier = {
+					name = pasiragha_mod_legacy_of_reformation_religious
+					duration = -1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea_group = humanist_ideas
+				}
+				add_country_modifier = {
+					name = pasiragha_mod_legacy_of_reformation_humanist
+					duration = -1
+				}
+			}
+		}
 	}
 
 	pasiragha_unity_of_spirit_land = {
@@ -625,6 +1586,72 @@ pasiragha_missions_middle_4 = {
 			pasiragha_upgrade_paths
 		}
 
+		provinces_to_highlight = {
+			if = {
+				limit = {
+					has_global_flag = destroyed_raj
+				}
+				OR = {
+					province_id = 4411
+					province_id = 4380
+					province_id = 4384
+					province_id = 4417
+					province_id = 4450
+				}
+			}
+		}
+
+		trigger = {
+			OR = {
+				has_government_attribute = is_raja
+				AND = {
+					has_global_flag = destroyed_raj
+					4411 = {
+						is_core = ROOT
+						owned_by = ROOT
+					}
+					4380 = {
+						is_core = ROOT
+						owned_by = ROOT
+					}
+					4384 = {
+						is_core = ROOT
+						owned_by = ROOT
+					}
+					4417 = {
+						is_core = ROOT
+						owned_by = ROOT
+					}
+					4450 = {
+						is_core = ROOT
+						owned_by = ROOT
+					}
+				}
+			}
+		}
+
+		effect = {
+			if = {
+				limit = {
+					has_government_attribute = is_raja
+				}
+				set_country_flag = pasiragha_flag_no_corruption
+			}
+			else = {
+				add_power_projection = {
+					type = mission_rewards_power_projection
+					amount = 25
+				}
+			}
+			add_country_modifier = {
+				name = pasiragha_mod_recapture_raj
+				duration = 9125
+			}
+			#check this group... it might not have every province needed.
+			harimraj_core_lands = {
+				add_permanent_claim = ROOT
+			}
+		}
 	}
 
 }
@@ -646,6 +1673,60 @@ pasiragha_missions_middle_5 = {
 			pasiragha_new_dogma
 		}
 
+		provinces_to_highlight = {
+			
+		}
+
+		trigger = {
+			4434 = {
+				OR = {
+					base_manpower = 10
+					custom_trigger_tooltip = {
+						tooltip = "If Kastriyar has 15 military development this mission will also upgrade the \"Kastriyard Training Grounds\" modifier."
+						hidden_trigger = {
+							base_manpower = 15
+						}
+					}
+				}
+			}	
+			max_manpower = 90000
+			mil_power = 100
+			has_country_modifier = unbroken_claw_scholar_modifier
+		}
+
+		effect = {
+			if = {
+				limit = {
+					4434 = {
+						base_manpower = 15
+					}
+				}
+				4434 = {
+					remove_province_modifier = pasiragha_mod_training_grounds
+					add_province_modifier = {
+						name = pasiragha_mod_training_complex
+						duration = -1
+					}
+				}
+			}
+			add_mil_power = -100
+			add_country_modifier = {
+				name = pasiragha_mod_national_training_program
+				duration = -1
+			}
+			north_ghankedhen_area = {
+				add_permanent_claim = ROOT
+			}
+			middle_ghankedhen_area = {
+				add_permanent_claim = ROOT
+			}
+			south_ghankedhen_area = {
+				add_permanent_claim = ROOT
+			}
+			ascension_cape_area = {
+				add_permanent_claim = ROOT
+			}
+		}
 	}
 }
 
