@@ -2143,7 +2143,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEGES = 5, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
+	ESTATE_MAX_PRIVILEGES = 7, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
 	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 100,					-- (Anbennar) pdx: 1.5 (disabled in Anbennar)
 
 	-- # AI unit strength evaluation
