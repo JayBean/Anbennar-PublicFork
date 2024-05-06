@@ -34,7 +34,7 @@ NGame = {
 	RNW_MERC_COMPANY_ARTILLERY_MAX = 0.3, 	-- max artillery_weight if we're using artillery
 	RNW_MERC_COMPANY_RANDOM_NAME_COUNT = 20, -- RANDOM_MERCENARY_NAME + number up to this value
 
-	MAX_GOVERNMENT_REFORMS_PER_TIER = 16,   -- This is used to avoid crash, if you want more reforms add more levels in gui before changing this value
+	MAX_GOVERNMENT_REFORMS_PER_TIER = 20,   -- Anbennar, pdx 16. This is used to avoid crash, if you want more reforms add more levels in gui before changing this value <- this has been done, no crash
 	PRINT_MESSAGES_TO_GAME_LOG = 0, -- Should we print messages to the game log or not ( 0 = false, 1 = true )
 },
 
@@ -712,9 +712,9 @@ NCountry = {
 	CULTURE_MIN_DEVELOPMENT_TO_PROMOTE = 20,		-- Minimum development required to promote the culture.
 	MONARCH_DEATH_STABILITY_PENALTY = 1,			-- Stab hit on monarch death
 	MONARCH_DEATH_LEADER_STABILITY_PENALTY = 1,		-- Stab hit on monarch death when a leader
-	MONARCH_DEATH = 4, 								-- _CDEF_MONARCH_DEATH_
-	MONARCH_DEATH_MIN_CHANCE_MODIFIER = 0.1,		-- Minimum death chance modifier
-	HEIR_DEATH = 1, 								-- _CDEF_HEIR_DEATH_	(Only applies for heirs older than 20, and the chance increases with age.)
+	MONARCH_DEATH = 0, 								-- (Anbennar) _CDEF_MONARCH_DEATH_
+	MONARCH_DEATH_MIN_CHANCE_MODIFIER = 0,			-- (Anbennar) Minimum death chance modifier
+	HEIR_DEATH = 0, 								-- (Anbennar) _CDEF_HEIR_DEATH_	(Only applies for heirs older than 20, and the chance increases with age.)
 	LEGITIMACY_DYNASTY_CHANGE = 20,					-- Legitimacy a new dynasty starts out with
 	MIN_REGENCY_LEGITIMACY = 80,
 	BASE_POWER_INCREASE = 3,						-- monthly base increase
@@ -1589,8 +1589,8 @@ NMilitary = {
 	LEADER_MINIMUM_AGE = 16,						-- Minimum age of a leader in years
 	LEADER_MAX_RANDOM_YEARS = 25,
 	LEADER_MAX_RANDOM_DAYS = 730,
-	LEADER_WORK_YEARS_DEATH_FACTOR = 2,					-- Divides how many years he has been working to calculate chance
-	LEADER_AGE_DEATH_FACTOR = 3,					-- Divides age with this to calculate chance
+	LEADER_WORK_YEARS_DEATH_FACTOR = 4096,			-- (Anbennar) pdx:2 Divides how many years (above 20) a general has been working to calculate chance of death
+	LEADER_AGE_DEATH_FACTOR = 4096,				-- (Anbennar) pdx:3 Divides age with this to calculate chance of death for ruler-generals
 
 	MERCENARY_COMPANY_ARMY_TRADITION = 50.0,		-- At what army tradition mercenaries leaders are generated on.
 	
@@ -2143,7 +2143,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEGES = 5, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
+	ESTATE_MAX_PRIVILEGES = 7, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
 	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 100,					-- (Anbennar) pdx: 1.5 (disabled in Anbennar)
 
 	-- # AI unit strength evaluation
