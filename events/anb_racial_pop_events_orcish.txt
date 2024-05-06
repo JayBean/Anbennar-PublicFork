@@ -115,10 +115,7 @@ country_event = {
 						OR = {
 							unrest = 10
 							devastation = 25
-							AND = {
-								has_oppressed_orcish_minority_trigger = yes
-								owner = { NOT = { has_country_modifier = orcish_slaves_in_colonies } }
-							}
+							has_oppressed_orcish_minority_trigger = yes
 						}
 					}
 					province_event = { id = racial_pop_events_orcish.5 }
@@ -281,9 +278,9 @@ country_event = {
 				has_country_flag = migration_bribe_@FROM
 			}
 		}
-
 		add_dip_power = -10
 		small_decrease_of_orcish_tolerance_effect = yes
+		clr_country_flag = migration_bribe_@FROM
 		hidden_effect = {
 			FROM = {
 				country_event = { id = racial_pop_events_orcish.2 days = 1 random = 364 }
@@ -360,9 +357,7 @@ country_event = {
 		}
 		add_adm_power = -10
 		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
-		event_target:origin_province = {
-			generic_remove_race_minority_size_effect = { race = orcish }
-		}
+		event_target:origin_province = { racial_pop_migration_leave = { race = orcish } }
 		event_target:destination_province = {
 			racial_pop_migration_arrive = { race = orcish }
 		}
@@ -374,9 +369,7 @@ country_event = {
 		ai_chance = {
 			factor = 50
 		}
-		event_target:origin_province = {
-			generic_remove_race_minority_size_effect = { race = orcish }
-		}
+		event_target:origin_province = { racial_pop_migration_leave = { race = orcish } }
 		event_target:destination_province = {
 			racial_pop_migration_arrive = { race = orcish }
 		}
@@ -444,13 +437,12 @@ country_event = {
 		if = {
 			limit = { event_target:origin_province = { owner = { ai = yes } } }
 			custom_tooltip = racial_pop_migration_happens_tt
-			tooltip = { country_event = { id = racial_pop_events_orcish.1 days = 1 random = 364 } }
 		}
 		else = {
 			custom_tooltip = racial_pop_migration_bribe_tt
 		}
-		event_target:origin_province = { owner = { set_country_flag = migration_bribe_@ROOT country_event = { id = racial_pop_events_orcish.3 } } }
 		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
+		hidden_effect = { event_target:origin_province = { owner = { set_country_flag = migration_bribe_@ROOT country_event = { id = racial_pop_events_orcish.3 } } } }
 	}
 	
 	#Let them do as they wish 
@@ -460,11 +452,7 @@ country_event = {
 			factor = 50
 		}
 		custom_tooltip = racial_pop_migration_attempt_tt
-		event_target:origin_province = {
-			owner = {
-				country_event = { id = racial_pop_events_orcish.3 }
-			}
-		}
+		hidden_effect = { event_target:origin_province = { owner = { country_event = { id = racial_pop_events_orcish.3 } } } }
 	}
 
 	#Close our borders
@@ -492,7 +480,12 @@ country_event = {
 		hidden_effect = {
 			choose_pop_destination_province = { race = orcish }
 			choose_refugee_country_target = { race = orcish }
+			event_target:destination_province = { set_province_flag = orcish_refugee_destination_province }
+			calculate_refugee_exploit_rewards = yes
 		}
+	}
+	after = {
+		event_target:destination_province = { clr_province_flag = orcish_refugee_destination_province }
 	}
 	
 	#Let them in
@@ -540,7 +533,7 @@ country_event = {
 		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
 	}
 	
-	#Confiscate their valuables in return
+	#Prey on their desperation to exploit them for labor
 	option = {		
 		name = racial_pop_events_orcish.10.b
 		trigger = {
@@ -565,9 +558,11 @@ country_event = {
 				has_personal_deity = ara
 			}
 		}
-		
-		add_years_of_income = 0.2
-		add_prestige = -5
+		custom_tooltip = exploit_refugees_gain_effect_tt
+		hidden_effect = {
+			var_effect = { effect = add_treasury var = ducats_gained_on_exploit sign = + }
+			var_effect_granular = { effect = add_manpower var = manpower_gained_on_exploit sign = + }
+		}
 		remove_country_modifier = non_primary_refugees
 		event_target:destination_province = { racial_pop_migration_arrive = { race = orcish } }
 		generic_decrease_of_racial_tolerance_effect = { race = orcish medium = yes }
@@ -580,9 +575,14 @@ country_event = {
 		trigger = {
 			culture_is_orcish = yes
 		}
-		ai_chance = { factor = 1000}
-		add_years_of_income = 0.1
-		add_country_modifier = { name = primary_refugees duration = 1825 }
+		ai_chance = { factor = 1000 }
+		add_years_of_owned_provinces_manpower = {
+			years = 1
+			trigger = {
+				has_province_flag = orcish_refugee_destination_province
+			}
+			custom_tooltip = orcish_refugees_manpower_desc
+		}
 		event_target:destination_province = { racial_pop_migration_arrive = { race = orcish } }
 	}
 	
@@ -628,13 +628,7 @@ country_event = {
 			}
 		}
 		add_mil_power = -20
-		if = {
-			limit = { culture_is_orcish = yes }
-			remove_country_modifier = primary_refugees
-		}
-		else = {
-			remove_country_modifier = non_primary_refugees
-		}
+		remove_country_modifier = non_primary_refugees
 		generic_decrease_of_racial_tolerance_effect = { race = orcish medium = yes }
 	}
 }
@@ -653,7 +647,12 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			choose_pop_destination_province = { race = orcish }
+			calculate_refugee_exploit_rewards = yes
+			event_target:destination_province = { set_province_flag = orcish_refugee_destination_province }
 		}
+	}
+	after = {
+		event_target:destination_province = { clr_province_flag = orcish_refugee_destination_province }
 	}
 	
 	#Let those poor souls in
@@ -696,7 +695,7 @@ country_event = {
 		generic_increase_of_racial_tolerance_effect = { race = orcish small = yes }
 	}
 	
-	#Confiscate what they have in return
+	#Prey on their desperation to exploit them for labor
 	option = {		
 		name = racial_pop_events_orcish.11.b
 		trigger = {
@@ -721,8 +720,12 @@ country_event = {
 				has_personal_deity = ara
 			}
 		}
-		
-		add_years_of_income = 0.1
+		custom_tooltip = exploit_refugees_gain_effect_tt
+		hidden_effect = {
+			var_effect = { effect = add_treasury var = ducats_gained_on_exploit sign = + }
+			var_effect_granular = { effect = add_manpower var = manpower_gained_on_exploit sign = + }
+		}
+		remove_country_modifier = non_primary_refugees
 	
 		#Add Minority to New Province
 		event_target:destination_province = { racial_pop_migration_arrive = { race = orcish } }
@@ -736,8 +739,14 @@ country_event = {
 		trigger = {
 			culture_is_orcish = yes
 		}
-		ai_chance = { factor = 1000}
-		add_years_of_income = 0.1
+		ai_chance = { factor = 1000 }
+		add_years_of_owned_provinces_manpower = {
+			years = 1
+			trigger = {
+				has_province_flag = orcish_refugee_destination_province
+			}
+			custom_tooltip = orcish_refugees_manpower_desc
+		}
 		event_target:destination_province = { racial_pop_migration_arrive = { race = orcish } }
 	}
 	
@@ -3538,6 +3547,7 @@ country_event = {
 		}
 		
 		any_owned_province = {
+			is_city = yes
 			has_orcish_majority_trigger = yes
 			#culture_is_orcish = yes
 			NOT = { unrest = 20 }
@@ -3697,6 +3707,7 @@ country_event = {
 		hidden_effect = {
 			random_owned_province = {
 				limit = {
+					is_city = yes
 					has_orcish_majority_trigger = yes
 					#culture_is_orcish = yes
 				}
