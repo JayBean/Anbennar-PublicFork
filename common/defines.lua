@@ -1589,8 +1589,8 @@ NMilitary = {
 	LEADER_MINIMUM_AGE = 16,						-- Minimum age of a leader in years
 	LEADER_MAX_RANDOM_YEARS = 25,
 	LEADER_MAX_RANDOM_DAYS = 730,
-	LEADER_WORK_YEARS_DEATH_FACTOR = 9999,			-- (Anbennar) Divides how many years he has been working to calculate chance
-	LEADER_AGE_DEATH_FACTOR = 3,					-- Divides age with this to calculate chance
+	LEADER_WORK_YEARS_DEATH_FACTOR = 4096,			-- (Anbennar) pdx:2 Divides how many years (above 20) a general has been working to calculate chance of death
+	LEADER_AGE_DEATH_FACTOR = 4096,				-- (Anbennar) pdx:3 Divides age with this to calculate chance of death for ruler-generals
 
 	MERCENARY_COMPANY_ARMY_TRADITION = 50.0,		-- At what army tradition mercenaries leaders are generated on.
 	
@@ -2143,7 +2143,7 @@ NAI = {
 	ESTATE_INTERACTION_THRESHOLD = 49.9,
 	ESTATE_MAX_WANTED_INFLUENCE = 73.0,
 	ESTATE_MIN_WANTED_CROWNLAND = 33.0,
-	ESTATE_MAX_PRIVILEGES = 5, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
+	ESTATE_MAX_PRIVILEGES = 7, 									-- (Anbennar) pdx: 6. Also see ESTATE_PRIVILEGES_MAX_CONCURRENT in NCountry
 	MIN_SCORE_TO_CONCENTRATE_DEVELOPMENT = 100,					-- (Anbennar) pdx: 1.5 (disabled in Anbennar)
 
 	-- # AI unit strength evaluation
