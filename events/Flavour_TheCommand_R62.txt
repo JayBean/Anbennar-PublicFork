@@ -31,6 +31,10 @@ country_event = { #Startup Event
 			R64 = { set_country_flag = command_slave_state_flag }
 			R65 = { set_country_flag = command_slave_state_flag }
 			R66 = { set_country_flag = command_slave_state_flag }
+			add_estate_loyalty = {
+				estate = all
+				loyalty = 1
+			}
 		}
 	}
 
@@ -828,23 +832,6 @@ province_event = { #Migration from X to Y
 	#tl;dr: if two of the same event happen their immediates fire but you don't see the second event.
 	#it can also break loca and flags and suchlike. In this case it's fine tho
 	immediate = {
-		random_list = {
-			8 = {
-				random_owned_province = {
-					limit = { region = shamakhad_region }
-					save_event_target_as = destination_province
-				}
-			}
-			1 = {
-				random_owned_province = {
-					limit = { OR = { area = khasardul_area area = pharata_area area = nadida_area } }
-					save_event_target_as = destination_province
-				}
-			}
-			1 = {
-				4635 = { save_event_target_as = destination_province }
-			}
-		}
 		province_event = { id = the_command.20 days = 365 random = 365 }
 	}
 
@@ -885,70 +872,22 @@ province_event = { #Migration from X to Y
 				add_base_manpower = -1
 			}
 		}
-		###Migration to New Camp
-		event_target:destination_province = {
-			if = {
-				limit = { has_province_modifier = hobgoblin_minority_integrated_large }
-				if = {
-					limit = { owner = { num_of_owned_provinces_with = { value = 4 culture = lion_command region = shamakhad_region } } }
-					add_base_tax = 1
-					add_base_production = 1
-					random_list = {
-						3 = { add_base_manpower = 1 }
-						2 = { add_base_manpower = 2 }
-					}
-				}
-				else = {
-					random_list = {
-						2 =  {
-							add_base_tax = 1
-							add_base_production = 1
-							random_list = {
-								3 = { add_base_manpower = 1 }
-								2 = { add_base_manpower = 2 }
-							}
-						}
-						1 = {
-							change_culture = lion_command
-							change_religion = godlost
-							random_list = {
-								3 = { add_base_tax = 1 }
-								3 = { add_base_production = 1 }
-								4 = { add_base_manpower = 1 }
-							}
-						}
-					}
+		####Migration to New Camp
+		random_list = {
+			8 = {
+				random_owned_province = {
+					limit = { region = shamakhad_region NOT = { culture = wolf_command culture = boar_command } }
+					command_migration_effect = yes
 				}
 			}
-			else_if = {
-				limit = { has_province_modifier = hobgoblin_majority_primary }
-				add_base_tax = 1
-				add_base_production = 1
-				random_list = {
-					3 = { add_base_manpower = 1 }
-					2 = { add_base_manpower = 2 }
+			1 = {
+				random_owned_province = {
+					limit = { OR = { area = khasardul_area area = pharata_area area = nadida_area } }
+					command_migration_effect = yes
 				}
 			}
-			else_if = {
-				limit = { has_province_modifier = hobgoblin_minority_integrated_small }
-				remove_province_modifier = hobgoblin_minority_integrated_small
-				add_permanent_province_modifier = {
-					name = hobgoblin_minority_integrated_large
-					duration = -1
-				}
-				random_list = {
-					3 = { add_base_tax = 1 }
-					3 = { add_base_production = 1 }
-					4 = { add_base_manpower = 1 }
-				}
-			}
-			else = {
-				add_permanent_province_modifier = {
-					name = hobgoblin_minority_integrated_large
-					duration = -1
-				}
-				set_province_flag = hobgoblin_present
-				owner = { change_variable = { which = hobgoblin_count value = 1 } }
+			1 = {
+				4635 = { command_migration_effect = yes }
 			}
 		}
 	}
@@ -1386,12 +1325,7 @@ province_event = { #The Laws of Ninun
 					area_for_scope_province = {
 						type = all
 						OR = {
-							owner = {
-								NOT = {
-									tag = R62
-									is_subject_of_type = slave_state
-								}
-							}
+							NOT = { has_state_edict = laws_of_ninun_edict }
 							AND = {
 								religion = godlost
 								culture_is_wuhyun = yes
@@ -6516,9 +6450,14 @@ country_event = { #Sir Revolt End - Command Victory
 						random_owned_province = {
 							limit = {
 								region = shamakhad_region
-								NOT = { fast_has_pop_of_race = { race = hobgoblin } }
+								NOT = { has_province_flag = hobgoblin_present }
 							}
-							generic_add_race_minority_size_effect = { race = hobgoblin }
+							add_permanent_province_modifier = {
+								name = hobgoblin_minority_integrated_large
+								duration = -1
+							}
+							set_province_flag = hobgoblin_present
+							ROOT = { change_variable = { which = hobgoblin_count value = 1 } }
 						}
 					"
 				}
