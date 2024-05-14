@@ -19,26 +19,20 @@ undergrowth_1 = {
 		position = 1
 
 		trigger = {
-			custom_trigger_tooltip = {
-				tooltip = undergrowth_king_of_the_tribes_trigger_tt
-				OR = {
-					calc_true_if = {
-						amount = 2
-						H88 = { vassal_of = ROOT }
-						H92 = { vassal_of = ROOT }
-						H93 = { vassal_of = ROOT }
-					}
-					NOT = {
-						any_country = {
-							AND = {
-								capital_scope = {
-									region = tree_of_stone_region
-								}
-								primary_culture = undergrowth_goblin
-							}
-						}
-					}
-				}
+			if = {					
+				limit = { tag = H88 }
+				OR = { H92 = { vassal_of = ROOT } H92 = { exists = no } }
+				OR = { H93 = { vassal_of = ROOT } H93 = { exists = no } }
+			}
+			else_if = {
+				limit = { tag = H92 }
+				OR = { H88 = { vassal_of = ROOT } H88 = { exists = no } }
+				OR = { H93 = { vassal_of = ROOT } H93 = { exists = no } }
+			}
+			else_if = {
+				limit = { tag = H93 }
+				OR = { H88 = { vassal_of = ROOT } H88 = { exists = no } }
+				OR = { H92 = { vassal_of = ROOT } H92 = { exists = no } }
 			}
 		}
 		effect = {
@@ -77,17 +71,7 @@ undergrowth_1 = {
 		}
 		effect = {
 			if = {
-				limit = { NOT = { any_owned_province = { is_capital_of = ROOT is_core = ROOT } } } #If you only own one core (capital) 
-				every_owned_province = {
-					limit = { is_core = H74 }
-					destroy_province = yes
-				}
-				add_adm_power = 100
-				add_dip_power = 100
-				add_mil_power = 100
-				
-			}
-			else = {
+				limit = { any_owned_province = { is_capital = no is_core = ROOT } } #If you only own one core (capital) 
 				4284 = { 
 					add_base_manpower = -3
 					add_base_production = -3
@@ -113,6 +97,16 @@ undergrowth_1 = {
 					add_base_tax = 1
 				}
 			}
+
+			else = {		
+				every_owned_province = {
+					limit = { is_core = H74 }
+					destroy_province = yes
+				}
+				add_adm_power = 100
+				add_dip_power = 100
+				add_mil_power = 100
+			}
 		}
 	}
 
@@ -132,7 +126,7 @@ undergrowth_1 = {
 		trigger = {
 			calc_true_if = {
 				amount = 5
-				any_owned_province = {
+				all_owned_province = {
 					has_terrain = cavern
 					base_production = 5
 					has_production_building_trigger = yes
@@ -201,7 +195,7 @@ undergrowth_2 = {
 		trigger = {
 			calc_true_if = {
 				amount = 3
-				any_owned_province = {
+				all_owned_province = {
 					trade_goods = serpentbloom
 					development = 10
 					has_manpower_building_trigger = yes
@@ -210,15 +204,19 @@ undergrowth_2 = {
 		}
 		effect = {
 			custom_tooltip = undergrowth_servitude_tt
-			every_owned_province = {
-				limit = {
-					trade_goods = serpentbloom
-					development = 10
-					has_manpower_building_trigger = yes
-				}
-				add_province_modifier = {
-					name = undergrowth_servitude_in_serpentbloom_modifier
-					duration = 5475
+			hidden_effect = {
+				every_owned_province = {
+					limit = {
+						AND = {
+							trade_goods = serpentbloom
+							development = 10
+							has_manpower_building_trigger = yes
+						}
+					}
+					add_province_modifier = {
+						name = undergrowth_servitude_in_serpentbloom_modifier
+						duration = 5475
+					}
 				}
 			}
 		}
@@ -415,9 +413,12 @@ undergrowth_4 = {
 		trigger = {
 			owns = 4247
 			num_of_cities = 2
+			if = {
+				limit = { ai = yes }
+				is_subject = no
+			}
 		}
 		effect = {
-			custom_tooltip = undergrowth_oldest_grudge_tt
 			4247 = {
 				destroy_province = yes
 			}
@@ -444,10 +445,10 @@ undergrowth_4 = {
 				OR = {
 					has_reform = prabhi_reform
 					has_reform = senapti_reform
+					has_reform = indep_prabhi_reform
 				}
 				has_95_opinion_improved_relation = { target = ROOT }
 			}
-			4446 = { owner = { has_spy_network_from = { who = ROOT value = 40 } } }
 		}
 		effect = {
 			country_event = {
@@ -463,27 +464,52 @@ undergrowth_4 = {
 			undergrowth_gatekeep
 		}
 		position = 4
+		provinces_to_highlight = {
+			is_capital = yes
+			owner = {
+				NOT = { has_95_opinion_improved_relation = { target = ROOT } }
+			}
+			OR = {
+				area = khadisrapur_area 
+				area = west_rajnadhaga_area 
+				area = ghattub_area 
+				area = babhagama_area 
+				area = north_ghankedhen_area 
+			}
+		}
 		trigger = {
-			all_known_country = {
-				if = {
-					limit = {
-						capital_scope = { 
-							OR = {
-								area = khadisrapur_area 
-								area = west_rajnadhaga_area 
-								area = ghattub_area 
-								area = babhagama_area 
-								area = north_ghankedhen_area 
-							} 
+			custom_trigger_tooltip = {
+				tooltip = undergrowth_goblinboss_trigger_one_tt
+				all_known_country = {
+					if = {
+						limit = {
+							capital_scope = { 
+								OR = {
+									area = khadisrapur_area 
+									area = west_rajnadhaga_area 
+									area = ghattub_area 
+									area = babhagama_area 
+									area = north_ghankedhen_area 
+								} 
+							}
 						}
+						has_95_opinion_improved_relation = { target = ROOT }
 					}
-					has_95_opinion_improved_relation = { target = ROOT }
 				}
 			}
-			dip_power = 100
-			all_known_country = {
-				NOT = { capital_scope = { region = tree_of_stone_region } }
+
+			custom_trigger_tooltip = {
+				tooltip = undergrowth_goblinboss_trigger_two_tt
+				all_known_country = {
+					if = {
+						limit = { NOT = { culture = undergrowth_goblin } }
+						NOT = { capital_scope = { region = tree_of_stone_region } }
+					}
+				}
 			}
+
+			dip_power = 100
+			
 		}
 		effect = {
 			hidden_effect = {
