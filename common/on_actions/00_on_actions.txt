@@ -1922,33 +1922,63 @@ on_siege_won_country = {
 		country_event = { id = flavor_vazhatun.25 }
 	}
 	if = {
-		limit = { #Command is winning a war against a great power
-			has_country_flag = absolute_domination_cb_unlocked_flag
-			FROM = {
-				owner = {
-					ROOT = {
-						NOT = { has_country_flag = command_leadership_flag_@PREV }
-					}
+		limit = { tag = R62 }
+		command_siege_won_effect = yes
+	}
+	if = {
+		limit = {
+			R62 = { has_country_flag = command_sir_revolt_started }
+			NOT = {
+				is_in_war = {
+					casus_belli = cb_revolt_of_the_north
 				}
 			}
-			FROM = {
-				owner = {
-					ROOT = {
-						is_in_war = {
-							casus_belli = cb_absolute_domination
-							attacker_leader = ROOT
-							defender_leader = PREV
-							war_score = 80
-						}
+			OR = {
+				FROM = { province_id = 4633 }
+				AND = {
+					R62 = { has_country_flag = command_sir_revolt_xia_participation }
+					FROM = { province_id = 4559 }
+				}
+				AND = {
+					R62 = { has_country_flag = command_sir_revolt_rebel_participation }
+					OR = {
+						FROM = { province_id = 4525 }
+						FROM = { province_id = 4535 }
 					}
+				}
+				AND = {
+					R62 = { has_country_flag = command_sir_revolt_khadisrapur_participation }
+					FROM = { province_id = 4465 }
+				}
+				AND = {
+					R62 = { has_country_flag = command_sir_revolt_sarnavan_participation }
+					FROM = { province_id = 4510 }
+				}
+				AND = {
+					R62 = { has_country_flag = command_sir_revolt_parraj_participation }
+					FROM = { province_id = 4467 }
 				}
 			}
 		}
+		save_event_target_as = command_third_party_country
+		FROM = { owner = { save_event_target_as = command_enemy_country } }
+		R62 = { country_event = { id = the_command.118 } }
+	}
+	if = { #War of the Three Commands stuff
+		limit = {
+			OR = {
+				tag = R94
+				tag = R95
+				tag = R96
+			}
+			is_in_war = { casus_belli = cb_three_commands }
+		}
 		FROM = {
-			owner = {
-				ROOT = {
-					set_country_flag = command_leadership_flag_@PREV
-				}
+			trigger_switch = { #In the future, please make these events. For now, let's not
+				on_trigger = province_id
+				4538 = { ROOT = { inherit = R94 } }
+				4311 = { ROOT = { inherit = R95 } }
+				4532 = { ROOT = { inherit = R96 } }
 			}
 		}
 	}
@@ -1981,6 +2011,10 @@ on_siege_lost_country = {
 			limit = { NOT = { check_variable = { aInfluence = 0 } } }
 			set_variable = { aInfluence = 0 }
 		}
+	}
+	if = {
+		limit = { tag = R62 }
+		command_siege_lost_effect = yes
 	}
 }
 
@@ -2057,7 +2091,6 @@ on_siege_lost_province =  {
 		diggy.13
 		magic_project_lichdom.17
 		vampires_estate_events.15
-		cavegoblinflavor.15
 		spirits.002 #Hidden event to determine if temple is damaged by siege
 	}
 
@@ -2432,6 +2465,7 @@ on_monarch_death = {
 		xhazobkult_events.3000 #xhazobine dies
 		thirabnir_event.1   #The Legacy of Lord Narai Chaiya
 		flavour_irkorzik.17 #Ruler dies without an appropiate heir
+		taychendi.19 #prophecy of no annex badend
 	}
 	if = {
 		limit = { has_government_attribute = no_stability_loss_on_monarch_death }
@@ -2465,7 +2499,10 @@ on_monarch_death = {
 
 	#Anbennar
 	country_event = { id = vampires_estate_events.13  days = 1 } # Revival
-	country_event = { id = magic_misc_events.4 days = 60 } #Undead Army
+	if = {
+		limit = { has_country_modifier = undead_military }
+		country_event = { id = magic_misc_events.4 days = 60 } #Undead Army
+	}
 	country_event = { id = flavor_arverynn.52 } #Hrenvyr
 	if = {
 		limit = {
@@ -2580,6 +2617,10 @@ on_monarch_death = {
 	if = {
 		limit = { tag = Y58 has_country_flag = thangoya_mya_coup }
 		country_event = { id = thangoya_event.7 }
+	}
+	if = {
+		limit = { tag = F69 has_country_flag = irkorzik_extend_irkorziks_legacy }
+		add_country_modifier = { name = irkorzik_legacy duration = 9125 }
 	}
 }
 
@@ -2795,6 +2836,13 @@ on_diplomatic_annex = {
 		limit = { tag = F72 }
 		5434 = { remove_province_modifier = mulen_trade_from_kvangraak }
 		5460 = { remove_trade_modifier = { who = FROM key = mulen_trade_from_kvangraak } }
+	}
+	if = { #prophecy of no annex good ending
+		limit = {
+			FROM = { has_country_flag = taychendi_vassal_prophecy_vassal }
+		}
+		FROM = { clr_country_flag = taychendi_vassal_prophecy_vassal }
+		country_event = { id = taychendi.18 }
 	}
 }
 
@@ -3019,6 +3067,27 @@ on_new_heir = {
 		}
 		else = {
 			country_event = { id = harpy_events.102 }
+		}
+	}
+	if = {
+		limit = {
+			OR = {
+				religion = gods_of_the_taychend
+				religion = gods_of_the_taychend_reformed
+			}
+		}
+		if = {	
+			limit = { has_ruler_flag = had_birth_ceremony }
+			random = {
+				chance = 10
+				ROOT = { country_event = { id = taychendi.13 } }
+			}
+		}
+		else = {
+			random = {
+				chance = 30
+				ROOT = { country_event = { id = taychendi.13 } }
+			}
 		}
 	}
 }
@@ -4990,7 +5059,12 @@ on_yearly_pulse = {
 		#Pillar of Gates
 		#sarhal_relics.19
 		effelai_bloom.0
-		the_command.7		#Command's Oni betrayal
+		the_command.1971	#Noriko Dragonborn
+		the_command.1974 	#Noriko Reaches Out to the Shuvuush
+		the_command.1984	#Start of the Great Insubordination
+		the_command.2009	#Command loses the Great Insubordination
+		the_command.1999	#Hidden event to flip regular vassals back into slave states
+		the_command.51		#Hidden event to convert post-edict wuhyunizable provinces
 		flavour_brelar.129	#Clockwork pulse
 		flavour_yinquan.47	#sunny day pulse
 		flavour_arawkelin.10
@@ -7698,6 +7772,13 @@ on_thri_yearly_pulse_4 = {
 		50 = oren_nayiru.11 # cor revealed
 		200 = oren_nayiru.12 # debate
 	}
+
+	#taychend flavour events
+	random_events = {
+		300 = 0
+		50 = taychendi.10
+		150 = taychendi.12
+	}
 }
 
 on_four_year_pulse = {
@@ -8353,6 +8434,7 @@ on_four_year_pulse_4 = {
 		rinta_seeker_events.0
 	}
 	random_events = {
+		80 = bulwar_flavour.9
 		1000 = bulwar_flavour.31
 		30 = bulwar_flavour.32
 		30 = bulwar_flavour.33	
@@ -10763,6 +10845,13 @@ on_harmonized_halessi = {
 		confucian_events.50
 	}
 }
+on_harmonized_supreme_spirit = {
+	on_harmonized_effect = yes
+	on_harmonized_religion_estate_privileges_effect = yes
+	events = {
+		confucian_events.50
+	}
+}
 on_harmonized_tanibic_religion = {
 	on_harmonized_effect = yes
 	on_harmonized_religion_estate_privileges_effect = yes
@@ -11363,6 +11452,18 @@ on_culture_demoted = {
 		remove_accepted_culture = masnsih
 		remove_accepted_culture = sadnatu
 	}
+	if = {
+		limit = {
+			has_country_modifier = J33_centaur_tolerance
+			OR = {
+				NOT = { accepted_culture = plain_centaur }
+				NOT = { accepted_culture = ghanzamh_centaur }
+			}
+		}
+		remove_country_modifier = J33_centaur_tolerance
+		remove_accepted_culture = plain_centaur
+		remove_accepted_culture = ghanzamh_centaur
+	}
 }
 
 # ROOT = country
@@ -11940,6 +12041,20 @@ on_dependency_lost = {
 	}
 
 	g27_breluslad_annex_debug = yes
+
+	if = { #prophecy of no annex bad ending
+		limit = {
+			FROM = { 
+				has_country_flag = taychendi_vassal_prophecy_vassal
+				exists = yes
+			}
+		}
+		FROM = { 
+			clr_country_flag = taychendi_vassal_prophecy_vassal
+			every_owned_province = { clr_province_flag = prophecy_vassal_provinces }
+		}
+		country_event = { id = taychendi.19 } 
+	}
 }
 
 # ROOT = New vassal, FROM = Overlord
@@ -14079,6 +14194,7 @@ on_new_age = {
 	events = {
 		escanni_wars.1 # Fire the war
 		escanni_wars.3 # Bypass the war
+		the_command.7	#Oni temple corruption
 	}
 	
 	if = {
@@ -14290,6 +14406,15 @@ on_slacken_start = {
 		name = slackening_modifier
 		duration = -1
 	}
+	if = { #no slacken pls
+		limit = {
+			tag = R62
+			ai = yes
+			has_country_flag = command_sir_revolt_started
+		}
+		remove_country_modifier = slackening_modifier
+		add_army_professionalism = 0.01
+	}
 }
 on_slacken_stop = {
 	remove_country_modifier = slackening_modifier
@@ -14451,6 +14576,11 @@ on_dip_tech_taken = { #ROOT - Country, executed after on_tech_taken!
 
 on_mil_tech_taken = { #ROOT - Country, executed after on_tech_taken!
 	spirit_mil_shock_dmg = yes
+	if = {
+		limit = { tag = R62 ai = yes command_has_active_campaign = yes }
+		command_force_progress_campaign_multiple_effect = yes
+		country_event = { id = the_command.3002 days = 2555 }
+	}
 }
 
 on_barrage = { #ROOT - barraging country, FROM - barraged province 
