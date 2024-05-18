@@ -110,6 +110,8 @@ on_startup = {
 		royakottar_events.0
 		empkeios_events.1299 #Empkeios variable setup/update - will only fire if player-controlled
 		flavour_ordstun.0 #Arg-Ordstun setup
+		flavour_spiderwretch.50 #Spiderwretch Lightland Claimer
+		flavor_orda_aldresia.2 #Orda Aldresia Imperial Bodyguard
 
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -1922,7 +1924,7 @@ on_siege_won_country = {
 		country_event = { id = flavor_vazhatun.25 }
 	}
 	if = {
-		limit = { tag = R62 }
+		limit = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } }
 		command_siege_won_effect = yes
 	}
 	if = {
@@ -1933,36 +1935,22 @@ on_siege_won_country = {
 					casus_belli = cb_revolt_of_the_north
 				}
 			}
-			OR = {
-				FROM = { province_id = 4633 }
-				AND = {
-					R62 = { has_country_flag = command_sir_revolt_xia_participation }
-					FROM = { province_id = 4559 }
-				}
-				AND = {
-					R62 = { has_country_flag = command_sir_revolt_rebel_participation }
-					OR = {
-						FROM = { province_id = 4525 }
-						FROM = { province_id = 4535 }
+		}
+		FROM = { remove_province_modifier = command_defensiveness_for_ai remove_province_modifier = command_trade_power_for_ai }
+		if = {
+			limit = {
+				R62 = {
+					any_war_enemy_country = {
+						capital_scope = { province_id = FROM }
+						is_subject = no
+						is_in_war = { casus_belli = cb_revolt_of_the_north }
 					}
 				}
-				AND = {
-					R62 = { has_country_flag = command_sir_revolt_khadisrapur_participation }
-					FROM = { province_id = 4465 }
-				}
-				AND = {
-					R62 = { has_country_flag = command_sir_revolt_sarnavan_participation }
-					FROM = { province_id = 4510 }
-				}
-				AND = {
-					R62 = { has_country_flag = command_sir_revolt_parraj_participation }
-					FROM = { province_id = 4467 }
-				}
 			}
+			save_event_target_as = command_third_party_country
+			FROM = { owner = { save_event_target_as = command_enemy_country } }
+			R62 = { country_event = { id = the_command.118 } }
 		}
-		save_event_target_as = command_third_party_country
-		FROM = { owner = { save_event_target_as = command_enemy_country } }
-		R62 = { country_event = { id = the_command.118 } }
 	}
 	if = { #War of the Three Commands stuff
 		limit = {
@@ -1994,6 +1982,15 @@ on_siege_won_country = {
 	}
 	
 	kobold_dragon_cult_won_siege = yes
+	if = {
+		limit = {
+			OR = {
+				has_country_modifier = J33_concert_war
+				overlord = { has_country_modifier = J33_concert_war }
+			}
+		}
+		kalsyto_revolution_siege = yes
+	}
 }
 
 # country
@@ -3240,6 +3237,24 @@ on_emperor_elected = {
 			add_country_modifier = {
 				name = giberd_gnomish_elector_mod
 				duration = -1
+			}
+		}
+	}
+	
+	if = {
+		limit = { A77 = { is_subject_of_type = imperial_bodyguard } }
+		FROM = {
+			remove_country_modifier = supporting_orda_aldresia
+			free_vassal = A77
+		}
+		ROOT = {
+			add_country_modifier = {
+				name = supporting_orda_aldresia
+				duration = -1
+			}
+			create_subject = {
+				subject_type = imperial_bodyguard
+				subject = A77
 			}
 		}
 	}
@@ -5070,6 +5085,24 @@ on_yearly_pulse = {
 		flavour_arawkelin.10
 		flavour_arawkelin.12
 		flavor_vazhatun.100
+	}
+	if = {
+		limit = {
+			had_country_flag = {
+				flag = debug_menu
+				days = 365
+			}
+		}
+		clr_country_flag = debug_menu
+	}
+	if = {
+		limit = {
+			had_country_flag = {
+				flag = racial_pop_menu_opened
+				days = 365
+			}
+		}
+		clr_country_flag = racial_pop_menu_opened
 	}
 	if = {
 		limit = {
@@ -11619,7 +11652,7 @@ on_dependency_gained = {
 	##############################################################################################
 	
 	if = { #Disable mandate if steward is vassalized
-		limit = { is_emperor_of_china = yes }
+		limit = { FROM = { is_emperor_of_china = yes } }
 		dismantle_empire_of_china = yes
 		clear_global_event_target = EmperorOfChina
 		set_global_flag = empire_of_china_dismantled
@@ -14580,7 +14613,7 @@ on_dip_tech_taken = { #ROOT - Country, executed after on_tech_taken!
 on_mil_tech_taken = { #ROOT - Country, executed after on_tech_taken!
 	spirit_mil_shock_dmg = yes
 	if = {
-		limit = { tag = R62 ai = yes command_has_active_campaign = yes }
+		limit = { tag = R62 ai = yes has_country_flag = command_has_active_campaign_flag }
 		command_force_progress_campaign_multiple_effect = yes
 		country_event = { id = the_command.3002 days = 2555 }
 	}
