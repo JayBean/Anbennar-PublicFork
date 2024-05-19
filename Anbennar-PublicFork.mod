@@ -1,4 +1,4 @@
-name="Anbennar-DEV"
+name="Anbennar-PublicFork"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -28,5 +28,5 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
-supported_version="v1.37.0.0"
-path="C:/Users/aitor/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-fork-brokenarrow"
+supported_version="1.36.*"
+path="mod/Anbennar-PublicFork"
