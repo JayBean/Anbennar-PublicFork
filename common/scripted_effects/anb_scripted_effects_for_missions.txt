@@ -15700,58 +15700,65 @@ F23_seizing_the_sweetport_custom_effect = {
 	}
 }
 F23_copper_offer_effect = {
+	hidden_effect = { set_province_flag = F23_copper_offer_made }
 	custom_tooltip = F23_make_the_copper_offer_target_$prov_num$
+	add_treasury = -1000
 	$prov_num$ = {
-		# Recipient is player or subject of player.
-		if = { limit = { owner = { OR = { ai = yes overlord = { ai = yes } } } }
-			custom_tooltip = F23_make_the_copper_offer_not_ai
-			# TODO OT, code this
-		}
-		# Recipient is the appropriate tag, is independent, transfers trade power, and has enough opinion of OT.
-		else_if = { 
-			limit = { 
+		complex_dynamic_effect = {
+			first_custom_tooltip = F23_copper_offer_recipient_is_player
+			first_limit = "
+				owner = { OR = { ai = no overlord = { ai = no } } }
+			"
+			# TODO OT, code first effect.
+			first_effect = "
+				custom_tooltip = F23_copper_offer_player_gets_option"
+			second_custom_tooltip = F23_copper_offer_recipient_becomes_trade_protectorate
+			second_limit = "
 				owner = { 
 					tag = $appropriate_tag$ 
 					is_subject = no 
 					transfers_trade_power_to = yes 
 					has_opinion = { who = ROOT value = 150 } 
-				} 
-			}
-			custom_tooltip = F23_make_the_copper_offer_trade_protectorate_accepted
-			add_treasury = 1000
-			ROOT = { add_treasury = -1000 create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }
-		}
-		# Recipient is not the appropriate tag, has its capital in the province. Must have at least 100 opinion for the initial limit to be true.
-		else_if = { limit = { owner = { is_subject = no } is_capital = yes }
-			custom_tooltip = F23_make_the_copper_offer_trade_rights
-		}
-		# Appropriate tag does not exist, owner (or their overlord) has high relations.
-		else_if = { limit = { NOT = { exists = $appropriate_tag$ } }
-			owner = {
-				# Is independent.
-				if = { limit = { is_subject = no }
-					if = { limit = { has_opinion = { who = ROOT value = 125 } } }
-					# Tag is released as trade protectorate of OT.
-					custom_tooltip = F23_make_the_copper_offer_trade_protectorate_released
-					$prov_num$ = { cede_province = $appropriate_tag$ }
-					add_treasury = 1000
-					ROOT = { add_treasury = -1000 create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }
 				}
-				else = { # Is subject
-					overlord = {
-						if = { limit = { has_opinion = { who = ROOT value = 125 } } }
-						# Tag is released as trade protectorate of OT.
-						custom_tooltip = F23_make_the_copper_offer_trade_protectorate_released
-						$prov_num$ = { cede_province = $appropriate_tag$ }
+			"
+			second_effect = "
+				hidden_effect = { owner = { add_treasury = 1000 } }
+				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
+			third_custom_tooltip = F23_copper_offer_recipient_has_capital_here
+			third_limit = "
+				owner = { is_subject = no } 
+				is_capital = yes
+			"
+			third_effect = "
+				custom_tooltip = F23_copper_offer_trade_concessions
+				hidden_effect = {
+					add_dwarven_minority_size_effect = yes
+					add_trade_modifier = { who = ROOT duration = -1 power = 25 key = F23_trade_concessions }
+					owner = {
 						add_treasury = 1000
-						ROOT = { add_treasury = -1000 create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }
+						$prov_num$ = { add_trade_modifier = { who = PREV duration = -1 power = -25 key = F23_trade_concessions } } 
 					}
-				}
-			}
-		}
-		# Appropriate tag exists if we are here. Check if appropriate tag is subject, and either tag or overlord owns the province.
-		else_if = {
-			limit = {
+				}"
+			fourth_custom_tooltip = F23_copper_offer_appropriate_tag_released_owner_independent
+			fourth_limit = "
+				NOT = { exists = $appropriate_tag$ }
+				owner = { is_subject = no has_opinion = { who = ROOT value = 125 } }
+			"
+			fourth_effect = "
+				hidden_effect = { owner = { add_treasury = 1000 } }
+				$prov_num$ = { cede_province = $appropriate_tag$ }
+				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
+			fifth_custom_tooltip = F23_copper_offer_appropriate_tag_released_owner_is_subject
+			fifth_limit = "
+				NOT = { exists = $appropriate_tag$ }
+				owner = { is_subject = yes overlord = { has_opinion = { who = ROOT value = 125 } } }
+			"
+			fifth_effect = " 
+				hidden_effect = { owner = { overlord = { add_treasury = 1000 } } }
+				$prov_num$ = { cede_province = $appropriate_tag$ }
+				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
+			sixth_custom_tooltip = F23_copper_offer_appropriate_tag_is_vassal
+			sixth_limit = "
 				$appropriate_tag$ = { 
 					is_subject = yes 
 					OR = {
@@ -15760,38 +15767,27 @@ F23_copper_offer_effect = {
 					}
 					overlord = { has_opinion = { who = ROOT value = 125 } }
 				}
-			}
-			custom_tooltip = F23_make_the_copper_offer_trade_protectorate_released
-			$appropriate_tag$ = { 
-				overlord = { inherit = $appropriate_tag$ } 
-				add_treasury = 1000
-			}
-			$prov_num$ = { cede_province = $appropriate_tag$ }
-			ROOT = { add_treasury = -1000 create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }
-		}
-		# "Just" getting trade rights if no prior options are valid.
-		else = {
-			add_dwarven_minority_size_effect = yes
-			add_trade_modifier = {
-				who = ROOT
-				duration = -1
-				power = 25
-				key = F23_trade_concessions
-			}
-			ROOT = {
-				add_treasury = -500
-			}
-			owner = {
-				add_treasury = 500
-				$prov_num$ = {
-					add_trade_modifier = {
-						who = PREV
-						duration = -1
-						power = -25
-						key = F23_trade_concessions
-					}
+			"
+			sixth_effect = "
+				$appropriate_tag$ = { 
+					overlord = { inherit = $appropriate_tag$ hidden_effect = { add_treasury = 1000 } } 
 				}
-			}
+				$prov_num$ = { cede_province = $appropriate_tag$ }
+				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
+			seventh_custom_tooltip = F23_copper_offer_backup_trade_power
+			seventh_limit = "
+				always = yes
+			"
+			seventh_effect = "
+				custom_tooltip = F23_copper_offer_trade_concessions
+				hidden_effect = {
+					add_dwarven_minority_size_effect = yes
+					add_trade_modifier = { who = ROOT duration = -1 power = 25 key = F23_trade_concessions }
+					owner = {
+						add_treasury = 1000
+						$prov_num$ = { add_trade_modifier = { who = PREV duration = -1 power = -25 key = F23_trade_concessions } } 
+					}
+				}"
 		}
 	}	
 }

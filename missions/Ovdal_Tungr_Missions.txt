@@ -1,8 +1,6 @@
 # Designed and coded by Magnive.
 
-# Haven't started highlighting yet. Needs to be done everywhere.
 # The highlighting has begun! Everything done?
-# Rework river missions.
 bahar_b = { # Done
 	slot = 2
 	generic = no
@@ -1859,6 +1857,7 @@ bulwar_e = { # Copper Offer missions could probably do with custom tooltips. Cas
 		} 
 
 		effect = { 
+			custom_tooltip = F23_encouraging_excess_tt_decision
 			if = { limit = { OR = { has_dlc = "Rights of Man" has_dlc = "Emperor" } }
 				custom_tooltip = F23_encouraging_excess_tt_dlc
 			}
@@ -1866,7 +1865,6 @@ bulwar_e = { # Copper Offer missions could probably do with custom tooltips. Cas
 				custom_tooltip = F23_encouraging_excess_tt_non_dlc
 			}
 			custom_tooltip = F23_encouraging_excess_tt_bankruptcy
-			F23_encouraging_excess_effect = yes
 			# TODO OT, accept trade protectorate
 		}  
 	}
@@ -1886,9 +1884,13 @@ bulwar_e = { # Copper Offer missions could probably do with custom tooltips. Cas
 				area = upper_suran_area
 				area = azka_sur_area
 			}
-			NOT = { F23_owned_by_friendly_nation = yes }
-			NOT = { has_influencing_fort = yes }
-			NOT = { has_manufactory_trigger = yes }
+			NOT = { 
+				AND = {
+					F23_owned_by_friendly_nation = yes
+					has_influencing_fort = yes
+					has_manufactory_trigger = yes
+				}
+			}
 		} 
 
 		trigger = {  
@@ -2012,7 +2014,6 @@ strongbellow_c_1 = { # Done, other than highlighting.
 					quartermaster = 3
 					fortification_expert = 3 
 					mil_power = 100
-
 				}
 			}
 			else = { 
@@ -2021,9 +2022,6 @@ strongbellow_c_1 = { # Done, other than highlighting.
 					fortification_expert = 2
 					mil_power = 100
 				}
-			}
-			OR = {
-				mil_power = 100
 			}
 			OR = {
 				dip_power = 100
@@ -2039,7 +2037,6 @@ strongbellow_c_1 = { # Done, other than highlighting.
 					has_opinion = { who = ROOT value = 150 } 
 				}
 			}
-
 		} 
 
 		effect = {  
@@ -2076,17 +2073,18 @@ strongbellow_c_1 = { # Done, other than highlighting.
 			treasury = 500
 			num_of_marines = 5
 			536 = { base_production = 15 } # Aqatbar
-			adm_power = 100
-			dip_power = 100
-			mil_power = 100
+			estate_loyalty = {
+				estate = estate_adventurers
+				loyalty = 60
+			}			
 		} 
 
 		effect = {  
 			add_treasury = -500
-			add_adm_power = -100
-			add_dip_power = -100
-			add_mil_power = -100
-			change_innovativeness = 5
+			add_estate_loyalty = {
+				estate = estate_adventurers
+				loyalty = -15
+			}
 			country_event = { id = flavour_ovdal_tungr.20 days = 730 }
 		} 
 	}
@@ -2109,10 +2107,6 @@ strongbellow_c_2 = {
 		provinces_to_highlight = {  } 
 
 		trigger = {  
-			treasury = 1000
-			adm_power = 100
-			dip_power = 100
-			mil_power = 100
 			num_of_marines = 10
 			526 = { # Ovdal Tûngr
 				F23_owned_by_friendly_nation = yes
@@ -2130,15 +2124,15 @@ strongbellow_c_2 = {
 				F23_owned_by_friendly_nation = yes
 				transports_in_province = 10
 			}
-			536 = { base_production = 20 } # Aqatbar
+			has_estate_privilege = estate_adventurer_designated_guild_hall
+			# TODO OT, mage loyalty higher than influence
 		} 
 
-		effect = {  
-			add_treasury = -1000
-			add_adm_power = -100
-			add_dip_power = -100
-			add_mil_power = -100
-
+		effect = {
+			add_estate_loyalty = {
+				estate = estate_mages
+				loyalty = -15
+			}
 			526 = { # Ovdal Tûngr
 				kill_units = { who = ROOT type = transport amount = 10 }
 			}
@@ -2677,8 +2671,15 @@ strongbellow_d = {
 			OR = {
 				innovativeness = 75
 				NOT = { has_country_modifier = F23_steam_curios }
+				full_idea_group = maritime_ideas
 			}
-			treasury = 2000
+			OR = {
+				treasury = 10000
+				AND = {
+					treasury = 5000
+					full_idea_group = maritime_ideas
+				}
+			}
 			525 = {
 				base_production = 15
 				has_production_or_gold_building_trigger = yes
@@ -2694,8 +2695,13 @@ strongbellow_d = {
 			}
 		} 
 
-		effect = {  
-			add_treasury = -2000
+		effect = {
+			if = { limit = { full_idea_group = maritime_ideas }
+				add_treasury = -5000
+			}
+			else = {
+				add_treasury = -10000
+			}
 			add_country_modifier = {
 				name = F23_steamers_mod
 				duration = -1
@@ -2707,8 +2713,19 @@ strongbellow_d = {
 			}
 			custom_tooltip = F23_steamers_tt
 			hidden_effect = { set_country_flag = F23_upsteam_trade_flag_unlock }
-		} 
+		}
 	}
+}
+
+strongbellow_d_2 = {
+	slot = 4
+	generic = no
+	ai = yes
+	has_country_shield = yes
+	potential = { 
+		tag = F23
+		# has_country_flag = F23_mt_unlock_strongbellow_4
+	} 
 
 	F23_ironclads = {
 		icon = mission_forge
@@ -2716,77 +2733,82 @@ strongbellow_d = {
 		required_missions = { F23_steamers } 
 		provinces_to_highlight = {  } 
 
-		trigger = {  
-			custom_trigger_tooltip = {
-				tooltip = F23_ironclads_trigger_tt
-				OR = {
-					is_year = 1625
-					AND = {
-						navy_tradition = 0
-						AND = { is_year = 1625 innovativeness =   0 }
-						AND = { is_year = 1615 innovativeness =  20 }
-						AND = { is_year = 1605 innovativeness =  40 }
-						AND = { is_year = 1595 innovativeness =  60 }
-						AND = { is_year = 1585 innovativeness =  80 }
-						AND = { is_year = 1575 innovativeness = 100 }
+		trigger = {
+			if = {
+				limit = { has_dlc = "Rule Britannia" }
+				calc_true_if = {
+					innovativeness = 100
+					full_idea_group = naval_ideas
+					full_idea_group = maritime_ideas
+					navy_tradition = 100
+					trade_goods_produced_amount = {
+						trade_goods = coal
+						amount = 25
 					}
-					AND = {
-						navy_tradition = 20
-						AND = { is_year = 1620 innovativeness =   0 }
-						AND = { is_year = 1610 innovativeness =  20 }
-						AND = { is_year = 1600 innovativeness =  40 }
-						AND = { is_year = 1590 innovativeness =  60 }
-						AND = { is_year = 1580 innovativeness =  80 }
-						AND = { is_year = 1570 innovativeness = 100 }
-					}
-					AND = {
-						navy_tradition = 40
-						AND = { is_year = 1615 innovativeness =   0 }
-						AND = { is_year = 1605 innovativeness =  20 }
-						AND = { is_year = 1595 innovativeness =  40 }
-						AND = { is_year = 1586 innovativeness =  60 }
-						AND = { is_year = 1575 innovativeness =  80 }
-						AND = { is_year = 1565 innovativeness = 100 }
-					}
-					AND = {
-						navy_tradition = 60
-						AND = { is_year = 1610 innovativeness =   0 }
-						AND = { is_year = 1600 innovativeness =  20 }
-						AND = { is_year = 1590 innovativeness =  40 }
-						AND = { is_year = 1580 innovativeness =  60 }
-						AND = { is_year = 1570 innovativeness =  80 }
-						AND = { is_year = 1560 innovativeness = 100 }
-					}
-					AND = {
-						navy_tradition = 80
-						AND = { is_year = 1605 innovativeness =   0 }
-						AND = { is_year = 1595 innovativeness =  20 }
-						AND = { is_year = 1585 innovativeness =  40 }
-						AND = { is_year = 1575 innovativeness =  60 }
-						AND = { is_year = 1565 innovativeness =  80 }
-						AND = { is_year = 1555 innovativeness = 100 }
-					}
-					AND = {
+					amount = 2
+				}
+			}
+			else = {
+				calc_true_if = {
+					innovativeness = 100
+					full_idea_group = naval_ideas
+					full_idea_group = maritime_ideas
+					navy_tradition = 100
+					amount = 2
+				}
+			}
+			if = {
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
 						navy_tradition = 100
-						AND = { is_year = 1600 innovativeness =   0 }
-						AND = { is_year = 1590 innovativeness =  20 }
-						AND = { is_year = 1580 innovativeness =  40 }
-						AND = { is_year = 1570 innovativeness =  60 }
-						AND = { is_year = 1560 innovativeness =  80 }
-						AND = { is_year = 1550 innovativeness = 100 }
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 5
 					}
 				}
+				treasury = 20000
 			}
-			treasury = 5000
-			OR = {
-				full_idea_group = maritime_ideas
-				full_idea_group = naval_ideas
-				AND = {
-					naval_reformer = 3
-					dip_power = 200
-					mil_power = 200
+			if = {
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
+						navy_tradition = 100
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 4
+					}
 				}
+				treasury = 30000
 			}
+			if = {
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
+						navy_tradition = 100
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 3
+					}
+				}
+				treasury = 40000
+			}
+			else = {
+				treasury = 50000
+			}
+
 			OR = {
 				trading_bonus = { trade_goods = iron value = yes }
 				calc_true_if = {
@@ -2801,15 +2823,60 @@ strongbellow_d = {
 			}
 		} 
 
-		effect = {  
-			add_treasury = -5000
-			if = { limit = { OR = { full_idea_group = maritime_ideas full_idea_group = naval_ideas } } }
-			else = { add_dip_power = -200 add_mil_power = -200 }
-			add_country_modifier = { name = F23_ironclads_mod duration = -1 }
+		effect = {
+			custom_tooltip = F23_ironclads_tt
 			if = {
-				limit = { has_dlc = "Rule Britannia" }
-				custom_tooltip = earlier_coal_available_tt
-			}			
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
+						navy_tradition = 100
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 5
+					}
+				}
+				add_treasury = -20000
+			}
+			if = {
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
+						navy_tradition = 100
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 4
+					}
+				}
+				add_treasury = -30000
+			}
+			if = {
+				limit = {
+					calc_true_if = {
+						innovativeness = 100
+						full_idea_group = naval_ideas
+						full_idea_group = maritime_ideas
+						navy_tradition = 100
+						trade_goods_produced_amount = {
+							trade_goods = coal
+							amount = 25
+						}
+						amount = 3
+					}
+				}
+				add_treasury = -40000
+			}
+			else = {
+				add_treasury = -50000
+			}
+			add_country_modifier = { name = F23_ironclads_mod duration = -1 }
 		} 
 	}
 }
@@ -2830,8 +2897,24 @@ capstone = { # Haven't started yet, saving for when everything is almost done.
 		}
 		provinces_to_highlight = {  } 
 
-		trigger = {  } 
+		trigger = { 
+			1296 = { #Eborthil
+				trade_node_value = 1000
+			}
+			if = { limit = { has_dlc = "Emperor" }
+				OR = {
+					is_hegemon_of_type = naval_hegemon
+					is_hegemon_of_type = economic_hegemon
+				}
+			}
+			monthly_income = 1000
+			NOT = { any_other_great_power = { monthly_income = ROOT NOT = { tag = U17 } } }
+			navy_size = 500
+			NOT = { any_other_great_power = { num_of_heavy_ship = ROOT NOT = { tag = U17 } } }
+		} 
 
-		effect = {  } 
+		effect = {  
+			country_event = { id = flavour_ovdal_tungr.15 } # The High Seas.
+		} 
 	}
 }
