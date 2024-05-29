@@ -15661,28 +15661,16 @@ F23_extending_our_reach_effect = {
 			has_shipyard_building_trigger = yes
 			num_free_building_slots = 1
 		}
-		if = {
-			limit = {
-				country_or_non_sovereign_subject_holds = F23
-			}
+		F23 = { add_treasury = -250 }
+		if = { limit = { country_or_non_sovereign_subject_holds = F23 }
 			cede_province = F23
-			add_province_modifier = { name = F23_local_naval_base duration = -1 }
-			change_trade_goods = fish
-			add_building_construction = {
-				building = impressment_offices
-				speed = 0.5
-				cost = 0.5
-			}
 		}
-		else = {
-			add_province_modifier = { name = F23_local_naval_base duration = -1 }
-			change_trade_goods = fish
-			add_building_construction = {
-				building = impressment_offices
-				speed = 0.5
-				cost = 0.0
-			}
-			F23 = { add_treasury = -250 }
+		add_province_modifier = { name = F23_local_naval_base duration = -1 }
+		change_trade_goods = fish
+		add_building_construction = {
+			building = impressment_offices
+			speed = 0.5
+			cost = 0.0
 		}
 	}
 }
@@ -15700,97 +15688,99 @@ F23_seizing_the_sweetport_custom_effect = {
 		}	
 	}
 }
+
+F23_copper_offer_subtrigger_will_release_owned_province = {
+	has_opinion = { who = F23 value = 125 }	
+	$prov_num$ = { is_capital = no }
+	$appropriate_tag$ = { OR = { exists = no is_subject_of = PREV } }
+}
+F23_copper_offer_subtrigger_will_release_subject_province = {
+	OR = { $appropriate_tag$ = { exists = no } tag = $appropriate_tag$ } 
+	overlord = { has_opinion = { who = F23 value = 125 } }
+}
+
 F23_copper_offer_effect = {
-	hidden_effect = { set_province_flag = F23_copper_offer_made }
+	hidden_effect = { $prov_num$ = { set_province_flag = F23_copper_offer_made } }
 	custom_tooltip = F23_make_the_copper_offer_target_$prov_num$
-	add_treasury = -1000
-	$prov_num$ = {
-		complex_dynamic_effect = {
-			first_custom_tooltip = F23_copper_offer_recipient_is_player
-			first_limit = "
-				owner = { OR = { ai = no overlord = { ai = no } } }
-			"
-			# TODO OT, code first effect.
-			first_effect = "
-				custom_tooltip = F23_copper_offer_player_gets_option"
-			second_custom_tooltip = F23_copper_offer_recipient_becomes_trade_protectorate
-			second_limit = "
+
+	if = { limit = { $prov_num$ = { owner = { F23_copper_offer_subtrigger_already_subject = yes } } } 
+		custom_tooltip = F23_copper_offer_effect_already_vassal_true
+	}
+	else = {
+		custom_tooltip = F23_copper_offer_effect_already_vassal_false
+	}
+
+	if = { limit = { $prov_num$ = { owner = { F23_copper_offer_subtrigger_willing_to_become_subject = yes } } }
+		custom_tooltip = F23_copper_offer_effect_becomes_protectorate_true
+	}
+	else = {
+		custom_tooltip = F23_copper_offer_effect_becomes_protectorate_false
+	}
+
+	if = { 
+		limit = { 
+			$prov_num$ = { 
 				owner = { 
-					tag = $appropriate_tag$ 
-					is_subject = no 
-					transfers_trade_power_to = yes 
-					has_opinion = { who = ROOT value = 150 } 
-				}
-			"
-			second_effect = "
-				hidden_effect = { owner = { add_treasury = 1000 } }
-				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
-			third_custom_tooltip = F23_copper_offer_recipient_has_capital_here
-			third_limit = "
-				owner = { is_subject = no } 
-				is_capital = yes
-			"
-			third_effect = "
-				custom_tooltip = F23_copper_offer_trade_concessions
-				hidden_effect = {
-					add_dwarven_minority_size_effect = yes
-					add_trade_modifier = { who = ROOT duration = -1 power = 25 key = F23_trade_concessions }
-					owner = {
-						add_treasury = 1000
-						$prov_num$ = { add_trade_modifier = { who = PREV duration = -1 power = -25 key = F23_trade_concessions } } 
-					}
-				}"
-			fourth_custom_tooltip = F23_copper_offer_appropriate_tag_released_owner_independent
-			fourth_limit = "
-				NOT = { exists = $appropriate_tag$ }
-				owner = { is_subject = no has_opinion = { who = ROOT value = 125 } }
-			"
-			fourth_effect = "
-				hidden_effect = { owner = { add_treasury = 1000 } }
-				$prov_num$ = { cede_province = $appropriate_tag$ }
-				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
-			fifth_custom_tooltip = F23_copper_offer_appropriate_tag_released_owner_is_subject
-			fifth_limit = "
-				NOT = { exists = $appropriate_tag$ }
-				owner = { is_subject = yes overlord = { has_opinion = { who = ROOT value = 125 } } }
-			"
-			fifth_effect = " 
-				hidden_effect = { owner = { overlord = { add_treasury = 1000 } } }
-				$prov_num$ = { cede_province = $appropriate_tag$ }
-				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
-			sixth_custom_tooltip = F23_copper_offer_appropriate_tag_is_vassal
-			sixth_limit = "
-				$appropriate_tag$ = { 
-					is_subject = yes 
-					OR = {
-						owns = $prov_num$
-						overlord = { owns = $prov_num$ }
-					}
-					overlord = { has_opinion = { who = ROOT value = 125 } }
-				}
-			"
-			sixth_effect = "
-				$appropriate_tag$ = { 
-					overlord = { inherit = $appropriate_tag$ hidden_effect = { add_treasury = 1000 } } 
-				}
-				$prov_num$ = { cede_province = $appropriate_tag$ }
-				ROOT = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } }"
-			seventh_custom_tooltip = F23_copper_offer_backup_trade_power
-			seventh_limit = "
-				always = yes
-			"
-			seventh_effect = "
-				custom_tooltip = F23_copper_offer_trade_concessions
-				hidden_effect = {
-					add_dwarven_minority_size_effect = yes
-					add_trade_modifier = { who = ROOT duration = -1 power = 25 key = F23_trade_concessions }
-					owner = {
-						add_treasury = 1000
-						$prov_num$ = { add_trade_modifier = { who = PREV duration = -1 power = -25 key = F23_trade_concessions } } 
-					}
-				}"
+					OR = { is_subject = no is_subject_of_type = tributary_state }
+					has_opinion = { who = F23 value = 125 }	
+					$prov_num$ = { is_capital = no } 
+					$appropriate_tag$ = { OR = { exists = no is_subject_of = PREV } }
+				} 
+			} 
 		}
-	}	
+		custom_tooltip = F23_copper_offer_effect_owns_and_releases_true
+	}
+	else = {
+		custom_tooltip = F23_copper_offer_effect_owns_and_releases_false
+	}
+
+	if = { 
+		limit = { 
+			$prov_num$ = { 
+				owner = { 
+					OR = { $appropriate_tag$ = { exists = no } tag = $appropriate_tag$ } 
+					overlord = { has_opinion = { who = F23 value = 125 } }
+				} 
+			} 
+		}
+		custom_tooltip = F23_copper_offer_effect_subject_owns_releases_true
+	}
+	else = {
+		custom_tooltip = F23_copper_offer_effect_subject_owns_releases_false
+	}
+
+	$prov_num$ = {
+		owner = {
+			if = { limit = { F23_copper_offer_subtrigger_already_subject = yes }
+				F23 = { create_subject = { subject_type = trade_protectorate subject = PREV } }
+			}
+			else_if = { limit = { F23_copper_offer_subtrigger_willing_to_become_subject = yes }
+				add_treasury = 1000 
+				F23 = { create_subject = { subject_type = trade_protectorate subject = PREV } add_treasury = -1000 }
+			}
+			else_if = { 
+				limit = { 
+					OR = { is_subject = no is_subject_of_type = tributary_state }
+					has_opinion = { who = F23 value = 125 }	
+					$prov_num$ = { is_capital = no } 
+					$appropriate_tag$ = { OR = { exists = no is_subject_of = PREV } }
+				}
+				add_treasury = 1000 
+				inherit = $appropriate_tag$ 
+				$prov_num$ = { cede_province = $appropriate_tag$ } 
+				F23 = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } add_treasury = -1000 }
+			}
+			else_if = { 
+				limit = { 
+					OR = { $appropriate_tag$ = { exists = no } tag = $appropriate_tag$ } 
+					overlord = { has_opinion = { who = F23 value = 125 } }
+				}
+				overlord = { add_treasury = 1000 inherit = PREV } 
+				$prov_num$ = { cede_province = $appropriate_tag$ } 
+				F23 = { create_subject = { subject_type = trade_protectorate subject = $appropriate_tag$ } add_treasury = -1000 }
+			}
+		}
+	}
 }
 F23_encouraging_excess_effect = {
 	add_treasury = -1000
