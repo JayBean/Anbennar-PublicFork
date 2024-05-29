@@ -947,8 +947,7 @@ offer_protectorate = {
 					same_continent = ROOT
 				}
 				ROOT = {
-					NOT = { tag = F23 }
-					# has_country_flag = F23_distance_negation_bulwar # TODO OT, reenable this. Disabled during development. # Ovdal Tûngr unlocks the ability to do trade protectorates in Bulwar.
+					NOT = { has_country_flag = same_continent_trade_protectorate } # Can establish TCs on the same continent.
 				}
 			}
 			custom_trigger_tooltip = {
@@ -1086,10 +1085,9 @@ offer_protectorate = {
 			name = DIPLO_HAS_AI_HAS_OWN_SUBJECTS_TT
 			limit = {
 				FROM = { num_of_subjects = 1 }
-				NOT = { 
-					ROOT = { tag = F23 } 
+				NOT = {
 					ROOT = { has_country_flag = F23_easier_bulwari_protectorates }
-					FROM = { num_of_subjects = 1 }
+					FROM = { capital_scope = { superregion = bulwar_superregion } }
 				}
 			}
 			export_to_variable = {
@@ -1104,9 +1102,9 @@ offer_protectorate = {
 		add_entry = {
 			name = DIPLO_HAS_AI_HAS_OWN_SUBJECTS_TT
 			limit = {
-				ROOT = { tag = F23 } 
-				ROOT = { has_country_flag = F23_easier_bulwari_protectorates }
 				FROM = { num_of_subjects = 1 }
+				ROOT = { has_country_flag = F23_easier_bulwari_protectorates }
+				FROM = { capital_scope = { superregion = bulwar_superregion } }
 			}
 			export_to_variable = {
 				variable_name = ai_value
@@ -1160,39 +1158,6 @@ offer_protectorate = {
 			multiply_variable = { which = ai_value value = -1000 }
 		}
 		add_entry = {
-			limit = {
-				NOT = { FROM = { tag = F23 } } # Ovdal Tûngr can ignore the border distance requirement under certain circumstances.
-				NOT = {
-					AND = {
-						ROOT = { has_country_flag = F23_distance_negation_bulwar }
-						FROM = {
-							capital_scope = {
-								superregion = bulwar_superregion
-							}
-						}
-					}					
-				}
-				NOT = {
-					AND = {
-						ROOT = { has_country_flag = F23_distance_negation_sarhal }
-						FROM = {
-							capital_scope = {
-								continent = africa
-							}
-						}
-					}
-				}
-				NOT = {
-					AND = {
-						ROOT = { has_country_flag = F23_distance_negation_haless }
-						FROM = {
-							capital_scope = {
-								continent = asia
-							}
-						}
-					}
-				}
-			}
 			name = DIPLO_BORDER_DISTANCE_TT
 			export_to_variable = {
 				variable_name = ai_value
@@ -1205,6 +1170,69 @@ offer_protectorate = {
 				which = ai_value
 				value = -0.5
 			}
+		}
+		add_entry = { # Potential bonus to establish TCs in Bulwar.
+			name = BONUS_TC_REASONS_BULWAR
+			limit = {
+				ROOT = { has_country_flag = trade_company_bonus_reasons_bulwar }
+				FROM = { capital_scope = { superregion = bulwar_superregion } }
+			}
+			export_to_variable = { variable_name = ai_value value = 1 }
+			multiply_variable = { which = ai_value value = 25 }
+		}
+		add_entry = {
+			name = BONUS_TC_REASONS_DEBT_NON_DLC
+			limit = {
+				has_country_flag = trade_company_bonus_reasons_debt
+				NOT = { ROOT = { OR = { has_dlc = "Rights of Man" has_dlc = "Emperor" } } } }
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = trigger_value:num_of_loans
+				who = FROM
+			}
+			#1 loan = 1 reason
+			multiply_variable = {
+				which = ai_value
+				value = 1
+			}
+		}
+		add_entry = {
+			name = BONUS_TC_REASONS_DEBT_DLC
+			limit = {
+				has_country_flag = trade_company_bonus_reasons_debt
+				ROOT = { OR = { has_dlc = "Rights of Man" has_dlc = "Emperor" } } }
+			}
+			export_to_variable = {
+				variable_name = ai_value
+				value = opinion
+				which = took_on_debt
+				who = FROM
+				with = ROOT
+			}
+			#5 opinion (½ loan forgiven)= 1 reason
+			divide_variable = {
+				which = ai_value
+				value = 5
+			}
+		}
+		add_entry = { # Potential bonus to establish TCs in Sarhal (minus Bulwar).
+			name = BONUS_TC_REASONS_BULWAR
+			limit = {
+				ROOT = { has_country_flag = trade_company_bonus_reasons_sarhal_minus_bulwar }
+				FROM = { capital_scope = { continent = africa NOT = { superregion = bulwar_superregion } } }
+			}
+			export_to_variable = { variable_name = ai_value value = 1 }
+			multiply_variable = { which = ai_value value = 25 }
+		}
+		add_entry = { # Potential bonus to establish TCs in Haless.
+			name = BONUS_TC_REASONS_BULWAR
+			limit = {
+				ROOT = { has_country_flag = trade_company_bonus_reasons_haless }
+				FROM = { capital_scope = { continent = asia } }
+			}
+			export_to_variable = { variable_name = ai_value value = 1 }
+			multiply_variable = { which = ai_value value = 25 }
 		}
 	}
 }
