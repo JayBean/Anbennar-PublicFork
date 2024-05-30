@@ -1257,6 +1257,15 @@ province_event = { #The Laws of Ninun
 
 	trigger = {
 		NOT = { continent = serpentspine }
+		owner = {
+			OR = {
+				tag = R62
+				is_subject_of_type_with_overlord = {
+					who = R62
+					type = slave_state
+				}
+			}
+		}
 		OR = {
 			has_state_edict = laws_of_ninun_edict
 			has_province_flag = ai_command_currently_wuhyunizing_this_province_flag
@@ -2983,11 +2992,13 @@ country_event = { #Auto-Wuhyunification pulse
 				has_province_flag = ai_command_wuhyunize_this_province_flag
 				NOT = { has_province_flag = ai_command_currently_wuhyunizing_this_province_flag }
 			}
-			random = {
-				chance = 3
-				clr_province_flag = ai_command_wuhyunize_this_province_flag
-				set_province_flag = ai_command_currently_wuhyunizing_this_province_flag
-				add_province_triggered_modifier = command_wuhyunization_randomizer_ptm
+			random_list = {
+				7 = {
+					clr_province_flag = ai_command_wuhyunize_this_province_flag
+					set_province_flag = ai_command_currently_wuhyunizing_this_province_flag
+					add_province_triggered_modifier = command_wuhyunization_randomizer_ptm
+				}
+				193 = {}
 			}
 		}
 		
@@ -3076,6 +3087,10 @@ province_event = { #Notification of area being converted
 
 	is_triggered_only = yes
 	goto = ROOT
+
+	trigger = { #this needs to be here so that in the most edge of edge cases, no CTD happens
+		is_state = yes
+	}
 
 	immediate = {
 		hidden_effect = { set_state_edict = revoke_state_edict }
@@ -4986,6 +5001,7 @@ country_event = { #Azjakuma hands back land outside the demon hills
 			every_owned_province = {
 				limit = { NOT = { region = demon_hills_region } }
 				cede_province = R62
+				hidden_effect = { Y01 = { add_liberty_desire = 5 } }
 			}
 		}
 	}
@@ -5563,16 +5579,16 @@ country_event = { #Sir revolt starts
 						}
 					}
 				}
-				capital_scope = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
+				capital_scope = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
 			}
 			else = {
 				capital_scope = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 			}
 		}
-		4323 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4350 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4521 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4628 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
+		4323 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4350 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4521 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4628 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
 		4630 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 		4538 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 		4311 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
@@ -11867,7 +11883,14 @@ country_event = {		# Death of Noriko
 country_event = {		# Hikari Dragonborn
 	id = the_command.1973
 	title = the_command.1973.t
-	desc = the_command.1973.d
+	desc = {
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+		desc = the_command.1973.d
+	}
+	desc = {
+		trigger = { dynasty = Dragonborn has_ruler = "Noriko" }
+		desc = the_command.1973.d.noriko
+	}
 	picture = COURT_eventPicture
 
 	fire_only_once = yes
@@ -11881,7 +11904,10 @@ country_event = {		# Hikari Dragonborn
 		name = the_command.1973.a
 		ai_chance = { factor = 1 }
 		custom_tooltip = command_1973_tt
-		add_legitimacy = -10
+		if = {
+			limit = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+			add_legitimacy = -10
+		}
 		add_estate_loyalty = {
 			estate = estate_dragon_command
 			loyalty = 10
@@ -14370,7 +14396,14 @@ country_event = { # Fall of the Elephant Command
 country_event = { # Fall of the Dragon Command
 	id = the_command.1996
 	title = the_command.1996.t
-	desc = the_command.1996.d
+	desc = {
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+		desc = the_command.1996.d
+	}
+	desc = {
+		trigger = { dynasty = Dragonborn has_ruler = "Noriko" }
+		desc = the_command.1996.d.noriko
+	}
 	picture = SIEGE_PRAGUE_CASTLE_eventPicture
 
 	fire_only_once = yes
@@ -14379,6 +14412,7 @@ country_event = { # Fall of the Dragon Command
 	option = {
 		name = the_command.1996.a
 		ai_chance = { factor = 1 }
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
 		custom_tooltip = command_1996_tt
 
 		set_country_flag = R62_dragon_subdued
@@ -14428,6 +14462,66 @@ country_event = { # Fall of the Dragon Command
 					4952 = { set_province_flag = command_dragon_warcamp }
 				}
 			}
+			# Remove capital mechanics
+			event_target:dragon_command_capital = {
+				add_base_production = -2000
+				remove_province_modifier = command_capital_stronghold_t1
+				remove_province_modifier = command_capital_stronghold_t2
+				remove_province_modifier = command_capital_stronghold_t3
+				remove_province_modifier = command_capital_stronghold_t4
+			}
+			inherit = R69
+		}
+	}
+
+	option = {
+		name = the_command.1996.b
+		ai_chance = { factor = 1 }
+		trigger = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } }
+		custom_tooltip = command_1996_noriko_tt
+		random_list = {
+			1 = { change_adm = -1 }
+			1 = { change_dip = -1 }
+			1 = { change_mil = -1 }
+		}
+
+		set_country_flag = R62_dragon_subdued
+
+		R69 = { kill_ruler = yes }
+		event_target:dragon_command_capital = { add_base_tax = -2 add_base_production = -2 add_base_manpower = -2 }
+		add_stability_or_adm_power = yes
+		add_legitimacy_or_monarch_power = { VAL = 20 }
+
+		if = {
+			limit = { has_country_modifier = command_exemplary_leadership }
+			remove_country_modifier = command_exemplary_leadership
+			add_ruler_modifier = {
+				name = command_respected_leadership
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = { has_country_modifier = command_respected_leadership }
+			remove_country_modifier = command_respected_leadership
+			add_ruler_modifier = {
+				name = command_legendary_leadership
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = { NOT = { has_country_modifier = command_legendary_leadership } }
+			add_ruler_modifier = {
+				name = command_exemplary_leadership
+				duration = -1
+			}
+		}
+		else = {
+			add_mil_power = 50
+		}
+
+		custom_tooltip = command_1996_2_tt
+		hidden_effect = {
+			R69 = { disband_all_units = yes }
 			# Remove capital mechanics
 			event_target:dragon_command_capital = {
 				add_base_production = -2000
@@ -15144,6 +15238,51 @@ country_event = { #Force Command AI to do stuff
 					}
 				}
 			}
+		}
+	}
+}
+
+country_event = { #Debug event that triggers every year
+	id = the_command.3003
+	title = the_command.3003.t
+	desc = the_command.3003.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		tag = R62
+		OR = {
+			AND = {
+				has_country_flag = command_sir_revolt_started
+				all_war_enemy_countries = {
+					OR = {
+						NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+						is_subject = yes
+						capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = the_command.3003.a
+		ai_chance = { factor = 1 }
+
+		if = {
+			limit = { #Calm Down Sir
+				has_country_flag = command_sir_revolt_started
+				all_war_enemy_countries = {
+					OR = {
+						NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+						is_subject = yes
+						capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+					}
+				}
+			}
+			country_event = { id = the_command.126 }
 		}
 	}
 }

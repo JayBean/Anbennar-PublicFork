@@ -113,6 +113,7 @@ on_startup = {
 		flavour_ordstun.0 #Arg-Ordstun setup
 		flavour_spiderwretch.50 #Spiderwretch Lightland Claimer
 		flavor_orda_aldresia.2 #Orda Aldresia Imperial Bodyguard
+		flavor_vels_bacar.1 #Vels Bacar startup
 
 		#Silver Families
 		silver_families.1		#Silmuna
@@ -1925,7 +1926,7 @@ on_siege_won_country = {
 		country_event = { id = flavor_vazhatun.25 }
 	}
 	if = {
-		limit = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } }
+		limit = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } }
 		command_siege_won_effect = yes
 	}
 	if = {
@@ -1992,6 +1993,8 @@ on_siege_won_country = {
 		}
 		kalsyto_revolution_siege = yes
 	}
+	
+	centaur_siege_won = yes
 }
 
 # country
@@ -2713,6 +2716,7 @@ on_new_term_election = {
 		flavour_isagumze.15 #Isagumze Scaled Lords Election
 		thangoya_event.50   #Kai Republic Elections
 		flavor_kalsyto.1007 #Kalsyto Factional Election
+		flavor_vels_bacar.21 #Vels Bacar Panykorun Election
 	}
 
 	if = {
@@ -2784,6 +2788,7 @@ on_death_election = {
 		flavour_isagumze.15 #Isagumze Scaled Lords Election
 		thangoya_event.51   #Kai Republic Elections
 		flavor_kalsyto.1008 #Kalsyto Factional Election
+		flavor_vels_bacar.22 #Vels Bacar Panykorun Election
 	}
 
 	if = {
@@ -3454,6 +3459,12 @@ on_annexed = {
 			limit = { tag = F72 }
 			5434 = { remove_province_modifier = mulen_trade_from_kvangraak }
 			5460 = { remove_trade_modifier = { who = FROM key = mulen_trade_from_kvangraak } }
+		}
+		if = {
+			limit = { tag = A77 }
+			emperor = {
+				remove_country_modifier = supporting_orda_aldresia
+			}
 		}
 
 		if = {
@@ -5108,6 +5119,7 @@ on_yearly_pulse = {
 		the_command.2009	#Command loses the Great Insubordination
 		the_command.1999	#Hidden event to flip regular vassals back into slave states
 		the_command.51		#Hidden event to convert wuhyunizable provinces
+		the_command.3003	#Debug event for edge cases (unconditional surrender doesn't trigger on_siege_won)
 		flavour_brelar.129	#Clockwork pulse
 		flavour_yinquan.47	#sunny day pulse
 		flavour_arawkelin.10
@@ -5982,6 +5994,7 @@ on_bi_yearly_pulse_3 = {
 
 		akasik_flavour.1
 
+		flavour_brelar.702	#checks iron production stuff
 
 		flavor_malacnar.8 #checks if you have fought lately
 
@@ -6253,13 +6266,6 @@ on_bi_yearly_pulse_4 = {
             }
         }
     }
-
-	if = {
-		limit = {
-			tag = G27 #Brelar
-		}
-		g27_malacnar_production_check_effect = yes 
-	}
 
 	#Birsartanses
 	if = {
@@ -12349,6 +12355,7 @@ on_trade_good_changed = {
 				has_province_modifier = B34_board_of_chains_boost_upgraded
 				has_province_modifier = B34_board_of_chains_boost_upgraded_2
 				has_province_modifier = livestock_boost_frontier
+				has_province_modifier = centaur_wool_bonus_prod
 			}
 		}
 		remove_province_modifier = wine_bonus_prod
@@ -12369,6 +12376,7 @@ on_trade_good_changed = {
 		remove_province_modifier = B34_board_of_chains_boost_upgraded
 		remove_province_modifier = B34_board_of_chains_boost_upgraded_2
 		remove_province_modifier = livestock_boost_frontier
+		remove_province_modifier = centaur_wool_bonus_prod
 	}
 	if = {
 		limit = { 
@@ -12667,6 +12675,21 @@ on_trade_good_changed = {
 					NOT = { has_province_modifier = mulen_jewelry_line }
 				}
 				add_province_modifier = { name = mulen_jewelry_line duration = -1 }
+			}
+		}
+		
+		#Centaur
+		if = {
+			limit = {
+				owner = {
+					has_country_flag = centaur_wool_bonus
+				}
+				trade_goods = wool
+			}
+			add_province_modifier = { 
+				name = centaur_wool_bonus_prod
+				duration = -1
+				hidden = yes
 			}
 		}
 	}
@@ -13763,6 +13786,21 @@ on_capital_moved = {
 					}
 					clr_province_flag = is_nomadic_capital
 				}
+				
+				if = {
+					limit = {
+						has_country_flag = centaur_free_temple
+						capital_scope = {
+							NOT = { has_building = temple }
+						}
+					}
+					capital_scope = {
+						add_building_construction = {
+							building = temple
+							cost = 0
+						}
+					}
+				}
 
 				if = {
 					limit = {
@@ -13959,6 +13997,20 @@ on_new_age = {
 		limit = { has_country_flag = age_ability_monstrous_rule_flag }
 		clr_country_flag = age_ability_monstrous_rule_flag
 	}
+	
+	if = {
+		limit = { has_country_flag = centaur_free_temple }
+		clr_country_flag = centaur_free_temple
+	}
+	
+	if = {
+		limit = { has_country_flag = centaur_wool_bonus }
+		clr_country_flag = centaur_wool_bonus
+		every_owned_province = {
+			limit = { has_province_modifier = centaur_wool_bonus_prod }
+			remove_province_modifier = centaur_wool_bonus_prod
+		}
+	}
 
 	#Late Aelantir spawnables (aka Ynn)
 	if = {
@@ -14122,6 +14174,15 @@ on_raze = {
 			}
 			change_variable = {
 				which = provincesrazed
+				value = 1
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = centaur_administration
+			}
+			change_variable = {
+				which = nbProvincesRazed
 				value = 1
 			}
 		}
