@@ -225,6 +225,35 @@ declarewar = {
 			}
 		}
 	}
+	condition = { # Orda Aldresia Bug Fix
+		tooltip = AI_CANNOT_DECLARE_ON_WEAK_ORDA_ALDRESIA
+		potential = {
+			FROM = { tag = A77 }
+			is_part_of_hre = no
+			ai = yes
+		}
+		allow = {
+			A77 = {
+				total_development = 300 
+			}
+		}
+	}
+	condition = {
+		tooltip = EMPERORS_GRACE
+		potential = {
+			FROM = { tag = A77 }
+			is_part_of_hre = no
+			ai = no
+		}
+		allow = {
+			ROOT = {  
+				has_spy_network_in = {
+					who = emperor
+					value = 20
+				}
+			}
+		}
+	}
 	condition = { #1.35
 		tooltip = CANNOT_DECLARE_WARS_OTHER_THAN_INDEPENDENCE_WARS
 		potential = {
@@ -736,6 +765,25 @@ declarewar = {
 			}
 		}
 		if = {
+			limit = {
+				has_country_modifier = spiderwretch_lightland_claimer
+				FROM = {
+					NOT = {
+						any_owned_province = {
+							OR = {
+								continent = serpentspine
+								superregion = forbidden_lands_superregion
+							}
+						}
+					}
+					NOT = { coalition_target = FROM }
+				}
+			}
+			country_event = {
+				id = flavour_spiderwretch.200
+			}
+		}
+		if = {
             limit = {
                 I07 = {
                     mission_completed = khugdihr_the_face_of_the_reclamation
@@ -753,6 +801,18 @@ declarewar = {
             }
             country_event = { id = flavour_khug.25 }
         }
+		if = {
+			limit = {
+				is_part_of_hre = no
+				FROM = { 
+					tag = A77 
+					NOT = { total_development = 300 }
+				}
+			}
+			emperor = {
+				join_all_defensive_wars_of = A77
+			}
+		}
 		if = {
 			limit = {
 				has_country_flag = escanni_wars_usurp_emperorship
@@ -1058,10 +1118,14 @@ declarewar = {
 		#Taychend Glory
 		if = {
 			limit = {
-				religion = gods_of_the_taychend
+				OR = {
+					religion = gods_of_the_taychend
+					religion = oren_nayiru
+				}
 				FROM = {
 					OR = {
 						religion = gods_of_the_taychend
+						religion = oren_nayiru
 						tag = J74
 					}
 					OR = {
@@ -1085,7 +1149,10 @@ declarewar = {
 		if = {
 			limit = {
 				FROM = { 
-					religion = gods_of_the_taychend 
+					OR = {
+						religion = gods_of_the_taychend
+						religion = oren_nayiru
+					}
 					is_in_war = {
 						attacker_leader = ROOT
 						defender_leader = FROM
@@ -1132,6 +1199,23 @@ declarewar = {
 			country_event = {
 				id = flavour_velsfadhecai.12
 			}
+		}
+
+		if = {
+			limit = {
+				FROM = {
+					tag = R62
+					has_country_flag = command_sir_revolt_started
+				}
+			}
+			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+		}
+		if = {
+			limit = {
+				FROM = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+			}
+			FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } }
 		}
 	}
 }
@@ -1363,6 +1447,25 @@ allianceaction = {
 			}
 		}
 	}
+
+	condition = {
+		tooltip = skewered_drake_no_trib_alliance
+		potential = {
+			OR = {
+				AND = {
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+				FROM = { 
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 #	condition = {
 #		tooltip = plains_are_forbidden # the plains fucking suck
 #		potential = {
@@ -1481,12 +1584,36 @@ allianceaction = {
 		allow = {
 			OR = {
 				AND = {
-					ROOT = { religion = gods_of_the_taychend }
-					FROM = { religion = gods_of_the_taychend }
+					ROOT = {
+						OR = {
+							religion = gods_of_the_taychend
+							religion = oren_nayiru
+						}
+					}
+					FROM = {
+						OR = {
+							religion = gods_of_the_taychend
+							religion = oren_nayiru
+						}
+					}
 				}
 				AND = {
-					ROOT = { NOT = { religion = gods_of_the_taychend } }
-					FROM = { NOT = { religion = gods_of_the_taychend } }
+					ROOT = {
+						NOT = {
+							OR = {
+								religion = gods_of_the_taychend
+								religion = oren_nayiru
+							}
+						}
+					}
+					FROM = {
+						NOT = {
+							OR = {
+								religion = gods_of_the_taychend
+								religion = oren_nayiru
+							}
+						}
+					}
 				}
 			}
 		}
@@ -2255,6 +2382,46 @@ annexationaction = {
 			empire_of_china_reform_passed = integrate_medasi_reform
 		}
 	}
+
+	condition = {
+		tooltip = skewered_drake_no_integrate_trolls
+		potential = {
+			tag = H73
+			mission_completed = skewered_drake_obedient_trolls
+			FROM = { tag = M01 }
+		}
+		allow = {
+			always = no
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { religion = gods_of_the_taychend }
+			hidden_effect = {
+				random_list = {
+					15 = { 
+						FROM = { save_event_target_as = taychendi_vassal_in_annexation }
+						country_event = {
+							id = taychendi.14
+							days = 60 }
+						}
+					25 = {
+						trigger = {
+							NOT = { has_country_flag = taychendi_vassal_prophecy_happened }
+							FROM = { total_development = 20 }
+						}
+						FROM = { 
+							set_country_flag = taychendi_vassal_prophecy_vassal
+							save_event_target_as = prophecy_vassal
+						}
+						country_event = { id = taychendi.15 }
+					}
+					65 = { }
+				}
+			}
+		}
+	}
 }
 
 integrationaction = {
@@ -2660,6 +2827,20 @@ callaction = {
 		}
 	}
 
+	effect = {
+		if = {
+			limit = {
+				is_in_war = { casus_belli = cb_revolt_of_the_north }
+				FROM = {
+					any_war_enemy_country = {
+						NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+					}
+				}
+			}
+		}
+		capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
+	}
+
 	condition = {	#Bosancovac can't call allies against the Boats' revolt
 		potential = {
 			ROOT = {
@@ -2721,6 +2902,26 @@ ask_for_march = {
 				tag = H79
 				tag = I18
 			}
+		}
+		allow = { always = no }
+	}
+}
+
+milaccess = {
+	condition = {
+		tooltip = AZJAKUMA_NO_MIL_ACCESS
+		potential = {
+			FROM = { tag = Y01 }
+		}
+		allow = { always = no }
+	}
+}
+
+offermilaccess = {
+	condition = {
+		tooltip = AZJAKUMA_NO_MIL_ACCESS
+		potential = {
+			tag = Y01
 		}
 		allow = { always = no }
 	}
@@ -2798,6 +2999,22 @@ insultaction = {
 				add_legitimacy_equivalent = { amount = -10 republican_tradition = -5 }
 			}
 		}
+		if = {
+			limit = {
+				tag = H73
+				has_government_attribute = skewered_drake_call_the_name_effect
+				FROM = { has_opinion_modifier = { who = ROOT modifier = scornfully_insulted } }
+			}
+			FROM = {
+				if = {
+					limit = {
+						is_great_power = no
+						NOT = { num_of_subjects = 1 }
+					}
+				}
+				reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT months = 120 }
+			}
+		}
 	}
 }
 
@@ -2858,6 +3075,28 @@ requestpeace = {
 			}
         }
 	}
+	condition = {
+		tooltip = kamrayakvals_war_no_seperate_peace
+		potential = {
+			OR = {
+				has_country_flag = kamrayakvals_war_joined
+				FROM = { has_country_flag = kamrayakvals_war_joined }
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
+	condition = {
+		tooltip = COMMAND_ACTIVE_SIR_REVOLT
+		potential = {
+			OR = {
+				has_country_flag = command_sir_revolt_started
+				FROM = { has_country_flag = command_sir_revolt_started }
+			}
+		}
+		allow = { always = no }
+	}
 }
 
 support_heir = {
@@ -2897,6 +3136,24 @@ guaranteeaction = {
 		potential = { is_emperor_of_china = yes ai = yes }
 		allow = {
 			NOT = { FROM = { is_neighbor_of = ROOT } }
+		}
+	}
+	condition = {
+		tooltip = skewered_drake_no_trib_guarantee
+		potential = {
+			OR = {
+				AND = {
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+				FROM = { 
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+			}
+		}
+		allow = {
+			always = no
 		}
 	}
 }
