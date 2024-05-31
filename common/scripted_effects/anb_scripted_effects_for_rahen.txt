@@ -2228,9 +2228,12 @@ command_set_new_campaign_effect = {
 	
 	clr_country_flag = command_tree_of_stone_campaign_activated_flag
 	clr_country_flag = command_azjakuma_campaign_activated_flag
+
+	clr_country_flag = command_current_campaign_completed_flag
 	
 	#set new flags
 	set_country_flag = command_$campaign$_campaign_activated_flag
+	set_country_flag = command_has_active_campaign_flag
 	
 	#swap missions
 	swap_non_generic_missions = yes
@@ -2238,6 +2241,8 @@ command_set_new_campaign_effect = {
 
 command_complete_campaign_effect = {
 	set_country_flag = command_$campaign$_campaign_completed_flag
+	set_country_flag = command_current_campaign_completed_flag
+	clr_country_flag = command_has_active_campaign_flag
 	
 	if = {
 		limit = { has_country_modifier = command_unproven_leadership }
@@ -2325,6 +2330,10 @@ command_force_progress_campaign_effect = {
 						truce_with = R62
 						is_subject_of = R62
 						alliance_with = R62
+						army_strength = {
+							who = R62
+							value = 1
+						}
 					}
 				}
 				R62 = {
@@ -3007,10 +3016,6 @@ command_move_orc_slave_state = { #tag = R63 OR R64   target = command_move_targe
 				limit = { is_core = R62 }
 				remove_core = R62
 				add_core = $tag$
-			}
-			if = {
-				limit = { has_global_flag = R62_slave_state_wuhyunification_flag }
-				set_state_edict = laws_of_ninun_edict
 			}
 		}
 	}
@@ -3896,30 +3901,15 @@ command_recruit_second_general_effect = {
 command_siege_won_effect = {
 	if = {
 		limit = { #Calm Down Sir
-			R62 = { has_country_flag = command_sir_revolt_started }
-			4633 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } } #Sir
-			OR = {
-				R62 = { NOT = { has_country_flag = command_sir_revolt_xia_participation } }
-				4559 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			}
-			OR = {
-				R62 = { NOT = { has_country_flag = command_sir_revolt_rebel_participation } }
-				AND = {
-					4525 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-					4535 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
+			R62 = {
+				has_country_flag = command_sir_revolt_started
+				all_war_enemy_countries = {
+					OR = {
+						NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+						is_subject = yes
+						capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+					}
 				}
-			}
-			OR = {
-				R62 = { NOT = { has_country_flag = command_sir_revolt_khadisrapur_participation } }
-				4465 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			}
-			OR = {
-				R62 = { NOT = { has_country_flag = command_sir_revolt_sarnavan_participation } }
-				4510 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			}
-			OR = {
-				R62 = { NOT = { has_country_flag = command_sir_revolt_parraj_participation } }
-				4467 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
 			}
 		}
 		R62 = { country_event = { id = the_command.126 } }
@@ -3927,15 +3917,15 @@ command_siege_won_effect = {
 	if = {
 		limit = { R62 = { has_country_flag = insubordination_active_flag } }
 		if = {
-			limit = { R67 = { capital_scope = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } } } }
+			limit = { R67 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1994 } }
 		}
 		if = {
-			limit = { R68 = { capital_scope = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } } } }
+			limit = { R68 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1995 } }
 		}
 		if = {
-			limit = { R69 = { capital_scope = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } } } }
+			limit = { R69 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1996 } }
 		}
 	}
@@ -3951,12 +3941,22 @@ command_siege_won_effect = {
 					casus_belli = cb_insubordination
 				}
 			}
-			4831 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			5430 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			4829 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
-			4828 = { controller = { OR = { tag = R62 is_subject_of = R62 alliance_with = R62 } } }
+			4831 = { OR = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } owner = { NOT = { tag = Y01 } } } }
+			5430 = { OR = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } owner = { NOT = { tag = Y01 } } } }
+			4829 = { OR = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } owner = { NOT = { tag = Y01 } } } }
+			4828 = { OR = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } owner = { NOT = { tag = Y01 } } } }
 		}
 		R62 = { country_event = { id = the_command.1983 } }
+	}
+	if = {
+		limit = { #Command artillery mission req
+			NOT = { mission_completed = R62_the_evolution_of_warfare }
+			FROM = {
+				is_capital = yes
+				artillery_in_province = R62
+			}
+		}
+		R62 = { set_country_flag = R62_the_evolution_of_warfare_flag }
 	}
 	if = {
 		limit = { #Command is winning a war against a great power
