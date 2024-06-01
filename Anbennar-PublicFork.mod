@@ -28,5 +28,9 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
+<<<<<<< HEAD
 supported_version="1.36.*"
+=======
+supported_version="v1.37.0.0"
+>>>>>>> JayBean/new-master
 path="mod/Anbennar-PublicFork"
