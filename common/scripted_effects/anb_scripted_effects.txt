@@ -2602,7 +2602,10 @@ decrease_monstrous_10 = {
 		hidden_effect = { subtract_variable = { monstrousPoints = 10 } }
 		if = {
 			limit = {
-				has_government_attribute = forced_evolution_reform_effect
+				OR = {
+					has_government_attribute = forced_evolution_reform_effect
+					has_estate_privilege = estate_monstrous_tribes_gozlamoir_system
+				}
 			}
 			hidden_effect = { subtract_variable = { monstrousPoints = 4 } }
 		}
@@ -2616,7 +2619,10 @@ decrease_monstrous_5 = {
 		hidden_effect = { subtract_variable = { monstrousPoints = 5 } }
 		if = {
 			limit = {
-				has_government_attribute = forced_evolution_reform_effect
+				OR = {
+					has_government_attribute = forced_evolution_reform_effect
+					has_estate_privilege = estate_monstrous_tribes_gozlamoir_system
+				}
 			}
 			hidden_effect = { subtract_variable = { monstrousPoints = 3 } }
 		}
@@ -2630,7 +2636,10 @@ decrease_monstrous_3 = {
 		hidden_effect = { subtract_variable = { monstrousPoints = 3 } }
 		if = {
 			limit = {
-				has_government_attribute = forced_evolution_reform_effect
+				OR = {
+					has_government_attribute = forced_evolution_reform_effect
+					has_estate_privilege = estate_monstrous_tribes_gozlamoir_system
+				}
 			}
 			hidden_effect = { subtract_variable = { monstrousPoints = 2 } }
 		}
@@ -2644,7 +2653,10 @@ decrease_monstrous_2 = {
 		hidden_effect = { subtract_variable = { monstrousPoints = 2 } }
 		if = {
 			limit = {
-				has_government_attribute = forced_evolution_reform_effect
+				OR = {
+					has_government_attribute = forced_evolution_reform_effect
+					has_estate_privilege = estate_monstrous_tribes_gozlamoir_system
+				}
 			}
 			hidden_effect = { subtract_variable = { monstrousPoints = 1 } }
 		}
@@ -2658,7 +2670,10 @@ decrease_monstrous_1 = {
 		hidden_effect = { subtract_variable = { monstrousPoints = 1 } }
 		if = {
 			limit = {
-				has_government_attribute = forced_evolution_reform_effect
+				OR = {
+					has_government_attribute = forced_evolution_reform_effect
+					has_estate_privilege = estate_monstrous_tribes_gozlamoir_system
+				}
 			}
 			hidden_effect = { subtract_variable = { monstrousPoints = 1 } }
 		}
@@ -5232,6 +5247,7 @@ anb_on_development_effect = {
 			}
 			add_church_power = 4
 		}
+		update_nekhei_dev_modifier = yes
 	}
 
 	# Mountainshark T4 Gov Reform
@@ -5304,6 +5320,8 @@ apply_owned_NZOC_country = {
 	save_event_target_as = the_centaur_who_moved
 	every_owned_province = {
 		clr_province_flag = current_owned_NZOC
+		remove_province_modifier = base_nomadic_zone_of_control
+		remove_province_modifier = base_noncentaur_nomadic_zone_of_control
 	}
 	capital_scope = {
 		set_province_flag = is_nomadic_capital
@@ -5319,7 +5337,35 @@ apply_owned_NZOC_country = {
 			add_centaur_minority_size_effect = yes
 		}
 		hidden_effect = {add_local_autonomy = -100}
-		every_neighbor_province = { #add modifier to OWNED neighbor provinces
+		#GIVE MODIFIERS TO CAPITAL
+		if = {
+			limit = {
+				NOT = { has_province_modifier = base_nomadic_zone_of_control}
+			}
+			hidden_effect = {
+				add_province_modifier = {
+					name = base_nomadic_zone_of_control
+					duration = -1
+				}
+			}
+		}
+		set_province_flag = current_owned_NZOC
+		if = {
+				limit = {
+				culture_group = centaur
+			}
+			apply_owned_centaur_NZOC_province = yes
+		}
+		if = {
+			limit = {
+				owner = {has_estate_privilege = estate_monstrous_tribes_gozlamoir_system}
+				NOT = {culture_group = centaur}
+			}
+			apply_owned_noncentaur_NZOC_province = yes
+		}
+
+		#GIVE MODIFIERS TO OWNED NEIGHBORING PROVINCES
+		every_neighbor_province = {
 			limit = {
 				country_or_non_sovereign_subject_holds = event_target:the_centaur_who_moved
 				NOT = { has_province_modifier = base_nomadic_zone_of_control}
@@ -5327,10 +5373,11 @@ apply_owned_NZOC_country = {
 			hidden_effect = {
 				add_province_modifier = {
 					name = base_nomadic_zone_of_control
-					duration = 3650
+					duration = -1
 				}
 			}
 			set_province_flag = current_owned_NZOC
+
 			if = {
 				limit = {
 					culture_group = centaur
@@ -5339,16 +5386,17 @@ apply_owned_NZOC_country = {
 			}
 			if = {
 				limit = {
+					owner = {has_estate_privilege = estate_monstrous_tribes_gozlamoir_system}
 					NOT = {culture_group = centaur}
-					has_country_flag = gozlamoir_active
 				}
-				#apply_owned_noncentaur_NZOC_province = yes
+				apply_owned_noncentaur_NZOC_province = yes
 			}
 			#GOV REFORMS that apply to ALL NZOC go here
 		}
 	}
 	country_event = { id = centaur_nomad.200 days = 2}
 }
+
 apply_owned_centaur_NZOC_province = {
 
 	hidden_effect = {
@@ -5379,7 +5427,7 @@ apply_owned_noncentaur_NZOC_province = {
 	hidden_effect = {
 		add_province_modifier = {
 			name = base_noncentaur_nomadic_zone_of_control
-			duration = 5475
+			duration = -1
 		}
 		owner = {
 			change_government_reform_progress = 2
@@ -6154,4 +6202,44 @@ create_flagship_with_modifications = {
 		clr_country_flag = forbid_flagship_modification_flag_integrated_marines
 		clr_country_flag = forbid_flagship_modification_flag_hull_sheating
 	}
+}
+
+select_highest_opinion_country_with_limit = {
+	set_variable = {
+		which = highest_opinion_check
+		value = 0
+	}
+	every_known_country = {
+		limit = { $limit$ }
+		export_to_variable = {
+			which = temp_opinion_check
+			value = opinion
+			with = ROOT
+		}
+		ROOT = {
+			set_variable = {
+				which = temp_opinion_check
+				which = PREV
+			}
+		}
+		if = {
+			limit = { 
+				ROOT = {
+					check_variable = {
+						which = temp_opinion_check
+						which = highest_opinion_check
+					}
+				}
+			}
+			ROOT = {
+				set_variable = {
+					which = highest_opinion_check
+					which = temp_opinion_check
+				}
+			}
+			save_event_target_as = highest_opinion_country_with_limit
+		}
+		[[effect] event_target:highest_opinion_country_with_limit = { $effect$ }]
+	}
+
 }
