@@ -5,16 +5,32 @@ custom_button = {
 			has_terrain = dwarven_hold
 			has_terrain = dwarven_hold_surface
 		}
+		#Owner needs to be you, and also not be native/horde since raze/settle buttons get in the way.
 		owner = {
 			tag = FROM
 			NOT = {
 				government = native
+				is_nomad = yes
 			}
+		}
+		#Blorcs can't repair non-capital holds
+		OR = {
+			is_capital = yes
+			NOT = { owner = { dwarovar_orc_culture_primary = yes } }
 		}
 	}
 	trigger = {
+		#Can use button to repair non-capital holds, but not dig non-capital holds without centralizing hold operations
 		if = {
-			limit = { NOT = { is_capital = yes } }
+			limit = {
+				NOT = {
+					is_capital = yes
+					has_province_modifier = ruined_hold
+					has_province_modifier = partially_ruined_hold
+					has_province_modifier = damaged_hold
+					has_province_modifier = infested_hold
+				}
+			}
 			custom_trigger_tooltip = {
 				tooltip = has_centralized_hold_operations_tt
 				owner = { has_country_flag = hold_operation }
@@ -22,27 +38,48 @@ custom_button = {
 		}
 	}
 	effect = {
-		if = {
-			limit = { NOT = { has_province_flag = diggy_diggy_estimate_flag } }
-			set_province_flag = diggy_diggy_estimate_flag
+		hidden_effect = {
 			if = {
-				limit = { is_capital = yes }
-				owner = {
-					PREV = {
-						setup_digging_deeper_capital = yes
+				limit = { NOT = { has_province_flag = diggy_diggy_estimate_flag } }
+				#Open digging menu
+				set_province_flag = diggy_diggy_estimate_flag
+				#Set up the digging preview cost and time.
+				if = {
+					limit = {
+						OR = {
+							has_province_modifier = ruined_hold
+							has_province_modifier = partially_ruined_hold
+							has_province_modifier = damaged_hold
+						}
+					}
+					owner = {
+						PREV = {
+							setup_restoration_speed = yes
+						}
+					}
+				}
+				else = {
+					if = {
+						limit = { is_capital = yes }
+						owner = {
+							PREV = {
+								setup_digging_deeper_capital = yes
+							}
+						}
+					}
+					else = {
+						owner = {
+							PREV = {
+								setup_digging_deeper_non_capital = yes
+							}
+						}
 					}
 				}
 			}
+		
 			else = {
-				owner = {
-					PREV = {
-						setup_digging_deeper_non_capital = yes
-					}
-				}
+				clr_province_flag = diggy_diggy_estimate_flag
 			}
-		}
-		else = {
-			clr_province_flag = diggy_diggy_estimate_flag
 		}
 
 	}
@@ -63,6 +100,11 @@ custom_button = {
 	name = diggy_diggy_go
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		NOT = {
+			has_province_modifier = ruined_hold
+			has_province_modifier = partially_ruined_hold
+			has_province_modifier = damaged_hold
+		}
 		owner = {
 			tag = FROM
 		}
@@ -90,8 +132,8 @@ custom_button = {
 				NOT = { has_disaster = remnant_stagnation_disaster }
 			}
 		}
-		is_state_core = ROOT
-		controlled_by = ROOT
+		is_state_core = FROM
+		controlled_by = FROM
 		custom_trigger_tooltip = {
 			tooltip = diggy_no_building #This includes armies and such
 			NOT = { has_construction = any }
@@ -102,11 +144,21 @@ custom_button = {
 			limit = { has_province_modifier = incomplete_hold }
 			NOT = { has_province_modifier = incomplete_hold }
 		}
+		if = {
+			limit = { has_province_flag = cannot_dig } # Generalized inability to dig.
+			if = {
+				limit = { owner = { tag = F23 } }
+				custom_trigger_tooltip = {
+					tooltip = F23_cannot_dig_why
+					always = no
+				}
+			}
+		}
 		hidden_trigger = { NOT = { has_province_modifier = incomplete_hold_0 } }
 		custom_trigger_tooltip = {
 			tooltip = diggy_max_deepness_tooltip
 			if = {
-				limit = { OR = { province_id = 4119 province_id = 4311 AND = { province_id = 4119 OWNER = { has_country_flag = I98_may_come_down_flag } } } } #Big and Second capital
+				limit = { OR = { province_id = 4119 province_id = 4311 AND = { province_id = 2931 OWNER = { has_country_flag = I98_may_come_down_flag } } AND = { province_id = 4093 owner = { has_country_flag = H76_reached_the_bottom } } } } #Big and Second capital
 				NOT = { has_province_modifier = dig_11 }
 			}
 			else = {
@@ -180,9 +232,56 @@ custom_button = {
 				}
 			}
 			set_country_flag = is_digging
+			play_sound = diggy_diggy_pickaxe_sfx
 		}
 	}
 	tooltip = dig_hold_go_button_tt
+}
+
+custom_button = {
+	name = diggy_diggy_repair
+	potential = {
+		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_province_modifier = ruined_hold
+			has_province_modifier = partially_ruined_hold
+			has_province_modifier = damaged_hold
+		}
+		owner = {
+			tag = FROM
+		}
+	}
+	trigger = {
+		NOT = { has_construction = any }
+		is_core = FROM
+		if = {
+			limit = { has_province_flag = cannot_repair_hold }
+			custom_trigger_tooltip = {
+				tooltip = diggy_cannot_repair_hold_tt
+				NOT = { has_province_flag = cannot_repair_hold }
+			}
+		}
+		owner = {
+			NOT = { num_of_rebel_armies = 1 }
+			is_at_war = no
+			if = {
+				limit = { ai = no }
+				mil_power = 50
+				adm_power = 50
+				dip_power = 50
+				treasury = 100
+			}
+		}
+	}
+	effect = {
+		owner = {
+			PREV = {
+				hidden_effect = { setup_restoration_speed = yes }
+				repair_hold = yes
+			}
+		}
+	}
+	tooltip = dig_hold_repair_button_tt
 }
 
 custom_text_box = {
@@ -229,11 +328,15 @@ custom_icon = {
 	name = diggy_diggy_bar_fill_1
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 		owner = {
 			tag = FROM
 		}
 		if = {
-			limit = { is_capital = yes }
+			limit = { is_capital = yes has_construction = digging_deeper }
 			variable_arithmetic_trigger = {
 				export_to_variable = {
 					which = cProgress
@@ -264,11 +367,15 @@ custom_icon = {
 	name = diggy_diggy_bar_fill_2
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 		owner = {
 			tag = FROM
 		}
 		if = {
-			limit = { is_capital = yes }
+			limit = { is_capital = yes has_construction = digging_deeper }
 			variable_arithmetic_trigger = {
 				export_to_variable = {
 					which = cProgress
@@ -299,11 +406,15 @@ custom_icon = {
 	name = diggy_diggy_bar_fill_3
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 		owner = {
 			tag = FROM
 		}
 		if = {
-			limit = { is_capital = yes }
+			limit = { is_capital = yes has_construction = digging_deeper }
 			variable_arithmetic_trigger = {
 				export_to_variable = {
 					which = cProgress
@@ -334,11 +445,15 @@ custom_icon = {
 	name = diggy_diggy_bar_fill_4
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 		owner = {
 			tag = FROM
 		}
 		if = {
-			limit = { is_capital = yes }
+			limit = { is_capital = yes has_construction = digging_deeper }
 			variable_arithmetic_trigger = {
 				export_to_variable = {
 					which = cProgress
@@ -369,11 +484,15 @@ custom_icon = {
 	name = diggy_diggy_bar_fill_5
 	potential = {
 		has_province_flag = diggy_diggy_estimate_flag
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 		owner = {
 			tag = FROM
 		}
 		if = {
-			limit = { is_capital = yes }
+			limit = { is_capital = yes has_construction = digging_deeper }
 			variable_arithmetic_trigger = {
 				export_to_variable = {
 					which = cProgress
@@ -407,27 +526,10 @@ custom_icon = {
 		owner = {
 			tag = FROM
 		}
-		has_construction = digging_deeper
+		OR = {
+			has_construction = digging_deeper
+			has_construction = restoring_hold
+		}
 	}
 	tooltip = diggy_hole_progress_tt
-}
-
-custom_icon = {
-    name = government_mechanics_bg
-    potential = {
-    	ai = no
-    	OR = {
-    		has_government_mechanic = anb_adventurer_unity
-    		has_government_mechanic = allclan_pandemonium_mechanic
-    		has_government_mechanic = centaur_nomadism
-    		has_government_mechanic = desert_legion_mechanic
-    		has_government_mechanic = anb_effelai_attuned_1
-    		has_government_mechanic = harpylen_queendom_claim_mechanic
-    		has_government_mechanic = anb_huszien_council
-    		has_government_mechanic = anb_medasi_power_share
-    		has_government_mechanic = magnate_mechanic
-    		has_government_mechanic = phoenix_estate_mechanic
-    		has_government_mechanic = vacyntassi_temple_authority
-    	}
-    }
 }
