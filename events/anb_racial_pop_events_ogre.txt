@@ -88,6 +88,14 @@ country_event = {
 					}
 				}
 				modifier = {
+					factor = 0.33
+					has_country_modifier = racial_focus_ogre
+					NOT = {
+						has_country_modifier = racial_pop_ogre_purge
+						has_country_modifier = racial_pop_ogre_expulsion
+					}
+				}
+				modifier = {
 					factor = 0.67
 					ai = yes
 				}
@@ -166,20 +174,6 @@ country_event = {
 				
 				country_event = { id = racial_pop_events_ogre.7 }
 			}
-			#10 = { #Migration from overlord
-			#	trigger = {
-			#		pop_external_migration_trigger = { overlord = yes race = ogre }
-			#	}
-			#	choose_pop_destination_province = { race = ogre }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_ogre.8 } }
-			#}
-			#10 = { #Migration from vassal
-			#	trigger = {
-			#		pop_external_migration_trigger = { vassal = yes race = ogre }
-			#	}
-			#	choose_pop_destination_province = { race = ogre }
-			#	event_target:destination_province = { province_event = { id = racial_pop_events_ogre.9 } }
-			#}
 			#events 100-200 are reserved for custom migration events, put their triggers here
 		}
 	}
@@ -241,18 +235,11 @@ country_event = {
 			factor = 50
 			modifier = {
 				factor = 1.5
-				wants_to_decrease_tolerance_ogre = yes
+				low_tolerance_ogre_race_trigger = yes
 			}
 			modifier = {
 				factor = 2
 				NOT = { stability = 0 }
-			}
-			modifier = {
-				factor = 3
-				OR = {
-					has_country_modifier = racial_pop_ogre_purge
-					has_country_modifier = racial_pop_ogre_expulsion
-				}
 			}
 			modifier = {	#this is to push refugees essentially
 				factor = 1.5
@@ -260,19 +247,37 @@ country_event = {
 			}
 		}
 
-		event_target:origin_province = { racial_pop_migration_leave = { race = ogre } }
-		hidden_effect = {
-			FROM = {
-				country_event = { id = racial_pop_events_ogre.1 days = 1 random = 364 }
+		if = {
+			limit = {
+				has_country_flag = migration_bribe_@FROM
 			}
+			clr_country_flag = migration_bribe_@FROM
+			add_dip_power = 50
+		}
+		racial_pop_migration_random_leave = { race = ogre }
+		FROM = {
+			country_event = { id = racial_pop_events_ogre.1 days = 1 random = 364 }
 		}
 	}
 	option = { #stop them! they are our rightful subjects!
 		name = racial_pop_events_ogre.3.b
-		ai_chance = { factor = 50 }
-
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_country_modifier = racial_pop_ogre_purge
+					has_country_modifier = racial_pop_ogre_expulsion
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = migration_bribe_@FROM
+			}
+		}
 		add_dip_power = -10
 		small_decrease_of_ogre_tolerance_effect = yes
+		clr_country_flag = migration_bribe_@FROM
 		hidden_effect = {
 			FROM = {
 				country_event = { id = racial_pop_events_ogre.2 days = 1 random = 364 }
@@ -426,18 +431,25 @@ country_event = {
 			}
 		}
 		add_dip_power = -50
-		event_target:origin_province = { racial_pop_migration_leave = { race = ogre } }
-		country_event = { id = racial_pop_events_ogre.1 days = 1 random = 364 }
+		if = {
+			limit = { event_target:origin_province = { owner = { ai = yes } } }
+			custom_tooltip = racial_pop_migration_happens_tt
+		}
+		else = {
+			custom_tooltip = racial_pop_migration_bribe_tt
+		}
 		generic_increase_of_racial_tolerance_effect = { race = ogre small = yes }
+		hidden_effect = { event_target:origin_province = { owner = { set_country_flag = migration_bribe_@ROOT country_event = { id = racial_pop_events_ogre.3 } } } }
 	}
 	
 	#Let them do as they wish 
-	option = {		
+	option = {
 		name = racial_pop_events_ogre.7.b
 		ai_chance = {
 			factor = 50
 		}
-		racial_pop_migration_attempt = { race = ogre }
+		custom_tooltip = racial_pop_migration_attempt_tt
+		hidden_effect = { event_target:origin_province = { owner = { country_event = { id = racial_pop_events_ogre.3 } } } }
 	}
 
 	#Close our borders
@@ -465,6 +477,7 @@ country_event = {
 		hidden_effect = {
 			choose_pop_destination_province = { race = ogre }
 			choose_refugee_country_target = { race = ogre }
+			calculate_refugee_exploit_rewards = yes
 		}
 	}
 	
@@ -508,11 +521,12 @@ country_event = {
 			}
 		}
 	
+		add_country_modifier = { name = non_primary_refugees duration = 1825 }
 		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
 		generic_increase_of_racial_tolerance_effect = { race = ogre small = yes }
 	}
 	
-	#Confiscate their valuables in return
+	#Prey on their desperation to exploit them for labor
 	option = {		
 		name = racial_pop_events_ogre.10.b
 		trigger = {
@@ -537,8 +551,12 @@ country_event = {
 				has_personal_deity = ara
 			}
 		}
-		
-		add_years_of_income = 0.2
+		custom_tooltip = exploit_refugees_gain_effect_tt
+		hidden_effect = {
+			var_effect = { effect = add_treasury var = ducats_gained_on_exploit sign = + }
+			var_effect_granular = { effect = add_manpower var = manpower_gained_on_exploit sign = + }
+		}
+		remove_country_modifier = non_primary_refugees
 		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
 		generic_decrease_of_racial_tolerance_effect = { race = ogre medium = yes }
 	}
@@ -550,9 +568,11 @@ country_event = {
 		trigger = {
 			culture_is_ogre = yes
 		}
-		ai_chance = { factor = 1000}
-		add_years_of_income = 0.2
-		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
+		ai_chance = { factor = 1000 }
+		event_target:destination_province = {
+			add_province_modifier = { name = ogre_primary_refugees duration = 3650 }
+			racial_pop_migration_arrive = { race = ogre }
+		}
 	}
 	
 	#There's no room for you here!
@@ -597,6 +617,7 @@ country_event = {
 			}
 		}
 		add_mil_power = -20
+		remove_country_modifier = non_primary_refugees
 		generic_decrease_of_racial_tolerance_effect = { race = ogre medium = yes }
 	}
 }
@@ -615,6 +636,7 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			choose_pop_destination_province = { race = ogre }
+			calculate_refugee_exploit_rewards = yes
 		}
 	}
 	
@@ -653,11 +675,12 @@ country_event = {
 		}
 	
 		#Add Minority to New Province
+		add_country_modifier = { name = non_primary_refugees duration = 1825 }
 		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
 		generic_increase_of_racial_tolerance_effect = { race = ogre small = yes }
 	}
 	
-	#Confiscate what they have in return
+	#Prey on their desperation to exploit them for labor
 	option = {		
 		name = racial_pop_events_ogre.11.b
 		trigger = {
@@ -682,8 +705,12 @@ country_event = {
 				has_personal_deity = ara
 			}
 		}
-		
-		add_years_of_income = 0.15
+		custom_tooltip = exploit_refugees_gain_effect_tt
+		hidden_effect = {
+			var_effect = { effect = add_treasury var = ducats_gained_on_exploit sign = + }
+			var_effect_granular = { effect = add_manpower var = manpower_gained_on_exploit sign = + }
+		}
+		remove_country_modifier = non_primary_refugees
 	
 		#Add Minority to New Province
 		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
@@ -697,9 +724,11 @@ country_event = {
 		trigger = {
 			culture_is_ogre = yes
 		}
-		ai_chance = { factor = 1000}
-		add_years_of_income = 0.15
-		event_target:destination_province = { racial_pop_migration_arrive = { race = ogre } }
+		ai_chance = { factor = 1000 }
+		event_target:destination_province = {
+			add_province_modifier = { name = ogre_primary_refugees duration = 3650 }
+			racial_pop_migration_arrive = { race = ogre }
+		}
 	}
 	
 	#Prevent them with force, if necessary
@@ -740,6 +769,13 @@ country_event = {
 			event_target:destination_province = { racial_pop_migration_arrive = { race = ogre} }
 		}
 		add_mil_power = -30
+		if = {
+			limit = { culture_is_ogre = yes }
+			remove_country_modifier = primary_refugees
+		}
+		else = {
+			remove_country_modifier = non_primary_refugees
+		}
 		generic_decrease_of_racial_tolerance_effect = { race = ogre large = yes }
 	}
 }
@@ -821,48 +857,32 @@ country_event = {
 		ai_chance = {
 			factor = 5
 			
-			#+Want to oppress
-			modifier = {
+			modifier = { #+Want to oppress
 				factor = 1.25
 				wants_to_decrease_tolerance_ogre = yes
 			}
-			
-			#+Lots of oppressed 
-			modifier = {
+			modifier = { #+Lots of oppressed 
 				factor = 1.5
 				low_tolerance_ogre_race_trigger = yes
-				calc_true_if = {
-					all_owned_province = {
-						has_oppressed_ogre_pop_trigger = yes	
-					}
-					amount = 20
-				}
+				fast_owns_num_pops_of_race = { race = ogre amount = 20 }
 			}
-			
-			#+Negative stability blames issues on other races
-			modifier = {
+			modifier = { #+Negative stability blames issues on other races
 				factor = 1.25
 				stability = -3
 				NOT = { stability = 0 }
 			}
-			
-			#+Unrest in province (as minorities give unrest)
-			modifier = {
+			modifier = { #+Unrest in province (as minorities give unrest)
 				factor = 1.5
 				average_unrest = 10
 			}
-			
-			#+Douche ruler
-			modifier = {
+			modifier = { #+Douche ruler
 				factor = 2
 				OR = {
 					ruler_has_personality = malevolent_personality
 					ruler_has_personality = cruel_personality
 				}
 			}
-			
-			#+If you're a loyal subject you're more inclined to follow overlord's policies
-			modifier = {
+			modifier = { #+If you're a loyal subject you're more inclined to follow overlord's policies
 				factor = 2
 				ROOT = {
 					is_subject = yes
@@ -872,24 +892,18 @@ country_event = {
 					has_country_modifier = racial_pop_ogre_purge
 				}
 			}
-			
-			#+Corrupt countries purge
-			modifier = {
+			modifier = { #+Corrupt countries purge
 				factor = 1.25
 				corruption = 3
 			}
-			
-			#+Evil country stuff
-			modifier = {
+			modifier = { #+Evil country stuff
 				factor = 1.5
 				OR = {
 					has_country_modifier = evil_nation
 					has_country_modifier = lich_ruler
 				}
 			}
-			
-			#+If you have a enemy or rival
-			modifier = {
+			modifier = { #+If you have a enemy or rival
 				factor = 1.25
 				OR = {
 					any_enemy_country = {
@@ -898,17 +912,14 @@ country_event = {
 					any_rival_country = {
 						has_country_modifier = ogre_administration
 					}
+
 				}
 			}
-			
-			#+Monstrous countries more likely to purge
-			modifier = {
+			modifier = { #+Monstrous countries more likely to purge
 				factor = 3
 				has_country_modifier = monstrous_nation
 			}
-			
-			#+If theres a monstrous country and you're NOT monstrous (opposite of above)
-			modifier = {
+			modifier = { #+If theres a monstrous country and you're NOT monstrous (opposite of above)
 				factor = 2
 				NOT = { has_country_modifier = ogre_administration }
 				any_known_country = {
@@ -917,83 +928,56 @@ country_event = {
 				}
 				NOT = { is_year = 1700 } #just a generic time to stop purging I guess?
 			}
-			
-			#-Wont do it if theres rebels (as province gives unrest)
-			modifier = { 
+			modifier = { #-Wont do it if theres rebels (as province gives unrest)
 				factor = 0.1
 				OR = {
 					num_of_rebel_armies = 3
 					num_of_rebel_controlled_provinces = 5
 				}
 			}
-			
-			#-Anbennar countries more tolerant overall
-			modifier = { 
+			modifier = { #-Anbennar countries more tolerant overall
 				factor = 0.25
 				is_part_of_hre = yes
 			}
-			
-			#-Any loyal subject you wont do it to em
-			modifier = {
+			modifier = { #-Any loyal subject you wont do it to em
 				factor = 0.25
 				NOT = { diplomatic_reputation = 1 }
 			}
-			
-			#-Any loyal subject you wont do it to em
-			modifier = {
+			modifier = { #-Any loyal subject you wont do it to em
 				factor = 0.25
 				any_subject_country = {
 					NOT = { liberty_desire = 50 }
 				}
 			}
-			
-			#-Less likely if not great power
-			modifier = {
+			modifier = { #-Less likely if not great power
 				factor = 0.8
 				NOT = { is_great_power = yes }
 			}
-			
-			#-If theres a country thats NOT monstrous - WAY LOWER CHANCE to purge because of this, as you're more likely to purge monstrous in general
-			modifier = {
+			modifier = { #-If theres a country thats NOT monstrous - WAY LOWER CHANCE to purge because of this, as you're more likely to purge monstrous in general
 				factor = 0.1
 				any_known_country = {
 					has_country_modifier = ogre_administration
 					NOT = { has_country_modifier = monstrous_nation }
 				}
 			}
-			
-			#-If I have an ally thats this race
-			modifier = {
+			modifier = { #-If I have an ally thats this race
 				factor = 0.1
 				any_ally = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#-Cant enact if not enough income
-			#modifier = {
-			#	factor = 0.5
-			#	NOT = { monthly_income = 0.5 }
-			#}
-			#No longer costs income
-			
-			#-Not good adm surplus
-			modifier = {
+			modifier = { #-Not good adm surplus
 				factor = 0.75
 				NOT = { adm_power = 150 }
 			}
-			
-			#-Cant do if you have race as country administration or military
-			modifier = {
+			modifier = { #-Cant do if you have race as country administration or military
 				factor = 0
 				OR = {
 					has_country_modifier = ogre_administration
 					has_country_modifier = ogre_military
 				}
 			}
-			
-			#-Lower chance if good personality
-			modifier = {
+			modifier = { #-Lower chance if good personality
 				factor = 0.1
 				OR = {
 					ruler_has_personality = tolerant_personality
@@ -1003,21 +987,15 @@ country_event = {
 					ruler_has_personality = just_personality
 				}
 			}
-			
-			#-Humanists dont do it
-			modifier = {
+			modifier = { #-Humanists dont do it
 				factor = 0
 				has_idea_group = humanist_ideas
 			}
-			
-			#-Diplomats dont do it
-			modifier = {
+			modifier = { #-Diplomats dont do it
 				factor = 0
 				personality = ai_diplomat
 			}
-			
-			#-Higher tolerances wont do it
-			modifier = {
+			modifier = { #-Higher tolerances wont do it
 				factor = 0.25
 				medium_tolerance_ogre_race_trigger = yes
 			}
@@ -1025,8 +1003,7 @@ country_event = {
 				factor = 0
 				high_tolerance_ogre_race_trigger = yes
 			}
-			#- Won't do it to overlords race
-			modifier = {
+			modifier = { #- Won't do it to overlords race
 				factor = 0
 				ROOT = {
 					is_subject = yes
@@ -1036,18 +1013,18 @@ country_event = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#-Wants to like them
-			modifier = {
+			modifier = { #-Wants to like them
 				factor = 0.5
 				check_variable = { which = ogre_race_tolerance_ai value = 50 }
 			}
-			#-Really wants to like them
-			modifier = {
+			modifier = { #-Really wants to like them
 				factor = 0
 				check_variable = { which = ogre_race_tolerance_ai value = 71 }
 			}
-			
+			modifier = { #costs diplomats
+				factor = 0.8
+				NOT = { check_variable = { which = remaining_free_genocide value = 0 } }
+			}
 			
 			#Race Specific
 
@@ -1060,31 +1037,10 @@ country_event = {
 			else = {
 				clr_country_flag = racial_pop_menu_opened
 			}
-			country_event = { id = racial_pop_events_ogre.14 days = 1 }
 		}
 		custom_tooltip = pop_menu_purge_desc_tt
 		add_adm_power = -100
-		largest_decrease_of_ogre_tolerance_effect = yes
-		add_country_modifier = { name = racial_pop_ogre_purge duration = -1 desc = while_policy_active }
-		
-		custom_tooltip = racial_pop_events_debug.3.tooltip
-		
-		custom_tooltip = pop_menu_purge_effect_unrest_tt
-		
-		hidden_effect = {
-			every_owned_province = {
-				limit = { has_small_ogre_minority_trigger = yes }
-				add_unrest = 5
-			}
-			every_owned_province = {
-				limit = { has_large_ogre_minority_trigger = yes }
-				add_unrest = 7
-			}
-			every_owned_province = {
-				limit = { has_ogre_majority_trigger = yes }
-				add_unrest = 15
-			}
-		}
+		generic_start_purge = { race = ogre }
 	}
 	
 	#Cannot Purge
@@ -1120,56 +1076,42 @@ country_event = {
 				factor = 0
 				has_country_modifier = racial_pop_menu_cooldown
 			}
-			
-			#+low diplo reputation
-			modifier = {
+			modifier = { #+low diplo reputation
 				factor = 1.5
 				NOT = { diplomatic_reputation = -3 }
 			}
-			
-			#+Should remove asap if country administration or military
-			modifier = {
+			modifier = { #+Should remove asap if country administration or military
 				factor = 10
 				OR = {
 					has_country_modifier = ogre_administration
 					has_country_modifier = ogre_military
 				}
 			}
-			
-			#+If want to like race
-			modifier = {
+			modifier = { #+If want to like race
 				factor = 2
 				wants_to_increase_tolerance_ogre = yes
 			}
-			
-			#+If race is in good standing
-			modifier = {
+			modifier = { #+If race is in good standing
 				factor = 10
 				medium_tolerance_ogre_race_trigger = yes
 			}
-			modifier = {
+			modifier = { #+If race is in good standing
 				factor = 20
 				high_tolerance_ogre_race_trigger = yes 
 			}
-			
-			#+Any loyal subject you wont do it to em
-			modifier = {
+			modifier = { #+Any loyal subject you wont do it to em
 				factor = 2
 				any_subject_country = {
 					NOT = { liberty_desire = 50 }
 				}
 			}
-			
-			#+If I have an ally thats this race
-			modifier = {
+			modifier = { #+If I have an ally thats this race
 				factor = 5
 				any_ally = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#+If good personality
-			modifier = {
+			modifier = { #+If good personality
 				factor = 2
 				OR = {
 					ruler_has_personality = tolerant_personality
@@ -1179,33 +1121,27 @@ country_event = {
 					ruler_has_personality = just_personality
 				}
 			}
-			
-			#+Humanists want to stop it
-			modifier = {
+			modifier = { #+Humanists want to stop it
 				factor = 10
 				has_idea_group = humanist_ideas
 			}
-			
-			#+Bankrupt countries cannot expel
-			modifier = {
+			modifier = { #+Bankrupt countries cannot expel
 				factor = 5
 				is_bankrupt = yes
 			}
-			
-			#+If you're a loyal subject you're more inclined to follow overlord's policies
-			modifier = {
+			modifier = { #+If you're a loyal subject you're more inclined to follow overlord's policies
 				factor = 10
 				ROOT = {
 					is_subject = yes
 					NOT = { liberty_desire = 50 }
 				}
 				overlord = { 
-					NOT = { has_country_modifier = racial_pop_ogre_expulsion }
+					NOT = { has_country_modifier = racial_pop_ogre_purge }
 				}
 			}
 		}
 		custom_tooltip = pop_menu_purge_desc_tt
-		remove_country_modifier = racial_pop_ogre_purge
+		generic_end_purge = { race = ogre }
 		add_adm_power = -100
 		
 		hidden_effect = {
@@ -1216,7 +1152,6 @@ country_event = {
 			else = {
 				clr_country_flag = racial_pop_menu_opened
 			}
-			country_event = { id = racial_pop_events_ogre.16 days = 1 }
 		}
 	}
 	
@@ -1246,76 +1181,53 @@ country_event = {
 		ai_chance = {
 			factor = 10
 			
-			#+Oppressing Race
-			modifier = {
+			modifier = { #+Oppressing Race
 				factor = 1.25
 				wants_to_decrease_tolerance_ogre = yes
 			}
-			
-			#+Want to oppress
-			modifier = {
+			modifier = { #+Want to oppress
 				factor = 1.25
 				wants_to_decrease_tolerance_ogre = yes
 			}
-			
-			#+Lots of oppressed 
-			modifier = {
+			modifier = {#+Lots of oppressed 
 				factor = 1.5
 				low_tolerance_ogre_race_trigger = yes
-				calc_true_if = {
-					all_owned_province = {
-						has_oppressed_ogre_pop_trigger = yes	
-					}
-					amount = 20
-				}
+				fast_owns_num_pops_of_race = { race = ogre amount = 20 }
 			}
-			
-			#+Negative stability blames issues on other races
-			modifier = {
+			modifier = { #+Negative stability blames issues on other races
 				factor = 1.25
 				stability = -3
 				NOT = { stability = 0 }
 			}
-			
-			#+Unrest in province (as minorities give unrest)
-			modifier = {
+			modifier = { #+Unrest in province (as minorities give unrest)
 				factor = 1.5
 				average_unrest = 10
 			}
-			
-			#+Douche ruler
-			modifier = {
+			modifier = { #+Douche ruler
 				factor = 2
 				OR = {
 					ruler_has_personality = malevolent_personality
 					ruler_has_personality = cruel_personality
 				}
 			}
-			
-			#+If you're a loyal subject you're more inclined to follow overlord's policies
-			modifier = {
+			modifier = { #+If you're a loyal subject you're more inclined to follow overlord's policies
 				factor = 2
 				ROOT = {
 					is_subject = yes
 					NOT = { liberty_desire = 50 }
 				}
 				overlord = { 
-					has_country_modifier = racial_pop_ogre_purge
+					has_country_modifier = racial_pop_ogre_expulsion
 				}
 			}
-			
-			
-			#+Evil country stuff
-			modifier = {
+			modifier = { #+Evil country stuff
 				factor = 1.25
 				OR = {
 					has_country_modifier = evil_nation
 					has_country_modifier = lich_ruler
 				}
 			}
-			
-			#+If you have a enemy or rival
-			modifier = {
+			modifier = { #+If you have a enemy or rival
 				factor = 1.25
 				OR = {
 					any_enemy_country = {
@@ -1324,18 +1236,13 @@ country_event = {
 					any_rival_country = {
 						has_country_modifier = ogre_administration
 					}
-
 				}
 			}
-			
-			#+Monstrous countries more likely to purge
-			modifier = {
+			modifier = { #+Monstrous countries more likely to purge
 				factor = 2
 				has_country_modifier = monstrous_nation
 			}
-			
-			#+If theres a monstrous country and you're NOT monstrous (opposite of above)
-			modifier = {
+			modifier = { #+If theres a monstrous country and you're NOT monstrous (opposite of above)
 				factor = 1.5
 				NOT = { has_country_modifier = ogre_administration }
 				any_known_country = {
@@ -1344,71 +1251,48 @@ country_event = {
 				}
 				NOT = { is_year = 1700 } #just a generic time to stop purging I guess?
 			}
-			
-			#-Wont do it if theres rebels (as province gives unrest)
-			modifier = { 
+			modifier = { #-Wont do it if theres rebels (as province gives unrest)
 				factor = 0.1
 				OR = {
 					num_of_rebel_armies = 3
 					num_of_rebel_controlled_provinces = 5
 				}
 			}
-			
-			#-Anbennar countries more tolerant overall
-			modifier = { 
+			modifier = { #-Anbennar countries more tolerant overall
 				factor = 0.25
 				is_part_of_hre = yes
 			}
-			
-			#-Any loyal subject you wont do it to em
-			modifier = {
+			modifier = { #-Any loyal subject you wont do it to em
 				factor = 0.25
 				any_subject_country = {
 					NOT = { liberty_desire = 50 }
 				}
 			}
-			
-			#-If theres a country thats NOT monstrous
-			modifier = {
+			modifier = { #-If theres a country thats NOT monstrous
 				factor = 0.75
 				any_known_country = {
 					has_country_modifier = ogre_administration
 					NOT = { has_country_modifier = monstrous_nation }
 				}
 			}
-			
-			#-If I have an ally thats this race
-			modifier = {
+			modifier = { #-If I have an ally thats this race
 				factor = 0.1
 				any_ally = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#-Cant enact if not enough income
-			#modifier = {
-			#	factor = 0.5
-			#	NOT = { monthly_income = 0.5 }
-			#}
-			#No longer costs income
-			
-			#-Not good adm surplus
-			modifier = {
+			modifier = { #-Not good adm surplus
 				factor = 0.75
 				NOT = { adm_power = 100 }
 			}
-			
-			#-Cant do if you have race as country administration or military
-			modifier = {
+			modifier = { #-Cant do if you have race as country administration or military
 				factor = 0
 				OR = {
 					has_country_modifier = ogre_administration
 					has_country_modifier = ogre_military
 				}
 			}
-			
-			#-Lower chance if good personality
-			modifier = {
+			modifier = { #-Lower chance if good personality
 				factor = 0.1
 				OR = {
 					ruler_has_personality = tolerant_personality
@@ -1418,18 +1302,15 @@ country_event = {
 					ruler_has_personality = just_personality
 				}
 			}
-			
-			#-Higher tolerances wont do it
-			modifier = {
+			modifier = { #-Higher tolerances wont do it
 				factor = 0.25
 				medium_tolerance_ogre_race_trigger = yes
 			}
-			modifier = {
+			modifier = { #-Higher tolerances wont do it
 				factor = 0
 				high_tolerance_ogre_race_trigger = yes
 			}
-			#- Won't do it to overlords race
-			modifier = {
+			modifier = { #- Won't do it to overlords race
 				factor = 0
 				ROOT = {
 					is_subject = yes
@@ -1439,22 +1320,21 @@ country_event = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#-Wants to like them
-			modifier = {
+			modifier = { #-Wants to like them
 				factor = 0.5
 				check_variable = { which = ogre_race_tolerance_ai value = 50 }
 			}
-			#-Really wants to like them
-			modifier = {
+			modifier = { #-Really wants to like them
 				factor = 0
 				check_variable = { which = ogre_race_tolerance_ai value = 71 }
 			}
+			modifier = { #costs diplomats
+				factor = 0.8
+				NOT = { check_variable = { which = remaining_free_genocide value = 0 } }
+			}
 			
 			#Special Stuff
-			
-			#-Humanists dont do it
-			modifier = {
+			modifier = { #-Humanists dont do it
 				factor = 0
                 OR = {
                     has_idea_group = humanist_ideas
@@ -1470,36 +1350,10 @@ country_event = {
 			else = {
 				clr_country_flag = racial_pop_menu_opened
 			}
-			country_event = { id = racial_pop_events_ogre.13 days = 1 }
 		}
 		custom_tooltip = pop_menu_expel_desc_tt
 		add_adm_power = -50
-		large_decrease_of_ogre_tolerance_effect = yes
-		
-		add_country_modifier = { 
-			name = racial_pop_ogre_expulsion
-			duration = -1
-			desc = while_policy_active
-		}
-		
-		custom_tooltip = racial_pop_events_debug.2.tooltip
-		
-		custom_tooltip = pop_menu_expel_effect_unrest_tt
-		
-		hidden_effect = {
-			every_owned_province = {
-				limit = { has_small_ogre_minority_trigger = yes }
-				add_unrest = 2
-			}
-			every_owned_province = {
-				limit = { has_large_ogre_minority_trigger = yes }
-				add_unrest = 5
-			}
-			every_owned_province = {
-				limit = { has_ogre_majority_trigger = yes }
-				add_unrest = 10
-			}
-		}
+		generic_start_expulsion = { race = ogre }
 	}
 	
 	#Cannot Expel
@@ -1535,56 +1389,42 @@ country_event = {
 				factor = 0
 				has_country_modifier = racial_pop_menu_cooldown
 			}
-			
-			#+low diplo reputation
-			modifier = {
+			modifier = { #+low diplo reputation
 				factor = 1.5
 				NOT = { diplomatic_reputation = -3 }
 			}
-			
-			#+Should remove asap if country administration or military
-			modifier = {
+			modifier = { #+Should remove asap if country administration or military
 				factor = 10
 				OR = {
 					has_country_modifier = ogre_administration
 					has_country_modifier = ogre_military
 				}
 			}
-			
-			#+If want to like race
-			modifier = {
+			modifier = { #+If want to like race
 				factor = 2
 				wants_to_increase_tolerance_ogre = yes
 			}
-			
-			#+If race is in good standing
-			modifier = {
+			modifier = { #+If race is in good standing
 				factor = 10
 				medium_tolerance_ogre_race_trigger = yes
 			}
-			modifier = {
+			modifier = { #+If race is in good standing
 				factor = 20
 				high_tolerance_ogre_race_trigger = yes
 			}
-			
-			#+Any loyal subject you wont do it to em
-			modifier = {
+			modifier = { #+Any loyal subject you wont do it to em
 				factor = 2
 				any_subject_country = {
 					NOT = { liberty_desire = 50 }
 				}
 			}
-			
-			#+If I have an ally thats this race
-			modifier = {
+			modifier = { #+If I have an ally thats this race
 				factor = 5
 				any_ally = {
 					has_country_modifier = ogre_administration
 				}
 			}
-			
-			#+If good personality
-			modifier = {
+			modifier = { #+If good personality
 				factor = 2
 				OR = {
 					ruler_has_personality = tolerant_personality
@@ -1594,21 +1434,15 @@ country_event = {
 					ruler_has_personality = just_personality
 				}
 			}
-			
-			#+Humanists want to stop it
-			modifier = {
+			modifier = { #+Humanists want to stop it
 				factor = 10
 				has_idea_group = humanist_ideas
 			}
-			
-			#+Bankrupt countries cannot expel
-			modifier = {
+			modifier = { #+Bankrupt countries cannot expel
 				factor = 5
 				is_bankrupt = yes
 			}
-			
-			#+If you're a loyal subject you're more inclined to follow overlord's policies
-			modifier = {
+			modifier = { #+If you're a loyal subject you're more inclined to follow overlord's policies
 				factor = 10
 				ROOT = {
 					is_subject = yes
@@ -1620,7 +1454,7 @@ country_event = {
 			}
 		}
 		custom_tooltip = pop_menu_expel_desc_tt
-		remove_country_modifier = racial_pop_ogre_expulsion
+		generic_end_expulsion = { race = ogre }
 		add_adm_power = -50
 		hidden_effect = {
 			if = { limit = { ai = no }
@@ -1629,7 +1463,6 @@ country_event = {
 			else = {
 				clr_country_flag = racial_pop_menu_opened
 			}
-			country_event = { id = racial_pop_events_ogre.15 days = 1 }
 		}
 		
 	}
@@ -1654,16 +1487,11 @@ country_event = {
 		name = racial_pop_events_all_races.12.i
 		ai_chance = { factor = 0 }
 		trigger = {
-			NOT = { has_racial_focus = yes }
-			dip_power = 50
+			can_focus_race = { RACE = ogre }
 		}
 		custom_tooltip = pop_menu_focus_desc_tt
 		add_dip_power = -50
-		add_country_modifier = {
-			name = racial_focus_ogre
-			duration = -1
-			desc = while_policy_active
-		}
+		generic_start_focus = { race = ogre }
 		
 		hidden_effect = {
 			country_event = { id = racial_pop_events_ogre.24 }
@@ -1674,21 +1502,12 @@ country_event = {
 	option = {		
 		name = racial_pop_events_all_races.12.j
 		trigger = {
+			NOT = { can_focus_race = { RACE = ogre } }
 			NOT = { has_country_modifier = racial_focus_ogre }
-			OR = {
-				NOT = { dip_power = 50 }
-				has_racial_focus = yes
-			}
 		}
 		ai_chance = { factor = 0 }
 		custom_tooltip = pop_menu_focus_desc_tt
-		custom_tooltip = pop_menu_unavailable_tt
-		if = { limit = { has_racial_focus = yes }
-			custom_tooltip = pop_menu_focus_already_active_tt
-		}
-		if = { limit = { NOT = { dip_power = 50 } }
-			custom_tooltip = pop_menu_cannot_focus_not_enough_dip_tt
-		}
+		racial_focus_disabled_tt = {}
 		hidden_effect = {
 			country_event = { id = racial_pop_events_ogre.24 }
 		}
@@ -1700,7 +1519,7 @@ country_event = {
 		ai_chance = { factor = 0 }
 		trigger = { has_country_modifier = racial_focus_ogre }
 		custom_tooltip = pop_menu_focus_desc_tt
-		remove_country_modifier = racial_focus_ogre
+		generic_end_focus = { race = ogre }
 		
 		hidden_effect = {
 			country_event = { id = racial_pop_events_ogre.24 }
@@ -1726,6 +1545,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	hidden = yes
 	
@@ -1783,6 +1605,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1808,6 +1633,9 @@ country_event = {
 	picture = REFUGEES_ESCAPING_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1833,6 +1661,9 @@ country_event = {
 	picture = PLAGUE_eventPicture
 	
 	major = yes
+	major_trigger = {
+		is_neighbor_of = ROOT
+	}
 	
 	is_triggered_only = yes
 	
@@ -1860,7 +1691,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_ogre_expulsion
-		
+	
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_ogre_minority_trigger = yes
 		}
@@ -1874,6 +1706,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -1883,6 +1716,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -1892,6 +1726,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -2182,6 +2017,7 @@ country_event = {
 	trigger = {
 		has_country_modifier = racial_pop_ogre_expulsion
 		
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster
 		any_owned_province = {
 			has_ogre_majority_trigger = yes
 			#culture_is_ogre = yes
@@ -2197,6 +2033,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2207,6 +2044,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2217,6 +2055,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2505,7 +2344,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_ogre_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_ogre_minority_trigger = yes
 		}
@@ -2519,6 +2359,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -2528,6 +2369,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -2537,6 +2379,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -2743,7 +2586,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_ogre_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_ogre_majority_trigger = yes
 			#culture_is_ogre = yes
@@ -2759,6 +2603,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2769,6 +2614,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2779,6 +2625,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -2994,7 +2841,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_ogre_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_ogre_minority_trigger = yes
 		}
@@ -3008,6 +2856,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -3017,6 +2866,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -3026,6 +2876,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_minority_trigger = yes
@@ -3287,7 +3138,8 @@ country_event = {
 	
 	trigger = {
 		has_country_modifier = racial_pop_ogre_purge
-		
+	
+		fast_owns_num_pops_of_race = { race = ogre amount = 1 } # this must at least be true for the below to be true, and is much faster	
 		any_owned_province = {
 			has_ogre_majority_trigger = yes
 			#culture_is_ogre = yes
@@ -3303,6 +3155,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.1
+			fast_owns_num_pops_of_race = { race = ogre amount = 100 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -3313,6 +3166,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.5
+			fast_owns_num_pops_of_race = { race = ogre amount = 50 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -3323,6 +3177,7 @@ country_event = {
 		}
 		modifier = {
 			factor = 0.75
+			fast_owns_num_pops_of_race = { race = ogre amount = 25 } # this must at least be true for the below to be true, and is much faster
 			calc_true_if = {
 				all_owned_province = {
 					has_ogre_majority_trigger = yes
@@ -3619,6 +3474,7 @@ country_event = {
 		}
 		
 		any_owned_province = {
+			is_city = yes
 			has_ogre_majority_trigger = yes
 			#culture_is_ogre = yes
 			NOT = { unrest = 20 }
@@ -3778,6 +3634,7 @@ country_event = {
 		hidden_effect = {
 			random_owned_province = {
 				limit = {
+					is_city = yes
 					has_ogre_majority_trigger = yes
 					#culture_is_ogre = yes
 				}
