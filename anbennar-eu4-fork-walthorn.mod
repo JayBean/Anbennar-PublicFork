@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-fork-walthorn"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -28,5 +28,5 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
-supported_version="v1.37.1.0"
-path="mod/Anbennar-PublicFork"
+supported_version="v1.37.0.0"
+path="mod/anbennar-eu4-fork-walthorn"
