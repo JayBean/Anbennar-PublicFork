@@ -225,6 +225,38 @@ declarewar = {
 			}
 		}
 	}
+	condition = { # Orda Aldresia Bug Fix
+		tooltip = AI_CANNOT_DECLARE_ON_WEAK_ORDA_ALDRESIA
+		potential = {
+			FROM = { tag = A77 }
+			is_part_of_hre = no
+			ai = yes
+		}
+		allow = {
+			A77 = {
+				total_development = 300 
+			}
+		}
+	}
+	condition = {
+		tooltip = EMPERORS_GRACE
+		potential = {
+			FROM = { tag = A77 }
+			is_part_of_hre = no
+			ai = no
+			A77 = {
+				is_subject_of_type = imperial_bodyguard
+			}
+		}
+		allow = {
+			ROOT = {  
+				has_spy_network_in = {
+					who = emperor
+					value = 20
+				}
+			}
+		}
+	}
 	condition = { #1.35
 		tooltip = CANNOT_DECLARE_WARS_OTHER_THAN_INDEPENDENCE_WARS
 		potential = {
@@ -625,6 +657,30 @@ declarewar = {
 		allow = { has_reform = found_our_nation }
 	}
 
+	condition = { #Nekheis need permission to declare war
+		tooltip = NEKHEIS_NEED_WAR_RIGHTS
+		potential = { 
+			is_subject_of_type = nekhei 
+		}
+		allow = { 
+			OR = {
+				has_country_flag = G55_call_in_degakheion_flag
+				has_country_flag = nekhei_granted_war_rights_flag 
+				is_subject_of = FROM
+			}
+		}
+	}
+
+	condition = { #Nekheis need permission to declare war
+		tooltip = KAMRAYAKVALS_WAR_CANT_INTERVENE
+		potential = { 
+			FROM = { tag = U39 } #Orenvalyam
+		}
+		allow = { 
+			has_global_flag = kamrayakvals_war_end
+		}
+	}
+
 	effect = {
 		on_war_declaration_effect = yes #1.35
 
@@ -736,6 +792,25 @@ declarewar = {
 			}
 		}
 		if = {
+			limit = {
+				has_country_modifier = spiderwretch_lightland_claimer
+				FROM = {
+					NOT = {
+						any_owned_province = {
+							OR = {
+								continent = serpentspine
+								superregion = forbidden_lands_superregion
+							}
+						}
+					}
+					NOT = { coalition_target = FROM }
+				}
+			}
+			country_event = {
+				id = flavour_spiderwretch.200
+			}
+		}
+		if = {
             limit = {
                 I07 = {
                     mission_completed = khugdihr_the_face_of_the_reclamation
@@ -753,6 +828,18 @@ declarewar = {
             }
             country_event = { id = flavour_khug.25 }
         }
+		if = {
+			limit = {
+				is_part_of_hre = no
+				FROM = { 
+					tag = A77 
+					NOT = { total_development = 300 }
+				}
+			}
+			emperor = {
+				join_all_defensive_wars_of = A77
+			}
+		}
 		if = {
 			limit = {
 				has_country_flag = escanni_wars_usurp_emperorship
@@ -898,7 +985,140 @@ declarewar = {
 				}
 			}
 		}
-		
+
+		# Empkeios Independence War - and adaptation from Keyolion's
+		if = {
+			limit = {
+				tag = G53
+				NOT = {
+					has_country_flag = independence_war_started_flag
+				}
+			}
+			set_country_flag = independence_war_started_flag
+			#Clear Empkeios Triggered Province Modifier
+			2595 = { #Empkeios
+				if = {
+					limit = {
+							has_province_modifier = G58_stability_to_dec_modifier
+					}
+					remove_province_triggered_modifier = G58_stability_to_dec_modifier
+				}
+			}
+			#Clear Keyolion Stab to Declare war if present
+			if = {
+				limit = {
+					has_country_modifier = G58_keyolion_empk_truce_modifier
+				}
+				remove_country_modifier = G58_keyolion_empk_truce_modifier
+			}
+			if = {
+				limit = {
+					mission_completed = G53_5_2_The_Independence_Plot
+				}
+				#Get the .10% morale
+				add_country_modifier = {
+					name = G53_independence_war_morale_modifier
+					duration = 1825
+				}
+			}
+			if = {
+				#Keyolion and Otkheion join the battle
+				limit = {
+					G58 = {
+						has_country_flag = G58_accepted_independence_deal_flag
+						NOT = {
+							truce_with = G51
+						}
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							G51 = {
+								is_supporting_independence_of = G58
+							}
+							G51 = {
+								alliance_with = G58
+							}
+						}
+					}
+					break_alliance = G51
+				}
+				G58 = {
+					join_all_offensive_wars_of = G53
+				}
+				G47 = {
+					if = {
+						limit = {
+							is_in_war = {
+								attacker_leader = G53
+								defender_leader = G51
+							}
+						}
+						white_peace = G53
+					}
+					if = {
+						limit ={
+							is_in_war ={
+								attacker_leader = G58
+							}
+						}
+						white_peace = G58
+					}
+					join_all_defensive_wars_of = G51
+				}
+			}
+			# Chendhya natives join the battle
+			if = {
+				limit = {
+					H23 = { # Kaerog
+						has_country_flag = G53_chendhya_independence
+						NOT = {
+							truce_with = G51
+						}
+					}
+				}
+				H23 = {
+					join_all_offensive_wars_of = G53
+				}
+				H23 = {
+					create_alliance = G53
+				}
+			}
+			if = {
+				limit = {
+					H28 = { # Durisayar
+						has_country_flag = G53_chendhya_independence
+						NOT = {
+							truce_with = G51
+						}
+					}
+				}
+				H28 = {
+					join_all_offensive_wars_of = G53
+				}
+				H28 = {
+					create_alliance = G53
+				}
+			}
+			if = {
+				limit = {
+					H28 = { # Tsidarok
+						has_country_flag = G53_chendhya_independence
+						NOT = {
+							truce_with = G51
+						}
+					}
+				}
+				H29 = {
+					join_all_offensive_wars_of = G53
+				}
+				H29 = {
+					create_alliance = G53
+				}
+			}
+		}
+
 		#Deyeion Independence War
 		if = {
 			limit = {
@@ -925,10 +1145,14 @@ declarewar = {
 		#Taychend Glory
 		if = {
 			limit = {
-				religion = gods_of_the_taychend
+				OR = {
+					religion = gods_of_the_taychend
+					religion = oren_nayiru
+				}
 				FROM = {
 					OR = {
 						religion = gods_of_the_taychend
+						religion = oren_nayiru
 						tag = J74
 					}
 					OR = {
@@ -951,13 +1175,19 @@ declarewar = {
 		}
 		if = {
 			limit = {
-				religion = gods_of_the_taychend
-				is_in_war = {
-					defender_leader = ROOT
-					casus_belli = cb_super_badboy #Coalition War
+				FROM = { 
+					OR = {
+						religion = gods_of_the_taychend
+						religion = oren_nayiru
+					}
+					is_in_war = {
+						attacker_leader = ROOT
+						defender_leader = FROM
+						casus_belli = cb_super_badboy #Coalition War
+					}
 				}
 			}
-			set_country_flag = taychendi_coalition_defender
+			FROM = { set_country_flag = taychendi_coalition_defender }
 		}
 
 		    
@@ -996,6 +1226,29 @@ declarewar = {
 			country_event = {
 				id = flavour_velsfadhecai.12
 			}
+		}
+
+		if = {
+			limit = {
+				FROM = {
+					tag = R62
+					has_country_flag = command_sir_revolt_started
+				}
+			}
+			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+		}
+		if = {
+			limit = {
+				FROM = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+			}
+			FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } every_subject_country = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } } }
+		}
+
+		#Revoke nekhei war rights after they declare a war
+		if = {
+			limit = { has_country_flag = nekhei_granted_war_rights_flag }
+			clr_country_flag = nekhei_granted_war_rights_flag
 		}
 	}
 }
@@ -1227,6 +1480,25 @@ allianceaction = {
 			}
 		}
 	}
+
+	condition = {
+		tooltip = skewered_drake_no_trib_alliance
+		potential = {
+			OR = {
+				AND = {
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+				FROM = { 
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
 #	condition = {
 #		tooltip = plains_are_forbidden # the plains fucking suck
 #		potential = {
@@ -1345,12 +1617,36 @@ allianceaction = {
 		allow = {
 			OR = {
 				AND = {
-					ROOT = { religion = gods_of_the_taychend }
-					FROM = { religion = gods_of_the_taychend }
+					ROOT = {
+						OR = {
+							religion = gods_of_the_taychend
+							religion = oren_nayiru
+						}
+					}
+					FROM = {
+						OR = {
+							religion = gods_of_the_taychend
+							religion = oren_nayiru
+						}
+					}
 				}
 				AND = {
-					ROOT = { NOT = { religion = gods_of_the_taychend } }
-					FROM = { NOT = { religion = gods_of_the_taychend } }
+					ROOT = {
+						NOT = {
+							OR = {
+								religion = gods_of_the_taychend
+								religion = oren_nayiru
+							}
+						}
+					}
+					FROM = {
+						NOT = {
+							OR = {
+								religion = gods_of_the_taychend
+								religion = oren_nayiru
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1389,6 +1685,15 @@ allianceaction = {
 
 enforce_peace = {
 	#do this before the peace is enforced, or there is no war enemy country
+	condition = {
+		tooltip = SAMARTAL_NO_ENFORCING
+		potential = {
+			FROM = {
+				is_in_war = { casus_belli = cb_nsc_investigation }
+			}
+		}
+		allow = { always = no }
+	}
 	pre_effect = {
 		#if = {
 		#	limit = {
@@ -2110,6 +2415,59 @@ annexationaction = {
 			empire_of_china_reform_passed = integrate_medasi_reform
 		}
 	}
+
+	condition = {
+		tooltip = skewered_drake_no_integrate_trolls
+		potential = {
+			tag = H73
+			mission_completed = skewered_drake_obedient_trolls
+			FROM = { tag = M01 }
+		}
+		allow = {
+			always = no
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { religion = gods_of_the_taychend }
+			hidden_effect = {
+				random_list = {
+					15 = { 
+						FROM = { save_event_target_as = taychendi_vassal_in_annexation }
+						country_event = {
+							id = taychendi.14
+							days = 60 }
+						}
+					25 = {
+						trigger = {
+							NOT = { has_country_flag = taychendi_vassal_prophecy_happened }
+							FROM = { total_development = 20 }
+						}
+						FROM = { 
+							set_country_flag = taychendi_vassal_prophecy_vassal
+							save_event_target_as = prophecy_vassal
+						}
+						country_event = { id = taychendi.15 }
+					}
+					65 = { }
+				}
+			}
+		}
+	}
+	
+	condition = { #Can't integrate nekheis unless you've formed Kheios
+		tooltip = NEKHEIS_MUST_FORM_KHEIOS
+		potential = { 
+			FROM = { is_subject_of_type = nekhei }
+		}
+		allow = { 
+			OR = {
+				tag = H22 #Kheios
+				was_tag = H22 #Kheios
+			}
+		}
+	}
 }
 
 integrationaction = {
@@ -2515,6 +2873,18 @@ callaction = {
 		}
 	}
 
+	effect = {
+		if = {
+			limit = {
+				FROM = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				any_war_enemy_country = {
+					NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				}
+			}
+		}
+		FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } }
+	}
+
 	condition = {	#Bosancovac can't call allies against the Boats' revolt
 		potential = {
 			ROOT = {
@@ -2536,6 +2906,16 @@ callaction = {
 		tooltip = mandate_no_disaster_help
 		potential = {
 			is_in_war = { casus_belli = cb_aakheta_uprising }
+		}
+		allow = {
+			always = no
+		}
+	}
+
+	condition = { #Besolaki Independence War
+		tooltip = G54_NO_ALLIES_TT
+		potential = {
+			has_country_flag = G54_in_independence_war_flag
 		}
 		allow = {
 			always = no
@@ -2576,6 +2956,26 @@ ask_for_march = {
 				tag = H79
 				tag = I18
 			}
+		}
+		allow = { always = no }
+	}
+}
+
+milaccess = {
+	condition = {
+		tooltip = AZJAKUMA_NO_MIL_ACCESS
+		potential = {
+			FROM = { tag = Y01 }
+		}
+		allow = { always = no }
+	}
+}
+
+offermilaccess = {
+	condition = {
+		tooltip = AZJAKUMA_NO_MIL_ACCESS
+		potential = {
+			tag = Y01
 		}
 		allow = { always = no }
 	}
@@ -2653,6 +3053,22 @@ insultaction = {
 				add_legitimacy_equivalent = { amount = -10 republican_tradition = -5 }
 			}
 		}
+		if = {
+			limit = {
+				tag = H73
+				has_government_attribute = skewered_drake_call_the_name_effect
+				FROM = { has_opinion_modifier = { who = ROOT modifier = scornfully_insulted } }
+			}
+			FROM = {
+				if = {
+					limit = {
+						is_great_power = no
+						NOT = { num_of_subjects = 1 }
+					}
+					reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT months = 120 }
+				}
+			}
+		}
 	}
 }
 
@@ -2691,6 +3107,54 @@ requestpeace = {
         }
     }
 	condition = {
+        tooltip = aldreian_promise
+        potential = {
+			FROM = {
+				is_subject_of_type = imperial_bodyguard
+				overlord = {
+					is_emperor = yes
+					OR = {
+						is_in_war = {
+							attacker_leader = THIS
+							participants = ROOT
+						}
+						is_in_war = {
+							defender_leader = THIS
+							participants = ROOT
+						}
+					}
+				}
+			}
+		}
+		allow = {
+			always = no
+        }
+    }
+	condition = {
+        tooltip = emperors_legitimacy
+        potential = {
+			FROM = {
+				is_emperor = yes
+				A77 = {
+					is_in_war = {
+						defender_leader = THIS
+						participants = ROOT
+					}
+				}
+			}
+			A77 = {
+				is_subject_of_type = imperial_bodyguard
+			}
+			ROOT = {
+				is_part_of_hre = no
+			}
+		}
+		allow = {
+			always = no
+        }
+    }
+	
+	condition = {
 		tooltip = B34_CANT_PEACE_tt
 		potential = {
 			ROOT = {
@@ -2712,6 +3176,38 @@ requestpeace = {
 				FROM = { has_country_flag = in_khet_civil_war } 
 			}
         }
+	}
+	condition = {
+		tooltip = kamrayakvals_war_no_seperate_peace
+		potential = {
+			OR = {
+				has_country_flag = kamrayakvals_war_joined
+				FROM = { has_country_flag = kamrayakvals_war_joined }
+			}
+		}
+		allow = {
+			always = no
+		}
+	}
+	condition = {
+		tooltip = COMMAND_ACTIVE_SIR_REVOLT
+		potential = {
+			OR = {
+				has_country_flag = command_sir_revolt_started
+				FROM = { has_country_flag = command_sir_revolt_started }
+			}
+		}
+		allow = { always = no }
+	}
+	condition = { #Besolaki Independence War
+		tooltip = G54_NO_PEACE_OUT_TT
+		potential = {
+			has_country_flag = G54_in_independence_war_flag
+			FROM = { has_country_flag = G54_in_independence_war_flag }
+		}
+		allow = {
+			always = no
+		}
 	}
 }
 
@@ -2752,6 +3248,24 @@ guaranteeaction = {
 		potential = { is_emperor_of_china = yes ai = yes }
 		allow = {
 			NOT = { FROM = { is_neighbor_of = ROOT } }
+		}
+	}
+	condition = {
+		tooltip = skewered_drake_no_trib_guarantee
+		potential = {
+			OR = {
+				AND = {
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+				FROM = { 
+					is_subject = yes
+					overlord = { has_country_flag = no_tributary_alliances }
+				}
+			}
+		}
+		allow = {
+			always = no
 		}
 	}
 }
