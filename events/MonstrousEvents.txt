@@ -88,6 +88,7 @@ country_event = {
 				limit = { is_colonial_nation = yes NOT = { has_country_flag = no_longer_monstrous } }
 				set_country_flag = no_longer_monstrous
 				clr_country_flag = removing_monstrous
+				remove_country_modifier = monstrous_nation
 				every_country = {
 					limit = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } }
 					remove_opinion = { who = ROOT modifier = root_monstrous }
@@ -195,7 +196,14 @@ country_event = {
 	#Remove Claim
 	option = {
 		name = monstrous.4.a
-		ai_chance = { factor = 1 }
+		ai_chance = {
+			factor = 1
+			
+			modifier = {
+				factor = 0
+				tag = R62 #Command giving up perma-claims can break camapaigns
+			}
+		}
 		decrease_monstrous_1 = yes
 		add_adm_power = -20
 		event_target:province = {
@@ -210,6 +218,7 @@ country_event = {
 			
 			modifier = {
 				factor = 0
+				NOT = { tag = R62 } #Command giving up perma-claims can break camapaigns
 				want_to_decrease_monstrous = yes
 			}
 		}
@@ -898,7 +907,7 @@ country_event = {
 	}
 }
 
-#Woke Ruler (ruler with X personality pushes reform)
+#Progressive Ruler (ruler with X personality pushes reform)
 country_event = {
 	id = monstrous.17
 	title = monstrous.17.t
@@ -917,7 +926,7 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			set_ruler_flag = monstrous_woke_ruler
+			set_ruler_flag = monstrous_progressive_ruler
 		}
 	}
 	
@@ -1646,7 +1655,7 @@ country_event = {
 	hidden = yes
 	
 	trigger = {
-		NOT = { has_country_flag = setup_monstrous_opinion }
+		NOT = { has_country_modifier = setup_monstrous_opinion }
 		#NOT = {
 		#	any_country = {
 		#		has_opinion_modifier = {
@@ -1659,7 +1668,14 @@ country_event = {
 	}
 	
 	immediate = {
-		hidden_effect = { set_country_flag = setup_monstrous_opinion }
+		hidden_effect = {
+			add_country_modifier = {
+				name = setup_monstrous_opinion
+				duration = -1
+				hidden = yes
+			}
+			# must be a modifier and not a flag so it disappears if the nation is annexed and released again
+		}
 	}
 	
 	#Do it
@@ -1792,6 +1808,12 @@ country_event = {
 						}
 					}
 				}
+				if = {
+					limit = {
+						NOT = { has_country_flag = setup_monstrous_opinion }
+					}
+					set_country_flag = setup_monstrous_opinion
+				}
 			}
 			else_if = {
 				limit = {
@@ -1801,6 +1823,7 @@ country_event = {
 				}
 				add_country_modifier = { name = monstrous_nation duration = -1 }
 				every_country = {
+					limit = { NOT = { tag = ROOT } }
 					if = { limit = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } }
 						remove_opinion = { who = ROOT modifier = root_monstrous }
 						reverse_remove_opinion = { who = ROOT modifier = root_monstrous }
@@ -1829,22 +1852,12 @@ country_event = {
 						}
 					}
 				}
-				every_country = {
-					limit = { has_opinion_modifier = { who = ROOT modifier = both_monstrous } }
-					remove_opinion = { who = ROOT modifier = both_monstrous }
-					reverse_remove_opinion = { who = ROOT modifier = both_monstrous }
+				if = {
+					limit = {
+						NOT = { has_country_flag = setup_monstrous_opinion }
+					}
+					set_country_flag = setup_monstrous_opinion
 				}
-				every_country = {
-					limit = { has_country_modifier = monstrous_nation NOT = { tag = ROOT } }
-					add_opinion = { who = ROOT modifier = both_monstrous }
-					reverse_add_opinion = { who = ROOT modifier = both_monstrous }
-				}
-				every_country = {
-					limit = { NOT = { has_country_modifier = monstrous_nation } }
-					add_opinion = { who = ROOT modifier = root_monstrous }
-					reverse_add_opinion = { who = ROOT modifier = root_monstrous }
-				}
-				
 			}
 			else_if = {
 				limit = { has_country_modifier = monstrous_nation has_country_flag = semi_monstrous }
@@ -1873,7 +1886,12 @@ country_event = {
 					add_opinion = { who = ROOT modifier = semi_monstrous }
 					reverse_add_opinion = { who = ROOT modifier = semi_monstrous }
 				}
-				
+				if = {
+					limit = {
+						NOT = { has_country_flag = setup_monstrous_opinion }
+					}
+					set_country_flag = setup_monstrous_opinion
+				}
 			}
 		}
 	}
@@ -1900,6 +1918,95 @@ country_event = {
 		name = monstrous.103.b
 		ai_chance = { factor = 100 }
 		FROM = { increase_monstrous_1 = yes }
+	}
+}
+
+#For being culture converted by monstrous overlord
+country_event = {
+	id = monstrous.200
+	title = monstrous.200.t
+	desc = monstrous.200.d
+	picture = WESTERNISATION_eventPicture
+	
+	hidden = yes
+	trigger = {
+		always = yes
+	}
+	is_triggered_only = yes
+	
+	option = {
+		name = monstrous.200.a
+		trigger = {
+			overlord = {
+				NOT = { has_country_modifier = monstrous_nation }
+			}
+		}
+		ai_chance = { factor = 1 }
+		every_country = {
+			limit = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } }
+			remove_opinion = { who = ROOT modifier = root_monstrous }
+			reverse_remove_opinion = { who = ROOT modifier = root_monstrous }
+		}
+		every_country = {
+			limit = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } }
+			remove_opinion = { who = ROOT modifier = semi_monstrous }
+			reverse_remove_opinion = { who = ROOT modifier = semi_monstrous }
+		}
+		every_country = {
+			limit = { has_opinion_modifier = { who = ROOT modifier = both_monstrous } }
+			remove_opinion = { who = ROOT modifier = both_monstrous }
+			reverse_remove_opinion = { who = ROOT modifier = both_monstrous }
+		}
+		remove_country_modifier = monstrous_nation
+		set_country_flag = no_longer_monstrous
+	}
+
+	option = {
+		name = monstrous.200.b
+		trigger = {
+			overlord = {
+				has_country_modifier = monstrous_nation
+			}
+		}
+		ai_chance = { factor = 1 }
+		add_country_modifier = { name = monstrous_nation duration = -1 }
+		if = {
+			limit = {
+				overlord = {
+					has_country_flag = semi_monstrous
+				}
+			}
+			set_country_flag = semi_monstrous
+		}
+		every_country = {
+			limit = { has_opinion_modifier = { who = ROOT modifier = root_monstrous } }
+			remove_opinion = { who = ROOT modifier = root_monstrous }
+			reverse_remove_opinion = { who = ROOT modifier = root_monstrous }
+		}
+		every_country = {
+			limit = { has_opinion_modifier = { who = ROOT modifier = semi_monstrous } }
+			remove_opinion = { who = ROOT modifier = semi_monstrous }
+			reverse_remove_opinion = { who = ROOT modifier = semi_monstrous }
+		}
+		every_country = {
+			limit = { NOT = { tag = PREV } } # not the same nation
+			if = {
+				limit = { NOT = { has_country_modifier = monstrous_nation } }
+				if = {
+					limit = { PREV = { has_country_flag = semi_monstrous } }
+					add_opinion = { who = PREV modifier = semi_monstrous }
+					reverse_add_opinion = { who = PREV modifier = semi_monstrous }
+				}
+				else = {
+					add_opinion = { who = PREV modifier = root_monstrous }
+					reverse_add_opinion = { who = PREV modifier = root_monstrous }
+				}
+			}
+			else = {
+				add_opinion = { who = PREV modifier = both_monstrous }
+				reverse_add_opinion = { who = PREV modifier = both_monstrous }
+			}
+		}
 	}
 }
 
@@ -2194,9 +2301,9 @@ country_event = {
 				ruler_has_personality = well_advised_personality
 			}
 			OR = {
-				NOT = { has_ruler_flag = monstrous_woke_ruler }
+				NOT = { has_ruler_flag = monstrous_progressive_ruler }
 				had_ruler_flag = {
-					flag = monstrous_woke_ruler
+					flag = monstrous_progressive_ruler
 					days = 730
 				}
 			}

@@ -1,5 +1,6 @@
 night_coven_collapse = {
-	if = {		#1. Reform Done
+	#1. Reform Done
+	if = {
 		limit = {
 			NOT = {
 				OR = {
@@ -13,89 +14,178 @@ night_coven_collapse = {
 		}
 		set_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#2. Reform Done
+	#2. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_1 }
 		set_country_flag = night_coven_reform_prog_2
 		clr_country_flag = night_coven_reform_prog_1
 	}
-	else_if = {		#3. Reform Done
+	#3. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_2 }
 		set_country_flag = night_coven_reform_prog_3
 		clr_country_flag = night_coven_reform_prog_2
 	}
-	else_if = {		#4. Reform Done
+	#4. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_3 }
 		set_country_flag = night_coven_reform_prog_4
 		clr_country_flag = night_coven_reform_prog_3
 	}
-	else_if = {		#5. Reform Done
+	#5. Reform Done
+	else_if = {
 		limit = { has_country_flag = night_coven_reform_prog_4 }
 		set_country_flag = night_coven_reform_prog_5
 		clr_country_flag = night_coven_reform_prog_4
 	}
     release_all_subjects = yes #prevents exploit with having opm subjects who get their land returned
+
+	#return provinces
     every_owned_province = {
         limit = { NOT = { region = yezel_mora_region } }
 		remove_core = S70
 
-        random_list = {
-			
-			#existing tag with a core
-			80 = {
-				random_core_country = {
-					limit = { 
-						NOT = { tag = F68 }
-						exists = yes
+		#alive core tag
+		if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
 					}
-					save_event_target_as = night_reform_tag_select
+					exists = yes
 				}
-				cede_province = event_target:night_reform_tag_select
 			}
-			#any tag with a core
-            20 = {
-                random_core_country = {
-					limit = { NOT = { tag = F68 } }
-                    save_event_target_as = night_reform_tag_select
-                }
-                cede_province = event_target:night_reform_tag_select
-            }
-			#neighbor
-            5 = {
-                trigger = {
-                    any_neighbor_province = {
-                        is_city = yes
-                        NOT = { owned_by = S70 }
-                    }
-                }
-                random_neighbor_province = {
-                    limit = {
-						is_city = yes
-                        NOT = { owned_by = S70 }
-                    }
-                    owner = { save_event_target_as = night_reform_tag_select }
-                }
-                cede_province = event_target:night_reform_tag_select
-            }
-			#previous owner
-			30 = { cede_province = previous_owner }
-			#release
-            5 = {
-                random_core_country = {
-					limit = { NOT = { tag = F68 } }
-                    S70 = { release = PREV }
-                }
-            }
-        }
-        #in case we can't give some away
-        if = {
-            limit = { owned_by = S70 }
-            cede_province = previous_owner
-        }
-        ####inform the player
-        province_event = { id = shadow.3 }
-    }
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+					exists = yes
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			province_event = { id = shadow.3 }
+		}
+		#dead core tag
+		else_if = {
+			limit = { 
+				any_core_country = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { 
+						tag = S70 #Trolls
+						tag = F68 #Rombeni
+					}
+				}
+				save_event_target_as = new_owner
+			}
+			cede_province = event_target:new_owner
+			event_target:new_owner = { country_event = { id = anbennar_setup.3 } }
+		}
+		#previous owner
+		else = { cede_province = previous_owner }
+	}
+
+	#fallback
+	if = {
+		limit = { any_owned_province = { NOT = { region = yezel_mora_region } } }
+		every_owned_province = {
+			limit = { NOT = { region = yezel_mora_region } }
+			random_neighbor_province = {
+				limit = { 
+					is_city = yes
+					NOT = {
+						owned_by = S70 #Trolls
+						owned_by = F68 #Rombeni
+					}
+				}
+				owner = { save_event_target_as = new_owner }
+			}
+			cede_province = event_target:new_owner
+		}
+	}
 }
 
+mother_akasik_province = {
+	if = {
+		limit = {
+			owns = $prov$
+			religion = mother_akasik
+			$prov$ = {
+				has_owner_religion = yes
+			[[gained]
+				NOT = { has_province_flag = akasik_controlled }
+			]
+			[[lost]
+				NOT = { has_province_flag = not_akasik_controlled }
+			]
+			}
+		}
+	[[gained]
+		$prov$ = {
+			set_province_flag = akasik_controlled
+			clr_province_flag = not_akasik_controlled
+		}
+		REB = { change_variable = { akasik_mountains = 1 } }
+	]
+	[[lost]
+		$prov$ = {
+			set_province_flag = not_akasik_controlled
+			clr_province_flag = akasik_controlled
+		}
+		REB = { subtract_variable = { akasik_mountains = 1 } }
+	]
+		country_event = { id = mother_akasik.3 }
+		every_country = {
+			limit = { religion = mother_akasik }
+			country_event = { id = mother_akasik.3 }
+		}
+	}
+}
+
+mother_akasik_mountain_control_check = {
+	if = {
+		limit = {
+			region = akasik_region
+			has_terrain = mountain
+			religion = mother_akasik
+			owner = { religion = mother_akasik }
+			NOT = { has_province_flag = akasik_controlled }
+		}
+		REB = { change_variable = { akasik_mountains = 1 } }
+		set_province_flag = akasik_controlled
+		clr_province_flag = not_akasik_controlled
+		every_country = {
+			limit = { religion = mother_akasik }
+			country_event = { id = mother_akasik.3 }
+		}
+	}
+	else_if = {
+		limit = {
+			region = akasik_region
+			has_terrain = mountain
+			NOT = { religion = mother_akasik }
+			NOT = { owner = { religion = mother_akasik } }
+			NOT = { has_province_flag = not_akasik_controlled }
+		}
+		REB = { subtract_variable = { akasik_mountains = 1 } }
+		set_province_flag = not_akasik_controlled
+		clr_province_flag = akasik_controlled
+		every_country = {
+			limit = { religion = mother_akasik }
+			country_event = { id = mother_akasik.3 }
+		}
+	}
+}
 
 shrine_cleanup_effect = {
 	shrine_provinces = {
@@ -574,6 +664,8 @@ aakhet_reset = {
 	}
 }
 
+
+###Adeen
 adeen_increase_appease = {
 	if = {
 		limit = {
@@ -600,14 +692,15 @@ adeen_spawn_rebels_condition = {
 					estate = estate_adeen
 					loyalty = 60
 				}
+				has_estate_privilege = estate_adeen_adeen_curtailed
+				has_estate_privilege = estate_adeen_adeen_integrated
 			}
 		}
 		random_owned_province = {
 			limit = { is_overseas = no }
 			spawn_rebels = {
 				type = adeen_rebels
-				size = 30
-				as_if_faction = yes
+				size = 2
 			}
 		}
 	}
@@ -619,6 +712,7 @@ adeen_decrease_appease = {
 			NOT = {
 				has_estate_privilege = estate_adeen_adeen_curtailed
 				has_estate_privilege = estate_adeen_adeen_integrated
+				has_country_flag = adeen_rebel_skip
 			}
 		}
 		custom_tooltip = adeen_temp_displeased
@@ -708,5 +802,304 @@ adeen_more_events = {
 			}
 		}
 		custom_tooltip = adeen_additional_events
+	}
+}
+
+adeen_rebel_chance = {
+	if = {
+		limit = {
+			adeen_limit_min = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			1 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 1.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_low = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 60
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_mid = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			adeen_limit_high = yes
+			NOT = {
+				estate_loyalty = {
+					estate = estate_adeen
+					loyalty = 65
+				}
+			}
+		}
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = { is_overseas = no }
+					spawn_rebels = {
+						type = adeen_rebels
+						size = 2.5
+					}
+				}
+			}
+			1 = {
+			}
+		}
+	}
+}
+
+adeen_temp_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -15
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty_modifier = {
+			estate = estate_adeen
+			desc = $desc$
+			loyalty = -20
+			duration = 3650
+		}
+	}
+	adeen_rebel_chance = yes
+}
+
+adeen_loyalty_debuff = { #This should be changed to else_if when else_if is fixed
+	if = {
+		limit = {
+			adeen_limit_min = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_low = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -15
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_mid = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	if = {
+		limit = {
+			adeen_limit_high = yes
+		}
+		add_estate_loyalty = {
+			estate = estate_adeen
+			loyalty = -20
+		}
+	}
+	adeen_rebel_chance = yes
+}
+
+
+
+###Planetouched
+set_heir_specific_planetouched_effect = {
+    set_heir_flag = heir_ruler_planetouched_personality
+    add_heir_personality = $type$_planetouched_personality
+    hidden_effect = {
+        if = {
+            limit = { NOT = { heir_has_personality = $type$_planetouched_personality } }
+            clear_heir_personalities = yes
+            add_heir_personality = $type$_planetouched_personality
+        }
+    }
+} 
+
+set_heir_random_planetouched_effect = {
+    random_list = {
+        1 = { set_heir_specific_planetouched_effect = { type = fire } }
+        1 = { set_heir_specific_planetouched_effect = { type = water } }
+        1 = { set_heir_specific_planetouched_effect = { type = earth } }
+        1 = { set_heir_specific_planetouched_effect = { type = wind } }
+        1 = { set_heir_specific_planetouched_effect = { type = shadow } }
+        1 = { set_heir_specific_planetouched_effect = { type = life } }
+    }
+}
+
+set_ruler_specific_planetouched_effect = {
+    add_ruler_personality = $type$_planetouched_personality
+} 
+
+set_ruler_random_planetouched_effect = {
+    random_list = {
+        1 = { set_ruler_specific_planetouched_effect = { type = fire } }
+        1 = { set_ruler_specific_planetouched_effect = { type = water } }
+        1 = { set_ruler_specific_planetouched_effect = { type = earth } }
+        1 = { set_ruler_specific_planetouched_effect = { type = wind } }
+        1 = { set_ruler_specific_planetouched_effect = { type = shadow } }
+        1 = { set_ruler_specific_planetouched_effect = { type = life } }
+    }
+}
+
+# Used in on_actions under on_heir_needed_theocracy.
+roll_theocracy_heir_planetouched_effect = { 
+	if = { limit = { heir_can_be_planetouched_theocracy = yes }
+		if = { limit = { has_ruler_flag = heir_ruler_planetouched_personality }
+			random = { 
+                chance = 1 
+                country_event = { id = planetouched.102 days = 120 }
+            }
+		}
+		if = { limit = { NOT = { has_ruler_flag = heir_ruler_planetouched_personality } }
+			random = {
+                chance = 10
+                country_event = { id = planetouched.102 days = 120 }
+            }
+		}
+	}
+}
+
+#currently broken, doesn't give trait when in scripted_effect
+create_planetouched_general_effect = {
+	if = {
+		limit = { army_tradition = 80 }
+		define_general = {
+			fire = 5
+			shock = 5
+			manuever = 5
+			siege = 3
+			trait = planetouched_commander_personality
+		}
+	}
+	else_if = {
+		limit = { army_tradition = 60 }
+		define_general = {
+			fire = 4
+			shock = 5
+			manuever = 5
+			siege = 2
+			trait = planetouched_commander_personality
+		}
+	}
+	else_if = {
+		limit = { army_tradition = 40 }
+		define_general = {
+			fire = 3
+			shock = 5
+			manuever = 4
+			siege = 1
+			trait = planetouched_commander_personality
+		}
+	}
+	else_if = {
+		limit = { army_tradition = 20 }
+		define_general = {
+			fire = 3
+			shock = 4
+			manuever = 3
+			siege = 1
+			trait = planetouched_commander_personality
+		}
+	}
+	else = {
+		define_general = {
+			fire = 2
+			shock = 3
+			manuever = 3
+			siege = 1
+			trait = planetouched_commander_personality
+		}
 	}
 }

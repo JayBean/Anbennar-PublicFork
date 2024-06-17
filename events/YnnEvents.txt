@@ -26,6 +26,52 @@ country_event = {
 	}
 }
 
+country_event = {
+	id = ynn_events.991
+	title = ynn_events.991.t
+	desc = ynn_events.991.d
+	picture = CITY_VIEW_eventPicture
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		ai = no
+		capital_scope = {
+			superregion = ynn_superregion
+		}
+	}
+
+	option = { #Change colour when subjugating Iosahar
+		name = ynn_events.991.a
+		ai_chance = {
+			factor = 1
+		}
+		custom_tooltip = change_colour_iosahars_tt
+	}
+	option = { #Don't change colour when subjugating Iosahar
+		name = ynn_events.991.b
+		ai_chance = {
+			factor = 1
+		}
+		set_global_flag = dont_color_ynnic_iosahar
+		custom_tooltip = dont_change_colour_iosahars_tt
+		hidden_effect = {
+			every_known_country = {
+				restore_country_color = yes
+			}
+		}
+	}
+	option = { #Only change colour when subjugating Ynnic Iosahar
+		name = ynn_events.991.c
+		ai_chance = {
+			factor = 1
+		}
+		set_global_flag = dont_color_cannorian_iosahars
+		custom_tooltip = only_cannorian_change_colour_iosahars_tt
+	}
+}
+
 # Ynn Urbanization
 country_event = {
 	id = ynn_events.0
@@ -2706,6 +2752,13 @@ country_event = {	#Event used to turn someone into a Iosahar. Use ynn_events.20 
 	
 	after = {
 		clr_country_flag = ynnic_debug_subjugation_2
+		if = {
+			limit = {
+				has_country_flag = ynn_iosahar_revolt_check
+			}
+			clr_country_flag = ynn_iosahar_revolt_check
+			set_country_flag = ynn_iosahar_revolted_last_debate
+		}
 		FROM = {	#Aftereffect takes care of the double overlords bug
 			create_iosahar = { tag = ROOT }
 		}
@@ -2856,6 +2909,7 @@ country_event = {	#Breaks up mega-Iosahar
 				}
 			}
 		}
+		
 	}
 }
 
@@ -3104,6 +3158,37 @@ country_event = {
 		}
 		
 		release_iosahar = yes
+	}
+}
+
+country_event = {
+	id = ynn_events.20000
+	title = ynn_events.20.t
+	desc = ynn_events.20.d
+	picture = RELIGION_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		NOT = { has_country_flag = ynnic_debug_subjugation }
+		#FROM = { has_country_modifier = ynn_diplo }
+	}
+
+	option = {
+		name = ynn_events.100.a
+		ai_chance = {
+			factor = 1
+		}
+		every_known_country = {
+			limit = {
+				has_country_flag = ynn_iosahar_breakup_debug
+				culture_group = ynnic_ruinborn_elf
+			}
+			country_event = {
+				id = ynn_events.20
+			}
+		}
 	}
 }
 
@@ -3428,8 +3513,24 @@ country_event = {	#Controller event for 26
 		if = {
 			limit = {
 				has_country_flag = drozma_fighting_last_stand
+				NOT = {
+					OR = {
+						tag = G38
+						was_tag = G38
+					}
+				}
 			}
 			country_event = { id = ynn_events.26 }
+		}
+		else_if = {
+			limit = {
+				has_country_flag = drozma_fighting_last_stand
+				OR = {
+					tag = G38
+					was_tag = G38
+				}
+			}
+			country_event = { id = flavour_velsfadhecai.21 }
 		}
 		else = {
 			random_known_country = {
@@ -3798,9 +3899,14 @@ country_event = {	#Dragonless Once More
 		}
 		change_religion = FROM
 		set_ruler_religion = FROM
-		set_consort_religion = FROM
-		set_heir_religion = FROM
-		
+		if = {
+			limit = { has_consort = yes }
+			set_consort_religion = FROM
+		}
+		if = {
+			limit = { has_heir = yes }
+			set_heir_religion = FROM
+		}
 		every_owned_province = {
 			limit = { religion = drozma_tur }
 			change_religion = FROM
@@ -3971,7 +4077,7 @@ country_event = { #Controller Event for Ynnic Floods and Dam Maintenance
 		#Dam Maintenance
 		if = {
 			limit = { has_dlc = "Leviathan" }
-			ynn_dams = {
+			ynn_dams_provinces = {
 				limit = { owned_by = ROOT }
 				random_list = {	#20-80 normally, 80-20 if there's devastation
 					20 = {
@@ -5579,7 +5685,7 @@ country_event = { #Controller Event for General Flavour Events
 					religion = ynn_river_worship
 					is_religion_reformed = no
 					is_subject = no 
-					ynn_dams = {
+					ynn_dams_provinces = {
 						NOT = {
 							owned_by = ROOT
 							owner = {
@@ -6573,7 +6679,7 @@ country_event = { #Controller Event for General Flavour Events
 						tag = H61	#Plumstead
 					}
 					any_known_country = {
-						tag = H49	#Tiru Móine
+						tag = H49	#Tiru Moine
 					}
 					NOT = {
 						has_country_modifier = racial_pop_human_expulsion
@@ -6601,7 +6707,7 @@ country_event = { #Controller Event for General Flavour Events
 				}
 			}
 
-			#Noble goes bust in Móine
+			#Noble goes bust in Moine
 			10 = {
 				trigger = {
 					capital_scope = {
@@ -6609,7 +6715,7 @@ country_event = { #Controller Event for General Flavour Events
 					}
 					has_estate = estate_nobles
 					any_known_country = {
-						tag = H49 #Tiru Móine
+						tag = H49 #Tiru Moine
 					}
 					NOT = {
 						tag = H49
@@ -9072,11 +9178,14 @@ country_event = { #School of Riverblades Graduate Offers Service
 			religion = event_target:vels_bacar_target
 		}
 		
-		add_estate_influence_modifier = {
-			estate = estate_nobles
-			desc = ynn_hired_riverblade_graduate
-			influence = 5
-			duration = 7300
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_influence_modifier = {
+				estate = estate_nobles
+				desc = ynn_hired_riverblade_graduate
+				influence = 5
+				duration = 7300
+			}
 		}
 
 		#clear_saved_name = ynn_riverblade_graduate_name
@@ -9106,11 +9215,14 @@ country_event = { #School of Riverblades Graduate Offers Service
 			}
 		}
 		
-		add_estate_influence_modifier = {
-			estate = estate_nobles
-			desc = ynn_hired_riverblade_graduate
-			influence = 5
-			duration = 7300
+		if = {
+			limit = { has_estate = estate_nobles }
+			add_estate_influence_modifier = {
+				estate = estate_nobles
+				desc = ynn_hired_riverblade_graduate
+				influence = 5
+				duration = 7300
+			}
 		}
 
 		#clear_saved_name = ynn_riverblade_graduate_name
@@ -9188,7 +9300,7 @@ country_event = { #Erandil Poison-Arrow
 	id = ynn_events.202
 	title = ynn_events.202.t
 	desc = ynn_events.202.d
-	picture = ELVEN_EYE_eventPicture
+	picture = LAND_MILITARY_eventPicture
 
 	is_triggered_only = yes
 	fire_only_once = yes
@@ -9435,11 +9547,14 @@ country_event = { #Mage of the Academy of Rzenta
 			culture = event_target:rzenta_academy_location
 			religion = event_target:rzenta_academy_location
 		}
-		add_estate_influence_modifier = {
-			estate = estate_mages
-			desc = ynn_rzenta_academy_prominent_mage
-			influence = 10
-			duration = 7300
+		if = {
+			limit = { has_estate = estate_mages }
+			add_estate_influence_modifier = {
+				estate = estate_mages
+				desc = ynn_rzenta_academy_prominent_mage
+				influence = 10
+				duration = 7300
+			}
 		}
 	}
 
@@ -9459,11 +9574,14 @@ country_event = { #Mage of the Academy of Rzenta
 		}
 		add_years_of_income = -5
 		add_prestige = -10
-		add_estate_influence_modifier = {
-			estate = estate_mages
-			desc = ynn_rzenta_academy_prominent_mage
-			influence = 10
-			duration = 7300
+		if = {
+			limit = { has_estate = estate_mages }
+			add_estate_influence_modifier = {
+				estate = estate_mages
+				desc = ynn_rzenta_academy_prominent_mage
+				influence = 10
+				duration = 7300
+			}
 		}
 		create_war_wizard_effect = yes 
 	}
@@ -9835,7 +9953,9 @@ country_event = {	#Aspiring hero on Potraga
 		NOT = {
 			capital = 2813
 			tag = G29	#Drevkenuc
+			has_country_flag = vf_mitrenya_in_power_flg #Vels Fadhecai
 		}
+		has_regency = no
 		2813 = {
 			culture = dolindhan
 			OR = {
@@ -9854,6 +9974,8 @@ country_event = {	#Aspiring hero on Potraga
 				modifier = ynn_turned_away_promising_hero
 			}
 		}
+		NOT = { has_country_flag = disabled_heir_events }
+		NOT = { has_country_flag = disabled_consort_events }
 	}
 
 	immediate = {
@@ -10616,6 +10738,7 @@ country_event = {	#Komenvecer
 				}
 			}
 		}
+		NOT = { has_country_flag = vf_mitrenya_in_power_flg }
 	}
 
 	option = {
@@ -10883,7 +11006,7 @@ country_event = { #Your Ruler Tames a Wild Antler Horse
 	id = ynn_events.312
 	title = ynn_events.312.t
 	desc = ynn_events.312.d
-	picture = FEYFOREST_eventPicture
+	picture = MILITARISTICALLY_TALENTED_RULER_eventPicture
 
 	is_triggered_only = yes
 	
@@ -10899,6 +11022,7 @@ country_event = { #Your Ruler Tames a Wild Antler Horse
 			has_ruler_modifier = ynn_wild_antler_horse_prestige 
 			has_ruler_modifier = ynn_wild_antler_horse_battle
 		}
+		NOT = { has_country_flag = vf_mitrenya_in_power_flg }
 	}
 	
 	option = { #Ride it in ceremonies

@@ -464,6 +464,18 @@ country_event = {
 			duration = -1
 		}
 	}
+	after = {
+		hidden_effect = {
+			if = {
+				limit = { ai = yes }
+				add_country_modifier = {
+					name = lake_less_conquest
+					duration = 7300
+					hidden = yes
+				}
+			}
+		}
+	}
 }
 
 #Enuuk followers, unite
@@ -564,7 +576,7 @@ country_event = {
 		add_prestige = 25
 		add_country_modifier = {
 			name = victor_fed_religious_war
-			duration = -1
+			duration = 7300
 		}
 		remove_country_modifier = lake_strike_hard
 		remove_country_modifier = lake_attrition_war
@@ -736,17 +748,29 @@ country_event = {
 	picture = FORT_eventPicture
 	
 	mean_time_to_happen = {
-		years = 10
+		years = 12
+		modifier = {
+			factor = 0.5
+			has_global_flag = lake_cohesion_2
+		}
+		modifier = {
+			factor = 0.8
+			tag = J02 #canon spot
+		}
 	}
+	
+	major = yes
+	major_trigger = { has_country_modifier = lake_federation_member }
 	
 	fire_only_once = yes
 	
 	trigger = {
 		has_country_modifier = lake_federation_member
+		NOT = { is_religion_enabled = kalyin_worshippers }
 		NOT = { has_global_flag = federation_crisis }
 		has_global_flag = federation_crisis_religious
-		NOT = { has_global_flag = federation_crisis_goldisland }
-		NOT = { has_global_flag = federation_crisis_magew }
+		#NOT = { has_global_flag = federation_crisis_goldisland }
+		#NOT = { has_global_flag = federation_crisis_magew }
 		NOT = { has_global_flag = lake_federation_disbanded }
 		OR = {
 			had_global_flag = {
@@ -754,6 +778,12 @@ country_event = {
 				days = 7300
 			}
 			NOT = { has_global_flag = last_federation_crisis }
+		}
+		is_year = 1500
+		any_owned_province = {
+			can_have_center_of_reformation_trigger = {
+				RELIGION = kalyin_worshippers
+			}
 		}
 	}
 	
@@ -776,26 +806,70 @@ country_event = {
 				set_country_flag = old_enuuk
 			}
 		}
+		enable_religion = kalyin_worshippers
 		change_religion = kalyin_worshippers
-		capital_scope = { change_religion = kalyin_worshippers }
-		every_known_country = {
-			limit = { has_country_modifier = lake_federation_member }
-			country_event = { id = fed_religious.19 days = 30 random = 30 }
+		random_owned_province = {
+			limit = {
+				can_have_center_of_reformation_trigger = {
+					RELIGION = kalyin_worshippers
+				}
+			}
+			change_religion = kalyin_worshippers
+			add_reform_center = kalyin_worshippers
+			add_permanent_province_modifier = {
+				name = "religious_zeal_at_conv"
+				duration = 9000
+			}
+		}
+		capital_scope = {
+			change_religion = kalyin_worshippers
+			add_permanent_province_modifier = {
+				name = "religious_zeal_at_conv"
+				duration = 9000
+			}
 		}
 		add_country_modifier = {
 			name = lake_kalyin_faith
 			duration = 9125
 		}
-		lake_federation_lose_5_points = yes
-		hidden_effect = { set_global_flag = kalyin_enabled }
-		hidden_effect = { set_country_flag = kalyin_leader }
-		hidden_effect = { country_event = { id = fed_religious.20 days = 180 } }
+		#lake_federation_lose_5_points = yes
+		hidden_effect = {
+			if = {
+				limit = { NOT = { has_global_flag = kalyin_enabled } }
+				set_global_flag = kalyin_enabled
+				set_country_flag = kalyin_leader #1st to convert
+				#country_event = { id = fed_religious.20 days = 365 random = 180 }
+			}
+		}
 	}
 	
-	#Kill the priest
+	#Make the prophetess leave
 	option = {
 		name = fed_religious.18.b
 		ai_chance = { factor = 0 }
+		random_owned_province = {
+			limit = {
+				can_have_center_of_reformation_trigger = {
+					RELIGION = kalyin_worshippers
+				}
+			}
+			change_religion = kalyin_worshippers
+			add_reform_center = kalyin_worshippers
+			add_permanent_province_modifier = {
+				name = "religious_zeal_at_conv"
+				duration = 9000
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			set_global_flag = federation_crisis_religious_2
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member }
+				country_event = { id = fed_religious.19 days = 60 random = 60 }
+			}
+		}
 	}
 }
 
@@ -818,7 +892,7 @@ country_event = {
 		ai_chance = { 
 			factor = 55
 			modifier = {
-				factor = 2
+				factor = 1.5
 				religion = yukel_followers
 			}
 		}
@@ -842,6 +916,14 @@ country_event = {
 			name = lake_kalyin_faith
 			duration = 9125
 		}
+		hidden_effect = {
+			if = {
+				limit = { NOT = { has_global_flag = kalyin_enabled } }
+				set_global_flag = kalyin_enabled
+				set_country_flag = kalyin_leader #1st to convert
+				#country_event = { id = fed_religious.20 days = 365 random = 180 }
+			}
+		}
 	}
 	
 	#That's Heresy!
@@ -850,11 +932,11 @@ country_event = {
 		ai_chance = { 
 			factor = 45
 			modifier = {
-				factor = 1.5
+				factor = 1.25
 				religion = kodave_followers
 			}
 		}
-		add_stability = 2
+		add_stability = 1
 	}
 }
 
@@ -872,6 +954,7 @@ country_event = {
 	
 	trigger = {
 		has_global_flag = kalyin_enabled
+		has_country_flag = kalyin_leader
 		has_country_modifier = lake_federation_member
 		any_known_country = {
 			religion = kodave_followers
@@ -892,7 +975,6 @@ country_event = {
 	}
 	
 	immediate = {
-		hidden_effect = { set_global_flag = federation_crisis_religious_2 }
 		hidden_effect = { set_global_flag = federation_crisis }
 		hidden_effect = {
 			random_known_country = {
@@ -974,7 +1056,14 @@ country_event = {
 			limit = { has_country_modifier = lake_federation_member }
 			country_event = { id = fed_religious.23 days = 30 random = 60 }
 		}
-		country_event = { id = fed_religious.24 days = 120 }
+		if = {
+			limit = { NOT = { religion = kalyin_worshippers } }
+			random_known_country = {
+				limit = { religion = kalyin_worshippers }
+				country_event = { id = fed_religious.24 days = 120 }
+			}
+		}
+		else = { country_event = { id = fed_religious.24 days = 120 } }
 	}
 }
 
@@ -1030,9 +1119,34 @@ country_event = {
 	
 	immediate = {
 		hidden_effect = {
-			random_country = {
-				limit = { has_country_flag = anti_kalyin_leader }
-				save_event_target_as = antiKalyin
+			if = {
+				limit = {
+					any_known_country = {
+						has_country_flag = anti_kalyin_leader
+						religion = kalyin_worshippers
+					}
+				}
+				random_country = {
+					limit = {
+						has_country_flag = anti_kalyin_leader
+						religion = kalyin_worshippers
+					}
+					clr_country_flag = anti_kalyin_leader
+				}
+				random_country = {
+					limit = {
+						has_country_modifier = lake_federation_member
+						NOT = { religion = kalyin_worshippers }
+					}
+					set_country_flag = anti_kalyin_leader
+					save_event_target_as = antiKalyin 
+				}
+			}
+			else = {
+				random_country = {
+					limit = { has_country_flag = anti_kalyin_leader }
+					save_event_target_as = antiKalyin
+				}
 			}
 		}
 	}
@@ -1043,7 +1157,7 @@ country_event = {
 		ai_chance = { factor = 100 }
 		add_country_modifier = {
 			name = lake_kalyin_zeal
-			duration = -1
+			duration = 3650
 		}
 		custom_tooltip = kalyin_will_tooltip
 		hidden_effect = {
@@ -1057,7 +1171,7 @@ country_event = {
 				join_all_offensive_wars_of = ROOT
 				add_country_modifier = {
 					name = lake_kalyin_zeal
-					duration = -1
+					duration = 3650
 				}
 			}
 			every_known_country = {
@@ -1096,7 +1210,8 @@ country_event = {
 				clr_country_flag = kalyin_leader
 			}
 			clr_global_flag = second_federation_religious_war
-			hidden_effect = { set_global_flag = last_federation_crisis }
+			clr_global_flag = federation_crisis_religious_2
+			set_global_flag = last_federation_crisis
 		}
 	}
 	
@@ -1113,38 +1228,65 @@ country_event = {
 		add_prestige = 50
 		add_country_modifier = {
 			name = victor_fed_religious_war
-			duration = -1
+			duration = 7300
 		}
-		every_known_country = {
-			limit = { religion = kalyin_worshippers has_country_modifier = lake_federation_member }
-			capital_scope = { change_religion = kalyin_worshippers }
-			every_owned_province = {
-				random = {
-					chance = 80
-					change_religion = kalyin_worshippers
+		tooltip = {
+			random_known_country = {
+				limit = { religion = kalyin_worshippers has_country_modifier = lake_federation_member }
+				add_prestige = 25
+				add_stability = 1
+				lake_federation_gain_5_points = yes
+				add_country_modifier = {
+					name = victor_fed_religious_war
+					duration = -1
+				}
+				hidden_effect = {
+					clr_country_flag = old_yukel
+					clr_country_flag = old_enuuk
+					clr_country_flag = old_kodave
 				}
 			}
-			add_prestige = 25
-			add_stability = 1
-			lake_federation_gain_5_points = yes
-			add_country_modifier = {
-				name = victor_fed_religious_war
-				duration = -1
+			random_known_country = {
+				limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
+				capital_scope = { change_religion = kalyin_worshippers }
+				add_stability = -1
+				add_prestige = -25
+				lake_federation_lose_2_points = yes
+				add_country_modifier = {
+					name = loser_fed_religious_war
+					duration = 7300
+				}
 			}
 		}
-		every_known_country = {
-			limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
-			change_religion = kalyin_worshippers
-			capital_scope = { change_religion = kalyin_worshippers }
-			add_stability = -1
-			add_prestige = -25
-			lake_federation_lose_2_points = yes
-			add_country_modifier = {
-				name = loser_fed_religious_war
-				duration = -1
+		hidden_effect = {
+			every_known_country = {
+				limit = { religion = kalyin_worshippers has_country_modifier = lake_federation_member }
+				add_prestige = 25
+				add_stability = 1
+				lake_federation_gain_5_points = yes
+				add_country_modifier = {
+					name = victor_fed_religious_war
+					duration = -1
+				}
+				hidden_effect = {
+					clr_country_flag = old_yukel
+					clr_country_flag = old_enuuk
+					clr_country_flag = old_kodave
+				}
 			}
+			every_known_country = {
+				limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
+				capital_scope = { change_religion = kalyin_worshippers }
+				add_stability = -1
+				add_prestige = -25
+				lake_federation_lose_2_points = yes
+				add_country_modifier = {
+					name = loser_fed_religious_war
+					duration = 7300
+				}
+			}
+			clr_country_flag = debug_fed_religious 
 		}
-		hidden_effect = { clr_country_flag = debug_fed_religious }
 	}
 	
 	#Kill the Usupers
@@ -1153,11 +1295,21 @@ country_event = {
 		ai_chance = { factor = 100 }
 		trigger = { NOT = { religion = kalyin_worshippers } }
 		lake_federation_gain_10_points = yes
-		add_stability = 3
+		add_stability = 1
 		add_prestige = 50
 		add_country_modifier = {
 			name = victor_fed_religious_war
-			duration = -1
+			duration = 7300
+		}
+		random_province = {
+			limit = {
+				is_reformation_center = yes
+				OR = { 
+					region = north_yarikhoi_region
+					region = south_yarikhoi_region
+				}
+			}
+			remove_reform_center = kalyin_worshippers
 		}
 		every_known_country = {
 			limit = { has_country_modifier = lake_federation_member NOT = { religion = kalyin_worshippers } }
@@ -1166,62 +1318,44 @@ country_event = {
 			lake_federation_gain_5_points = yes
 			if = {
 				limit = { religion = kodave_followers }
-				every_owned_province = { 
-					change_religion = kodave_followers
-				}
+				every_owned_province = { change_religion = kodave_followers }
 			}
 			else_if = {
 				limit = { religion = yukel_followers }
-				every_owned_province = { 
-					change_religion = yukel_followers
-				}
+				every_owned_province = { change_religion = yukel_followers }
 			}
 			else_if = {
 				limit = { religion = enuuk_followers }
-				every_owned_province = { 
-					change_religion = enuuk_followers
-				}
+				every_owned_province = { change_religion = enuuk_followers }
 			}
 			add_country_modifier = {
 				name = victor_fed_religious_war
-				duration = -1
+				duration = 7300
 			}
 		}
 		every_known_country = {
 			limit = { has_country_modifier = lake_federation_member religion = kalyin_worshippers }
 			if = {
 				limit = { has_country_flag = old_yukel }
-				every_owned_province = {
-					random = {
-						chance = 50
-						change_religion = yukel_followers
-					}
-				}
+				random_owned_province = { change_religion = yukel_followers }
+				clr_country_flag = old_yukel
 			}
 			else_if = {
 				limit = { has_country_flag = old_enuuk }
-				every_owned_province = {
-					random = {
-						chance = 50
-						change_religion = enuuk_followers
-					}
-				}
+				random_owned_province = { change_religion = enuuk_followers }
+				clr_country_flag = old_enuuk
 			}
 			else_if = {
 				limit = { has_country_flag = old_kodave }
-				every_owned_province = {
-					random = {
-						chance = 50
-						change_religion = kodave_followers
-					}
-				}
+				random_owned_province = { change_religion = kodave_followers }
+				clr_country_flag = old_kodave
 			}
 			add_stability = -1
 			add_prestige = -25
 			lake_federation_lose_2_points = yes
 			add_country_modifier = {
 				name = loser_fed_religious_war
-				duration = -1
+				duration = 7300
 			}
 		}
 		hidden_effect = { clr_country_flag = debug_fed_religious }
@@ -1265,9 +1399,12 @@ country_event = {
 			remove_country_modifier = loser_fed_religious_war		
 			remove_country_modifier = lake_kalyin_zeal
 		}
-		hidden_effect = { clr_global_flag = second_federation_religious_war }
-		hidden_effect = { clr_global_flag = federation_crisis }
-		hidden_effect = { set_global_flag = last_federation_crisis }
+		hidden_effect = {
+			clr_global_flag = second_federation_religious_war
+			clr_global_flag = federation_crisis
+			set_global_flag = last_federation_crisis
+			clr_global_flag = federation_crisis_religious_2
+		}
 	}
 }
 
@@ -1959,27 +2096,33 @@ country_event = {
 		add_stability = 2
 		lake_federation_gain_15_points = yes
 		add_country_modifier = { 
-			name = lake_religious_reparation_bonus
+			name = lake_stability_maintained
 			duration = 9125
 		}
-		every_known_country = { 
-			limit = { has_country_flag = enuuk_faction }
-			add_prestige = 20
-			add_stability = 1
-			add_country_modifier = { 
-				name = lake_stability_maintained
-				duration = 9125
+		custom_tooltip = fed_religious.36_tt_2
+		hidden_effect = {
+			every_known_country = { 
+				limit = { has_country_flag = enuuk_faction }
+				add_prestige = 20
+				add_stability = 1
+				add_country_modifier = { 
+					name = lake_religious_reparation_bonus
+					duration = 9125
+				}
+				lake_federation_gain_10_points = yes
 			}
-			lake_federation_gain_10_points = yes
 		}
-		every_known_country = { 
-			limit = { has_country_flag = kodave_faction }
-			add_prestige = -25
-			add_country_modifier = { 
-				name = lake_religious_reparation_malus
-				duration = 9125
+		custom_tooltip = fed_religious.36_tt
+		hidden_effect = {
+			every_known_country = { 
+				limit = { has_country_flag = kodave_faction }
+				add_prestige = -25
+				add_country_modifier = { 
+					name = lake_religious_reparation_malus
+					duration = 9125
+				}
+				lake_federation_lose_5_points = yes
 			}
-			lake_federation_lose_5_points = yes
 		}
 		hidden_effect = {
 			every_known_country = {
@@ -2016,27 +2159,33 @@ country_event = {
 		add_stability = 2
 		lake_federation_gain_15_points = yes
 		add_country_modifier = { 
-			name = lake_religious_reparation_bonus
+			name = lake_stability_maintained
 			duration = 9125
 		}
-		every_known_country = { 
-			limit = { has_country_flag = kodave_faction }
-			add_prestige = 20
-			add_stability = 1
-			add_country_modifier = { 
-				name = lake_stability_maintained
-				duration = 9125
+		custom_tooltip = fed_religious.37_tt_2
+		hidden_effect = {
+			every_known_country = { 
+				limit = { has_country_flag = kodave_faction }
+				add_prestige = 20
+				add_stability = 1
+				add_country_modifier = { 
+					name = lake_religious_reparation_bonus
+					duration = 9125
+				}
+				lake_federation_gain_10_points = yes
 			}
-			lake_federation_gain_10_points = yes
 		}
-		every_known_country = { 
-			limit = { has_country_flag = enuuk_faction }
-			add_prestige = -25
-			add_country_modifier = { 
-				name = lake_religious_reparation_malus
-				duration = 9125
+		custom_tooltip = fed_religious.37_tt
+		hidden_effect = {
+			every_known_country = { 
+				limit = { has_country_flag = enuuk_faction }
+				add_prestige = -25
+				add_country_modifier = { 
+					name = lake_religious_reparation_malus
+					duration = 9125
+				}
+				lake_federation_lose_5_points = yes
 			}
-			lake_federation_lose_5_points = yes
 		}
 		hidden_effect = {
 			every_known_country = {

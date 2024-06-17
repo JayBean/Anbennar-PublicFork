@@ -1,45 +1,7 @@
 
 namespace = anb_ruler
 
-# Any culture that lives longer 120 years max should be given this flag
-country_event = {
-	id = anb_ruler.0
-	title = anb_ruler.0.t
-	desc = anb_ruler.0.d
-	picture = DIPLOMACY_eventPicture
-
-    trigger = {
-		has_dlc = "Rights of Man"
-		months_of_ruling = 1
-		OR = {
-			ruler_is_elven = yes
-			ruler_is_dwarven = yes
-			ruler_is_gnomish = yes
-			ruler_is_half_elven = yes
-			#or lich
-        }
-		NOT = { ruler_has_personality = immortal_personality }
-        NOT = { has_ruler_flag = set_immortality }
-		is_lesser_in_union = no
-    }
-
-	immediate = {
-		hidden_effect = {
-			if = {
-				limit = { ruler_has_max_personalities = yes }
-				clear_ruler_personalities = yes
-			}
-			add_ruler_personality = immortal_personality
-			set_ruler_flag = set_immortality
-		}
-	}
-	option = {
-		name = anb_ruler.0.a
-	}
-}
-
-# Death event
-# When a ruler has an Immortal flag, and is of a culture with a long, but not immortal lifespan, this event will strip them of the flag up when they reach the "Old" age for their culture
+# Ruler Death Event Part 1
 country_event = {
 	id = anb_ruler.1
 	title = anb_ruler.1.t
@@ -54,7 +16,7 @@ country_event = {
  	desc = {
 		trigger = {
 			ruler_is_elven = yes
-			primary_culture = wood_elf
+			ruler_culture = wood_elf
 		}
 		desc = anb_ruler.1.wood_elven
 	}
@@ -71,207 +33,708 @@ country_event = {
 		desc = anb_ruler.1.lefthand
 	}
 	picture = DIPLOMACY_eventPicture
+	
+	hidden = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		NOT = { ruler_is_immortal = yes }
+		NOT = { special_life_extension = yes }
+		has_regency = no
+	}
 
 	mean_time_to_happen = {
-		months = 3
+		days = 1
+		
+		modifier = {
+			factor = 1.1
+			is_monarch_leader = yes
+		}
+
+		#####################
+		# Short-Lived Races #
+		#####################
+
+		modifier = {
+			factor = 0.8	# Base Chance
+			NOT = { is_long_lived_ruler = yes }
+		}
+		modifier = {
+			factor = 2 #this specifically is for kobolds and harimari too
+			ruler_age = 40
+			NOT = { is_long_lived_ruler = yes }
+		}
+		modifier = {
+			factor = 2
+			ruler_age = 50
+			NOT = {
+				is_long_lived_ruler = yes
+				is_uncapped_lifespan_ruler = yes
+			}
+		}
+		modifier = {
+			factor = 2.7
+			ruler_age = 60
+			NOT = {
+				is_long_lived_ruler = yes
+				is_uncapped_lifespan_ruler = yes
+			}
+		}
+		modifier = {
+			factor = 3
+			ruler_age = 70
+			NOT = {
+				is_long_lived_ruler = yes
+				is_uncapped_lifespan_ruler = yes
+			}
+		}
+		modifier = {
+			factor = 20
+			ruler_age = 80
+			NOT = {
+				is_long_lived_ruler = yes
+				is_uncapped_lifespan_ruler = yes
+			}
+		}
+
+		####################
+		# Long-Lived Races #
+		####################
+
+		# Base chances for death
+		modifier = {
+			factor = 0.217
+			fast_ruler_is_elven = yes
+			NOT = { ruler_culture = wood_elf }
+		}
+		modifier = {
+			factor = 0.5
+			fast_ruler_is_dwarven = yes
+		}
+		modifier = {
+			factor = 0.362
+			OR = {
+				fast_ruler_is_gnomish = yes
+				ruler_culture = wood_elf
+			}
+		}
+		modifier = {
+			factor = 0.8
+			fast_ruler_is_half_elven = yes
+		}
+
+		# Long-Lived lifespan buffer
+		modifier = {
+			factor = 0
+			is_long_lived_ruler = yes
+			OR = {
+				AND = {
+					fast_ruler_is_elven = yes
+					NOT = { ruler_culture = wood_elf }
+					NOT = { ruler_age = 100 }
+				}
+				AND = {
+					OR = {
+						fast_ruler_is_gnomish = yes
+						fast_ruler_is_dwarven = yes
+						ruler_culture = wood_elf
+					}
+					NOT = { ruler_age = 70 }
+				}
+				AND = {
+					fast_ruler_is_half_elven = yes
+					NOT = { ruler_age = 40 }
+				}
+			}
+		}
+
+		#Long-Lived death chance brackets
+
+		#Elven
+		modifier = {
+			factor = 1.6
+			fast_ruler_is_elven = yes
+			NOT = { ruler_culture = wood_elf }
+			ruler_age = 250
+		}
+		modifier = {
+			factor = 1.8
+			fast_ruler_is_elven = yes
+			NOT = { ruler_culture = wood_elf }
+			ruler_age = 287
+		}
+		modifier = {
+			factor = 2.4
+			fast_ruler_is_elven = yes
+			NOT = { ruler_culture = wood_elf }
+			ruler_age = 325
+		}
+		modifier = {
+			factor = 4
+			fast_ruler_is_elven = yes
+			NOT = { ruler_culture = wood_elf }
+			ruler_age = 362
+		}
+
+		#Dwarven
+		modifier = {
+			factor = 2
+			fast_ruler_is_dwarven = yes
+			ruler_age = 135
+		}
+		modifier = {
+			factor = 2.2
+			fast_ruler_is_dwarven = yes
+			ruler_age = 151
+		}
+		modifier = {
+			factor = 2.6
+			fast_ruler_is_dwarven = yes
+			ruler_age = 167
+		}
+		modifier = {
+			factor = 2
+			fast_ruler_is_dwarven = yes
+			ruler_age = 183
+		}
+
+		#Gnomish/Wood Elf
+		modifier = {
+			factor = 2
+			OR = {
+				fast_ruler_is_gnomish = yes
+				ruler_culture = wood_elf
+			}
+			ruler_age = 160
+		}
+		modifier = {
+			factor = 2.2
+			OR = {
+				fast_ruler_is_gnomish = yes
+				ruler_culture = wood_elf
+			}
+			ruler_age = 182
+		}
+		modifier = {
+			factor = 2.6
+			OR = {
+				fast_ruler_is_gnomish = yes
+				ruler_culture = wood_elf
+			}
+			ruler_age = 205
+		}
+		modifier = {
+			factor = 2
+			OR = {
+				fast_ruler_is_gnomish = yes
+				ruler_culture = wood_elf
+			}
+			ruler_age = 240
+		}
+
+		#Half-Elven
+		modifier = {
+			factor = 2
+			fast_ruler_is_half_elven = yes
+			ruler_age = 80
+		}
+		modifier = {
+			factor = 2
+			fast_ruler_is_half_elven = yes
+			ruler_age = 90
+		}
+		modifier = {
+			factor = 2.7
+			fast_ruler_is_half_elven = yes
+			ruler_age = 100
+		}
+		modifier = {
+			factor = 3
+			fast_ruler_is_half_elven = yes
+			ruler_age = 110
+		}
+
+		#Harimari/Kobold
+		modifier = {
+			factor = 2
+			is_uncapped_lifespan_ruler = yes
+			ruler_age = 60
+		}
+		modifier = {
+			factor = 2.7
+			is_uncapped_lifespan_ruler = yes
+			ruler_age = 80
+		}
+		modifier = {
+			factor = 3
+			is_uncapped_lifespan_ruler = yes
+			ruler_age = 100
+		}
+
+		# Monarch Lifespan - Gain
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.05
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.1
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.15
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.2
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.25
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.3
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.35
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.4
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.45
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.5
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.55
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.6
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.65
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.7
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.75
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.8
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.85
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.9
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.95
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 1.0
+			}
+		}
+		
+		# Monarch Lifespan - Loss
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.05
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.1
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.15
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.2
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.25
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.3
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.35
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.4
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.45
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.5
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.55
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.6
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.65
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.7
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.75
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.8
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.85
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.9
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.95
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -1.0
+				}
+			}
+		}
 	}
 
 	immediate = { hidden_effect = { set_ruler_flag = end_life } }
-	# in rare cases where you can both change ruler and fire this event
-	# (i.e. high oak monarchy which forces wood elf abdication at exactly 200)
-	# set this flag immediately to ensure it applies to the current ruler - even if you abdicate your ruler then hit this event,
-	# though it will still queue the death event it will fail to fire as the ruler does not have the end_life ruler flag
-
-    trigger = {
-        has_dlc = "Rights of Man"
-        ruler_has_personality = immortal_personality
-		is_lesser_in_union = no
-		NOT = { ruler_is_immortal = yes }
-		NOT = { has_ruler_flag = end_life }
-        OR = {
-            # Dwarfs
-            AND = {
-                ruler_is_dwarven = yes
-                ruler_age = 160 #200 Expectancy
-            }
-            # Gnomes
-            AND = {
-                ruler_is_gnomish = yes
-                ruler_age = 205 #250 Expectancy
-            }
-            # Elves
-            AND = {
-                ruler_is_elven = yes
-                ruler_age = 350 #400 Expectancy
-            }
-						# Wood Elves
-            AND = {
-                ruler_is_elven = yes
-								primary_culture = wood_elf
-                ruler_age = 200 #250 Expectancy
-            }
-			# Half-elves
-			AND = {
-				ruler_is_half_elven = yes
-				ruler_age = 80 #100 Expectancy
-			}
-			# LHP Life Extension
-			AND = {
-				has_ruler_flag = lefthand_life_extension
-				OR = {
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 110
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 111
-							}
-						}
-						ruler_age = 110
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 140
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 141
-							}
-						}
-						ruler_age = 140
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 160
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 161
-							}
-						}
-						ruler_age = 160
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 175
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 176
-							}
-						}
-						ruler_age = 175
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 185
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 186
-							}
-						}
-						ruler_age = 185
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 190
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 191
-							}
-						}
-						ruler_age = 190
-					}
-					AND = {
-						check_variable = {
-							which = lefthand_life_extension_max_age_var
-							value = 195
-						}
-						NOT = {
-							check_variable = {
-								which = lefthand_life_extension_max_age_var
-								value = 196
-							}
-						}
-						ruler_age = 195
-					}
-					ruler_age = 200 #not allowed to live past 200
-				}
-			}
-        }
-		#Future Additions: Liches
-    }
 
 	option = {
 		name = anb_ruler.1.a
 
 		if = {
-			limit = { ruler_is_dwarven = yes }
-			custom_tooltip = ruler_is_dwarven_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 10950 random = 7300 } } #30 years + ~20years
-		}
-		else_if = {
-			limit = { ruler_is_gnomish = yes }
-			custom_tooltip = ruler_is_gnomish_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 12775 random = 7300 } } #35 years + ~20years
-		}
-		else_if = {
 			limit = {
-				ruler_is_elven = yes
-				primary_culture = wood_elf
+				ai = no
+				OR = {
+					ruler_is_dwarven = yes
+					ruler_is_gnomish = yes
+					ruler_is_elven = yes
+					ruler_is_half_elven = yes
+					has_ruler_flag = lefthand_life_extension
+				}
 			}
-			custom_tooltip = ruler_is_wood_elven_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 12775 random = 7300 } } #35 years + ~20years
+			hidden_effect = { country_event = { id = anb_ruler.2 } }
 		}
-		else_if = {
-			limit = { ruler_is_elven = yes }
-			custom_tooltip = ruler_is_elven_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 14600 random = 7300 } } #40 years + ~20years
-		}
-		else_if = {
-			limit = { ruler_is_half_elven = yes }
-			custom_tooltip = ruler_is_half_elven_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 3650 random = 7300 } } #10 years + ~20years
-		}
-		else_if = {
-			limit = { has_ruler_flag = lefthand_life_extension }
-			custom_tooltip = ruler_extended_life_lhp_tooltip
-			hidden_effect = { country_event = { id = anb_ruler.4 days = 30 random = 150 } } #30 days + ~150 days
-		}
+		hidden_effect = { country_event = { id = anb_ruler.3 random = 365 } country_event = { id = anb_ruler.4 random = 365 } }
 	}
 }
-#Immortal ruler die
+
+#Ruler's Old Age - Event for Long-Lived Rulers explaining that they're not immortal and are gonna die
 country_event = {
-	id = anb_ruler.4
-	title = anb_ruler.4.t
-	desc = anb_ruler.4.d
+	id = anb_ruler.2
+	title = anb_ruler.2.t
+	picture = KING_SICK_IN_BED_eventPicture
+
+	
+	desc = {
+		trigger = {
+			has_ruler_flag = dwarven_ruler
+		}
+		desc = anb_ruler.2.dwarven
+	}
+
+	desc = {
+		trigger = {
+			has_ruler_flag = elven_ruler
+			NOT = { ruler_culture = wood_elf }
+		}
+		desc = anb_ruler.2.elven
+	}
+
+	desc = {
+		trigger = {
+			has_ruler_flag = gnomish_ruler
+		}
+		desc = anb_ruler.2.gnomish
+	}
+
+	desc = {
+		trigger = {
+			has_ruler_flag = half_elven_ruler
+		}
+		desc = anb_ruler.2.half_elven
+	}
+
+	desc = {
+		trigger = {
+			has_ruler_flag = elven_ruler
+			ruler_culture = wood_elf
+		}
+		desc = anb_ruler.2.wood_elven
+	}
+
+	desc = {
+		trigger = {
+			has_ruler_flag = lefthand_life_extension
+		}
+		desc = anb_ruler.2.lefthand
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = anb_ruler.2.a
+
+		custom_tooltip = ruler_is_dying_tooltip
+	}
+}
+
+#Ruler Dies - for over age 100
+country_event = {
+	id = anb_ruler.3
+	title = anb_ruler.3.t
+	desc = anb_ruler.3.d
 	picture = KING_SICK_IN_BED_eventPicture
 
 	is_triggered_only = yes
 
 	trigger = {
 		has_ruler_flag = end_life
-		NOT = { ruler_is_immortal = yes }
+		ruler_age = 100
 		is_lesser_in_union = no
 	}
 
 	option = {
-		name = anb_ruler.4.a
+		name = anb_ruler.3.a
 
 		trigger = {
 			OR = {
@@ -287,38 +750,38 @@ country_event = {
 				dip = 6
 				mil = 6
 			}
-			custom_tooltip = anb_ruler.4.tt.1
+			custom_tooltip = anb_ruler.3.tt.1
 		}
 		else_if = {
 			limit = {
 				adm = 6
 			}
-			custom_tooltip = anb_ruler.4.tt.2
+			custom_tooltip = anb_ruler.3.tt.2
 		}
 		else_if = {
 			limit = {
 				mil = 6
 			}
-			custom_tooltip = anb_ruler.4.tt.3
+			custom_tooltip = anb_ruler.3.tt.3
 		}
 		else_if = {
 			limit = {
 				dip = 6
 			}
-			custom_tooltip = anb_ruler.4.tt.4
+			custom_tooltip = anb_ruler.3.tt.4
 		}
 		else_if = {
 			limit = {
 				ruler_age = 375
 			}
-			custom_tooltip = anb_ruler.4.tt.5
+			custom_tooltip = anb_ruler.3.tt.5
 		}
 		else = {
-			custom_tooltip = anb_ruler.4.tt.6
+			custom_tooltip = anb_ruler.3.tt.6
 		}
 	}
 	option = {
-		name = anb_ruler.4.b
+		name = anb_ruler.3.b
 		trigger = {
 			NOT = {
 				OR = {
@@ -328,25 +791,58 @@ country_event = {
 				}
 			}
 		}
-		custom_tooltip = anb_ruler.4.tt.7
+		custom_tooltip = anb_ruler.3.tt.7
 	}
 
 	after = {
+		export_to_variable = {
+			which = GetRulerAge
+			value = monarch_age
+			who = ROOT
+		}
 		hidden_effect = { kill_ruler = yes }
+	}
+}
+
+#Ruler Dies - for under age 100.
+country_event = {
+	id = anb_ruler.4
+	title = anb_ruler.4.t
+	desc = anb_ruler.4.d
+	picture = KING_SICK_IN_BED_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		has_ruler_flag = end_life
+		NOT = { ruler_age = 100 }
+		is_lesser_in_union = no
+	}
+
+	option = {
+		name = anb_ruler.4.a
+
+		export_to_variable = {
+			which = GetRulerAge
+			value = monarch_age
+			who = ROOT
+		}
+		kill_ruler = yes
 	}
 }
 
 # Age Decadence
 country_event = {
-	id = anb_ruler.2
-	title = anb_ruler.2.t
-	desc = anb_ruler.2.d
+	id = anb_ruler.5
+	title = anb_ruler.5.t
+	desc = anb_ruler.5.d
 	picture = DIPLOMACY_eventPicture
 	hidden = yes
 
-    trigger = {
-        has_dlc = "Rights of Man"
-        ruler_has_personality = immortal_personality
+	trigger = {
+		has_dlc = "Rights of Man"
+		is_long_lived_ruler = yes
 		is_lesser_in_union = no
 		OR = {
 			ruler_age = 100
@@ -371,48 +867,48 @@ country_event = {
 				days = 730
 			}
 		}
-    }
+	}
 
-	#is_triggered_only = yes
+	is_triggered_only = yes
 
 	mean_time_to_happen = {
-		months = 210
+		days = 1
 		modifier = {
-			factor = 0.9
+			factor = 1.2
 			ruler_age = 200
 		}
 		modifier = {
-			factor = 0.8
+			factor = 1.2
 			ruler_age = 250
 		}
 		modifier = {
-			factor = 0.7
+			factor = 1.2
 			ruler_age = 300
 		}
 		modifier = {
-			factor = 0.5
+			factor = 1.2
 			ruler_age = 350
 		}
 
 		modifier = {
-			factor = 0.9
+			factor = 1.1
 			ruler_has_personality = careful_personality
 		}
 		modifier = {
-			factor = 0.9
+			factor = 1.1
 			ruler_has_personality = zealot_personality
 		}
 		modifier = {
-			factor = 1.5
+			factor = 0.8
 			ruler_has_personality = free_thinker_personality
 		}
 		modifier = {
-			factor = 1.2
+			factor = 0.75
 			ruler_has_personality = scholar_personality
 		}
 
 		modifier = {
-			factor = 1.35
+			factor = 0.65
 
 			has_government_attribute = better_long_lived
 		}
@@ -420,96 +916,96 @@ country_event = {
 
 	after = {
 		set_ruler_flag = decadent_ruler
-		country_event = { id = anb_ruler.7 }
+		country_event = { id = anb_ruler.6 }
 	}
 
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { adm = 0 }
 		set_ruler_flag = decadent_1
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { dip = 0 }
 		set_ruler_flag = decadent_2
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { mil = 0 }
 		set_ruler_flag = decadent_3
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { stability = -3 }
 		set_ruler_flag = decadent_4
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { stability = -2 }
 		set_ruler_flag = decadent_5
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { prestige = -80 }
 		set_ruler_flag = decadent_6
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 2 }
 		trigger = { NOT = { has_country_modifier = ruler_incoherent_orders } is_at_war = yes }
 		set_ruler_flag = decadent_7
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { NOT = { has_country_modifier = ruler_complecent_ruler } is_at_war = no }
 		set_ruler_flag = decadent_8
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { NOT = { has_country_modifier = ruler_antagonized_advisor } }
 		set_ruler_flag = decadent_9
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		trigger = { NOT = { has_country_modifier = ruler_stupid_administration_reform } }
 		set_ruler_flag = decadent_10
 	}
 
 	option = {
-		name = anb_ruler.2.a
+		name = anb_ruler.5.a
 		ai_chance = { factor = 1 }
 		set_ruler_flag = decadent_11
 	}
 }
 
 country_event = {
-	id = anb_ruler.7
-	title = anb_ruler.7.t
-	desc = anb_ruler.7.d
+	id = anb_ruler.6
+	title = anb_ruler.6.t
+	desc = anb_ruler.6.d
 	picture = DIPLOMACY_eventPicture
 
-    trigger = {
-        has_ruler_flag = decadent_ruler
-    }
+	trigger = {
+		has_ruler_flag = decadent_ruler
+	}
 
 	is_triggered_only = yes
 
@@ -531,28 +1027,28 @@ country_event = {
 
 
 	option = {
-		name = anb_ruler.7.a
+		name = anb_ruler.6.a
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_1 }
 		decrease_ruler_adm_effect = yes
 	}
 
 	option = {
-		name = anb_ruler.7.a
+		name = anb_ruler.6.a
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_2 }
 		decrease_ruler_dip_effect = yes
 	}
 
 	option = {
-		name = anb_ruler.7.a
+		name = anb_ruler.6.a
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_3 }
 		decrease_ruler_mil_effect = yes
 	}
 
 	option = {
-		name = anb_ruler.7.b
+		name = anb_ruler.6.b
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_4 }
 
@@ -560,7 +1056,7 @@ country_event = {
 	}
 
 	option = {
-		name = anb_ruler.7.b
+		name = anb_ruler.6.b
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_5 }
 		if = {
@@ -578,11 +1074,16 @@ country_event = {
 	}
 
 	option = {
-		name = anb_ruler.7.c
+		name = anb_ruler.6.c
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_6 }
 
 		if = {
+			limit = { ruler_has_personality = scholar_personality }
+			remove_ruler_personality = scholar_personality
+			add_ruler_personality = craven_personality
+		}
+		else_if = {
 			limit = { prestige = -80 }
 			add_prestige = -20
 		}
@@ -592,89 +1093,99 @@ country_event = {
 	}
 
 	option = {
-		name = anb_ruler.7.e
+		name = anb_ruler.6.e
 		ai_chance = { factor = 2 }
 		trigger = { has_ruler_flag = decadent_7 }
 
-		add_ruler_modifier = {
-			name = ruler_incoherent_orders
-			duration = 3650
+		if = {
+			limit = { ruler_has_personality = inspiring_leader_personality }
+			remove_ruler_personality = inspiring_leader_personality
+			add_ruler_personality = craven_personality
+		}
+		else = {
+			add_ruler_modifier = {
+				name = ruler_incoherent_orders
+				duration = 3650
+			}
 		}
 	}
 
 	option = {
-		name = anb_ruler.7.f
+		name = anb_ruler.6.f
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_8 }
 
-		add_ruler_modifier = {
-			name = ruler_complecent_ruler
-			duration = 3650
+		if = {
+			limit = { ruler_has_personality = strict_personality }
+			remove_ruler_personality = strict_personality
+			add_ruler_personality = drunkard_personality
+		}
+		else = {
+			add_ruler_modifier = {
+				name = ruler_complecent_ruler
+				duration = 3650
+			}
 		}
 	}
 
 	option = {
-		name = anb_ruler.7.g
+		name = anb_ruler.6.g
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_9 }
 
-		add_ruler_modifier = {
-			name = ruler_antagonized_advisor
-			duration = 3650
+		if = {
+			limit = { ruler_has_personality = well_advised_personality }
+			remove_ruler_personality = well_advised_personality
+			add_ruler_personality = naive_personality
+		}
+		else = {
+			add_ruler_modifier = {
+				name = ruler_antagonized_advisor
+				duration = 3650
+			}
 		}
 	}
 
 	option = {
-		name = anb_ruler.7.h
+		name = anb_ruler.6.h
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_10 }
-		add_ruler_modifier = {
-			name = ruler_stupid_administration_reform
-			duration = 3650
+		if = {
+			limit = { ruler_has_personality = lawgiver_personality }
+			remove_ruler_personality = lawgiver_personality
+			add_ruler_personality = obsessive_perfectionist_personality
+		}
+		else = {
+			add_ruler_modifier = {
+				name = ruler_stupid_administration_reform
+				duration = 3650
+			}
 		}
 	}
 
 	option = {
-		name = anb_ruler.7.i
+		name = anb_ruler.6.i
 		ai_chance = { factor = 1 }
 		trigger = { has_ruler_flag = decadent_11 }
 		random_list = {
-			50 = { add_years_of_income = -1 }
-			35 = { add_years_of_income = -1.5 }
-			15 = { add_years_of_income = -2 }
+			50 = { add_years_of_income = -0.5 }
+			35 = { add_years_of_income = -0.75 }
+			15 = { add_years_of_income = -1 }
 		}
 	}
 }
 
 # Age Revival
 country_event = {
-	id = anb_ruler.3
-	title = anb_ruler.3.t
-	desc = anb_ruler.3.d
+	id = anb_ruler.7
+	title = anb_ruler.7.t
+	desc = anb_ruler.7.d
 	picture = DIPLOMACY_eventPicture
 
-    trigger = {
-        has_dlc = "Rights of Man"
-        ruler_has_personality = immortal_personality
+	trigger = {
+		ruler_age = 100
 		is_lesser_in_union = no
-		#culture_group = elven
-		OR = {
-			ruler_age = 100
-			AND = {
-				ruler_is_immortal = yes
-				OR = {
-					had_country_flag = {
-						flag = vampire_ruler_has_coffin
-						days = 29200
-					}
-					had_country_flag = {
-						flag = lich_ruler_has_phylactery
-						days = 29200
-					}
-				}
-			}
-		}
-    }
+	}
 
 	#is_triggered_only = yes
 
@@ -694,141 +1205,1286 @@ country_event = {
 
 			has_government_attribute = better_long_lived
 		}
-		# modifier = {
-			# factor = 1.5
-			# ruler_age = 250
-		# }
-		# modifier = {
-			# factor = 2
-			# ruler_age = 300
-		# }
-		# modifier = {
-			# factor = 3
-			# ruler_age = 350
-		# }
 	}
 
 	option = {	#We must be open to new change and ideas.
-		name = anb_ruler.3.a
+		name = anb_ruler.7.a
 
 		increase_ruler_adm_effect = yes
 	}
 
-    option = {	#There's a whole new world out there, as an elder race we must lead the way!
-		name = anb_ruler.3.b
+	option = {	#There's a whole new world out there, as an elder race we must lead the way!
+		name = anb_ruler.7.b
 
 		increase_ruler_dip_effect = yes
 	}
 
-    option = {	#I've seen enough war to know where we're headed.
-		name = anb_ruler.3.c
+	option = {	#I've seen enough war to know where we're headed.
+		name = anb_ruler.7.c
 
-        increase_ruler_mil_effect = yes
+		increase_ruler_mil_effect = yes
 	}
 }
 
-#Long lived consort die
+# Consort die
 country_event = {
-	id = anb_ruler.5
-	title = anb_ruler.5.t
-	desc = anb_ruler.5.d
+	id = anb_ruler.8
+	title = anb_ruler.8.t
+	desc = anb_ruler.8.d
 	picture = DIPLOMACY_eventPicture
 
-    trigger = {
-		has_dlc = "Rights of Man"
-		consort_has_personality = immortal_personality
-		consort_age = 90
-		is_lesser_in_union = no
-		OR = {
-            # Dwarfs
-            AND = {
-				consort_is_dwarven = yes
-                consort_age = 185 #200 Expectancy
-            }
-            # Gnomes
-            AND = {
-                consort_is_gnomish = yes
-                consort_age = 230 #250 Expectancy
-            }
-            # Elves
-            AND = {
-                consort_is_elven = yes
-                consort_age = 380 #400 Expectancy
-            }
-			# Half-elves
-			AND = {
-				consort_is_half_elven = yes
-				consort_age = 90 #100 Expectancy
-			}
-        }
-    }
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_consort = yes
+		consort_age = 20
+	}
 
 	mean_time_to_happen = {
-		years = 10
+		days = 1
+
+		#####################
+		# Short-Lived Races #
+		#####################
+
+		modifier = {
+			factor = 0.8	# Base Chance
+			NOT = { is_long_lived_consort = yes }
+		}
+		modifier = {
+			factor = 2
+			consort_age = 40
+			NOT = { is_long_lived_consort = yes }
+		}
+		modifier = {
+			factor = 2
+			consort_age = 50
+			NOT = {
+				is_long_lived_consort = yes
+				is_uncapped_lifespan_consort = yes
+			}
+		}
+		modifier = {
+			factor = 2.7
+			consort_age = 60
+			NOT = {
+				is_long_lived_consort = yes
+				is_uncapped_lifespan_consort = yes
+			}
+		}
+		modifier = {
+			factor = 3
+			consort_age = 70
+			NOT = {
+				is_long_lived_consort = yes
+				is_uncapped_lifespan_consort = yes
+			}
+		}
+		modifier = {
+			factor = 20
+			consort_age = 80
+			NOT = {
+				is_long_lived_consort = yes
+				is_uncapped_lifespan_consort = yes
+			}
+		}
+
+		####################
+		# Long-Lived Races #
+		####################
+
+		# Base chances for death
+		modifier = {
+			factor = 0.217
+			fast_consort_is_elven = yes
+			NOT = { consort_culture = wood_elf }
+		}
+		modifier = {
+			factor = 0.5
+			fast_consort_is_dwarven = yes
+		}
+		modifier = {
+			factor = 0.362
+			OR = {
+				fast_consort_is_gnomish = yes
+				consort_culture = wood_elf
+			}
+		}
+		modifier = {
+			factor = 0.8
+			fast_consort_is_half_elven = yes
+		}
+
+		# Long-Lived lifespan buffer
+		modifier = {
+			factor = 0
+			is_long_lived_consort = yes
+			OR = {
+				AND = {
+					fast_consort_is_elven = yes
+					NOT = { consort_culture = wood_elf }
+					NOT = { consort_age = 100 }
+				}
+				AND = {
+					OR = {
+						fast_consort_is_gnomish = yes
+						fast_consort_is_dwarven = yes
+						consort_culture = wood_elf
+					}
+					NOT = { consort_age = 70 }
+				}
+				AND = {
+					fast_consort_is_half_elven = yes
+					NOT = { consort_age = 40 }
+				}
+			}
+		}
+
+		#Long-Lived death chance brackets
+
+		#Elven
+		modifier = {
+			factor = 1.6
+			fast_consort_is_elven = yes
+			NOT = { consort_culture = wood_elf }
+			consort_age = 250
+		}
+		modifier = {
+			factor = 1.8
+			fast_consort_is_elven = yes
+			NOT = { consort_culture = wood_elf }
+			consort_age = 287
+		}
+		modifier = {
+			factor = 2.4
+			fast_consort_is_elven = yes
+			NOT = { consort_culture = wood_elf }
+			consort_age = 325
+		}
+		modifier = {
+			factor = 4
+			fast_consort_is_elven = yes
+			NOT = { consort_culture = wood_elf }
+			consort_age = 362
+		}
+
+		#Dwarven
+		modifier = {
+			factor = 2
+			fast_consort_is_dwarven = yes
+			consort_age = 135
+		}
+		modifier = {
+			factor = 2.2
+			fast_consort_is_dwarven = yes
+			consort_age = 151
+		}
+		modifier = {
+			factor = 2.6
+			fast_consort_is_dwarven = yes
+			consort_age = 167
+		}
+		modifier = {
+			factor = 2
+			fast_consort_is_dwarven = yes
+			consort_age = 183
+		}
+
+		#Gnomish/Wood Elf
+		modifier = {
+			factor = 2
+			OR = {
+				fast_consort_is_gnomish = yes
+				consort_culture = wood_elf
+			}
+			consort_age = 160
+		}
+		modifier = {
+			factor = 2.2
+			OR = {
+				fast_consort_is_gnomish = yes
+				consort_culture = wood_elf
+			}
+			consort_age = 182
+		}
+		modifier = {
+			factor = 2.6
+			OR = {
+				fast_consort_is_gnomish = yes
+				consort_culture = wood_elf
+			}
+			consort_age = 205
+		}
+		modifier = {
+			factor = 2
+			OR = {
+				fast_consort_is_gnomish = yes
+				consort_culture = wood_elf
+			}
+			consort_age = 240
+		}
+
+		#Half-Elven
+		modifier = {
+			factor = 2
+			fast_consort_is_half_elven = yes
+			consort_age = 80
+		}
+		modifier = {
+			factor = 2
+			fast_consort_is_half_elven = yes
+			consort_age = 90
+		}
+		modifier = {
+			factor = 2.7
+			fast_consort_is_half_elven = yes
+			consort_age = 100
+		}
+		modifier = {
+			factor = 3
+			fast_consort_is_half_elven = yes
+			consort_age = 110
+		}
+
+		#Harimari/Kobold
+		modifier = {
+			factor = 2
+			is_uncapped_lifespan_consort = yes
+			consort_age = 60
+		}
+		modifier = {
+			factor = 2.7
+			is_uncapped_lifespan_consort = yes
+			consort_age = 80
+		}
+		modifier = {
+			factor = 3
+			is_uncapped_lifespan_consort = yes
+			consort_age = 100
+		}
+
+		# Monarch Lifespan - Gain
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.05
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.1
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.15
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.2
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.25
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.3
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.35
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.4
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.45
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.5
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.55
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.6
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.65
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.7
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.75
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.8
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.85
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.9
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.95
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 1.0
+			}
+		}
+		
+		# Monarch Lifespan - Loss
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.05
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.1
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.15
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.2
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.25
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.3
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.35
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.4
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.45
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.5
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.55
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.6
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.65
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.7
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.75
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.8
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.85
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.9
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.95
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -1.0
+				}
+			}
+		}
 	}
 
 	option = {
-		name = anb_ruler.5.a
-		remove_consort = yes
+		name = anb_ruler.8.a
+		ai_chance = { factor = 100 }
+		remove_consort_effect = yes
 	}
 }
 
-#Long lived heir die
+#Heir dies
 country_event = {
-	id = anb_ruler.6
-	title = anb_ruler.6.t
-	desc = anb_ruler.6.d
+	id = anb_ruler.9
+	title = anb_ruler.9.t
+	desc = anb_ruler.9.d
 	picture = DIPLOMACY_eventPicture
 
-    trigger = {
-		has_dlc = "Rights of Man"
-		heir_has_personality = immortal_personality
-		is_lesser_in_union = no
-		heir_age = 90
-		OR = {
-            # Dwarfs
-            AND = {
-				heir_is_dwarven = yes
-                heir_age = 185 #200 Expectancy
-            }
-            # Gnomes
-            AND = {
-                heir_is_gnomish = yes
-                heir_age = 230 #250 Expectancy
-            }
-            # Elves
-            AND = {
-                heir_is_elven = yes
-                heir_age = 380 #400 Expectancy
-            }
-			# Half-elves
-			AND = {
-				heir_is_half_elven = yes
-				heir_age = 90 #100 Expectancy
-			}
-        }
-    }
-
-	mean_time_to_happen = {
-		years = 10
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		has_heir = yes
+		heir_age = 20
 	}
 
+	mean_time_to_happen = {
+		days = 1
+		
+		modifier = {
+			factor = 1.1
+			is_heir_leader = yes
+		}
+
+		#####################
+		# Short-Lived Races #
+		#####################
+
+		modifier = {
+			factor = 0.8	# Base Chance
+			NOT = { is_long_lived_heir = yes }
+		}
+		modifier = {
+			factor = 2
+			heir_age = 40
+			NOT = { is_long_lived_heir = yes }
+		}
+		modifier = {
+			factor = 2
+			heir_age = 50
+			NOT = {
+				is_long_lived_heir = yes
+				is_uncapped_lifespan_heir = yes
+			}
+		}
+		modifier = {
+			factor = 2.7
+			heir_age = 60
+			NOT = {
+				is_long_lived_heir = yes
+				is_uncapped_lifespan_heir = yes
+			}
+		}
+		modifier = {
+			factor = 3
+			heir_age = 70
+			NOT = {
+				is_long_lived_heir = yes
+				is_uncapped_lifespan_heir = yes
+			}
+		}
+		modifier = {
+			factor = 20
+			heir_age = 80
+			NOT = {
+				is_long_lived_heir = yes
+				is_uncapped_lifespan_heir = yes
+			}
+		}
+
+		####################
+		# Long-Lived Races #
+		####################
+
+		# Base chances for death
+		modifier = {
+			factor = 0.217
+			fast_heir_is_elven = yes
+			NOT = { heir_culture = wood_elf }
+		}
+		modifier = {
+			factor = 0.5
+			fast_heir_is_dwarven = yes
+		}
+		modifier = {
+			factor = 0.362
+			OR = {
+				fast_heir_is_gnomish = yes
+				heir_culture = wood_elf
+			}
+		}
+		modifier = {
+			factor = 0.8
+			fast_heir_is_half_elven = yes
+		}
+
+		# Long-Lived lifespan buffer
+		modifier = {
+			factor = 0
+			is_long_lived_heir = yes
+			OR = {
+				AND = {
+					fast_heir_is_elven = yes
+					NOT = { heir_culture = wood_elf }
+					NOT = { heir_age = 100 }
+				}
+				AND = {
+					OR = {
+						fast_heir_is_gnomish = yes
+						fast_heir_is_dwarven = yes
+						heir_culture = wood_elf
+					}
+					NOT = { heir_age = 70 }
+				}
+				AND = {
+					fast_heir_is_half_elven = yes
+					NOT = { heir_age = 40 }
+				}
+			}
+		}
+
+		#Long-Lived death chance brackets
+
+		#Elven
+		modifier = {
+			factor = 1.6
+			fast_heir_is_elven = yes
+			NOT = { heir_culture = wood_elf }
+			heir_age = 250
+		}
+		modifier = {
+			factor = 1.8
+			fast_heir_is_elven = yes
+			NOT = { heir_culture = wood_elf }
+			heir_age = 287
+		}
+		modifier = {
+			factor = 2.4
+			fast_heir_is_elven = yes
+			NOT = { heir_culture = wood_elf }
+			heir_age = 325
+		}
+		modifier = {
+			factor = 4
+			fast_heir_is_elven = yes
+			NOT = { heir_culture = wood_elf }
+			heir_age = 362
+		}
+
+		#Dwarven
+		modifier = {
+			factor = 2
+			fast_heir_is_dwarven = yes
+			heir_age = 135
+		}
+		modifier = {
+			factor = 2.2
+			fast_heir_is_dwarven = yes
+			heir_age = 151
+		}
+		modifier = {
+			factor = 2.6
+			fast_heir_is_dwarven = yes
+			heir_age = 167
+		}
+		modifier = {
+			factor = 2
+			fast_heir_is_dwarven = yes
+			heir_age = 183
+		}
+
+		#Gnomish/Wood Elf
+		modifier = {
+			factor = 2
+			OR = {
+				fast_heir_is_gnomish = yes
+				heir_culture = wood_elf
+			}
+			heir_age = 160
+		}
+		modifier = {
+			factor = 2.2
+			OR = {
+				fast_heir_is_gnomish = yes
+				heir_culture = wood_elf
+			}
+			heir_age = 182
+		}
+		modifier = {
+			factor = 2.6
+			OR = {
+				fast_heir_is_gnomish = yes
+				heir_culture = wood_elf
+			}
+			heir_age = 205
+		}
+		modifier = {
+			factor = 2
+			OR = {
+				fast_heir_is_gnomish = yes
+				heir_culture = wood_elf
+			}
+			heir_age = 240
+		}
+
+		#Half-Elven
+		modifier = {
+			factor = 2
+			fast_heir_is_half_elven = yes
+			heir_age = 80
+		}
+		modifier = {
+			factor = 2
+			fast_heir_is_half_elven = yes
+			heir_age = 90
+		}
+		modifier = {
+			factor = 2.7
+			fast_heir_is_half_elven = yes
+			heir_age = 100
+		}
+		modifier = {
+			factor = 3
+			fast_heir_is_half_elven = yes
+			heir_age = 110
+		}
+
+		#Harimari/Kobold
+		modifier = {
+			factor = 2
+			is_uncapped_lifespan_heir = yes
+			heir_age = 60
+		}
+		modifier = {
+			factor = 2.7
+			is_uncapped_lifespan_heir = yes
+			heir_age = 80
+		}
+		modifier = {
+			factor = 3
+			is_uncapped_lifespan_heir = yes
+			heir_age = 100
+		}
+
+		# Monarch Lifespan - Gain
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.05
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.1
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.15
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.2
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.25
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.3
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.35
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.4
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.45
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.5
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.55
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.6
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.65
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.7
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.75
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.8
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.85
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.9
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 0.95
+			}
+		}
+		modifier = {
+			factor = 0.95
+			
+			has_global_modifier_value = {
+				which = monarch_lifespan
+				value = 1.0
+			}
+		}
+		
+		# Monarch Lifespan - Loss
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.05
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.1
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.15
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.2
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.25
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.3
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.35
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.4
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.45
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.5
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.55
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.6
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.65
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.7
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.75
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.8
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.85
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.9
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -0.95
+				}
+			}
+		}
+		modifier = {
+			factor = 1.05
+			
+			NOT = {
+				has_global_modifier_value = {
+					which = monarch_lifespan
+					value = -1.0
+				}
+			}
+		}
+	}
+	
 	option = {
-		name = anb_ruler.6.a
-		kill_heir = { allow_new_heir = no }
+		name = anb_ruler.9
+		ai_chance = { factor = 100 }
+		
+		country_event = { id = anb_ruler.10 days = 1 random = 365 }
+		set_heir_flag = kill_heir_flag
+	}
+}
+
+#Heir dies
+country_event = {
+	id = anb_ruler.10
+	title = anb_ruler.10.t
+	desc = anb_ruler.10.d
+	picture = DIPLOMACY_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		has_heir_flag = kill_heir_flag
+	}
+	
+	option = {
+		name = anb_ruler.10
+		ai_chance = { factor = 100 }
+		
+		kill_heir = { }
 	}
 }
 
 #Long lived theocracy ruler abdicate
 country_event = {
-	id = anb_ruler.10
-	title = anb_ruler.10.t
-	desc = anb_ruler.10.d
+	id = anb_ruler.11
+	title = anb_ruler.11.t
+	desc = anb_ruler.11.d
 	picture = RELIGION_eventPicture
 
 	is_triggered_only = yes
 
-    trigger = {
+	trigger = {
 		has_dlc = "Rights of Man"
 		government = theocracy
 		NOT = { has_adventurer_reform = yes }
@@ -837,13 +2493,15 @@ country_event = {
 			days = 7300 #30 years
 		}
 		OR = {
-			ruler_is_elven = yes
-			ruler_is_dwarven = yes
-			ruler_is_gnomish = yes
-        }
+			fast_ruler_is_half_elven = yes
+			fast_ruler_is_elven = yes
+			fast_ruler_is_dwarven = yes
+			fast_ruler_is_gnomish = yes
+		}
 		religion_group = cannorian # This is annoying for Bulwari Sun Cults, Dwarven religions and etc... who'd likely not care how long an elf is the priest
+		NOT = { religion = dalcabba }
 		NOT = { has_ruler_modifier = long_lived_theocracy_no_abdication }
-    }
+	}
 
 	option = {
 		name = anb_ruler.10.a
@@ -854,7 +2512,7 @@ country_event = {
 	}
 
 	option = {
-		name = anb_ruler.10.b
+		name = anb_ruler.11.b
 		ai_chance = { factor = 0 }
 		trigger = {
 			NOT = { tag = Z97 } #Ravelian State needs to abdicate long-lived rulers for Rectorate Controller to change
@@ -868,10 +2526,269 @@ country_event = {
 	}
 }
 
-########################
-#### Debug Event
-########################
-#Consort get immortality
+#Red Reapers come
+country_event = {
+	id = anb_ruler.12
+	title = anb_ruler.12.t
+	desc = anb_ruler.12.d
+	picture = THE_COVENANT_eventPicture
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_ruler_flag = long_lived_ruler
+		if = {
+			limit = { fast_ruler_is_elven = yes NOT = { ruler_culture = wood_elf } }
+			ruler_age = 500
+		}
+		if = {
+			limit = { ruler_culture = wood_elf }
+			ruler_age = 350
+		}
+		if = {
+			limit = { fast_ruler_is_dwarven = yes }
+			ruler_age = 300
+		}
+		if = {
+			limit = { fast_ruler_is_gnomish = yes }
+			ruler_age = 350
+		}
+		NOT = {
+			has_country_flag = beat_red_reaper
+			has_ruler_flag = ghost_emperor
+			has_ruler_modifier = homunculus_ruler
+		}
+		if = {
+			limit = {
+				has_ruler_modifier = vampire_ruler
+			}
+			has_country_flag = exposed_vampire_ruler
+			had_country_flag = {
+				flag = vampire_ruler_has_coffin
+				days = 54750 # 150 Years
+			}
+		}
+		ruler_age = 200
+	}
+
+	mean_time_to_happen = {
+		days = 1
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 250
+		}
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 300
+		}
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 350
+		}
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 400
+		}
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 450
+		}
+
+		modifier = {
+			factor = 1.2
+			ruler_age = 500
+		}
+	}
+
+	option = {
+		name = anb_ruler.12.a
+		ai_chance = { factor = 100 }
+
+		trigger = {
+			NOT = {
+				AND = {
+					has_ruler_flag = necromancy_3
+					has_ruler_flag = divination_3
+					has_ruler_flag = evocation_3
+					has_ruler_flag = abjuration_3
+					has_ruler_flag = transmutation_3
+					has_ruler_flag = enchantment_3
+					has_ruler_flag = illusion_3
+					has_ruler_flag = conjuration_3
+				}
+			}
+		}
+
+		custom_tooltip = fight_red_reaper_tt
+
+		hidden_effect = {
+			random_list = {
+				5 = {
+					country_event = { id = anb_ruler.13 } #You kill the Red Reaper
+
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = necromancy_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = divination_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = evocation_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = abjuration_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = transmutation_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = enchantment_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = illusion_3
+					}
+					modifier = {
+						factor = 1.5
+						has_ruler_flag = conjuration_3
+					}
+					modifier = {
+						factor = 1.05
+						mil = 6
+					}
+				}
+				100 = {
+					country_event = { id = anb_ruler.14 } #Red Reaper kills you
+				}
+			}
+		}
+	}
+
+	option = {
+		name = anb_ruler.12.b
+		ai_chance = { factor = 100 }
+		highlight = yes
+
+		trigger = {
+			hidden_trigger = {
+				has_ruler_flag = necromancy_3
+				has_ruler_flag = divination_3
+				has_ruler_flag = evocation_3
+				has_ruler_flag = abjuration_3
+				has_ruler_flag = transmutation_3
+				has_ruler_flag = enchantment_3
+				has_ruler_flag = illusion_3
+				has_ruler_flag = conjuration_3
+			}
+		}
+
+		custom_tooltip = explode_red_reaper_tt
+		custom_tooltip = red_reaper_explode_option_tt
+
+		hidden_effect = { country_event = { id = anb_ruler.15 } } #You dab on the reaper with magic
+	}
+}
+
+#Red Reapers - victory over death
+country_event = {
+	id = anb_ruler.13
+	title = anb_ruler.13.t
+	desc = anb_ruler.13.d
+	picture = THE_COVENANT_eventPicture
+
+	is_triggered_only = yes
+
+	immediate = { hidden_effect = { set_country_flag = beat_red_reaper } }
+
+	option = {
+		name = anb_ruler.13.a
+		ai_chance = { factor = 100 }
+
+		add_splendor = 800
+		change_adm = -2
+		change_dip = -2
+		change_mil = -2
+		custom_tooltip = beat_red_reaper_tt
+	}
+}
+
+#Red Reapers - red reapers kill you
+country_event = {
+	id = anb_ruler.14
+	title = anb_ruler.14.t
+	desc = anb_ruler.14.d
+	picture = THE_COVENANT_eventPicture
+
+	is_triggered_only = yes
+
+	immediate = {
+		clr_country_flag = lich_ruler
+		clr_country_flag = lich_ruler_has_phylactery
+		clr_country_flag = lich_ruler_female
+		clr_country_flag = lich_ruler_male
+		clr_country_flag = exposed_lich_ruler
+		if = {
+			limit = { NOT = { has_government_attribute = inherits_magic } }
+			ruler_clear_saved_spell_schools = yes
+		}
+	}
+
+	option = {
+		name = anb_ruler.14.a
+		ai_chance = { factor = 100 }
+
+		export_to_variable = {
+			which = GetRulerAge
+			value = monarch_age
+			who = ROOT
+		}
+
+		kill_ruler = yes
+
+		hidden_effect = { country_event = { id = magic_project_lichdom.16 days = 7 } }
+		if = {
+			limit = { has_country_flag = b38_entef_ruler }
+			country_event = { id = flavor_elikhand.10 }
+		}
+		if = {
+			limit = { has_country_flag = gemradcurt_immariel_lich }
+			country_event = { id = flavor_gemradcurt.12 }
+		}
+	}
+}
+
+#Red Reapers - you're a master wizard and obliterate the reaper
+country_event = {
+	id = anb_ruler.15
+	title = anb_ruler.15.t
+	desc = anb_ruler.15.d
+	picture = THE_COVENANT_eventPicture
+
+	is_triggered_only = yes
+
+	immediate = { hidden_effect = { set_country_flag = beat_red_reaper } }
+
+	option = {
+		name = anb_ruler.15.a
+		ai_chance = { factor = 100 }
+
+		add_splendor = 800
+		custom_tooltip = beat_red_reaper_tt
+	}
+}
+
+#long lived consorts
 country_event = {
 	id = anb_ruler.100
 	title = anb_ruler.100.t
@@ -880,25 +2797,24 @@ country_event = {
 	hidden = yes
 	is_triggered_only = yes
 
-    trigger = {
-		has_dlc = "Rights of Man"
+	trigger = {
+		#has_dlc = "Rights of Man" - unnecessary as we no longer use ruler personalities
 		OR = {
-			consort_is_elven = yes
-			consort_is_dwarven = yes
-			consort_is_gnomish = yes
-			consort_is_half_elven = yes
+			fast_consort_is_elven = yes
+			fast_consort_is_dwarven = yes
+			fast_consort_is_gnomish = yes
+			fast_consort_is_half_elven = yes
 		}
-    }
+	}
 
 	option = {
 		name = anb_ruler.100.a
 
-		clear_consort_personalities = yes
-		add_queen_personality = immortal_personality
-		set_consort_flag = set_immortality
+		set_consort_flag = long_lived_ruler
 	}
 }
-#Heir get immortality
+
+#long lived heirs
 country_event = {
 	id = anb_ruler.101
 	title = anb_ruler.101.t
@@ -907,21 +2823,50 @@ country_event = {
 	hidden = yes
 	is_triggered_only = yes
 
-    trigger = {
-		has_dlc = "Rights of Man"
+	trigger = {
+		#has_dlc = "Rights of Man" - unnecessary as we no longer use ruler personalities
 		OR = {
-			heir_is_elven = yes
-			heir_is_dwarven = yes
-			heir_is_gnomish = yes
-			heir_is_half_elven = yes
+			fast_heir_is_elven = yes
+			fast_heir_is_dwarven = yes
+			fast_heir_is_gnomish = yes
+			fast_heir_is_half_elven = yes
 		}
-    }
+	}
 
 	option = {
-		name = anb_ruler.100.a
+		name = anb_ruler.101.a
 
-		clear_heir_personalities = yes
-		add_heir_personality = immortal_personality
-		set_heir_flag = set_immortality
+		set_heir_flag = long_lived_ruler
+	}
+}
+
+#long lived monarchs (in case you get a monarch who was neither a consort nor an heir before)
+country_event = {
+	id = anb_ruler.102
+	title = anb_ruler.102.t
+	desc = anb_ruler.102.d
+	picture = DIPLOMACY_eventPicture
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		#has_dlc = "Rights of Man" - unnecessary as we no longer use ruler personalities
+		OR = {
+			fast_ruler_is_elven = yes
+			fast_ruler_is_dwarven = yes
+			fast_ruler_is_gnomish = yes
+			fast_ruler_is_half_elven = yes
+		}
+	}
+
+	option = {
+		name = anb_ruler.102.a
+
+		set_ruler_flag = long_lived_ruler
+		if = {
+			limit = { government = theocracy }
+			set_ruler_flag = long_lived_theocracy
+		}
+			
 	}
 }

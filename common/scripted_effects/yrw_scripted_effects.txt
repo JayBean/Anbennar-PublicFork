@@ -1048,16 +1048,23 @@ yrw_iosahar_subjugation_preparation_effect = {
 					casus_belli = cb_independence_war
 				}
 			}
-		white_peace = ROOT
-		release_iosahar = yes
-		# peace subjugated iosahars out of independence wars against vassals
-		# to stop you getting the iosahar back for free, they're released - bad luck
-		# because if their new overlord joins the independence war (i.e. via enforce peace)
-		# then separately peaces, the game crashes
+			white_peace = ROOT
+			release_iosahar = yes
+			# peace subjugated iosahars out of independence wars against vassals
+			# to stop you getting the iosahar back for free, they're released - bad luck
+			# because if their new overlord joins the independence war (i.e. via enforce peace)
+			# then separately peaces, the game crashes
 		}
 	}
 
 	every_subject_country = {
+		if = {
+			limit = {
+				has_country_flag = ynn_iosahar_revolt_check
+			}
+			clr_country_flag = ynn_iosahar_revolt_check
+			set_country_flag = ynn_iosahar_revolted_last_debate
+		}
 		if = {	#Breaks PUs
 			limit = {
 				junior_union_with = ROOT
@@ -1122,24 +1129,30 @@ yrw_iosahar_subjugation_preparation_effect = {
 			name = ynn_diplo
 			duration = -1
 		}
-		if = {
-			limit = {
-				tag = G32
-				has_reform = malacnar_monarchy
-			}
-			FROM = { country_event = { id = flavor_malacnar.200 } }	#The fate of Malacnar
+	}
+
+	if = {
+		limit = {
+			tag = G32
+			has_reform = malacnar_monarchy
 		}
-		else_if = {
-			limit = {
-				has_country_flag = ynn_iosahar_breakup_debug
-			}
-			clr_country_flag = ynn_iosahar_breakup_debug
-		}
-		else = {
-			FROM = { country_event = { id = ynn_events.10 } }	#Breakup of new Iosahar
+		FROM = { 
+			country_event = { id = flavor_malacnar.200000 } #the fate of malacnar prep event
 		}
 	}
 
+
+	if = {
+		limit = {
+			NOT = {
+				has_country_flag = ynn_iosahar_breakup_debug
+			}
+		}
+		ynn_iosahar_breakup_effect = yes	#Breakup of new Iosahar
+	}
+	else = {
+		clr_country_flag = ynn_iosahar_breakup_debug
+	}
 
 	#Bosancovac
 	if = {
@@ -1152,11 +1165,146 @@ yrw_iosahar_subjugation_preparation_effect = {
 				tag = G33
 				OR = {
 					has_country_flag = bosancovac_chose_amacimst
-					has_country_flag = bosancovac_chose_amacimst
+					has_country_flag = bosancovac_chose_malacnar
 				}
 			}
 		}
 		FROM = { country_event = { id = flavour_bosancovac.212 days = 1 } }
+	}
+}
+
+ynn_iosahar_breakup_effect = {
+	if = {		#Returns cores belonging to you
+		limit = { core_claim = FROM }
+		ROOT = {
+			every_owned_province = {
+				limit = { 
+					is_core = FROM
+					NOT = {
+						is_capital = yes
+					}
+				}
+				cede_province = FROM
+			}
+		}
+	}
+	ROOT = {
+		every_owned_province = {
+			limit = {
+				any_core_country = {
+					NOT = { tag = ROOT }
+					exists = no
+					NOT = {
+						has_country_flag = ynn_iosahar_breakup_debug
+					}
+				}
+				NOT = {
+					is_capital = yes
+				}
+			}
+			random_core_country = {
+				limit = {
+					NOT = { tag = ROOT }
+					exists = no
+					NOT = {
+						has_country_flag = ynn_iosahar_breakup_debug
+					}
+				}
+				ROOT = {
+					release = PREV
+					# difficult to get primary culture and sets religion later so exempt from using release_with_religion_and_culture
+					set_country_flag = ynn_iosahar_breakup_debug
+				}
+				hidden_effect = {
+					set_country_flag = ynn_iosahar_breakup_debug
+					if = {
+						limit = {
+							culture_group = ynnic_ruinborn_elf
+						}
+						change_government = monarchy
+						add_government_reform = feudalism_reform
+						capital_scope = {
+							PREV = {
+								change_religion = PREV
+							}
+						}
+					}
+					else = {
+						change_government = republic
+						add_government_reform = oligarchy_reform
+						change_religion = ROOT
+					}
+						
+					add_opinion = {
+						who = FROM
+						modifier = saved_us_from_warlord
+					}
+				}
+			}
+		}
+	}
+	ynn_superregion = {		#Returns cores belonging to others. Also a fallback since sometimes countries are only released partly.
+		limit = { 
+			owned_by = ROOT
+			any_core_country = {
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			NOT = {
+				any_province_in_state = {
+					is_capital_of = ROOT	#Lets them keep their capital area
+				}
+			}
+		}
+		random_core_country = {
+			limit = { 
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			PREV = { cede_province = PREV }
+		}
+	}
+	forest_of_the_cursed_ones_region = {
+		limit = { 
+			owned_by = ROOT
+			any_core_country = {
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			NOT = {
+				any_province_in_state = {
+					is_capital_of = ROOT	#Lets them keep their capital area
+				}
+			}
+		}
+		random_core_country = {
+			limit = { 
+				NOT = { 
+					tag = ROOT
+					tag = FROM
+				} 
+			}
+			PREV = { cede_province = PREV }
+		}
+	}
+	ROOT =  {
+		# FROM = {
+		# 	country_event = { id = ynn_events.20000 }	#scope fuckery event
+		# }
+		every_known_country = {
+			limit = {
+				has_country_flag = ynn_iosahar_breakup_debug
+			}
+			clr_country_flag = ynn_iosahar_breakup_debug
+			add_truce_with = FROM
+			add_truce_with = ROOT
+		}
 	}
 }
 
@@ -1344,7 +1492,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_human_pop_trigger = yes
 			}
-			remove_all_human_minority_size_effect = yes
+			remove_racial_minority_any_size = { race = human }
 			owner = {
 				small_decrease_of_human_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1365,7 +1513,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_dwarven_pop_trigger = yes
 			}
-			remove_all_dwarf_minority_effect = yes
+			remove_racial_minority_any_size = { race = dwarven }
 			owner = {
 				small_decrease_of_dwarven_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1386,7 +1534,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_orcish_pop_trigger = yes 
 			}
-			remove_all_orc_minority_effect = yes
+			remove_racial_minority_any_size = { race = orcish }
 			owner = {
 				small_decrease_of_orcish_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1407,7 +1555,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_half_orcish_pop_trigger = yes
 			}
-			remove_all_horc_minority_effect = yes
+			remove_racial_minority_any_size = { race = half_orcish }
 			owner = {
 				small_decrease_of_half_orcish_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1428,7 +1576,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_elven_pop_trigger = yes
 			}
-			remove_all_elf_minority_effect = yes
+			remove_racial_minority_any_size = { race = elven }
 			owner = {
 				small_decrease_of_elven_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1449,7 +1597,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_half_elven_pop_trigger = yes
 			}
-			remove_all_half_elf_minority_effect = yes
+			remove_racial_minority_any_size = { race = half_elven }
 			owner = {
 				small_decrease_of_half_elven_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1470,7 +1618,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_halfling_pop_trigger = yes
 			}
-			remove_all_halfling_minority_effect = yes
+			remove_racial_minority_any_size = { race = halfling }
 			owner = {
 				small_decrease_of_halfling_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1491,7 +1639,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_gnomish_pop_trigger = yes
 			}
-			remove_all_gnome_minority_effect = yes
+			remove_racial_minority_any_size = { race = gnomish }
 			owner = {
 				small_decrease_of_gnomish_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1512,7 +1660,7 @@ clear_all_non_ruinborn_effect = {
 			limit = {
 				has_any_kobold_pop_trigger = yes
 			}
-			remove_all_kobold_minority_effect = yes
+			remove_racial_minority_any_size = { race = kobold }
 			owner = {
 				small_decrease_of_kobold_tolerance_effect = yes
 				random_neighbor_country = {
@@ -1528,375 +1676,6 @@ clear_all_non_ruinborn_effect = {
 					}
 				}
 			}
-		}
-	}
-}
-
-remove_all_human_minority_size_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = human_minority_integrated_large
-			}
-			remove_province_modifier = human_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = human_minority_coexisting_large
-			}
-			remove_province_modifier = human_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = human_minority_oppressed_large
-			}
-			remove_province_modifier = human_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = human_minority_integrated_small
-			}
-			remove_province_modifier = human_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = human_minority_coexisting_small
-			}
-			remove_province_modifier = human_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = human_minority_oppressed_small
-			}
-			remove_province_modifier = human_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_dwarf_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = dwarven_minority_integrated_large
-			}
-			remove_province_modifier = dwarven_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = dwarven_minority_coexisting_large
-			}
-			remove_province_modifier = dwarven_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = dwarven_minority_oppressed_large
-			}
-			remove_province_modifier = dwarven_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = dwarven_minority_integrated_small
-			}
-			remove_province_modifier = dwarven_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = dwarven_minority_coexisting_small
-			}
-			remove_province_modifier = dwarven_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = dwarven_minority_oppressed_small
-			}
-			remove_province_modifier = dwarven_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_horc_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_integrated_large
-			}
-			remove_province_modifier = half_orcish_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_coexisting_large
-			}
-			remove_province_modifier = half_orcish_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_oppressed_large
-			}
-			remove_province_modifier = half_orcish_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_integrated_small
-			}
-			remove_province_modifier = half_orcish_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_coexisting_small
-			}
-			remove_province_modifier = half_orcish_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_orcish_minority_oppressed_small
-			}
-			remove_province_modifier = half_orcish_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_orc_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = orcish_minority_integrated_large
-			}
-			remove_province_modifier = orcish_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = orcish_minority_coexisting_large
-			}
-			remove_province_modifier = orcish_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = orcish_minority_oppressed_large
-			}
-			remove_province_modifier = orcish_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = orcish_minority_integrated_small
-			}
-			remove_province_modifier = orcish_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = orcish_minority_coexisting_small
-			}
-			remove_province_modifier = orcish_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = orcish_minority_oppressed_small
-			}
-			remove_province_modifier = orcish_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_halfling_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = halfling_minority_integrated_large
-			}
-			remove_province_modifier = halfling_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = halfling_minority_coexisting_large
-			}
-			remove_province_modifier = halfling_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = halfling_minority_oppressed_large
-			}
-			remove_province_modifier = halfling_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = halfling_minority_integrated_small
-			}
-			remove_province_modifier = halfling_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = halfling_minority_coexisting_small
-			}
-			remove_province_modifier = halfling_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = halfling_minority_oppressed_small
-			}
-			remove_province_modifier = halfling_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_elf_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = elven_minority_integrated_large
-			}
-			remove_province_modifier = elven_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = elven_minority_coexisting_large
-			}
-			remove_province_modifier = elven_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = elven_minority_oppressed_large
-			}
-			remove_province_modifier = elven_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = elven_minority_integrated_small
-			}
-			remove_province_modifier = elven_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = elven_minority_coexisting_small
-			}
-			remove_province_modifier = elven_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = elven_minority_oppressed_small
-			}
-			remove_province_modifier = elven_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_half_elf_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = half_elven_minority_integrated_large
-			}
-			remove_province_modifier = half_elven_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_elven_minority_coexisting_large
-			}
-			remove_province_modifier = half_elven_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_elven_minority_oppressed_large
-			}
-			remove_province_modifier = half_elven_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_elven_minority_integrated_small
-			}
-			remove_province_modifier = half_elven_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_elven_minority_coexisting_small
-			}
-			remove_province_modifier = half_elven_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = half_elven_minority_oppressed_small
-			}
-			remove_province_modifier = half_elven_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_gnome_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = gnomish_minority_integrated_large
-			}
-			remove_province_modifier = gnomish_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = gnomish_minority_coexisting_large
-			}
-			remove_province_modifier = gnomish_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = gnomish_minority_oppressed_large
-			}
-			remove_province_modifier = gnomish_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = gnomish_minority_integrated_small
-			}
-			remove_province_modifier = gnomish_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = gnomish_minority_coexisting_small
-			}
-			remove_province_modifier = gnomish_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = gnomish_minority_oppressed_small
-			}
-			remove_province_modifier = gnomish_minority_oppressed_small
-		}
-	}
-}
-
-remove_all_kobold_minority_effect = {
-	hidden_effect = {
-		if = {
-			limit = {
-				has_province_modifier = kobold_minority_integrated_large
-			}
-			remove_province_modifier = kobold_minority_integrated_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = kobold_minority_coexisting_large
-			}
-			remove_province_modifier = kobold_minority_coexisting_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = kobold_minority_oppressed_large
-			}
-			remove_province_modifier = kobold_minority_oppressed_large
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = kobold_minority_integrated_small
-			}
-			remove_province_modifier = kobold_minority_integrated_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = kobold_minority_coexisting_small
-			}
-			remove_province_modifier = kobold_minority_coexisting_small
-		}
-		else_if = {
-			limit = {
-				has_province_modifier = kobold_minority_oppressed_small
-			}
-			remove_province_modifier = kobold_minority_oppressed_small
 		}
 	}
 }
@@ -2534,7 +2313,29 @@ create_iosahar = {
 		subject_type = ynnic_iosahar
 		subject = $tag$
 	}
-	$tag$ = { hidden_effect = { change_country_color = { country = PREV } capital_scope = { add_province_triggered_modifier = ynnic_iosahar_debug_modifier } } }
+	$tag$ = { 
+		hidden_effect = { 
+			if = {
+				limit = {
+					NOT = {
+						has_global_flag = dont_color_ynnic_iosahar
+					}
+					NOT = {
+						AND = {
+							$tag$ = {
+								NOT = {
+									has_country_modifier = ruinborn_administration
+								}
+							}
+							has_global_flag = dont_color_cannorian_iosahars
+						}
+					}
+				}
+				change_country_color = { country = PREV }
+			} 
+			capital_scope = { add_province_triggered_modifier = ynnic_iosahar_debug_modifier } 
+		} 
+	}
 }
 
 release_iosahar = {
