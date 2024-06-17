@@ -2,6 +2,31 @@ import os
 import ctypes
 import sys
 
+def calc_hash(key):
+    res = ctypes.c_uint32(-0x7ee3623b).value
+
+    for i in range(len(key)):
+        res = ctypes.c_uint32(ord(key[i]) ^ ctypes.c_uint32(res * 0x1000193).value).value
+
+    return res
+
+
+def load_vanilla_hashes():
+    vanilla_hashes = {}
+
+    if os.path.exists('vanilla_hashes.txt'):
+        with open('vanilla_hashes.txt', 'r', encoding="utf-8-sig", errors="ignore") as file:
+            text = file.readlines()
+            for line in text:
+                if len(line) == 0:
+                    continue
+
+                line = line.strip()
+                [hash, keys] = line.split(':')
+                vanilla_hashes[int(hash)] = keys.split(';')
+    return vanilla_hashes
+
+
 colors = {
     "RED": '\033[0;31m',
     "GREEN": '\033[0;32m',
@@ -11,14 +36,8 @@ colors = {
     "NC": '\033[0m'
 }
 
-def calc_hash(key):
-    res = ctypes.c_uint32(-0x7ee3623b).value
 
-    for i in range(len(key)):
-        res = ctypes.c_uint32(ord(key[i]) ^ ctypes.c_uint32(res * 0x1000193).value).value
-
-    return res
-
+vanilla_hashes = load_vanilla_hashes()
 path = 'localisation'
 
 hashes = {}
@@ -40,6 +59,16 @@ for file_name in os.listdir(path):
             hash = calc_hash(key)
             if hash not in hashes:
                 hashes[hash] = [(file_name, key)]
+
+                # Only include different keys from vanilla, duplicates are allowed due to overriding
+                if hash in vanilla_hashes:
+                    found_collision = False
+                    for vanilla_key in vanilla_hashes[hash]:
+                        if key != vanilla_key:
+                            hashes[hash].append(('Vanilla', vanilla_key))
+                            found_collision = True
+                    if found_collision:
+                        errors.append(hash)
             else:
                 hashes[hash].append((file_name, key))
 
