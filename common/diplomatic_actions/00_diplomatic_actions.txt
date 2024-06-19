@@ -228,9 +228,9 @@ declarewar = {
 	condition = { # Orda Aldresia Bug Fix
 		tooltip = AI_CANNOT_DECLARE_ON_WEAK_ORDA_ALDRESIA
 		potential = {
-			ai = yes
+			FROM = { tag = A77 }
 			is_part_of_hre = no
-			FROM ={ tag = A77 }
+			ai = yes
 		}
 		allow = {
 			A77 = {
@@ -241,9 +241,12 @@ declarewar = {
 	condition = {
 		tooltip = EMPERORS_GRACE
 		potential = {
-			ai = no
-			is_part_of_hre = no
 			FROM = { tag = A77 }
+			is_part_of_hre = no
+			ai = no
+			A77 = {
+				is_subject_of_type = imperial_bodyguard
+			}
 		}
 		allow = {
 			ROOT = {  
@@ -654,6 +657,30 @@ declarewar = {
 		allow = { has_reform = found_our_nation }
 	}
 
+	condition = { #Nekheis need permission to declare war
+		tooltip = NEKHEIS_NEED_WAR_RIGHTS
+		potential = { 
+			is_subject_of_type = nekhei 
+		}
+		allow = { 
+			OR = {
+				has_country_flag = G55_call_in_degakheion_flag
+				has_country_flag = nekhei_granted_war_rights_flag 
+				is_subject_of = FROM
+			}
+		}
+	}
+
+	condition = { #Nekheis need permission to declare war
+		tooltip = KAMRAYAKVALS_WAR_CANT_INTERVENE
+		potential = { 
+			FROM = { tag = U39 } #Orenvalyam
+		}
+		allow = { 
+			has_global_flag = kamrayakvals_war_end
+		}
+	}
+
 	effect = {
 		on_war_declaration_effect = yes #1.35
 
@@ -804,8 +831,9 @@ declarewar = {
 		if = {
 			limit = {
 				is_part_of_hre = no
-				is_in_war = {
-					defender_leader = A77
+				FROM = { 
+					tag = A77 
+					NOT = { total_development = 300 }
 				}
 			}
 			emperor = {
@@ -1214,7 +1242,13 @@ declarewar = {
 			limit = {
 				FROM = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 			}
-			FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } }
+			FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } every_subject_country = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } } }
+		}
+
+		#Revoke nekhei war rights after they declare a war
+		if = {
+			limit = { has_country_flag = nekhei_granted_war_rights_flag }
+			clr_country_flag = nekhei_granted_war_rights_flag
 		}
 	}
 }
@@ -2421,6 +2455,19 @@ annexationaction = {
 			}
 		}
 	}
+	
+	condition = { #Can't integrate nekheis unless you've formed Kheios
+		tooltip = NEKHEIS_MUST_FORM_KHEIOS
+		potential = { 
+			FROM = { is_subject_of_type = nekhei }
+		}
+		allow = { 
+			OR = {
+				tag = H22 #Kheios
+				was_tag = H22 #Kheios
+			}
+		}
+	}
 }
 
 integrationaction = {
@@ -2826,6 +2873,18 @@ callaction = {
 		}
 	}
 
+	effect = {
+		if = {
+			limit = {
+				FROM = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				any_war_enemy_country = {
+					NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				}
+			}
+		}
+		FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } }
+	}
+
 	condition = {	#Bosancovac can't call allies against the Boats' revolt
 		potential = {
 			ROOT = {
@@ -2847,6 +2906,16 @@ callaction = {
 		tooltip = mandate_no_disaster_help
 		potential = {
 			is_in_war = { casus_belli = cb_aakheta_uprising }
+		}
+		allow = {
+			always = no
+		}
+	}
+
+	condition = { #Besolaki Independence War
+		tooltip = G54_NO_ALLIES_TT
+		potential = {
+			has_country_flag = G54_in_independence_war_flag
 		}
 		allow = {
 			always = no
@@ -2996,8 +3065,8 @@ insultaction = {
 						is_great_power = no
 						NOT = { num_of_subjects = 1 }
 					}
+					reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT months = 120 }
 				}
-				reverse_add_casus_belli = { type = cb_vassalize_mission target = ROOT months = 120 }
 			}
 		}
 	}
@@ -3037,6 +3106,54 @@ requestpeace = {
 			}
         }
     }
+	condition = {
+        tooltip = aldreian_promise
+        potential = {
+			FROM = {
+				is_subject_of_type = imperial_bodyguard
+				overlord = {
+					is_emperor = yes
+					OR = {
+						is_in_war = {
+							attacker_leader = THIS
+							participants = ROOT
+						}
+						is_in_war = {
+							defender_leader = THIS
+							participants = ROOT
+						}
+					}
+				}
+			}
+		}
+		allow = {
+			always = no
+        }
+    }
+	condition = {
+        tooltip = emperors_legitimacy
+        potential = {
+			FROM = {
+				is_emperor = yes
+				A77 = {
+					is_in_war = {
+						defender_leader = THIS
+						participants = ROOT
+					}
+				}
+			}
+			A77 = {
+				is_subject_of_type = imperial_bodyguard
+			}
+			ROOT = {
+				is_part_of_hre = no
+			}
+		}
+		allow = {
+			always = no
+        }
+    }
+	
 	condition = {
 		tooltip = B34_CANT_PEACE_tt
 		potential = {
@@ -3081,6 +3198,16 @@ requestpeace = {
 			}
 		}
 		allow = { always = no }
+	}
+	condition = { #Besolaki Independence War
+		tooltip = G54_NO_PEACE_OUT_TT
+		potential = {
+			has_country_flag = G54_in_independence_war_flag
+			FROM = { has_country_flag = G54_in_independence_war_flag }
+		}
+		allow = {
+			always = no
+		}
 	}
 }
 
