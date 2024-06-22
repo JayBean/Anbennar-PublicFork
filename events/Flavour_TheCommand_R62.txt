@@ -814,7 +814,7 @@ country_event = { #The Governance of the Mines
 			set_country_flag = command_jade_march_preference_flag
 			change_religion = godlost
 		}
-		custom_tooltip = R62_prepare_new_stewards_effect_tt
+		custom_tooltip = R62_governance_of_the_mines_effect_tt
 	}
 
 	option = {
@@ -849,7 +849,7 @@ country_event = { #The Governance of the Mines
 			set_country_flag = command_jade_march_preference_flag
 			change_religion = godlost
 		}
-		custom_tooltip = R62_prepare_new_stewards_effect_tt
+		custom_tooltip = R62_governance_of_the_mines_effect_tt
 	}
 }
 
@@ -5655,11 +5655,8 @@ country_event = { #Sir revolt starts
 				limit = {
 					ai = no
 					has_reform = xiaken
-					any_war_enemy_country = { has_reform = xiaken }
 				}
-				white_peace = R62
-				add_prestige = 25
-				set_country_flag = sir_revolt_fake_truce_flag
+				country_event = { id = the_command.129 }
 			}
 		}
 		if = {
@@ -5897,6 +5894,30 @@ country_event = { #Offer for Truce
 		}
 	}
 
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						all_war_enemy_countries = { #you won Sir Revolt due to unconditional surrender
+							OR = {
+								NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+								is_subject = yes
+								capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+							}
+						}
+						AND = { #you lost Sir Revolt due to unconditional surrender
+							4630 = { NOT = { controlled_by = R62 } }
+							4538 = { NOT = { controlled_by = R62 } }
+							4311 = { NOT = { controlled_by = R62 } }
+						}
+					}
+				}
+				country_event = { id = the_command.3003 }
+			}
+		}
+	}
+
 	#this currently always results in White Peace after 10 years.
 	#In the future it could be warscore dependent,
 	#but rn the is_in_war war_score trigger is bugged and doesn't work
@@ -5906,7 +5927,7 @@ country_event = { #Offer for Truce
 			factor = 1
 		}
 		custom_tooltip = command_sir_revolt_truce_offer_tt
-		R78 = { country_event = { id = the_command.122 days = 1 } }
+		R78 = { country_event = { id = the_command.122 days = 31 } }
 	}
 	option = {
 		name = the_command.121.b
@@ -5924,6 +5945,12 @@ country_event = { #Truce Offer P2
 
 	is_triggered_only = yes
 	major = yes
+
+	trigger = {
+		is_in_war = {
+			casus_belli = cb_revolt_of_the_north
+		}
+	}
 
 	option = {
 		name = the_command.122.a
@@ -7191,10 +7218,13 @@ country_event = { #Sir Revolt End - Command Victory
 		custom_tooltip = command_sir_revolt_win_vs_sir_tt
 		if = {
 			limit = { has_country_modifier = command_exemplary_leadership }
-			remove_country_modifier = command_exemplary_leadership
-			add_ruler_modifier = {
-				name = command_respected_leadership
-				duration = -1
+			custom_tooltip = command_upgrade_to_respected_tt
+			hidden_effect = {
+				remove_country_modifier = command_exemplary_leadership
+				add_ruler_modifier = {
+					name = command_respected_leadership
+					duration = -1
+				}
 			}
 		}
 		else = {
@@ -7462,10 +7492,42 @@ country_event = { #Oni choose not to defend Command in the Sir Revolt
 	is_triggered_only = yes
 
 	option = {
-		name= the_command.128.a
+		name = the_command.128.a
 		ai_chance = { factor = 1 }
 		white_peace = R78
 		add_prestige = 25
+	}
+}
+country_event = { #Player Xiaken can choose to opt out of the Sir Revolt
+	id = the_command.129
+	title = the_command.129.t
+	desc = the_command.129.desc
+	picture = CHURCH_ESTATE_2_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = the_command.129.a
+		ai_chance = { factor = 1 }
+	}
+
+	option = {
+		name = the_command.129.b
+		ai_chance = { factor = 1 }
+		white_peace = R62
+		every_known_country = {
+			limit = { has_reform = xiaken }
+			add_truce_with = ROOT
+		}
+	}
+	
+	option = {
+		name = the_command.129.c
+		ai_chance = { factor = 1 }
+		add_treasury = -100
+		R62 = { add_treasury = 100 }
+		white_peace = R62
+		set_country_flag = sir_revolt_fake_truce_flag
 	}
 }
 
@@ -8358,7 +8420,6 @@ country_event = { #wolf army menu bounceback
 	option = {
 		name = flavor_castanor_go_back
 		ai_chance = { factor = 1 }
-
 		country_event = { id = the_command.312 }
 	}
 }
@@ -8921,33 +8982,57 @@ country_event = {
 			factor = 1
 			modifier = {
 				factor = 0
-				NOT = { has_country_flag = command_xiadao_campaign_completed_flag }
-			}
-			modifier = {
-				factor = 100
-				OR = {
-					NOT = { has_country_flag = command_shamakhad_campaign_completed_flag }
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						NOT = { has_country_flag = command_dhujat_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_xianjie_campaign_completed_flag
-						has_country_flag = command_dhujat_campaign_completed_flag
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_sikai_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_azjakuma_campaign_unlocked_flag
-						NOT = { has_country_flag = command_azjakuma_campaign_completed_flag }
-					}
+				OR = { #Disable regular logic for Azjakuma campaign
+					NOT = { has_country_flag = command_azjakuma_campaign_unlocked_flag }
+					has_country_flag = command_azjakuma_campaign_completed_flag
 				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_wolf_command
-					higher_than_influence = no
+				OR = {
+					NOT = { has_country_flag = command_xiadao_campaign_completed_flag }
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
+						has_country_flag = command_shamakhad_campaign_completed_flag
+						NOT = { has_country_flag = command_bianfang_campaign_completed_flag }
+					}
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						has_country_flag = command_dhujat_campaign_completed_flag
+						OR = {
+							NOT = { has_country_flag = command_xianjie_campaign_completed_flag }
+							NOT = {
+								has_country_flag = command_yanszin_campaign_completed_flag
+								has_country_flag = command_zyujyut_campaign_completed_flag
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
+						has_country_flag = command_sikai_campaign_completed_flag
+						NOT = {
+							AND = {
+								has_country_flag = command_yanszin_campaign_completed_flag
+								has_country_flag = command_zyujyut_campaign_completed_flag
+								OR = {
+									has_country_flag = command_rakhadesh_campaign_completed_flag
+									has_country_flag = command_ghavaanaj_campaign_completed_flag
+								}
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						OR = {
+							has_country_flag = command_baihon_xinh_campaign_completed_flag
+							has_country_flag = command_thidinkai_campaign_completed_flag
+						}
+						OR = {
+							has_country_flag = command_dhenbasana_campaign_completed_flag
+							has_country_flag = command_bhuvauri_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_tianlou_campaign_completed_flag
+								has_country_flag = command_hukai_campaign_completed_flag
+								has_country_flag = command_rakhadesh_campaign_completed_flag
+								has_country_flag = command_ghavaanaj_campaign_completed_flag
+							}
+						}
+					}
 				}
 			}
 		}
@@ -8969,29 +9054,54 @@ country_event = {
 		ai_chance = {
 			factor = 1
 			modifier = {
-				factor = 100
+				factor = 0
 				OR = {
-					AND = {
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
 						has_country_flag = command_xiadao_campaign_completed_flag
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_xianjie_campaign_completed_flag }
+						NOT = {
+							AND = {
+								has_country_flag = command_shamakhad_campaign_completed_flag
+								has_country_flag = command_bianfang_campaign_completed_flag
+							}
+						}
 					}
-					AND = {
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						has_country_flag = command_xianjie_campaign_completed_flag
+						OR = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+						NOT = { has_country_flag = command_dhujat_campaign_completed_flag }
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
 						has_country_flag = command_telebei_campaign_completed_flag
-						NOT = { has_country_flag = command_hukai_campaign_completed_flag }
+						has_country_flag = command_zyujyut_campaign_completed_flag
+						OR = {
+							has_country_flag = command_rakhadesh_campaign_completed_flag
+							has_country_flag = command_ghavaanaj_campaign_completed_flag
+						}
+						NOT = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+						}
 					}
-					AND = {
-						OR = { has_country_flag = command_dhujat_campaign_completed_flag has_country_flag = command_xianjie_campaign_completed_flag }
-						NOT = { has_country_flag = command_telebei_campaign_completed_flag }
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						has_country_flag = command_rakhadesh_campaign_completed_flag
+						has_country_flag = command_hukai_campaign_completed_flag
+						OR = {
+							has_country_flag = command_dhenbasana_campaign_completed_flag
+							has_country_flag = command_bhuvauri_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_tianlou_campaign_completed_flag
+								has_country_flag = command_ghavaanaj_campaign_completed_flag
+								OR = {
+									has_country_flag = command_baihon_xinh_campaign_completed_flag
+									has_country_flag = command_thidinkai_campaign_completed_flag
+								}
+							}
+						}
 					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_boar_command
-					higher_than_influence = no
 				}
 			}
 		}
@@ -9013,32 +9123,57 @@ country_event = {
 		ai_chance = {
 			factor = 1
 			modifier = {
-				factor = 100
-				OR = {
-					AND = {
-						has_country_flag = command_xiadao_campaign_completed_flag
-						NOT = { has_country_flag = command_bianfang_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_yanszin_campaign_completed_flag
-						NOT = { has_country_flag = command_tianlou_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						has_country_flag = command_dhujat_campaign_completed_flag
-						NOT = { has_country_flag = command_ghavaanaj_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_tree_of_stone_campaign_unlocked_flag
-						NOT = { has_country_flag = command_tree_of_stone_campaign_completed_flag }
-					}
+				factor = 0
+				OR = { #Disable regular logic for the Tree of Stone campaign
+					NOT = { has_country_flag = command_tree_of_stone_campaign_unlocked_flag }
+					has_country_flag = command_tree_of_stone_campaign_completed_flag
 				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_lion_command
-					higher_than_influence = no
+				OR = {
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
+						has_country_flag = command_bianfang_campaign_completed_flag
+						NOT = { has_country_flag = command_shamakhad_campaign_completed_flag }
+					}
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						OR = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_dhujat_campaign_completed_flag
+								has_country_flag = command_xianjie_campaign_completed_flag
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
+						has_country_flag = command_yanszin_campaign_completed_flag
+						OR = {
+							has_country_flag = command_rakhadesh_campaign_completed_flag
+							has_country_flag = command_ghavaanaj_campaign_completed_flag
+						}
+						NOT = {
+							has_country_flag = command_telebei_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						has_country_flag = command_tianlou_campaign_completed_flag
+						has_country_flag = command_ghavaanaj_campaign_completed_flag
+						OR = {
+							has_country_flag = command_baihon_xinh_campaign_completed_flag
+							has_country_flag = command_thidinkai_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_rakhadesh_campaign_completed_flag
+								has_country_flag = command_hukai_campaign_completed_flag
+								OR = {
+									has_country_flag = command_dhenbasana_campaign_completed_flag
+									has_country_flag = command_bhuvauri_campaign_completed_flag
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -9057,29 +9192,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_dragon_command
 		goto = estate_dragon_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_yanszin_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_zyujyut_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_dragon_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -9095,29 +9208,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_elephant_command
 		goto = estate_elephant_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_sikai_campaign_completed_flag
-						NOT = { has_country_flag = command_thidinkai_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_hukai_campaign_completed_flag
-						NOT = { has_country_flag = command_baihon_xinh_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_elephant_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -9133,29 +9224,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_tiger_command
 		goto = estate_tiger_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_dhujat_campaign_completed_flag
-						NOT = { has_country_flag = command_bhuvauri_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						NOT = { has_country_flag = command_rakhadesh_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_tiger_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -11754,31 +11823,31 @@ country_event = {
 		has_estate = estate_tiger_command
 		has_estate = estate_dragon_command
 		has_estate = estate_elephant_command
-		# Requires each subcontinent to have 400 dev owned + over 2k dev outside of Shamakhad.
+		# Requires each subcontinent to have 30 provinces owned + over 120 provinces outside of Shamakhad.
 		OR = {
-			development_in_provinces = {
-				value = 400
+			num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+				value = 30
 				superregion = yanshen_superregion
 			}
 			AND = {
-				development_in_provinces = {
-					value = 200
+				num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+					value = 15
 					superregion = yanshen_superregion
 				}
-				development_in_provinces = { value = 2000 NOT = { region = shamakhad_region } }
+				num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 150 NOT = { region = shamakhad_region } }
 			}
 			ai = yes #AI insub is eventually gonna happen!!
 		}
-		development_in_provinces = {
-			value = 400
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+			value = 30
 			superregion = south_haless_superregion
 		}
-		development_in_provinces = {
-			value = 400
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+			value = 30
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
 		}
-		development_in_provinces = { value = 1600 NOT = { region = shamakhad_region } }
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 120 NOT = { region = shamakhad_region } }
 		any_owned_province = {
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
@@ -14919,11 +14988,33 @@ country_event = { # makes troops because AI is stupid
 	option = {
 		name = the_command.2009.a
 		ai_chance = { factor = 1 }
-		capital_scope = {
-			build_to_forcelimit = {
-				infantry = 0.55
-				cavalry = 0.05
-				artillery = 0.4
+		if = {
+			limit = { mil_tech = 16 }
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.55
+					cavalry = 0.05
+					artillery = 0.4
+				}
+			}
+		}
+		else_if = {
+			limit = { mil_tech = 13 }
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.6
+					cavalry = 0.1
+					artillery = 0.3
+				}
+			}
+		}
+		else = {
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.65
+					cavalry = 0.15
+					artillery = 0.2
+				}
 			}
 		}
 	}
