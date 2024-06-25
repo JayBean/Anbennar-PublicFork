@@ -1314,6 +1314,203 @@ mission_faction_trigger = {
     }
 }
 
+# Ovdal Tungr
+F23_owned_by_friendly_nation = { # Province scope
+	custom_trigger_tooltip = {
+		tooltip = F23_coop_owned
+		OR = {
+			owned_by = F23
+			owned_by_subject_of = F23
+			AND = {
+				OR = {
+					owned_by = U17
+					owned_by_subject_of = U17
+				}
+				U17 = { alliance_with = F23 }
+			}
+		}
+	}
+}
+F23_extending_our_reach_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = F23_extending_our_reach_trigger_tt
+		any_trade_node_member_province = { 
+			has_terrain = coastline
+			F23_owned_by_friendly_nation = yes
+			has_shipyard_building_trigger = yes
+			num_free_building_slots = 1
+			NOT = { province_id = 452 }
+		}
+	}
+}
+F23_trade_node_requirements = {
+	custom_trigger_tooltip = {
+		tooltip = F23_trade_node_requirements_trigger_tt_$expand_infra_req$
+		calc_true_if = {
+			all_trade_node_member_province = {
+				owned_by = ROOT
+				if = {
+					limit = { has_dlc = "Leviathan" } 
+					num_of_times_expanded_infrastructure = $expand_infra_req$
+				}
+				else = {
+					development = 30
+				}
+				if = {
+					limit = { has_dlc = "Dharma" } 
+					province_has_center_of_trade_of_level = 3
+				}
+				else = {
+					province_has_center_of_trade_of_level = 1
+				}
+				heavy_ships_in_province = $heavy_ship_num$
+			}
+			amount = 1
+		}
+	}
+}
+F23_bulwar_province_triggers = {
+	OR = {
+		owner = {
+			if = {
+				limit = { is_subject = yes }
+				overlord = { has_spy_network_from = { who = ROOT value = 30 } }
+			}
+			else = { has_spy_network_from = { who = ROOT value = 30 } }
+		}
+		owner = {
+			if = {
+				limit = { is_subject = yes }
+				overlord = { has_opinion = { who = ROOT value = 100 } }
+			}
+			else = { has_opinion = { who = ROOT value = 100 } }
+		}
+		F23_owned_by_friendly_nation = yes
+	}
+}
+F23_encouraging_excess_trigger = {
+	OR = {
+		artist = 3
+		philosopher = 3
+	}
+	OR = {
+		diplomatic_reputation = 4
+		custom_trigger_tooltip = {
+			tooltip = F23_encouraging_excess_magical_feast
+			OR = {
+				has_country_modifier = magic_estate_magnificent_feast_1
+				has_country_modifier = magic_estate_magnificent_feast_2
+				has_country_modifier = magic_estate_magnificent_feast_3
+			}
+		}
+	}
+	custom_trigger_tooltip = {
+		tooltip = F23_encouraging_excess_trigger_tt
+		NOT = {
+			any_known_country = {
+				NOT = { tag = U17 }
+				capital_scope = {
+					superregion = bulwar_superregion
+				}
+				prestige = ROOT
+			}
+		}
+	}
+	treasury = 1000
+}
+F23_copper_offer_subtrigger_already_subject = {
+	AND = {
+		is_subject_of = F23 
+		NOT = { is_subject_of_type = trade_protectorate } 
+		has_opinion_modifier = {
+			who = F23
+			modifier = getting_subsidies
+			value = 14
+		}
+		NOT = { liberty_desire = 50 }
+	}
+}
+F23_copper_offer_subtrigger_willing_to_become_subject = {
+	AND = {
+		is_subject = no 
+		transfers_trade_power_to = F23 
+		NOT = { total_development = 100 }	
+	}
+}
+
+F23_make_the_copper_offer_trigger = {
+	$prov_num$ = {
+		NOT = { has_province_flag = F23_copper_offer_made } # Can't be repeated for provinces.
+		owner = { # Won't work on players, except for OT.
+			if = { limit = { is_subject = no }
+				ai = yes
+			}
+			else = {
+				overlord = { OR = { ai = yes tag = F23 } }
+			}
+		}
+		owner = {
+			OR = {
+				F23_copper_offer_subtrigger_already_subject = yes
+				F23_copper_offer_subtrigger_willing_to_become_subject = yes
+				AND = {
+					is_subject = no
+					has_opinion = { who = F23 value = 125 }	
+					$prov_num$ = { is_capital = no }
+					$appropriate_tag$ = { OR = { exists = no is_subject_of = PREV } }					
+				}
+				if = { limit = { is_subject = yes }
+					AND = {
+						OR = { $appropriate_tag$ = { exists = no } tag = $appropriate_tag$ } 
+						overlord = { has_opinion = { who = F23 value = 125 } }						
+					}
+				}
+				else = {
+					always = no
+				}
+			}
+		}
+	}
+}
+
+F23_upstream_trade_trigger = {
+	if = { limit = { $prov_num$ = { has_province_flag = F23_upstream_trade_flag } }
+		$prov_num$ = { light_ships_in_province = $light_ship_num$ } # Would love to have this require that the ships be from OT, but num_of_units_in_province doesn't seem to work with type = light_ship.
+	}
+}
+
+# Sea Hold design.
+F23_sea_hold_design_modification_trigger = {
+	[[enable]
+		NOT = { has_country_flag = F23_sea_hold_$modification$_enabled }
+		check_variable = { which = sea_hold_var_mods value = 1 }
+		check_variable = { which = sea_hold_var_slots value = 1 }				
+	]
+	[[disable]
+		has_country_flag = F23_sea_hold_$modification$_enabled
+	]	
+	[[maxed]
+		NOT = { has_country_flag = F23_sea_hold_$modification$_enabled }
+		OR = {
+			NOT = { check_variable = { which = sea_hold_var_mods value = 1 } }
+			NOT = { check_variable = { which = sea_hold_var_slots value = 1 }	}
+		}
+	]
+}
+F23_sea_hold_design_module_trigger = {
+	[[enable]
+		NOT = { has_country_flag = F23_sea_hold_$module$_enabled }
+		check_variable = { which = sea_hold_var_slots value = 1 }				
+	]
+	[[disable]
+		has_country_flag = F23_sea_hold_$module$_enabled
+	]	
+	[[maxed]
+		NOT = { has_country_flag = F23_sea_hold_$module$_enabled }
+		NOT = { check_variable = { which = sea_hold_var_slots value = 1 }	}
+	]
+}
+
 argordstun_roughness_100 = {
 	has_government_power = {
 		mechanic_type = argordstun_roughness_mechanic
@@ -1358,6 +1555,136 @@ argordstun_roughness_25 = {
 			mechanic_type = argordstun_roughness_mechanic
 			power_type = argordstun_roughness_power
 			value = 25
+		}
+	}
+}
+
+#Thangoya
+azkare_mission = {
+	custom_trigger_tooltip = {
+		tooltip = thangoya_azkare_mission_tt
+		has_country_modifier = thangoya_azkare_ruler
+	}
+}
+
+khao_elnak_mission = {
+	custom_trigger_tooltip = {
+		tooltip = thangoya_khao_elnak_mission_tt
+		has_country_modifier = thangoya_khao_elnak_ruler
+	}
+}
+
+lo_ngoen_mission = {
+	custom_trigger_tooltip = {
+		tooltip = thangoya_lo_ngoen_mission_tt
+		has_country_modifier = thangoya_lo_ngoen_ruler
+	}
+}
+
+thirabnir_mission = {
+	custom_trigger_tooltip = {
+		tooltip = thangoya_thirabnir_mission_tt
+		has_country_modifier = thangoya_thirabnir_ruler
+	}
+}
+
+#Bjarnik/Skalds
+is_tale_1 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_1
+		OR = {
+			has_personal_deity = the_dragon_and_the_skald
+			has_personal_deity = emp_the_dragon_and_the_skald
+		}
+	}
+}
+
+is_tale_2 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_2
+		OR = {
+			has_personal_deity = voyage_of_the_north_raider
+			has_personal_deity = emp_voyage_of_the_north_raider
+		}
+	}
+}
+
+is_tale_3 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_3
+		OR = {
+			has_personal_deity = beralic_saga
+			has_personal_deity = emp_beralic_saga
+		}
+	}
+}
+
+is_tale_4 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_4
+		OR = {
+			has_personal_deity = dirge_of_the_deep
+			has_personal_deity = emp_dirge_of_the_deep
+		}
+	}
+}
+
+is_tale_5 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_5
+		OR = {
+			has_personal_deity = treasure_of_the_golden_forest
+			has_personal_deity = emp_treasure_of_the_golden_forest
+		}
+	}
+}
+
+is_tale_6 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_6
+		OR = {
+			has_personal_deity = the_old_winter_lullaby
+			has_personal_deity = emp_the_old_winter_lullaby
+		}
+	}
+}
+
+is_tale_7 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_7
+		OR = {
+			has_personal_deity = gjalund_and_the_giantslayers
+			has_personal_deity = emp_gjalund_and_the_giantslayers
+		}
+	}
+}
+
+is_tale_8 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_8
+		OR = {
+			has_personal_deity = master_boat_builders_of_far_gerudia_beyond
+			has_personal_deity = emp_master_boat_builders_of_far_gerudia_beyond
+		}
+	}
+}
+
+is_tale_9 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_9
+		OR = {
+			has_personal_deity = tale_of_leif_snaketongue
+			has_personal_deity = emp_tale_of_leif_snaketongue
+		}
+	}
+}
+
+is_tale_10 = {
+	custom_trigger_tooltip = {
+		tooltip = skald_tale_10
+		OR = {
+			has_personal_deity = castan_ebonfrost
+			has_personal_deity = emp_castan_ebonfrost
 		}
 	}
 }
