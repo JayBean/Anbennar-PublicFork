@@ -814,6 +814,7 @@ country_event = { #The Governance of the Mines
 			set_country_flag = command_jade_march_preference_flag
 			change_religion = godlost
 		}
+		custom_tooltip = R62_governance_of_the_mines_effect_tt
 	}
 
 	option = {
@@ -848,6 +849,7 @@ country_event = { #The Governance of the Mines
 			set_country_flag = command_jade_march_preference_flag
 			change_religion = godlost
 		}
+		custom_tooltip = R62_governance_of_the_mines_effect_tt
 	}
 }
 
@@ -871,7 +873,7 @@ province_event = { #Migration from X to Y
 	#tl;dr: if two of the same event happen their immediates fire but you don't see the second event.
 	#it can also break loca and flags and suchlike. In this case it's fine tho
 	immediate = {
-		hidden_effect = { province_event = { id = the_command.20 days = 365 random = 365 } }
+		hidden_effect = { province_event = { id = the_command.20 days = 365 random = 730 } }
 	}
 	after = {
 		command_migration_randomization_effect = yes
@@ -917,6 +919,10 @@ province_event = { #Migration from X to Y
 		####Migration to New Camp
 		event_target:command_destination_province = {
 			if = {
+				limit = { NOT = { country_or_non_sovereign_subject_holds = R62 } }
+				#do nothing
+			}
+			else_if = {
 				limit = { has_province_modifier = hobgoblin_minority_integrated_large }
 				if = {
 					limit = { owner = { num_of_owned_provinces_with = { value = 4 culture = lion_command region = shamakhad_region } } }
@@ -1257,6 +1263,15 @@ province_event = { #The Laws of Ninun
 
 	trigger = {
 		NOT = { continent = serpentspine }
+		owner = {
+			OR = {
+				tag = R62
+				is_subject_of_type_with_overlord = {
+					who = R62
+					type = slave_state
+				}
+			}
+		}
 		OR = {
 			has_state_edict = laws_of_ninun_edict
 			has_province_flag = ai_command_currently_wuhyunizing_this_province_flag
@@ -2983,11 +2998,13 @@ country_event = { #Auto-Wuhyunification pulse
 				has_province_flag = ai_command_wuhyunize_this_province_flag
 				NOT = { has_province_flag = ai_command_currently_wuhyunizing_this_province_flag }
 			}
-			random = {
-				chance = 3
-				clr_province_flag = ai_command_wuhyunize_this_province_flag
-				set_province_flag = ai_command_currently_wuhyunizing_this_province_flag
-				add_province_triggered_modifier = command_wuhyunization_randomizer_ptm
+			random_list = {
+				7 = {
+					clr_province_flag = ai_command_wuhyunize_this_province_flag
+					set_province_flag = ai_command_currently_wuhyunizing_this_province_flag
+					add_province_triggered_modifier = command_wuhyunization_randomizer_ptm
+				}
+				193 = {}
 			}
 		}
 		
@@ -3076,6 +3093,10 @@ province_event = { #Notification of area being converted
 
 	is_triggered_only = yes
 	goto = ROOT
+
+	trigger = { #this needs to be here so that in the most edge of edge cases, no CTD happens
+		is_state = yes
+	}
 
 	immediate = {
 		hidden_effect = { set_state_edict = revoke_state_edict }
@@ -4986,6 +5007,7 @@ country_event = { #Azjakuma hands back land outside the demon hills
 			every_owned_province = {
 				limit = { NOT = { region = demon_hills_region } }
 				cede_province = R62
+				hidden_effect = { Y01 = { add_liberty_desire = 5 } }
 			}
 		}
 	}
@@ -5064,6 +5086,7 @@ country_event = { #Growing Concerns
 	option = {
 		name = the_command.111.a
 		ai_chance = { factor = 10 }
+		custom_tooltip = command_sir_revolt_difficulty_warning_tt
 		custom_tooltip = command_sir_revolt_rewards_hint_tt
 		add_country_modifier = { name = command_arrogance_of_the_chimera duration = 9125 }
 		set_variable = { which = command_number_of_sir_revolt_preparations value = 0 }
@@ -5535,56 +5558,55 @@ country_event = { #Sir revolt starts
 			limit = { R09 = { exists = no } }
 			clr_country_flag = command_sir_revolt_parraj_participation
 		}
-		set_country_flag = command_sir_revolt_started
-		hidden_effect = { country_event = { id = the_command.121 days = 3650 } }
+		hidden_effect = { country_event = { id = the_command.121 days = 4380 } }
 	}
 
 	after = {
-		if = {
-			limit = {
-				R62 = {
-					alliance_with = Y01
-					has_country_flag = command_sir_revolt_oni_participation
-				}
-			}
-			Y01 = { country_event = { id = the_command.128 } }
-		}
-		every_war_enemy_country = {
-			gronstunad_area = { discover_country = PREV }
-			if = {
-				limit = {
-					is_subject = yes
-					all_war_enemy_countries = {
-						OR = {
-							tag = R62
-							is_subject_of = R62
-							alliance_with = R62
-							ai = yes
+		R62 = {
+			set_country_flag = command_sir_revolt_started
+			every_war_enemy_country = {
+				gronstunad_area = { discover_country = PREV }
+				if = {
+					limit = {
+						all_war_enemy_countries = {
+							is_in_war = { casus_belli = cb_revolt_of_the_north }
 						}
 					}
+					if = {
+						limit = { is_subject = yes }
+						capital_scope = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+					}
+					else = {
+						capital_scope = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
+					}
 				}
-				capital_scope = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-			}
-			else = {
-				capital_scope = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 			}
 		}
-		4323 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4350 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4521 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
-		4628 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 hidden = yes } }
+		if = {
+			limit = { R62 = { has_country_flag = command_sir_revolt_oni_participation } }
+			if = {
+				limit = { R62 = { alliance_with = Y01 } }
+				Y01 = { country_event = { id = the_command.128 } }
+			}
+			else = { Y01 = { add_truce_with = R78 } }
+		}
+		4323 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4350 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4521 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
+		4628 = { add_province_modifier = { name = command_defensiveness_for_ai duration = -1 } }
 		4630 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 		4538 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 		4311 = { add_province_modifier = { name = command_trade_power_for_ai duration = -1 hidden = yes } }
 		if = {
-			limit = {
+			limit = { #we don't need to put this up above because AI will never swap to Sir
 				ai = yes
 				all_war_enemy_countries = {
 					ai = yes
 				}
 			}
-			4352 = { add_building = fort_18th add_province_modifier = { name = command_fake_fort duration = -1 } }
-			4345 = { add_building = fort_18th add_province_modifier = { name = command_fake_fort duration = -1 } }
+			set_capital = 4311
+			4352 = { add_building = fort_15th add_province_modifier = { name = command_fake_fort duration = -1 } }
+			4345 = { add_building = fort_15th add_province_modifier = { name = command_fake_fort duration = -1 } }
 		}
 	}
 
@@ -5629,6 +5651,13 @@ country_event = { #Sir revolt starts
 				create_alliance = R78
 				join_all_offensive_wars_of = R78
 			}
+			every_war_enemy_country = {
+				limit = {
+					ai = no
+					has_reform = xiaken
+				}
+				country_event = { id = the_command.129 }
+			}
 		}
 		if = {
 			limit = { has_country_flag = command_sir_revolt_oni_participation }
@@ -5660,13 +5689,13 @@ country_event = { #Sir revolt starts
 				}
 				R79 = {
 					add_manpower = 10
+					set_capital = 4542
 					capital_scope = {
 						add_province_modifier = { name = command_temporary_garrison_growth duration = 31 }
 						spawn_units_for = { type = infantry who = R79 amount = 10 }
 						spawn_units_for = { type = cavalry who = R79 amount = 2 }
 					}
 					country_event = { id = anbennar_setup.3 }
-					jade_mines_region = { discover_country = R79 }
 					create_alliance = R78
 					join_all_offensive_wars_of = R78
 				}
@@ -5685,7 +5714,6 @@ country_event = { #Sir revolt starts
 						add_province_modifier = { name = command_temporary_garrison_growth duration = 31 }
 					}
 					country_event = { id = anbennar_setup.3 }
-					jade_mines_region = { discover_country = R80 }
 					create_alliance = R78
 					join_all_offensive_wars_of = R78
 				}
@@ -5763,6 +5791,15 @@ country_event = { #Sir revolt starts
 					create_alliance = R78
 					join_all_offensive_wars_of = R78
 				}
+				every_war_enemy_country = {
+					limit = {
+						ai = no
+						has_reform = xiaken
+					}
+					white_peace = R62
+					add_prestige = 25
+					set_country_flag = sir_revolt_fake_truce_flag
+				}
 			}
 			if = {
 				limit = { has_country_flag = command_sir_revolt_oni_participation }
@@ -5791,13 +5828,13 @@ country_event = { #Sir revolt starts
 				}
 				R79 = {
 					add_manpower = 15
+					set_capital = 4542
 					capital_scope = {
 						spawn_units_for = { type = infantry who = R79 amount = 10 }
 						spawn_units_for = { type = cavalry who = R79 amount = 2 }
 						add_province_modifier = { name = command_temporary_garrison_growth duration = 31 }
 					}
 					country_event = { id = anbennar_setup.3 }
-					jade_mines_region = { discover_country = R79 }
 					create_alliance = R78
 					join_all_offensive_wars_of = R78
 				}
@@ -5816,7 +5853,6 @@ country_event = { #Sir revolt starts
 						add_province_modifier = { name = command_temporary_garrison_growth duration = 31 }
 					}
 					country_event = { id = anbennar_setup.3 }
-					jade_mines_region = { discover_country = R80 }
 					create_alliance = R78
 					join_all_offensive_wars_of = R78
 				}
@@ -5860,6 +5896,30 @@ country_event = { #Offer for Truce
 		}
 	}
 
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						all_war_enemy_countries = { #you won Sir Revolt due to unconditional surrender
+							OR = {
+								NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+								is_subject = yes
+								capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+							}
+						}
+						AND = { #you lost Sir Revolt due to unconditional surrender
+							4630 = { NOT = { controlled_by = R62 } }
+							4538 = { NOT = { controlled_by = R62 } }
+							4311 = { NOT = { controlled_by = R62 } }
+						}
+					}
+				}
+				country_event = { id = the_command.3003 }
+			}
+		}
+	}
+
 	#this currently always results in White Peace after 10 years.
 	#In the future it could be warscore dependent,
 	#but rn the is_in_war war_score trigger is bugged and doesn't work
@@ -5869,7 +5929,7 @@ country_event = { #Offer for Truce
 			factor = 1
 		}
 		custom_tooltip = command_sir_revolt_truce_offer_tt
-		R78 = { country_event = { id = the_command.122 days = 1 } }
+		R78 = { country_event = { id = the_command.122 days = 31 } }
 	}
 	option = {
 		name = the_command.121.b
@@ -5886,6 +5946,13 @@ country_event = { #Truce Offer P2
 	picture = LOOMING_DEATH_eventPicture
 
 	is_triggered_only = yes
+	major = yes
+
+	trigger = {
+		is_in_war = {
+			casus_belli = cb_revolt_of_the_north
+		}
+	}
 
 	option = {
 		name = the_command.122.a
@@ -5894,6 +5961,7 @@ country_event = { #Truce Offer P2
 		}
 
 		R62 = {
+			if = { limit = { ai = yes } set_capital = 4630 }
 			if = {
 				limit = { has_country_modifier = command_exemplary_leadership }
 				remove_country_modifier = command_exemplary_leadership
@@ -5903,17 +5971,19 @@ country_event = { #Truce Offer P2
 			}
 			set_country_flag = command_sir_revolt_victory
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
+			}
+			every_known_country = {
+				limit = { has_country_flag = sir_revolt_fake_truce_flag }
+				clr_country_flag = sir_revolt_fake_truce_flag
 			}
 			clr_country_flag = command_sir_revolt_started
 			clr_country_flag = command_sir_revolt_xia_participation
@@ -5931,8 +6001,8 @@ country_event = { #Truce Offer P2
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 		}
 		Y01 = { remove_country_modifier = command_aingjada_elsewhere }
 		shamakhad_region = {
@@ -5954,6 +6024,21 @@ country_event = { #Sir revolt end - Command loss
 	picture = LOOMING_DEATH_eventPicture
 
 	is_triggered_only = yes
+	major = yes
+
+	immediate = {
+		every_known_country = {
+			limit = { has_country_flag = sir_revolt_fake_truce_flag }
+			clr_country_flag = sir_revolt_fake_truce_flag
+		}
+	}
+
+	after = {
+		R85 = { country_event = { id = anbennar_setup.3 } } #Udapana is weird b/c Bloodsong is on it
+		shamakhad_region = {
+			remove_province_modifier = command_shamakhadi_resistance
+		}
+	}
 
 	option = {
 		name = the_command.123.a
@@ -5962,17 +6047,15 @@ country_event = { #Sir revolt end - Command loss
 		tooltip = { kill_ruler = yes }
 		hidden_effect = {
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
 			}
 			4323 = { remove_province_modifier = command_defensiveness_for_ai }
 			4350 = { remove_province_modifier = command_defensiveness_for_ai }
@@ -5981,8 +6064,8 @@ country_event = { #Sir revolt end - Command loss
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			4630 = {
 				change_religion = high_philosophy
 				change_culture = khedarid
@@ -6045,9 +6128,10 @@ country_event = { #Sir revolt end - Command loss
 				add_base_production = 3
 				add_base_manpower = 3
 			}
-			4630 = { #edge case where you fought Raghajandi and lost
+			4630 = { #edge case where you fought Sarilavhan and lost
 				cede_province = R80
 			}
+			R80 = { set_capital = 4630 }
 			R94 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R95 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R96 = { add_government_reform = hobgoblin_stratocracy_reform }
@@ -6210,17 +6294,15 @@ country_event = { #Sir revolt end - Command loss
 		tooltip = { switch_tag = R94 }
 		hidden_effect = {
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
 			}
 			4323 = { remove_province_modifier = command_defensiveness_for_ai }
 			4350 = { remove_province_modifier = command_defensiveness_for_ai }
@@ -6229,8 +6311,8 @@ country_event = { #Sir revolt end - Command loss
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			4630 = {
 				change_religion = high_philosophy
 				change_culture = khedarid
@@ -6293,9 +6375,10 @@ country_event = { #Sir revolt end - Command loss
 				add_base_production = 3
 				add_base_manpower = 3
 			}
-			4630 = { #edge case where you fought Raghajandi and lost
+			4630 = { #edge case where you fought Sarilavhan and lost
 				cede_province = R80
 			}
+			R80 = { set_capital = 4630 }
 			R94 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R95 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R96 = { add_government_reform = hobgoblin_stratocracy_reform }
@@ -6452,17 +6535,15 @@ country_event = { #Sir revolt end - Command loss
 		tooltip = { switch_tag = R95 }
 		hidden_effect = {
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
 			}
 			4323 = { remove_province_modifier = command_defensiveness_for_ai }
 			4350 = { remove_province_modifier = command_defensiveness_for_ai }
@@ -6471,8 +6552,8 @@ country_event = { #Sir revolt end - Command loss
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			4630 = {
 				change_religion = high_philosophy
 				change_culture = khedarid
@@ -6535,9 +6616,10 @@ country_event = { #Sir revolt end - Command loss
 				add_base_production = 3
 				add_base_manpower = 3
 			}
-			4630 = { #edge case where you fought Raghajandi and lost
+			4630 = { #edge case where you fought Sarilavhan and lost
 				cede_province = R80
 			}
+			R80 = { set_capital = 4630 }
 			R94 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R95 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R96 = { add_government_reform = hobgoblin_stratocracy_reform }
@@ -6694,17 +6776,15 @@ country_event = { #Sir revolt end - Command loss
 		tooltip = { switch_tag = R96 }
 		hidden_effect = {
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
 			}
 			4323 = { remove_province_modifier = command_defensiveness_for_ai }
 			4350 = { remove_province_modifier = command_defensiveness_for_ai }
@@ -6713,8 +6793,8 @@ country_event = { #Sir revolt end - Command loss
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			4630 = {
 				change_religion = high_philosophy
 				change_culture = khedarid
@@ -6777,9 +6857,10 @@ country_event = { #Sir revolt end - Command loss
 				add_base_production = 3
 				add_base_manpower = 3
 			}
-			4630 = { #edge case where you fought Raghajandi and lost
+			4630 = { #edge case where you fought Sarilavhan and lost
 				cede_province = R80
 			}
+			R80 = { set_capital = 4630 }
 			R94 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R95 = { add_government_reform = hobgoblin_stratocracy_reform }
 			R96 = { add_government_reform = hobgoblin_stratocracy_reform }
@@ -7003,6 +7084,7 @@ country_event = { #Everyone else victory notification
 			}
 			add_prestige = 50
 			remove_country_modifier = xia_peasants_fleeing
+			remove_country_modifier = xia_soldiers_deserting
 			add_humiliation_reward = yes
 			add_adm_power = 100
 			add_dip_power = 100
@@ -7062,6 +7144,7 @@ country_event = { #Sir Revolt End - Command Victory
 	picture = VILLAGE_BURNING_eventPicture
 
 	is_triggered_only = yes
+	major = yes
 
 	immediate = { 
 		set_country_flag = command_sir_revolt_victory
@@ -7083,6 +7166,10 @@ country_event = { #Sir Revolt End - Command Victory
 		clr_country_flag = command_sir_revolt_khadisrapur_participation
 		clr_country_flag = command_sir_revolt_sarnavan_participation
 		clr_country_flag = command_sir_revolt_parraj_participation
+		every_known_country = {
+			limit = { has_country_flag = sir_revolt_fake_truce_flag }
+			clr_country_flag = sir_revolt_fake_truce_flag
+		}
 	}
 
 	option = {
@@ -7091,17 +7178,15 @@ country_event = { #Sir Revolt End - Command Victory
 
 		hidden_effect = {
 			every_war_enemy_country = {
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+				capital_scope = {
+					remove_province_modifier = command_defensiveness_for_ai
+					remove_province_modifier = command_trade_power_for_ai
+				}
+			}
+			every_war_enemy_country = { #yes you have to do it like this
+				limit = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
 				white_peace = R62
-				if = {
-					limit = { is_subject = yes }
-					capital_scope = { remove_province_modifier = command_defensiveness_for_ai }
-				}
-				else = {
-					every_owned_province = {
-						limit = { has_province_modifier = command_trade_power_for_ai }
-						remove_province_modifier = command_trade_power_for_ai
-					}
-				}
 			}
 			4323 = { remove_province_modifier = command_defensiveness_for_ai }
 			4350 = { remove_province_modifier = command_defensiveness_for_ai }
@@ -7110,8 +7195,9 @@ country_event = { #Sir Revolt End - Command Victory
 			4630 = { remove_province_modifier = command_trade_power_for_ai }
 			4538 = { remove_province_modifier = command_trade_power_for_ai }
 			4311 = { remove_province_modifier = command_trade_power_for_ai }
-			4352 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_18th remove_province_modifier = command_fake_fort }
+			if = { limit = { ai = yes } set_capital = 4630 }
+			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			R78 = { every_owned_province = { add_devastation = 40 } }
 			4633 = { add_base_tax = -4 add_base_production = -4 add_base_manpower = -4 add_devastation = 10 }
 			4630 = { add_base_tax = 3 add_base_production = 2 add_base_manpower = 3 }
@@ -7138,10 +7224,13 @@ country_event = { #Sir Revolt End - Command Victory
 		custom_tooltip = command_sir_revolt_win_vs_sir_tt
 		if = {
 			limit = { has_country_modifier = command_exemplary_leadership }
-			remove_country_modifier = command_exemplary_leadership
-			add_ruler_modifier = {
-				name = command_respected_leadership
-				duration = -1
+			custom_tooltip = command_upgrade_to_respected_tt
+			hidden_effect = {
+				remove_country_modifier = command_exemplary_leadership
+				add_ruler_modifier = {
+					name = command_respected_leadership
+					duration = -1
+				}
 			}
 		}
 		else = {
@@ -7150,7 +7239,13 @@ country_event = { #Sir Revolt End - Command Victory
 				duration = -1
 			}
 		}
-		add_country_modifier = { name = command_chimera_resurgent duration = 1825 }
+		if = {
+			limit = { ai = yes }
+			add_country_modifier = { name = command_chimera_resurgent duration = 5475 }
+		}
+		else = {
+			add_country_modifier = { name = command_chimera_resurgent duration = 1825 }
+		}
 		custom_tooltip = command_sir_shamakhadi_resistance_removal_tt
 		hidden_effect = {
 			shamakhad_region = {
@@ -7176,31 +7271,31 @@ country_event = { #Sir Revolt End - Command Victory
 				}
 				4816 = {
 					if = {
-						limit = { owner = { truce_with = R62 } }
+						limit = { owner = { truce_with = R62 NOT = { has_country_flag = sir_revolt_fake_truce_flag } } }
 						cede_province = R62 add_permanent_claim = R62 add_permanent_province_modifier = { name = command_legacy_of_the_revolt duration = 365 }
 					}
 				}
 				4817 = {
 					if = {
-						limit = { owner = { truce_with = R62 } }
+						limit = { owner = { truce_with = R62 NOT = { has_country_flag = sir_revolt_fake_truce_flag } } }
 						cede_province = R62 add_permanent_claim = R62 add_permanent_province_modifier = { name = command_legacy_of_the_revolt duration = 365 }
 					}
 				}
 				4818 = {
 					if = {
-						limit = { owner = { truce_with = R62 } }
+						limit = { owner = { truce_with = R62 NOT = { has_country_flag = sir_revolt_fake_truce_flag } } }
 						cede_province = R62 add_permanent_claim = R62 add_permanent_province_modifier = { name = command_legacy_of_the_revolt duration = 365 }
 					}
 				}
 				4641 = {
 					if = {
-						limit = { owner = { truce_with = R62 } }
+						limit = { owner = { truce_with = R62 NOT = { has_country_flag = sir_revolt_fake_truce_flag } } }
 						cede_province = R62 add_permanent_claim = R62 add_permanent_province_modifier = { name = command_legacy_of_the_revolt duration = 365 }
 					}
 				}
 				4626 = {
 					if = {
-						limit = { owner = { truce_with = R62 } }
+						limit = { owner = { truce_with = R62 NOT = { has_country_flag = sir_revolt_fake_truce_flag } } }
 						cede_province = R62 add_permanent_claim = R62 add_permanent_province_modifier = { name = command_legacy_of_the_revolt duration = 365 }
 					}
 				}
@@ -7387,21 +7482,64 @@ country_event = { #Sir faction loss notification
 	option = {
 		name = the_command.127.a
 		ai_chance = { factor = 1 }
+
+		if = {
+			limit = { tag = Y01 }
+			remove_country_modifier = command_aingjada_elsewhere
+		}
 	}
 }
-country_event = {
+country_event = { #Oni choose not to defend Command in the Sir Revolt
 	id = the_command.128
 	title = the_command.128.t
 	desc = the_command.128.desc
 	picture = ONI_HUMANS_eventPicture
 
 	is_triggered_only = yes
+	major_trigger = {
+		tag = R62
+	}
 
 	option = {
-		name= the_command.128.a
+		name = the_command.128.a
 		ai_chance = { factor = 1 }
 		white_peace = R78
 		add_prestige = 25
+	}
+}
+country_event = { #Player Xiaken can choose to opt out of the Sir Revolt
+	id = the_command.129
+	title = the_command.129.t
+	desc = the_command.129.desc
+	picture = CHURCH_ESTATE_2_eventPicture
+
+	is_triggered_only = yes
+
+	option = {
+		name = the_command.129.a
+		ai_chance = { factor = 1 }
+	}
+
+	option = {
+		name = the_command.129.b
+		ai_chance = { factor = 1 }
+		white_peace = R62
+		custom_tooltip = command_xiaken_truce_tt
+		hidden_effect = {
+			every_known_country = {
+				limit = { has_reform = xiaken }
+				add_truce_with = ROOT
+			}
+		}
+	}
+	
+	option = {
+		name = the_command.129.c
+		ai_chance = { factor = 1 }
+		add_treasury = -100
+		R62 = { add_treasury = 100 }
+		white_peace = R62
+		set_country_flag = sir_revolt_fake_truce_flag
 	}
 }
 
@@ -8294,7 +8432,6 @@ country_event = { #wolf army menu bounceback
 	option = {
 		name = flavor_castanor_go_back
 		ai_chance = { factor = 1 }
-
 		country_event = { id = the_command.312 }
 	}
 }
@@ -8419,7 +8556,6 @@ country_event = { #Lion army menu bounceback
 	option = {
 		name = flavor_castanor_go_back
 		ai_chance = { factor = 1 }
-		clr_country_flag = command_armies_lion_menu_open
 		country_event = { id = the_command.316 }
 	}
 }
@@ -8544,7 +8680,6 @@ country_event = { #Elephant army menu bounceback
 	option = {
 		name = flavor_castanor_go_back
 		ai_chance = { factor = 1 }
-		clr_country_flag = command_armies_elephant_menu_open
 		country_event = { id = the_command.320 }
 	}
 }
@@ -8594,49 +8729,19 @@ country_event = { #Tiger army menu
 		}
 	}
 }
-
-country_event = {
+country_event = { #Tiger army menu bounceback
 	id = the_command.323
 	title = the_command.322.t
 	desc = the_command.322.desc
 	picture = COUNTRY_COLLAPSE_eventPicture
 	
 	is_triggered_only = yes
+	hidden = yes
 	
-	immediate = {
-		set_country_flag = command_armies_menu_2_open
-		hidden_effect = {
-			6 = { save_event_target_as = command_war_room_estate_1 }
-		}
-	}
-	
-	option = { #Nevermind
+	option = {
 		name = flavor_castanor_go_back
-		highlight = yes
-		clr_country_flag = command_armies_menu_2_open
-		hidden_effect = { country_event = { id = the_command.310 } }
-	}
-	option = { #Restock army manpower
-		name = the_command.322.a
-		
-		command_army_resupply = { command = tiger }
-	}
-	option = { #Settle down troops
-		name = the_command.322.b
-		
-		command_army_settle_down = { command = tiger }
-	}
-	option = { #Special Ability
-		name = the_command.322.c
-		
-		command_army_special_ability_tiger = yes
-	}
-	
-	after = {
-		if = {
-			limit = { has_country_flag = command_armies_menu_2_open }
-			country_event = { id = the_command.322 }
-		}
+		ai_chance = { factor = 1 }
+		country_event = { id = the_command.322 }
 	}
 }
 
@@ -8889,33 +8994,57 @@ country_event = {
 			factor = 1
 			modifier = {
 				factor = 0
-				NOT = { has_country_flag = command_xiadao_campaign_completed_flag }
-			}
-			modifier = {
-				factor = 10
-				OR = {
-					NOT = { has_country_flag = command_shamakhad_campaign_completed_flag }
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						NOT = { has_country_flag = command_dhujat_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_xianjie_campaign_completed_flag
-						has_country_flag = command_dhujat_campaign_completed_flag
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_sikai_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_azjakuma_campaign_unlocked_flag
-						NOT = { has_country_flag = command_azjakuma_campaign_completed_flag }
-					}
+				OR = { #Disable regular logic for Azjakuma campaign
+					NOT = { has_country_flag = command_azjakuma_campaign_unlocked_flag }
+					has_country_flag = command_azjakuma_campaign_completed_flag
 				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_wolf_command
-					higher_than_influence = no
+				OR = {
+					NOT = { has_country_flag = command_xiadao_campaign_completed_flag }
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
+						has_country_flag = command_shamakhad_campaign_completed_flag
+						NOT = { has_country_flag = command_bianfang_campaign_completed_flag }
+					}
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						has_country_flag = command_dhujat_campaign_completed_flag
+						OR = {
+							NOT = { has_country_flag = command_xianjie_campaign_completed_flag }
+							NOT = {
+								has_country_flag = command_yanszin_campaign_completed_flag
+								has_country_flag = command_zyujyut_campaign_completed_flag
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
+						has_country_flag = command_sikai_campaign_completed_flag
+						NOT = {
+							AND = {
+								has_country_flag = command_yanszin_campaign_completed_flag
+								has_country_flag = command_zyujyut_campaign_completed_flag
+								OR = {
+									has_country_flag = command_rakhadesh_campaign_completed_flag
+									has_country_flag = command_ghavaanaj_campaign_completed_flag
+								}
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						OR = {
+							has_country_flag = command_baihon_xinh_campaign_completed_flag
+							has_country_flag = command_thidinkai_campaign_completed_flag
+						}
+						OR = {
+							has_country_flag = command_dhenbasana_campaign_completed_flag
+							has_country_flag = command_bhuvauri_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_tianlou_campaign_completed_flag
+								has_country_flag = command_hukai_campaign_completed_flag
+								has_country_flag = command_rakhadesh_campaign_completed_flag
+								has_country_flag = command_ghavaanaj_campaign_completed_flag
+							}
+						}
+					}
 				}
 			}
 		}
@@ -8937,29 +9066,54 @@ country_event = {
 		ai_chance = {
 			factor = 1
 			modifier = {
-				factor = 10
+				factor = 0
 				OR = {
-					AND = {
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
 						has_country_flag = command_xiadao_campaign_completed_flag
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_xianjie_campaign_completed_flag }
+						NOT = {
+							AND = {
+								has_country_flag = command_shamakhad_campaign_completed_flag
+								has_country_flag = command_bianfang_campaign_completed_flag
+							}
+						}
 					}
-					AND = {
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						has_country_flag = command_xianjie_campaign_completed_flag
+						OR = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+						NOT = { has_country_flag = command_dhujat_campaign_completed_flag }
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
 						has_country_flag = command_telebei_campaign_completed_flag
-						NOT = { has_country_flag = command_hukai_campaign_completed_flag }
+						has_country_flag = command_zyujyut_campaign_completed_flag
+						OR = {
+							has_country_flag = command_rakhadesh_campaign_completed_flag
+							has_country_flag = command_ghavaanaj_campaign_completed_flag
+						}
+						NOT = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+						}
 					}
-					AND = {
-						OR = { has_country_flag = command_dhujat_campaign_completed_flag has_country_flag = command_xianjie_campaign_completed_flag }
-						NOT = { has_country_flag = command_telebei_campaign_completed_flag }
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						has_country_flag = command_rakhadesh_campaign_completed_flag
+						has_country_flag = command_hukai_campaign_completed_flag
+						OR = {
+							has_country_flag = command_dhenbasana_campaign_completed_flag
+							has_country_flag = command_bhuvauri_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_tianlou_campaign_completed_flag
+								has_country_flag = command_ghavaanaj_campaign_completed_flag
+								OR = {
+									has_country_flag = command_baihon_xinh_campaign_completed_flag
+									has_country_flag = command_thidinkai_campaign_completed_flag
+								}
+							}
+						}
 					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_boar_command
-					higher_than_influence = no
 				}
 			}
 		}
@@ -8981,32 +9135,57 @@ country_event = {
 		ai_chance = {
 			factor = 1
 			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_xiadao_campaign_completed_flag
-						NOT = { has_country_flag = command_bianfang_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_yanszin_campaign_completed_flag
-						NOT = { has_country_flag = command_tianlou_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						has_country_flag = command_dhujat_campaign_completed_flag
-						NOT = { has_country_flag = command_ghavaanaj_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_tree_of_stone_campaign_unlocked_flag
-						NOT = { has_country_flag = command_tree_of_stone_campaign_completed_flag }
-					}
+				factor = 0
+				OR = { #Disable regular logic for the Tree of Stone campaign
+					NOT = { has_country_flag = command_tree_of_stone_campaign_unlocked_flag }
+					has_country_flag = command_tree_of_stone_campaign_completed_flag
 				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_lion_command
-					higher_than_influence = no
+				OR = {
+					AND = { #Xiadao into Shamakhad + Bianfang = first three wars
+						has_country_flag = command_bianfang_campaign_completed_flag
+						NOT = { has_country_flag = command_shamakhad_campaign_completed_flag }
+					}
+					AND = { #Dhujat + Xianjie + Yanszin/Zyujyut are the next three wars
+						OR = {
+							has_country_flag = command_yanszin_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_dhujat_campaign_completed_flag
+								has_country_flag = command_xianjie_campaign_completed_flag
+							}
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Telebei + Sikai + Zyujyut/Yanszin are the next four wars
+						has_country_flag = command_yanszin_campaign_completed_flag
+						OR = {
+							has_country_flag = command_rakhadesh_campaign_completed_flag
+							has_country_flag = command_ghavaanaj_campaign_completed_flag
+						}
+						NOT = {
+							has_country_flag = command_telebei_campaign_completed_flag
+							has_country_flag = command_zyujyut_campaign_completed_flag
+						}
+					}
+					AND = { #Ghavaanaj/Rakhadesh + Dhenbasana/Bhuvauri + Hukai + Baihon Xinh/Thidinkai + Tianlou next five wars
+						has_country_flag = command_tianlou_campaign_completed_flag
+						has_country_flag = command_ghavaanaj_campaign_completed_flag
+						OR = {
+							has_country_flag = command_baihon_xinh_campaign_completed_flag
+							has_country_flag = command_thidinkai_campaign_completed_flag
+						}
+						NOT = {
+							AND = {
+								has_country_flag = command_rakhadesh_campaign_completed_flag
+								has_country_flag = command_hukai_campaign_completed_flag
+								OR = {
+									has_country_flag = command_dhenbasana_campaign_completed_flag
+									has_country_flag = command_bhuvauri_campaign_completed_flag
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -9025,29 +9204,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_dragon_command
 		goto = estate_dragon_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_yanszin_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_bianfang_campaign_completed_flag
-						NOT = { has_country_flag = command_zyujyut_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_dragon_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -9063,29 +9220,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_elephant_command
 		goto = estate_elephant_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_sikai_campaign_completed_flag
-						NOT = { has_country_flag = command_thidinkai_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_hukai_campaign_completed_flag
-						NOT = { has_country_flag = command_baihon_xinh_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_elephant_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -9101,29 +9236,7 @@ country_event = {
 		}
 		start_estate_agenda = estate_tiger_command
 		goto = estate_tiger_command
-		ai_chance = {
-			factor = 1
-			modifier = {
-				factor = 10
-				OR = {
-					AND = {
-						has_country_flag = command_dhujat_campaign_completed_flag
-						NOT = { has_country_flag = command_bhuvauri_campaign_completed_flag }
-					}
-					AND = {
-						has_country_flag = command_shamakhad_campaign_completed_flag
-						NOT = { has_country_flag = command_rakhadesh_campaign_completed_flag }
-					}
-				}
-			}
-			modifier = { #for generic estate stuff
-				factor = 1.5
-				estate_loyalty = {
-					estate = estate_tiger_command
-					higher_than_influence = no
-				}
-			}
-		}
+		ai_chance = { factor = 1 }
 	}
 	
 	option = {
@@ -11722,31 +11835,31 @@ country_event = {
 		has_estate = estate_tiger_command
 		has_estate = estate_dragon_command
 		has_estate = estate_elephant_command
-		# Requires each subcontinent to have 400 dev owned + over 2k dev outside of Shamakhad.
+		# Requires each subcontinent to have 30 provinces owned + over 120 provinces outside of Shamakhad.
 		OR = {
-			development_in_provinces = {
-				value = 400
+			num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+				value = 30
 				superregion = yanshen_superregion
 			}
 			AND = {
-				development_in_provinces = {
-					value = 200
+				num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+					value = 15
 					superregion = yanshen_superregion
 				}
-				development_in_provinces = { value = 2000 NOT = { region = shamakhad_region } }
+				num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 150 NOT = { region = shamakhad_region } }
 			}
 			ai = yes #AI insub is eventually gonna happen!!
 		}
-		development_in_provinces = {
-			value = 400
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+			value = 30
 			superregion = south_haless_superregion
 		}
-		development_in_provinces = {
-			value = 400
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = {
+			value = 30
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
 		}
-		development_in_provinces = { value = 1600 NOT = { region = shamakhad_region } }
+		num_of_provinces_owned_or_owned_by_non_sovereign_subjects_with = { value = 120 NOT = { region = shamakhad_region } }
 		any_owned_province = {
 			superregion = rahen_superregion
 			NOT = { region = shamakhad_region }
@@ -11867,7 +11980,14 @@ country_event = {		# Death of Noriko
 country_event = {		# Hikari Dragonborn
 	id = the_command.1973
 	title = the_command.1973.t
-	desc = the_command.1973.d
+	desc = {
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+		desc = the_command.1973.d
+	}
+	desc = {
+		trigger = { dynasty = Dragonborn has_ruler = "Noriko" }
+		desc = the_command.1973.d.noriko
+	}
 	picture = COURT_eventPicture
 
 	fire_only_once = yes
@@ -11881,7 +12001,10 @@ country_event = {		# Hikari Dragonborn
 		name = the_command.1973.a
 		ai_chance = { factor = 1 }
 		custom_tooltip = command_1973_tt
-		add_legitimacy = -10
+		if = {
+			limit = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+			add_legitimacy = -10
+		}
 		add_estate_loyalty = {
 			estate = estate_dragon_command
 			loyalty = 10
@@ -14370,7 +14493,14 @@ country_event = { # Fall of the Elephant Command
 country_event = { # Fall of the Dragon Command
 	id = the_command.1996
 	title = the_command.1996.t
-	desc = the_command.1996.d
+	desc = {
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
+		desc = the_command.1996.d
+	}
+	desc = {
+		trigger = { dynasty = Dragonborn has_ruler = "Noriko" }
+		desc = the_command.1996.d.noriko
+	}
 	picture = SIEGE_PRAGUE_CASTLE_eventPicture
 
 	fire_only_once = yes
@@ -14379,6 +14509,7 @@ country_event = { # Fall of the Dragon Command
 	option = {
 		name = the_command.1996.a
 		ai_chance = { factor = 1 }
+		trigger = { NOT = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } } }
 		custom_tooltip = command_1996_tt
 
 		set_country_flag = R62_dragon_subdued
@@ -14428,6 +14559,66 @@ country_event = { # Fall of the Dragon Command
 					4952 = { set_province_flag = command_dragon_warcamp }
 				}
 			}
+			# Remove capital mechanics
+			event_target:dragon_command_capital = {
+				add_base_production = -2000
+				remove_province_modifier = command_capital_stronghold_t1
+				remove_province_modifier = command_capital_stronghold_t2
+				remove_province_modifier = command_capital_stronghold_t3
+				remove_province_modifier = command_capital_stronghold_t4
+			}
+			inherit = R69
+		}
+	}
+
+	option = {
+		name = the_command.1996.b
+		ai_chance = { factor = 1 }
+		trigger = { AND = { dynasty = Dragonborn has_ruler = "Noriko" } }
+		custom_tooltip = command_1996_noriko_tt
+		random_list = {
+			1 = { change_adm = -1 }
+			1 = { change_dip = -1 }
+			1 = { change_mil = -1 }
+		}
+
+		set_country_flag = R62_dragon_subdued
+
+		R69 = { kill_ruler = yes }
+		event_target:dragon_command_capital = { add_base_tax = -2 add_base_production = -2 add_base_manpower = -2 }
+		add_stability_or_adm_power = yes
+		add_legitimacy_or_monarch_power = { VAL = 20 }
+
+		if = {
+			limit = { has_country_modifier = command_exemplary_leadership }
+			remove_country_modifier = command_exemplary_leadership
+			add_ruler_modifier = {
+				name = command_respected_leadership
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = { has_country_modifier = command_respected_leadership }
+			remove_country_modifier = command_respected_leadership
+			add_ruler_modifier = {
+				name = command_legendary_leadership
+				duration = -1
+			}
+		}
+		else_if = {
+			limit = { NOT = { has_country_modifier = command_legendary_leadership } }
+			add_ruler_modifier = {
+				name = command_exemplary_leadership
+				duration = -1
+			}
+		}
+		else = {
+			add_mil_power = 50
+		}
+
+		custom_tooltip = command_1996_2_tt
+		hidden_effect = {
+			R69 = { disband_all_units = yes }
 			# Remove capital mechanics
 			event_target:dragon_command_capital = {
 				add_base_production = -2000
@@ -14809,11 +15000,33 @@ country_event = { # makes troops because AI is stupid
 	option = {
 		name = the_command.2009.a
 		ai_chance = { factor = 1 }
-		capital_scope = {
-			build_to_forcelimit = {
-				infantry = 0.55
-				cavalry = 0.05
-				artillery = 0.4
+		if = {
+			limit = { mil_tech = 16 }
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.55
+					cavalry = 0.05
+					artillery = 0.4
+				}
+			}
+		}
+		else_if = {
+			limit = { mil_tech = 13 }
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.6
+					cavalry = 0.1
+					artillery = 0.3
+				}
+			}
+		}
+		else = {
+			capital_scope = {
+				build_to_forcelimit = {
+					infantry = 0.65
+					cavalry = 0.15
+					artillery = 0.2
+				}
 			}
 		}
 	}
@@ -15112,37 +15325,131 @@ country_event = { #Force Command AI to do stuff
 				has_terrain = city_terrain
 				has_fort_building_trigger = no
 			}
-			add_latest_building = { builder = R62 fort = yes }
-			R62 = { add_treasury = -100 }
+			if = {
+				limit = { R62 = { mil_tech = 24 } }
+				add_building_construction = { building = fort_18th speed = 1 cost = 1 }
+			}
+			else_if = {
+				limit = { R62 = { mil_tech = 19 } }
+				add_building_construction = { building = fort_17th speed = 1 cost = 1 }
+			}
+			else_if = {
+				limit = { R62 = { mil_tech = 14 } }
+				add_building_construction = { building = fort_16th speed = 1 cost = 1 }
+			}
+			else = {
+				add_building_construction = { building = fort_15th speed = 1 cost = 1 }
+			}
 		}
 		if = {
 			limit = {
 				adm_tech = 8
 			}
 			every_owned_province = { #build courthouses dummy (Command needs them for korashi + gov cap)
-				if = {
-					limit = { has_courthouse_building_trigger = no }
-					random_list = {
-						3 = {}
-						1 = {
-							if = {
-								limit = { R62 = { adm_tech = 22 } }
-								add_building_construction = {
-									building = town_hall
-									speed = 1
-									cost = 0.5
-								}
-							}
-							else = {
-								add_building_construction = {
-									building = courthouse
-									speed = 1
-									cost = 0.5
-								}
-							}
+				limit = { has_courthouse_building_trigger = no }
+				random = {
+					chance = 25
+					if = {
+						limit = { R62 = { adm_tech = 22 } }
+						add_building_construction = {
+							building = town_hall
+							speed = 1
+							cost = 1
+						}
+					}
+					else = {
+						add_building_construction = {
+							building = courthouse
+							speed = 1
+							cost = 1
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+country_event = { #Debug event that triggers every year
+	id = the_command.3003
+	title = the_command.3003.t
+	desc = the_command.3003.d
+	picture = GOOD_WITH_MONARCH_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		tag = R62
+		OR = {
+			AND = { #Insubordination won via unconditional surrender
+				has_country_flag = insubordination_active_flag
+				OR = {
+					R67 = { capital_scope = { controlled_by = R62 } }
+					R68 = { capital_scope = { controlled_by = R62 } }
+					R69 = { capital_scope = { controlled_by = R62 } }
+				}
+			}
+			AND = { #Sir Revolt bugtest
+				has_country_flag = command_sir_revolt_started
+				OR = {
+					all_war_enemy_countries = { #you won Sir Revolt due to unconditional surrender
+						OR = {
+							NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+							is_subject = yes
+							capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+						}
+					}
+					AND = { #you lost Sir Revolt due to unconditional surrender
+						4630 = { NOT = { controlled_by = R62 } }
+						4538 = { NOT = { controlled_by = R62 } }
+						4311 = { NOT = { controlled_by = R62 } }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = the_command.3003.a
+		ai_chance = { factor = 1 }
+
+		if = { #Calm Down Sir
+			limit = { has_country_flag = command_sir_revolt_started }
+			if = {
+				limit = { #You won Sir Revolt due to unconditional surrender
+					all_war_enemy_countries = {
+						OR = {
+							NOT = { is_in_war = { casus_belli = cb_revolt_of_the_north } }
+							is_subject = yes
+							capital_scope = { controller = { is_in_war = { casus_belli = cb_revolt_of_the_north defenders = THIS } } }
+						}
+					}
+				}
+				country_event = { id = the_command.126 }
+			}
+			else_if = {
+				limit = { #You lost Sir Revolt due to unconditional surrender
+					4630 = { NOT = { controlled_by = R62 } }
+					4538 = { NOT = { controlled_by = R62 } }
+					4311 = { NOT = { controlled_by = R62 } }
+				}
+				country_event = { id = the_command.123 }
+			}
+		}
+		if = {
+			limit = { has_country_flag = insubordination_active_flag }
+			if = {
+				limit = { R67 = { capital_scope = { controlled_by = R62 } } }
+				country_event = { id = the_command.1994 }
+			}
+			if = {
+				limit = { R68 = { capital_scope = { controlled_by = R62 } } }
+				country_event = { id = the_command.1995 }
+			}
+			if = {
+				limit = { R69 = { capital_scope = { controlled_by = R62 } } }
+				country_event = { id = the_command.1996 }
 			}
 		}
 	}
