@@ -620,6 +620,14 @@ on_new_monarch_effect = { #1.35
 			ruler_ynn_zodiac = yes
 		}
 	}
+	#Ynn Worship Begga-style
+	if = {
+		limit = {
+			tag = H45
+			has_country_flag = beggaston_ynnic_syncretism
+		}
+		ruler_ynn_zodiac = yes
+	}
 
 	#Kheionism set deity
 	if = {
@@ -666,9 +674,23 @@ on_new_monarch_effect = { #1.35
 				tag = F46
 				was_tag = F46
 			}
-			not = { has_ruler_flag = is_jaddar }
+			NOT = { has_ruler_flag = is_jaddar }
 		}
 		country_event = { id = jaddari_missions.1002 days = 1 }
+	}
+
+	#Death of Uman
+	if = {
+		limit = {
+			tag = F26
+			AI = no
+			OR = {
+				has_ruler_flag = is_allaniwiya
+				has_heir_flag = is_allaniwiya
+			} 
+			NOT = { has_ruler_flag = is_uman }
+		}
+		country_event = { id = flavour_gelkalis.27 days = 1 }
 	}
 
 	if = {
@@ -889,6 +911,28 @@ on_new_monarch_effect = { #1.35
 			limit = { has_ruler_flag = birth_ceremony_palace }
 			add_ruler_modifier = {
 				name = birth_ceremony_palace_mod
+			}
+		}
+	}
+	if = {
+		limit = { 
+			AND = { 
+				OR = {
+					tag = G84
+					was_tag = G84
+					tag = H25
+				}
+				has_country_flag = vels_bacar_stenur_princess
+			} 
+		}
+		1138 = {
+			owner = {
+				if = { 
+					limit = { overlord_of = H25 }
+					country_event = {
+						id = flavor_vels_bacar.20
+					}
+				}
 			}
 		}
 	}
@@ -1228,6 +1272,46 @@ on_province_religion_changed_effect = {
 		limit = { owner = { tag = Y26 religion = righteous_path } }
 		set_province_flag = Y26_converted_province
 	}
+	#Deepwoods cultivated goods
+	if = {	
+		limit = { province_group = fey_abundant_goods_provinces }
+		if = {	#If you're friends with the fey you get good stuff
+			limit = {			
+				is_fey_attuned_culture = yes
+				NOT = { owner = { has_country_flag = abundant_goods_improved } }
+			}
+			remove_province_modifier = fey_dummy_goods
+			remove_province_modifier = fey_abundant_goods_improved
+			add_permanent_province_modifier = {
+				name = fey_abundant_goods
+				duration = -1
+			}
+		}
+		else_if = {	#If you've improved your abundant goods in mission tree you get this
+			limit = {
+				is_fey_attuned_culture = yes
+				owner = { has_country_flag = abundant_goods_improved }
+			}
+			remove_province_modifier = fey_dummy_goods
+			remove_province_modifier = fey_abundant_goods
+			add_permanent_province_modifier = {
+				name = fey_abundant_goods_improved
+				duration = -1
+			}
+		}
+		else_if = {	#If you're not friends with the fey you get nothing
+			limit = {
+				province_group = fey_abundant_goods_provinces
+				is_fey_attuned_culture = no
+			}
+			remove_province_modifier = fey_abundant_goods
+			remove_province_modifier = fey_abundant_goods_improved
+			add_permanent_province_modifier = {
+				name = fey_dummy_goods
+				duration = -1
+			}
+		}
+	}
 	
 	kobold_dragon_cult_conversion = yes
 	
@@ -1278,6 +1362,7 @@ on_province_religion_changed_effect = {
 			owner = { tag = R62 has_global_flag = R62_the_edict_of_x_flag }
 			NOT = { has_province_modifier = command_not_yet_wuhyunized_mod }
 			command_not_yet_wuhyunized = yes
+			NOT = { continent = serpentspine }
 		}
 		add_province_modifier = {
 			name = command_not_yet_wuhyunized_mod
@@ -1355,6 +1440,48 @@ on_province_religion_changed_effect = {
 			}
 		}
 		U39 = { update_kamrayakvals_war_modifier = yes }
+	}
+	if = {
+		limit = {
+			province_group = fey_abundant_goods_provinces
+			culture = forest_goblin  #for now religion is only relevant for the gobbos
+		}
+		if = {	#If you're friends with the fey you get good stuff
+			limit = {			
+				is_fey_attuned_culture = yes
+				NOT = { owner = { has_country_flag = abundant_goods_improved } }
+			}
+			remove_province_modifier = fey_dummy_goods
+			remove_province_modifier = fey_abundant_goods_improved
+			add_permanent_province_modifier = {
+				name = fey_abundant_goods
+				duration = -1
+			}
+		}
+		else_if = {	#If you've improved your abundant goods in mission tree you get this
+			limit = {
+				is_fey_attuned_culture = yes
+				owner = { has_country_flag = abundant_goods_improved }
+			}
+			remove_province_modifier = fey_dummy_goods
+			remove_province_modifier = fey_abundant_goods
+			add_permanent_province_modifier = {
+				name = fey_abundant_goods_improved
+				duration = -1
+			}
+		}
+		else_if = {	#If you're not friends with the fey you get nothing
+			limit = {
+				province_group = fey_abundant_goods_provinces
+				is_fey_attuned_culture = no
+			}
+			remove_province_modifier = fey_abundant_goods
+			remove_province_modifier = fey_abundant_goods_improved
+			add_permanent_province_modifier = {
+				name = fey_dummy_goods
+				duration = -1
+			}
+		}
 	}
 }
 
@@ -1734,7 +1861,7 @@ on_battle_won_unit_effect = {
 	}
 }
 
-on_battle_lost_unit_effect = {
+on_battle_lost_unit_effect = { #this triggers on every unit present 
 	if = {
 		limit = { NOT = { is_year = 1465 } } #No point checking for these after early game
 		if = {
@@ -1820,7 +1947,12 @@ on_battle_lost_unit_effect = {
 			}
         }
 		G32 = {
-			country_event = { id = flavor_malacnar.3 }
+			country_event = { id = flavor_malacnar.3 } 
+			add_country_modifier = { #Stops the ai/player from receiving multiple copies of the event
+				name = g32_battleking_death_cd
+				duration = -1
+				hidden = yes
+			}
 		}
     }
 }
@@ -1891,6 +2023,7 @@ on_battle_won_country_effect = {
 
 		#Anbennar
 		kobold_dragon_cult_won_battle = yes
+		centaur_battle_won = yes
 	}
 	if = { limit = { has_country_flag = has_nsc_disaster }
 		change_variable = { which = nscDisasterBattleWonScoreVar value = 1 }
@@ -1999,6 +2132,19 @@ on_battle_won_country_effect = {
 			}
 		}
 	}
+	if = {
+		limit = {
+			has_country_flag = G54_supporting_peasant_rebels_flag
+			FROM = { tag = REB }
+			NOT = {
+				has_spawned_supported_rebels = U17 #Theinos
+				has_spawned_supported_rebels = G54 #Besolaki
+				war_with = U17 #Theinos
+				war_with = G54 #Besolaki
+			}
+		}
+		clr_country_flag = G54_supporting_peasant_rebels_flag
+	}
 }
 
 on_battle_lost_country_effect = {
@@ -2027,11 +2173,7 @@ on_battle_lost_country_effect = {
 				religion = oren_nayiru
 			}
 		}
-		subtract_variable = {
-			which = TaychendGlory
-			value = 5
-		}
-		update_taychend_glory = yes
+		lose_taychend_glory_effect = { amount = 5 }
 	}
 	if = {
 		limit = { #Command has started to lose against a great power
@@ -3724,6 +3866,17 @@ on_adm_development_effect = {
 		}
 		isobelin_scripted_effect_inscrease_comissioners_plan_variable = yes
 	}
+	#Ayarallen
+	if = { limit = { owner = { tag = F27 } culture = sadnatu  } change_variable = { which = f27_sadnatu_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = surani } change_variable = { which = f27_surani_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = masnsih } change_variable = { which = f27_masnsih_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = brasanni } change_variable = { which = f27_brasanni_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = zanite } change_variable = { which = f27_zanite_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = kuzarami } change_variable = { which = f27_kuzarami_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = bahari } change_variable = { which = f27_bahari_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = gelkar } change_variable = { which = f27_gelkar_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = maqeti } change_variable = { which = f27_maqeti_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = sandfang_gnoll } change_variable = { which = f27_sandfang_development value = 1 } }
 }
 on_dip_development_effect = {
 	if = {
@@ -3798,6 +3951,17 @@ on_dip_development_effect = {
 			}
 		}
 	}
+	if = { limit = { owner = { tag = F27 } culture = sadnatu } change_variable = { which = f27_sadnatu_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = surani } change_variable = { which = f27_surani_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = masnsih } change_variable = { which = f27_masnsih_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = brasanni } change_variable = { which = f27_brasanni_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = zanite } change_variable = { which = f27_zanite_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = kuzarami } change_variable = { which = f27_kuzarami_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = bahari } change_variable = { which = f27_bahari_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = gelkar } change_variable = { which = f27_gelkar_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = maqeti } change_variable = { which = f27_maqeti_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = sandfang_gnoll } change_variable = { which = f27_sandfang_development value = 1 } }
+
 }
 on_mil_development_effect = {
 	if = {
@@ -3850,6 +4014,18 @@ on_mil_development_effect = {
 		}
 		isobelin_scripted_effect_inscrease_comissioners_plan_variable = yes
 	}
+	#Ayarallen
+	if = { limit = { owner = { tag = F27 } culture = sadnatu } change_variable = { which = f27_sadnatu_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = surani } change_variable = { which = f27_surani_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = masnsih } change_variable = { which = f27_masnsih_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = brasanni } change_variable = { which = f27_brasanni_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = zanite } change_variable = { which = f27_zanite_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = kuzarami } change_variable = { which = f27_kuzarami_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = bahari } change_variable = { which = f27_bahari_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = gelkar } change_variable = { which = f27_gelkar_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = maqeti } change_variable = { which = f27_maqeti_development value = 1 } }
+	if = { limit = { owner = { tag = F27 } culture = sandfang_gnoll } change_variable = { which = f27_sandfang_development value = 1 } }
+
 }
 on_development_effect = {
 	owner = {
@@ -3961,6 +4137,26 @@ on_mercenary_recruited_effect = {
 		FROM = {
 			country_event = {
 				id = ynnsman_events.107
+			}
+		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				OR = {
+					tag = F30
+					was_tag = F30
+				}
+			}
+			OR = {
+				ROOT = { mercenary_company = merc_sarraka }
+				ROOT = { mercenary_company = merc_sarraka_two }
+				ROOT = { mercenary_company = merc_sarraka_three }
+			}
+		}
+		FROM = {
+			country_event = {
+				id = flavor_kumarkand.101
 			}
 		}
 	}
@@ -4241,10 +4437,7 @@ on_main_war_won_effect = {
 			has_country_flag = taychendi_coalition_defender
 		}
 		clr_country_flag = taychendi_coalition_defender
-		change_variable = {
-			which = TaychendGlory
-			value = 100
-		}
+		gain_taychend_glory_effect = { amount = 100 }
 		every_known_country = {
 			limit = {
 				NOT = {
@@ -4266,7 +4459,6 @@ on_main_war_won_effect = {
 				modifier = aggressive_expansion
 			}
 		}
-		update_taychend_glory = yes
 	}
 
 	if = { #Blorc Absolutism
@@ -4292,6 +4484,22 @@ on_main_war_won_effect = {
 			}
 		}	
 		add_legitimacy = 20
+	}
+
+	if = { #Nekheis and their overlord lose their war modifiers
+		limit = { has_country_modifier = nekhei_granted_war_rights }
+		remove_country_modifier = nekhei_granted_war_rights
+		overlord = {
+			remove_all_nekhei_negate_overlord_modifiers = yes
+		}
+	}
+	
+	if = { #Besolaki
+		limit = {
+			has_country_flag = G54_in_okti_arped_war_flag
+		}
+		clr_country_flag = G54_in_okti_arped_war_flag
+		set_country_flag = G54_oktikheion_war_happened_flag
 	}
 }
 
@@ -4916,7 +5124,10 @@ G35_won_war_count = {
 feast_of_the_gods_won_war_count = {
 	if = {
 		limit = {
-			religion = feast_of_the_gods
+			OR = {
+				religion = feast_of_the_gods
+				religion = reformed_feast_of_the_gods
+			}
 		}
 		change_variable = { fotg_war_wins = 1 }
 	}
@@ -5071,14 +5282,20 @@ startup_1444_effects = {
 			limit = {
 				tag = A06
 			}
-			A06 = { country_event = { id = gnomish.4 days = 1830 } }
+			A06 = { 
+				country_event = { id = gnomish.4 days = 1830 } #Gawed truce
+				add_estate_loyalty = { #Nimscodd estates start at 49% loyalty
+					estate = all
+					loyalty = 1
+				}
+			}
 		}
 
 		if = {
 			limit = {
 				tag = S70
 			}
-			A06 = { country_event = { id = shadow.1 } }
+			S70 = { country_event = { id = shadow.1 } } #Yezel Mora starting event
 		}
 
 		if = {
@@ -5528,24 +5745,26 @@ startup_1444_effects = {
 			set_variable = { yinquanBattlesWon = 0 }
 		}
 	
-		# Nekheis less LD
+		# Nekheis cheap colonies modifier and event to make them start colonizing
 		if = {
 			limit = {
 				OR = {
-					tag = G53
-					tag = G54
-					tag = G55		
-					tag = G57
-					tag = G58
-				}
-				overlord = {
-					ai = yes
+					tag = G53 #Empkeios
+					tag = G58 #Keyolion
+					tag = G55 #Eneion
+					tag = G54 #Besolaki
+					tag = G57 #Apikhoxi
+					tag = G59 #Anisikheion
+					tag = G56 #Deyeion
+					tag = G62 #Amgremos
 				}
 			}
 			add_country_modifier = {
-				name = nekheis_less_LD
-				duration = 7300
-				hidden = yes
+				name = nekheis_cheap_colonies
+				duration = 18250 #50 years
+			}
+			country_event = {
+				id = kheionai.200
 			}
 		}
 		
@@ -5581,6 +5800,46 @@ startup_1444_effects = {
 			}
 			country_event = {
 				id = effelai_worship.302
+			}
+		}
+		if = {
+			limit = { #Thavoii blood hunts startup event, for player only
+				tag = G19
+				ai = no
+			}
+			country_event = {
+				id = effelai_worship.601
+				days = 20
+			}
+		}
+		if = { #laii bonehunt startup event, for player only
+			limit = {
+				tag = G18
+				ai = no
+			}
+			country_event = {
+				id = effelai_worship.531
+				days = 20
+			}
+		}
+		if = { #soruinic festival site startup event, for player only
+			limit = {
+				tag = G16
+				ai = no
+			}
+			country_event = {
+				id = effelai_worship.521
+				days = 20
+			}
+		}
+		if = { #effei sapling spot startup event, for player only
+			limit = {
+				tag = G17
+				ai = no
+			}
+			country_event = {
+				id = effelai_worship.541
+				days = 20
 			}
 		}
 
@@ -5625,6 +5884,17 @@ startup_1444_effects = {
 			set_variable = {
 				which = rending_pillage_counter_variable
 				value = 0
+			}
+		}
+
+		if = {
+			limit = { NOT = { has_global_flag = suhan_setup } }
+			set_global_flag = suhan_setup
+			4411 = {
+				set_variable = {
+					value = 0
+					which = suhanProgress
+				}
 			}
 		}
 
@@ -5685,6 +5955,12 @@ startup_1444_effects = {
 			}
 		}
 
+		# Ovdal Tûngr DLC warnings
+		if = { limit = { tag = F23 }
+			country_event = { id = flavour_ovdal_tungr.1000 }
+		}
+
+
 	}
 }
 
@@ -5704,7 +5980,17 @@ on_province_owner_change_effect = {
 			NOT = { has_province_flag = someone_migrated_here_dawg }
 		}
 		# note this province was migrated out of so the culture change event handles it properly
-		
+	
+		if = {
+			limit = {
+				FROM = { NOT = { has_country_flag = majority_setup_complete } }
+			}
+			# fix edge case - if you migrate immediately without unpausing (after uncolonised but before country setup)
+			# the province you migrated out of has no majority
+			# only possible if the person migrating has not done majority setup yet, so fix here
+			add_majority_of_current_culture = yes	
+		} 
+	
 		set_province_flag = someone_migrated_here_dawg
 		#we have the define that clears province flags on becoming unowned AIYEEEE, surely i can set it on uncolonised provinces
 
@@ -6998,6 +7284,12 @@ on_province_owner_change_effect = {
 						value = 7
 					}
 				}
+				if = {
+					limit = {
+						tag = G15
+					}
+					mission_completed = effelai_parura_cut_off_one_head
+				}
 			}
 		}
 		owner = {
@@ -7010,6 +7302,91 @@ on_province_owner_change_effect = {
 				days = 140
 			}
 			
+		}
+	}
+	#Effelai Worship Tags Mechanics
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					tag = G17
+					was_tag = G17
+				}
+			}
+		}
+		if = {
+			limit = { # if its a sapling spot, is taken by G17, G17 is settled, then give them the event to rediscover their gardens
+				has_province_modifier = effelai_effei_planted_saplings
+				OR = {
+					is_colony = yes 
+					owner = {
+						num_of_cities = 2
+					}
+				}
+			}
+			province_event = {
+				id = effelai_worship.512
+				days = 15
+			}
+		}
+		if = { #if the effei migrate to a sapling spot, let them try to plant seeds
+			limit = {
+				has_province_modifier = effelai_effei_sapling_spot
+				owner = {
+					NOT = {
+						num_of_cities = 2
+					}
+					check_variable = {
+						which = effelai_effei_seeds
+						value = 1
+					}
+				}
+			}
+			owner = {
+				country_event = { #
+					id = effelai_worship.510
+					days = 15
+				}
+			}
+		}
+	}
+	if = {#soruinic festival site manager
+		limit = {
+			owner = { 
+				OR = {
+					was_tag = G16
+					tag = G16
+				}
+			}
+		}
+		if = {
+			limit = { #if soruinics rediscover festival site after settling, upgrade the site
+				has_province_modifier = effelai_soruinic_ancestral_veneration 
+				OR = {
+					is_colony = yes 
+					owner = {
+						num_of_cities = 2
+					}
+				}
+			}
+			province_event = {
+				id = effelai_worship.523
+				days = 10
+			}
+		}
+		if = { #if soruinics visit a possible festival site for the first time before settling, hold a festival
+			limit = {
+				has_province_modifier = effelai_soruinic_festival_site
+				owner = {
+					NOT = {
+						num_of_cities = 2
+					}
+				}
+			}
+			province_event = {
+				id = effelai_worship.522
+				days = 10
+			}
 		}
 	}
 	#Effelai Settlers Culture And Religion Fix
@@ -7681,6 +8058,25 @@ on_province_owner_change_effect = {
 			}
 		}
 	}
+	#Centaur bonus wool production
+	if = {
+		limit = {
+			has_province_modifier = centaur_wool_bonus_prod
+			NOT = { owner = { has_country_flag = centaur_wool_bonus } }
+		}
+		remove_province_modifier = centaur_wool_bonus_prod
+	}
+	if = {
+		limit = { 
+			owner = { has_country_flag = centaur_wool_bonus } 
+			trade_goods = wool
+		}
+		add_province_modifier = { 
+			name = centaur_wool_bonus_prod
+			duration = -1
+			hidden = yes
+		}
+	}
 	#High Temple decision performance
     if = {
         limit = { province_group = temple_province_group }
@@ -7754,8 +8150,8 @@ on_province_owner_change_effect = {
 		clr_province_flag = I98_befuddling_hold_flag
 	}
 
-	#Command feeding land to oni
-	if = {
+	
+	if = { #Command feeding land to Azjakuma
 		limit = {
 			owner = {
 				tag = Y01
@@ -7768,17 +8164,33 @@ on_province_owner_change_effect = {
 		}
 		R62 = { country_event = { id = the_command.102 days = 1 } }
 	}
-	#Command Post-Edict-of-X Laws of Ninun
 	if = {
-		limit = {
-			owner = { tag = R62 mission_completed = R62_the_edict_of_x }
-			command_not_yet_wuhyunized = yes
+		limit = { owner = { tag = R62 } }
+		if = { #Command Post-Edict-of-X Laws of Ninun
+			limit = {
+				has_global_flag = R62_the_edict_of_x_flag
+				command_not_yet_wuhyunized = yes
+			}
+			add_province_modifier = {
+				name = command_not_yet_wuhyunized_mod
+				duration = -1
+			}
 		}
-		add_province_modifier = {
-			name = command_not_yet_wuhyunized_mod
-			duration = -1
+		if = {
+			limit = { province_id = 4941 }
+			province_event = { id = the_command.201 }
+		}
+		if = { #AI Command gives dwarovar to Jade March
+			limit = { superregion = east_serpentspine R62 = { ai = yes } exists = R81 }
+			cede_province = R81
 		}
 	}
+	if = { #Command Pre-Edict-of-X Laws of Ninun
+		limit = { has_state_edict = laws_of_ninun_edict }
+		province_event = { id = the_command.34 days = 219 random = 438 }
+	}
+	clr_province_flag = ai_command_wuhyunize_this_province_flag #no AI stuff polluting save files
+	clr_province_flag = ai_command_currently_wuhyunizing_this_province_flag
 	if = {
 		limit = { 
 			OR = { 
