@@ -321,26 +321,26 @@ pasiragha_effect_increment_scholar_counters = {
 }
 
 pasiragha_effect_get_philosopher_culture_external = {
-	if = {
-		limit = {
-			any_known_country = {
-				religion = $SCHOLAR_RELIGION$
-			}
-		}
-		random_known_country = {
-			limit = {
-				religion = $SCHOLAR_RELIGION$
-			}
-			export_to_variable = {
-				which = pasiragha_philosopher_culture
-				value = primary_culture 
-			}
+	if = { 
+		limit = { any_province = { religion = $SCHOLAR_RELIGION$ } }
+		random_province = { 
+			limit = { religion = $SCHOLAR_RELIGION$ }
+			ROOT = {
+				export_to_variable = { 
+					variable_name = pasiragha_philosopher_culture
+					value = culture
+					who = PREV
+				}
+			} 
 		}
 	}
 	else = {
-		export_to_variable = {
-			which = pasiragha_philosopher_culture
-			value = primary_culture
+		ROOT = {
+			export_to_variable = {
+				variable_name = pasiragha_philosopher_culture 
+				value = dominant_culture 
+				who = ROOT 
+			}
 		}
 	}
 	pasiragha_effect_define_philosopher = {
@@ -350,42 +350,30 @@ pasiragha_effect_get_philosopher_culture_external = {
 }
 
 pasiragha_effect_get_philosopher_culture_internal = {
-	if = {
-		limit = {
-			any_known_country = {
-				religious_school = {
-					group = raheni
-					school = $SCHOLAR_RELIGION$
+	if = { limit = { any_country = { religious_school = { group = raheni school = $SCHOLAR_RELIGION$ } } }
+		random_country = { limit = { religious_school = { group = raheni school = $SCHOLAR_RELIGION$ } }
+			ROOT = {
+				export_to_variable = { 
+					variable_name = pasiragha_philosopher_culture
+					value = dominant_culture 
+					who = PREV
 				}
-			}
-		}
-		random_known_country = {
-			limit = {
-				religious_school = {
-					group = raheni
-					school = $SCHOLAR_RELIGION$
-				}
-			}
-			export_to_variable = {
-				which = pasiragha_philosopher_culture
-				value = primary_culture
 			}
 		}
 	}
 	#case where no one follows this religion
 	else = {
-		export_to_variable = {
-			which = pasiragha_philosopher_culture
-			value = primary_culture
+		ROOT = {
+			export_to_variable = { 
+				variable_name = pasiragha_philosopher_culture
+				value = dominant_culture 
+				who = ROOT
+			}
 		}
 	}
 	#check which of the 2 hp faiths they follow for philosopher
 	if = {
-		limit = {
-			PREV = {
-				religion = suhans_praxis
-			}
-		}
+		limit = { PREV = { religion = suhans_praxis } }
 		pasiragha_effect_define_philosopher = {
 			PHILOSOPHER_CULTURE = variable:pasiragha_philosopher_culture
 			PHILOSOPHER_RELIGION = suhans_praxis
@@ -418,12 +406,10 @@ pasiragha_effect_define_philosopher = {
 }
 
 pasiragha_effect_invitations = {
-	#BEGIN
 	#increment associated variable
 	pasiragha_effect_increment_scholar_counters = yes
 
-	#do you get debates? - yes
-	#do you get a garunteed philosopher? - yes
+	#check for philosopher flag
 	if = {
 		limit = {
 			has_country_flag = pasiragha_flag_create_philosoper
@@ -549,22 +535,22 @@ pasiragha_effect_debate_system = {
 }
 
 update_philsophical_lean = {
-	change_variable = {
-		which = pasiragha_average_lean_numerator
-		value = $VALUE$
-	}
-	change_variable = {
-		which = pasiragha_average_lean_denominator
-		value = 1
-	}
-	set_variable = {
-		which = pasiragha_average_philosophical_lean
-		which = pasiragha_average_lean_numerator
-	}
-	divide_variable = {
-		which = pasiragha_average_philosophical_lean
-		which = pasiragha_average_lean_denominator
-	}
+	#update current value
+	change_variable = { which = pasiragha_current_philosophical_lean value = $VALUE$ }
+	
+	#keep it within bounds
+	if = { limit = { check_variable = { which = pasiragha_current_philosophical_lean value = 100} } set_variable = { which = pasiragha_current_philosophical_lean value = 100 } }
+	if = { limit = { AND = { check_variable = { which = pasiragha_current_philosophical_lean value = -200 } NOT = { check_variable = { which = pasiragha_current_philosophical_lean value = -100 } } } } set_variable = { which = pasiragha_current_philosophical_lean value = -100 } }
+	
+	#update numerator
+	change_variable = { which = pasiragha_average_lean_numerator which = pasiragha_current_philosophical_lean }	
+	
+	#update denominator
+	change_variable = { which = pasiragha_average_lean_denominator value = 1 }
+	
+	#update average
+	set_variable = { which = pasiragha_average_philosophical_lean which = pasiragha_average_lean_numerator }
+	divide_variable = { which = pasiragha_average_philosophical_lean which = pasiragha_average_lean_denominator	}
 }
 
 pasiragha_add_philosophical_lean = {
