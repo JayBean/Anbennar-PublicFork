@@ -6559,3 +6559,147 @@ add_random_estate_loyalty = { #Used like add_random_estate_loyalty = { amount = 
 		clr_country_flag = estate_ahati_loyalty
 	}
 }
+
+create_kobold_traps = {
+	# STEP 1. Apply the right modifier
+	if = {
+		limit = { has_province_modifier = kobold_traps_lvl_3 }
+		remove_province_modifier = kobold_traps_lvl_3
+		add_permanent_province_modifier = {
+			name = kobold_traps_lvl_4
+			duration = -1
+		}
+		change_culture = ROOT
+	}
+	else_if = {
+		limit = { has_province_modifier = kobold_traps_lvl_2 }
+		remove_province_modifier = kobold_traps_lvl_2
+		add_permanent_province_modifier = {
+			name = kobold_traps_lvl_3
+			duration = -1
+		}		
+		add_province_modifier = {
+			name = kobold_traps_recent_investment
+			duration = 1825
+		}
+		if = {
+			limit = { NOT = { has_province_modifier = kobold_majority_primary } }
+			add_kobold_minority_size_effect = yes
+		}
+	}
+	else_if = {
+		limit = { has_province_modifier = kobold_traps_lvl_1 }
+		remove_province_modifier = kobold_traps_lvl_1
+		add_permanent_province_modifier = {
+			name = kobold_traps_lvl_2
+			duration = -1
+		}		
+		add_province_modifier = {
+			name = kobold_traps_recent_investment
+			duration = 1825
+		}
+		hidden_effect = { set_province_flag = kobold_traps_lvl_2_or_more } #this is relevant for events
+		if = {
+			limit = { NOT = { has_province_modifier = kobold_majority_primary } }
+			add_kobold_minority_size_effect = yes
+		}
+	}	
+	else = {
+		add_permanent_province_modifier = {
+			name = kobold_traps_lvl_1
+			duration = -1
+		}
+		add_province_modifier = {
+			name = kobold_traps_recent_investment
+			duration = 1825
+		}
+	}
+	# STEP 2. Activates the local kobold traps flag, for siege and event purposes
+	hidden_effect = { set_province_flag = has_kobold_traps } 
+	# STEP 3. Handle building construction
+	if = {
+		limit = { has_fort_building_trigger = no }
+		add_building_construction = {
+			building = fort_15th
+			cost = 0.5
+			speed = 0.5
+		}
+	}
+}
+
+kobold_trap_mastery_effect = {
+	# STEP 1. Change the variable counter
+	hidden_effect = {
+		change_variable = {
+			which = trap_mastery_counter
+			value = 1
+		}
+	}
+	# STEP 2. Make sure the right country modifier is set
+	if = {
+		limit = {
+			AND = {
+				check_variable = {
+					which = trap_mastery_counter
+					value = 40
+				}
+				NOT = { has_country_modifier = trap_mastery_lvl_3 }
+			}
+		}
+		remove_country_modifier = trap_mastery_lvl_2
+		add_country_modifier = {
+			name = trap_mastery_lvl_3
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			AND = {
+				check_variable = {
+					which = trap_mastery_counter
+					value = 20
+				}
+				NOT = { has_country_modifier = trap_mastery_lvl_2 }
+			}
+		}
+		remove_country_modifier = trap_mastery_lvl_1
+		add_country_modifier = {
+			name = trap_mastery_lvl_2
+			duration = -1
+		}
+	}
+	else_if = {
+		limit = {
+			AND = {
+				check_variable = {
+					which = trap_mastery_counter
+					value = 5
+				}
+				NOT = { has_country_modifier = trap_mastery_lvl_1 }
+			}
+		}
+		add_country_modifier = {
+			name = trap_mastery_lvl_1
+			duration = -1
+		}
+	}
+	# STEP 3. Activates the country kobold traps flag, for event purposes
+	hidden_effect = {
+		set_country_flag = has_kobold_traps # Activate the kobold traps pulse events, just in case you haven't already
+	}
+	# STEP 4. Clear free upgrade flag
+	if = {
+		limit = { has_country_flag = free_kobold_traps } 
+		hidden_effect = { clr_country_flag = free_kobold_traps }			
+	}
+	# STEP 5. Clear flags indicating that hte decision is being used
+	hidden_effect = {
+		if = {
+			limit = { has_country_flag = free_traps_happening }
+			clr_country_flag = free_traps_happening
+		}
+		else = {
+			clr_country_flag = normal_traps_happening
+		}
+	}
+}
