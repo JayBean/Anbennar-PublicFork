@@ -1,0 +1,1120 @@
+namespace = theatre_of_attrition
+
+
+### Kobold Traps Setup Events
+# Build the Traps! (Region Choice)
+country_event = {
+	id = theatre_of_attrition.1
+	title = theatre_of_attrition.1.title
+	desc = theatre_of_attrition.1.desc
+	picture = RELIGION_eventPicture #Change this
+
+	is_triggered_only = yes
+
+	immediate = { 
+		hidden_effect = {
+			#Checking to see if (dev / 50, rounded down) is greater than # of forts, thereby allowing AI to build another fort
+			set_country_flag = not_cleared_for_new_traps
+			set_variable = {
+				which = num_forts
+				value = 0
+			}
+			set_variable = { # Also checking for # of available traps in each region, for tooltip purposes
+				which = dragon_coast_available_traps
+				value = 0
+			}
+			set_variable = {
+				which = alen_available_traps
+				value = 0
+			}			
+			set_variable = {
+				which = sc_lencenor_available_traps
+				value = 0
+			}
+			set_variable = {
+				which = dameshead_available_traps
+				value = 0
+			}
+			every_owned_province = { #Count how many forts there are
+				if = {
+					limit = { 
+						has_fort_building_trigger = yes
+					}
+					ROOT = {
+						change_variable = {
+							which = num_forts
+							value = 1
+						}
+					}
+				}
+				if = {
+					limit = {
+						province_group = kobold_traps_provinces
+						kobold_traps_individual_trigger = yes
+					}
+					if = {
+						limit = { region = dragon_coast_region }
+						ROOT = {
+							change_variable = {
+								which = dragon_coast_available_traps
+								value = 1
+							}
+						}
+					}
+					else_if = {
+						limit = { 
+							OR = {
+								region = alenic_frontier_region
+								region = alenic_reach_region 
+							}
+						}
+						ROOT = {
+							change_variable = {
+								which = alen_available_traps
+								value = 1
+							}
+						}
+					}
+					else_if = {
+						limit = { 
+							OR = {
+								region = small_country_region
+								region = lencenor_region 
+							}
+						}
+						ROOT = {
+							change_variable = {
+								which = sc_lencenor_available_traps
+								value = 1
+							}
+						}
+					}
+					else = {
+						ROOT = {
+							change_variable = {
+								which = dameshead_available_traps
+								value = 1
+							}							
+						}
+					}
+				}
+			}
+			export_to_variable = { #Calculating total dev...
+				which = total_development_divided
+				value = trigger_value:total_development
+			}
+			divide_variable = { #Dividing by 50 (the define for dev per fort)
+				which = total_development_divided
+				value = 50
+			}
+			if = { #Checking if (dev / 50) is greater than # of forts, thereby allowing AI to build another fort
+				limit = { 
+					check_variable = {
+						which = total_development_divided
+						which = num_forts
+					}
+				}
+				clr_country_flag = not_cleared_for_new_traps
+			}
+		}
+	}
+
+	option = {
+		name = theatre_of_attrition.1.a
+		trigger = {
+			any_owned_province = {
+				province_group = kobold_traps_provinces
+				region = dragon_coast_region
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		custom_tooltip = theatre_of_attrition.1.a.tt
+		country_event = { id = theatre_of_attrition.2 }
+		ai_chance = {
+			factor = 1
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.b
+		trigger = {
+			any_owned_province = {
+				province_group = kobold_traps_provinces
+				OR = {
+					region = alenic_frontier_region
+					region = alenic_reach_region
+				}
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		custom_tooltip = theatre_of_attrition.1.b.tt
+		country_event = { id = theatre_of_attrition.3 }
+		ai_chance = {
+			factor = 2
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.c
+		trigger = {
+			any_owned_province = {
+				province_group = kobold_traps_provinces
+				OR = {
+					region = lencenor_region
+					region = small_country_region
+				}
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		custom_tooltip = theatre_of_attrition.1.c.tt
+		country_event = { id = theatre_of_attrition.4 }
+		ai_chance = {
+			factor = 2
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.d
+		trigger = {
+			any_owned_province = {
+				province_group = kobold_traps_provinces
+				OR = {
+					region = damescrown_region
+					region = west_dameshead_region
+				}
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		custom_tooltip = theatre_of_attrition.1.d.tt
+		country_event = { id = theatre_of_attrition.5 }
+		ai_chance = {
+			factor = 1
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.e
+		if = { #if you have a free traps from event, don't give manpower back
+			limit = { has_country_flag = free_traps_happening }
+			clr_country_flag = free_traps_happening
+		}
+		else_if = { # else, give manpower back
+			limit = { has_country_modifier = slackening_modifier }
+			clr_country_flag = normal_traps_happening
+			custom_tooltip = "You're slackening recruitment standards, so you aren't getting any manpower back. You already have enough!"
+		}
+		else = {	
+			add_yearly_manpower = 1
+			clr_country_flag = normal_traps_happening
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+# Build the traps! (Dragon Coast)
+country_event = {
+	id = theatre_of_attrition.2
+	title = theatre_of_attrition.2.title
+	desc = theatre_of_attrition.2.desc
+	picture = RELIGION_eventPicture #Change this
+
+	is_triggered_only = yes
+
+	option = { #Portnamm
+		name = theatre_of_attrition.2.a
+		trigger = {
+			126 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 126
+		kobold_trap_mastery_effect = yes
+		126 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				126 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Baycodds
+		name = theatre_of_attrition.2.b
+		trigger = {
+			146 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 146
+		kobold_trap_mastery_effect = yes
+		146 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				146 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Royvibobb
+		name = theatre_of_attrition.2.c
+		trigger = {
+			167 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 167
+		kobold_trap_mastery_effect = yes
+		167 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				167 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Stormpoint
+		name = theatre_of_attrition.2.d
+		trigger = {
+			140 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 140
+		kobold_trap_mastery_effect = yes
+		140 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				140 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Moorgaru
+		name = theatre_of_attrition.2.e
+		trigger = {
+			184 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 184
+		184 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				184 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Taixexa Gip
+		name = theatre_of_attrition.2.f
+		trigger = {
+			3362 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 3362
+		kobold_trap_mastery_effect = yes
+		3362 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				3362 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Eaglecrest
+		name = theatre_of_attrition.2.g
+		trigger = {
+			213 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 213
+		kobold_trap_mastery_effect = yes
+		213 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				213 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { # Ayddexahea
+		name = theatre_of_attrition.2.h
+		trigger = {
+			187 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 187
+		187 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				187 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Zaldviri
+		name = theatre_of_attrition.2.i
+		trigger = {
+			173 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 173
+		kobold_trap_mastery_effect = yes
+		173 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				173 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Oddansbay
+		name = theatre_of_attrition.2.j
+		trigger = {
+			177 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 177
+		177 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				177 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Kobildgaru
+		name = theatre_of_attrition.2.k
+		trigger = {
+			4646 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 4646
+		kobold_trap_mastery_effect = yes
+		4646 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				4646 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Soxun Kobildzex
+		name = theatre_of_attrition.2.l
+		trigger = {
+			189 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 189
+		kobold_trap_mastery_effect = yes
+		189 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				189 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.e
+		country_event = { id = theatre_of_attrition.1 }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+# Build the traps! (Alenic Frontier and Reach)
+country_event = {
+	id = theatre_of_attrition.3
+	title = theatre_of_attrition.3.title
+	desc = theatre_of_attrition.3.desc
+	picture = RELIGION_eventPicture #Change this
+
+	is_triggered_only = yes
+
+	option = { #Iskalbaia
+		name = theatre_of_attrition.3.a
+		trigger = {
+			197 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 197
+		197 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				197 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Vurtekemb
+		name = theatre_of_attrition.3.b
+		trigger = {
+			694 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 694
+		694 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				694 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Moorhills
+		name = theatre_of_attrition.3.c
+		trigger = {
+			196 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 196
+		kobold_trap_mastery_effect = yes
+		196 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				196 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Eyegard
+		name = theatre_of_attrition.3.d
+		trigger = {
+			698 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 698
+		kobold_trap_mastery_effect = yes
+		698 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				698 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Celmaldor
+		name = theatre_of_attrition.3.e
+		trigger = {
+			696 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 696
+		kobold_trap_mastery_effect = yes
+		696 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				696 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Adderwood
+		name = theatre_of_attrition.3.f
+		trigger = {
+			703 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 703
+		703 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				703 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Talonmount
+		name = theatre_of_attrition.3.g
+		trigger = {
+			217 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 217
+		kobold_trap_mastery_effect = yes
+		217 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				217 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.e
+		country_event = { id = theatre_of_attrition.1 }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+# Event 4: Lencenor and Small Country
+country_event = {
+	id = theatre_of_attrition.4
+	title = theatre_of_attrition.4.title
+	desc = theatre_of_attrition.4.desc
+	picture = RELIGION_eventPicture #Change this
+
+	is_triggered_only = yes
+
+	option = { #Rivergate
+		name = theatre_of_attrition.4.a
+		trigger = {
+			65 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 65
+		65 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				65 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Ruby Pass
+		name = theatre_of_attrition.4.b
+		trigger = {
+			71 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 71
+		71 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				71 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Winterglade
+		name = theatre_of_attrition.4.c
+		trigger = {
+			120 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 120
+		kobold_trap_mastery_effect = yes
+		120 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				120 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Old Course
+		name = theatre_of_attrition.4.d
+		trigger = {
+			76 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 76
+		kobold_trap_mastery_effect = yes
+		76 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				76 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Appleton
+		name = theatre_of_attrition.4.e
+		trigger = {
+			139 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 139
+		kobold_trap_mastery_effect = yes
+		139 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				139 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Hillwater
+		name = theatre_of_attrition.4.f
+		trigger = {
+			161 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 161
+		161 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				161 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.e
+		country_event = { id = theatre_of_attrition.1 }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+# Event 5: Dameshead
+country_event = {
+	id = theatre_of_attrition.5
+	title = theatre_of_attrition.5.title
+	desc = theatre_of_attrition.5.desc
+	picture = RELIGION_eventPicture #Change this
+
+	is_triggered_only = yes
+	
+	option = { #Vertesk
+		name = theatre_of_attrition.5.a
+		trigger = {
+			216 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		goto = 216
+		kobold_trap_mastery_effect = yes
+		216 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				216 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #West Saltmarsh
+		name = theatre_of_attrition.5.b
+		trigger = {
+			155 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 155
+		155 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 4
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				155 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = { #Westmere
+		name = theatre_of_attrition.5.c
+		trigger = {
+			208 = { 
+				owned_by = ROOT 
+				kobold_traps_individual_trigger = yes
+			}
+		}
+		kobold_trap_mastery_effect = yes
+		goto = 208
+		208 = {
+			create_kobold_traps = yes
+		}
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 0
+				ROOT = { has_country_flag = not_cleared_for_new_traps }
+				208 = {
+					has_fort_building_trigger = no
+				}
+			}
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.e
+		country_event = { id = theatre_of_attrition.1 }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+
+province_event = { # Our trap exploded!
+	id = theatre_of_attrition.6
+	title = theatre_of_attrition.6.title
+	desc = theatre_of_attrition.6.desc
+	picture = RELIGION_eventPicture #Change this
+	goto = ROOT
+	is_triggered_only = yes
+
+	immediate = {
+		ROOT = {
+			hidden_effect = {
+				save_event_target_as = trapped_province_exploding
+				controller = {
+					country_event = { id = theatre_of_attrition.7 }
+				}
+				if = {
+					limit = { has_province_modifier = kobold_traps_lvl_4 }
+					remove_province_modifier = kobold_traps_lvl_4
+				}
+				else_if = {
+					limit = { has_province_modifier = kobold_traps_lvl_3 }
+					remove_province_modifier = kobold_traps_lvl_3
+				}
+				else_if = {
+					limit = { has_province_modifier = kobold_traps_lvl_2 }
+					remove_province_modifier = kobold_traps_lvl_2
+				}
+				else = {
+					remove_province_modifier = kobold_traps_lvl_1
+				}	
+				hidden_effect = { clr_province_flag = has_kobold_traps }
+				if = {
+					limit = { has_building = fort_15th }
+					remove_building = fort_15th
+				}		
+				else_if = {
+					limit = { has_building = fort_16th }
+					remove_building = fort_16th
+				}	
+				else_if = {
+					limit = { has_building = fort_17th }
+					remove_building = fort_17th
+				}		
+				else_if = {
+					limit = { has_building = fort_18th }
+					remove_building = fort_18th
+				}
+			}
+		}
+	}
+	option = {
+		name = theatre_of_attrition.6.a
+		goto = trapped_province_exploding
+		custom_tooltip = trap_exploded_tt
+	}
+}
+
+country_event = { # Our enemy's trap exploded!
+	id = theatre_of_attrition.7
+	title = theatre_of_attrition.7.title
+	desc = theatre_of_attrition.7.desc
+	picture = RELIGION_eventPicture #Change this
+	goto = trapped_province_exploding
+	is_triggered_only = yes
+
+	option = {
+		name = theatre_of_attrition.7.a
+		goto = trapped_province_exploding
+		custom_tooltip = trap_exploded_tt
+	}
+}
+
+province_event = { # We're removing our traps!
+	id = theatre_of_attrition.8
+	title = theatre_of_attrition.8.title
+	desc = theatre_of_attrition.8.desc
+	picture = RELIGION_eventPicture #Change this
+	goto = ROOT
+	is_triggered_only = yes
+
+	option = { #Yeah, get rid of the traps.
+		name = theatre_of_attrition.8.a
+		goto = ROOT
+		ROOT = {
+			if = {
+				limit = { has_province_modifier = kobold_traps_lvl_4 }
+				remove_province_modifier = kobold_traps_lvl_4 
+			}
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_3 }
+				remove_province_modifier = kobold_traps_lvl_3 
+			}			
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_2 }
+				remove_province_modifier = kobold_traps_lvl_2 
+			}	
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_1 }
+				remove_province_modifier = kobold_traps_lvl_1 
+			}	
+			hidden_effect = { clr_province_flag = has_kobold_traps }
+		}
+		ai_chance = {
+			factor = 1
+		}
+	}
+	option = { #We're moving the traps!
+		name = theatre_of_attrition.8.b
+		goto = ROOT
+		highlight = yes
+		trigger = {
+			ROOT = {
+				has_province_modifier = kobold_traps_lvl_4
+				owner = {
+					any_owned_province = {
+						province_group = kobold_traps_provinces
+						kobold_traps_individual_trigger = yes
+					}
+					hidden_trigger = {
+						NOT = { 
+							OR = {
+								has_country_flag = normal_traps_happening
+								has_country_flag = free_traps_happening
+							}
+						}
+					}
+				}
+			}
+		}
+		ROOT = {
+			if = {
+				limit = { has_province_modifier = kobold_traps_lvl_4 }
+				remove_province_modifier = kobold_traps_lvl_4 
+			}
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_3 }
+				remove_province_modifier = kobold_traps_lvl_3 
+			}			
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_2 }
+				remove_province_modifier = kobold_traps_lvl_2 
+			}	
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_1 }
+				remove_province_modifier = kobold_traps_lvl_1 
+			}	
+			hidden_effect = { 
+				clr_province_flag = has_kobold_traps 
+			}
+			owner = {
+				hidden_effect = { set_country_flag = free_traps_happening }
+				country_event = { id = theatre_of_attrition.1 }
+			}
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = { #Nah, keep the traps!
+		name = theatre_of_attrition.8.c
+		goto = ROOT
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
