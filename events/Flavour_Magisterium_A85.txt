@@ -825,6 +825,8 @@ country_event = {
 			}	
 			ROOT = {
 				set_heir_culture = PREV
+				clear_fast_heir_flags = yes
+				update_heir_racial_flag = yes
 			}
 		}
 		set_heir_mage_effect = yes
@@ -911,8 +913,8 @@ country_event = {
 				25 = { add_ruler_personality = embezzler_personality }
 				25 = { add_ruler_personality = greedy_personality }
 				20 = { add_ruler_personality = sinner_personality }
-				15 = { add_ruler_personality_ancestor = { key = architectural_visionary } }
-				15 = { add_ruler_personality_ancestor = { key = scholar } }
+				15 = { add_ruler_personality = architectural_visionary_personality }
+				15 = { add_ruler_personality = scholar_personality }
 			}
 		}
 	}		
@@ -1048,21 +1050,7 @@ country_event = {
 	}
 }
 
-#Notification to imperial prince hiding CASTELLOS IS DEAD that the Magisterium is helping them
-country_event = {
-	id = flavor_magisterium.32
-	title = flavor_magisterium.32.t
-	desc = flavor_magisterium.32.d
-	picture = BANKRUPTCY_eventPicture
-
-	is_triggered_only = yes
-	
-	option = {
-		name = flavor_magisterium.32.a
-	}
-}
-
-#Notification to Magisterium an EoA prince has learned CASTELLOS IS DEAD and is asking them to hide it
+#Magisterium covering up the mural
 country_event = {
 	id = flavor_magisterium.33
 	title = flavor_magisterium.33.t
@@ -1073,35 +1061,83 @@ country_event = {
 	
 	option = {
 		name = flavor_magisterium.33.a
-		hidden_effect = {
-			emperor = {
-				country_event = { id = flavor_magisterium.34 days = 3 } 
+		ai_chance = {
+			factor = 100
+		}
+		if = {
+			limit = {
+				total_development = 100
+			}
+			#try delay it 25 years
+			random_list = {
+				15 = { 
+					set_global_flag = magisterium_hid_death
+					capital_scope = { set_province_flag = hiding_castellos_is_dead_prov }
+					set_country_flag = "hiding_castellos_is_dead"
+					custom_tooltip = ct_hiding_castellos_is_dead.2
+				}
+				5 = { 			
+					tooltip = { country_event = { id = unraveling.3 } }
+					hidden_effect = {
+						every_country = {
+							limit = {
+								capital_scope = { continent = europe }
+								NOT = { tag = ROOT }
+								religion = regent_court
+							}
+							country_event = { id = unraveling.3 days = 7 random = 14 }	#Triggers global event for everyone
+						}
+					}	
+				}
+			}	
+		}
+		else_if = {  
+			limit = {
+				total_development = 50
+			}
+			random_list = {
+				10 = { 
+					set_global_flag = magisterium_hid_death 
+					capital_scope = { set_province_flag = hiding_castellos_is_dead_prov }
+					set_country_flag = "hiding_castellos_is_dead"
+					custom_tooltip = ct_hiding_castellos_is_dead.2
+				}
+				10 = { 			
+					tooltip = { country_event = { id = unraveling.3 } }
+					hidden_effect = {
+						every_country = {
+							limit = {
+								capital_scope = { continent = europe }
+								NOT = { tag = ROOT }
+								religion = regent_court
+							}
+							country_event = { id = unraveling.3 days = 7 random = 14 }	#Triggers global event for everyone
+						}
+					}
+				}
+			}	
+		}
+		else = {
+			tooltip = {
+				country_event = { id = unraveling.3 }
+			}
+			hidden_effect = {
+				every_country = {
+					limit = {
+						capital_scope = { continent = europe }
+						NOT = { tag = ROOT }
+						religion = regent_court
+					}
+					country_event = { id = unraveling.3 days = 7 random = 14 }	#Triggers global event for everyone
+				}
 			}
 		}
 	}
-}
-
-#Notification to Emperor The Magisterium is SUS, decision to investigate or not
-country_event = {
-	id = flavor_magisterium.34
-	title = flavor_magisterium.34.t
-	desc = flavor_magisterium.34.d
-	picture = SPY_eventPicture
-
-	is_triggered_only = yes
-	
-	#Sets global flag for incident
 	option = {
-		name = flavor_magisterium.34.a
-		ai_chance = { factor = 90 }
-		set_global_flag = investigating_magisterium
-		custom_tooltip = aranthil_committee.1
-	}
-
-	#Drop the matter, event chain end
-	option = {
-		name = flavor_magisterium.34.b
-		ai_chance = { factor = 10 }
+		name = flavor_magisterium.33.b #who cares lol
+		ai_chance = {
+			factor = 0
+		}
 	}
 }
 
@@ -1148,6 +1184,14 @@ country_event = {
 				factor = 7
 				is_emperor = yes
 			}
+			modifier = {
+				factor = 2
+				OR = {
+					has_idea_group = innovativeness_ideas
+					has_idea_group = humanist_ideas
+					has_idea_group = exploration_ideas
+				}
+			}
 		}
 		reverse_add_opinion = {
 			who = A85
@@ -1185,8 +1229,15 @@ country_event = {
 				factor = 3
 				is_emperor = yes
 			}
+			modifier = {
+				factor = 2
+				OR = {
+					has_idea_group = diplomatic_ideas
+					has_idea_group = infrastructure_ideas
+					has_idea_group = administrative_ideas
+				}
+			}
 		}
-		add_imperial_influence = 10
 		reverse_add_opinion = {
 			who = A85
 			modifier = established_imperial_oversight_committee
@@ -1231,8 +1282,15 @@ country_event = {
 				factor = 2
 				is_emperor = yes
 			}
+			modifier = {
+				factor = 2
+				OR = {
+					has_idea_group = religious_ideas
+					has_idea_group = aristocracy_ideas
+					has_idea_group = spy_ideas
+				}
+			}
 		}
-		add_imperial_influence = -10
 		reverse_add_opinion = {
 			who = A85
 			modifier = kept_faith_in_mages
@@ -1263,14 +1321,14 @@ country_event = {
 	fire_only_once = yes
 
 	mean_time_to_happen = {
- 		months = 180
+ 		months = 6	
  	}
 
 	trigger = {
 		tag = A85
 		NOT = { active_imperial_incident = any }
-		has_global_flag = investigating_magisterium
 		has_global_flag = castellos_is_dead
+		has_global_flag = magisterium_hid_death
 	}
 	
 	option = {
@@ -1286,6 +1344,5 @@ country_event = {
 				modifier = aranthil_committee_accusations
 			}
 		}
-		clr_global_flag = investigating_magisterium
 	}
 }
