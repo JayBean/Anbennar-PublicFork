@@ -11,23 +11,90 @@ country_event = {
 
 	is_triggered_only = yes
 
-	immediate = { #Checking to see if (dev / 50, rounded down) is greater than # of forts, thereby allowing AI to build another fort
+	immediate = { 
 		hidden_effect = {
+			#Checking to see if (dev / 50, rounded down) is greater than # of forts, thereby allowing AI to build another fort
 			set_country_flag = not_cleared_for_new_traps
 			set_variable = {
 				which = num_forts
+				value = 0
+			}
+			set_variable = { # Also checking for # of available traps in each region, for tooltip purposes
+				which = dragon_coast_available_traps
+				value = 0
+			}
+			set_variable = {
+				which = alen_available_traps
+				value = 0
+			}			
+			set_variable = {
+				which = sc_lencenor_available_traps
+				value = 0
+			}
+			set_variable = {
+				which = dameshead_available_traps
 				value = 0
 			}
 			every_owned_province = { #Count how many forts there are
 				if = {
 					limit = { 
 						has_fort_building_trigger = yes
-						is_capital = no #The limit doesn't seem to count capitals?
 					}
 					ROOT = {
 						change_variable = {
 							which = num_forts
 							value = 1
+						}
+					}
+				}
+				if = {
+					limit = {
+						province_group = kobold_traps_provinces
+						kobold_traps_individual_trigger = yes
+					}
+					if = {
+						limit = { region = dragon_coast_region }
+						ROOT = {
+							change_variable = {
+								which = dragon_coast_available_traps
+								value = 1
+							}
+						}
+					}
+					else_if = {
+						limit = { 
+							OR = {
+								region = alenic_frontier_region
+								region = alenic_reach_region 
+							}
+						}
+						ROOT = {
+							change_variable = {
+								which = alen_available_traps
+								value = 1
+							}
+						}
+					}
+					else_if = {
+						limit = { 
+							OR = {
+								region = small_country_region
+								region = lencenor_region 
+							}
+						}
+						ROOT = {
+							change_variable = {
+								which = sc_lencenor_available_traps
+								value = 1
+							}
+						}
+					}
+					else = {
+						ROOT = {
+							change_variable = {
+								which = dameshead_available_traps
+								value = 1
+							}							
 						}
 					}
 				}
@@ -40,11 +107,7 @@ country_event = {
 				which = total_development_divided
 				value = 50
 			}
-			round_variable = { #We makin an integer here
-				which = total_development_divided
-				value = -1
-			}
-			if = { #Checking if (dev / 50, rounded down) is greater than # of forts, thereby allowing AI to build another fort
+			if = { #Checking if (dev / 50) is greater than # of forts, thereby allowing AI to build another fort
 				limit = { 
 					check_variable = {
 						which = total_development_divided
@@ -65,6 +128,7 @@ country_event = {
 				kobold_traps_individual_trigger = yes
 			}
 		}
+		custom_tooltip = theatre_of_attrition.1.a.tt
 		country_event = { id = theatre_of_attrition.2 }
 		ai_chance = {
 			factor = 1
@@ -82,6 +146,7 @@ country_event = {
 				kobold_traps_individual_trigger = yes
 			}
 		}
+		custom_tooltip = theatre_of_attrition.1.b.tt
 		country_event = { id = theatre_of_attrition.3 }
 		ai_chance = {
 			factor = 2
@@ -99,6 +164,7 @@ country_event = {
 				kobold_traps_individual_trigger = yes
 			}
 		}
+		custom_tooltip = theatre_of_attrition.1.c.tt
 		country_event = { id = theatre_of_attrition.4 }
 		ai_chance = {
 			factor = 2
@@ -116,6 +182,7 @@ country_event = {
 				kobold_traps_individual_trigger = yes
 			}
 		}
+		custom_tooltip = theatre_of_attrition.1.d.tt
 		country_event = { id = theatre_of_attrition.5 }
 		ai_chance = {
 			factor = 1
@@ -123,11 +190,59 @@ country_event = {
 	}
 	option = {
 		name = theatre_of_attrition.1.e
+		custom_tooltip = theatre_of_attrition.1.e.tt
+		if = {
+			limit = {
+				NOT = {
+					check_variable = {
+						which = trap_mastery_counter
+						value = 5
+					}
+				}
+			}
+			custom_tooltip = trap_mastery_basic_tt
+		}
+		else_if = {
+			limit = {
+				NOT = {
+					check_variable = {
+						which = trap_mastery_counter
+						value = 20
+					}
+				}
+			}
+			custom_tooltip = trap_mastery_lvl_1_tt			
+		}
+		else_if = {
+			limit = {
+				NOT = {
+					check_variable = {
+						which = trap_mastery_counter
+						value = 40
+					}
+				}
+			}
+			custom_tooltip = trap_mastery_lvl_2_tt			
+		}
+		else = {
+			custom_tooltip = trap_mastery_lvl_3_tt
+		}		
+		ai_chance = {
+			factor = 0
+		}
+	}
+	option = {
+		name = theatre_of_attrition.1.f
 		if = { #if you have a free traps from event, don't give manpower back
-			limit = { has_country_flag = free_kobold_traps }
+			limit = { has_country_flag = free_traps_happening }
 			clr_country_flag = free_traps_happening
 		}
-		else = { # else, give manpower back
+		else_if = { # else, give manpower back
+			limit = { has_country_modifier = slackening_modifier }
+			clr_country_flag = normal_traps_happening
+			custom_tooltip = "You're slackening recruitment standards, so you aren't getting any manpower back. You already have enough!"
+		}
+		else = {	
 			add_yearly_manpower = 1
 			clr_country_flag = normal_traps_happening
 		}
@@ -166,7 +281,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				126 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -191,7 +305,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				146 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -216,7 +329,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				167 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -241,7 +353,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				140 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -266,7 +377,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				184 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -291,7 +401,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				3362 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -316,7 +425,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				213 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -341,7 +449,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				187 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -366,7 +473,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				173 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -391,7 +497,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				177 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -416,7 +521,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				4646 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -441,7 +545,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				189 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -484,7 +587,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				197 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -509,7 +611,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				694 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -534,7 +635,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				196 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -559,7 +659,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				698 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -584,7 +683,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				696 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -609,7 +707,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				703 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -634,7 +731,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				217 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -676,7 +772,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				65 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -701,7 +796,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				71 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -726,7 +820,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				120 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -751,7 +844,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				76 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -776,7 +868,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				139 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -801,7 +892,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				161 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -843,7 +933,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				216 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -868,7 +957,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				155 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -893,7 +981,6 @@ country_event = {
 				ROOT = { has_country_flag = not_cleared_for_new_traps }
 				208 = {
 					has_fort_building_trigger = no
-					is_capital = no
 				}
 			}
 		}
@@ -977,5 +1064,100 @@ country_event = { # Our enemy's trap exploded!
 		name = theatre_of_attrition.7.a
 		goto = trapped_province_exploding
 		custom_tooltip = trap_exploded_tt
+	}
+}
+
+province_event = { # We're removing our traps!
+	id = theatre_of_attrition.8
+	title = theatre_of_attrition.8.title
+	desc = theatre_of_attrition.8.desc
+	picture = RELIGION_eventPicture #Change this
+	goto = ROOT
+	is_triggered_only = yes
+
+	option = { #Yeah, get rid of the traps.
+		name = theatre_of_attrition.8.a
+		goto = ROOT
+		ROOT = {
+			if = {
+				limit = { has_province_modifier = kobold_traps_lvl_4 }
+				remove_province_modifier = kobold_traps_lvl_4 
+			}
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_3 }
+				remove_province_modifier = kobold_traps_lvl_3 
+			}			
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_2 }
+				remove_province_modifier = kobold_traps_lvl_2 
+			}	
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_1 }
+				remove_province_modifier = kobold_traps_lvl_1 
+			}	
+			hidden_effect = { clr_province_flag = has_kobold_traps }
+		}
+		ai_chance = {
+			factor = 1
+		}
+	}
+	option = { #We're moving the traps!
+		name = theatre_of_attrition.8.b
+		goto = ROOT
+		highlight = yes
+		trigger = {
+			ROOT = {
+				has_province_modifier = kobold_traps_lvl_4
+				owner = {
+					any_owned_province = {
+						province_group = kobold_traps_provinces
+						kobold_traps_individual_trigger = yes
+					}
+					hidden_trigger = {
+						NOT = { 
+							OR = {
+								has_country_flag = normal_traps_happening
+								has_country_flag = free_traps_happening
+							}
+						}
+					}
+				}
+			}
+		}
+		ROOT = {
+			if = {
+				limit = { has_province_modifier = kobold_traps_lvl_4 }
+				remove_province_modifier = kobold_traps_lvl_4 
+			}
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_3 }
+				remove_province_modifier = kobold_traps_lvl_3 
+			}			
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_2 }
+				remove_province_modifier = kobold_traps_lvl_2 
+			}	
+			else_if = {
+				limit = { has_province_modifier = kobold_traps_lvl_1 }
+				remove_province_modifier = kobold_traps_lvl_1 
+			}	
+			hidden_effect = { 
+				clr_province_flag = has_kobold_traps 
+			}
+			owner = {
+				hidden_effect = { set_country_flag = free_traps_happening }
+				country_event = { id = theatre_of_attrition.1 }
+			}
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = { #Nah, keep the traps!
+		name = theatre_of_attrition.8.c
+		goto = ROOT
+		ai_chance = {
+			factor = 0
+		}
 	}
 }
