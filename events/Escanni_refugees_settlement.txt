@@ -16,13 +16,6 @@ country_event = {#The final flight of the Escanni
 	}
 	
 	trigger = {
-		capital_scope = {
-			continent = europe
-		}
-		any_owned_province = {
-			province_group = escanni_refugee_centers
-			has_escanni_refugees = yes
-		}
 		NOT = {
 			has_country_flag = escanni_refugees_arrived
 		}
@@ -132,10 +125,6 @@ country_event = {#Escann Stands
 	
 	is_triggered_only = yes
 	trigger = {
-		any_owned_province = {
-			province_group = escanni_refugee_centers
-			has_escanni_refugees = yes
-		}
 	}
 
 	option = {
@@ -158,15 +147,8 @@ country_event = {#The call of home
 
 	trigger = {
 		has_global_flag = new_escanni_adventurer_kingdoms
-		capital_scope = {
-			continent = europe
-		}
 		NOT = {
 			has_country_flag = escanni_refugees_left
-		}
-		any_owned_province = {
-			province_group = escanni_refugee_centers
-			has_escanni_refugees = yes
 		}
 		calc_true_if = {
 			europe = {
@@ -203,6 +185,7 @@ country_event = {#The call of home
 	immediate = {
 		hidden_effect = {
 			define_event_targets_escanni_refugees_2_center = yes
+			set_country_flag = escanni_refugees_left
 		}
 	}
 
@@ -445,9 +428,9 @@ country_event = {#Result of refugee policy
 	is_triggered_only = yes
 
 	trigger = {
-		any_owned_province = {
-			province_group = escanni_refugee_centers
-			has_escanni_refugees = yes
+		escanni_refugee_centers = {#Won't trigger if you have lost your center in the meantime
+			type = any
+			owned_by = ROOT
 		}
 		calc_true_if = {
 			europe = {
@@ -653,14 +636,9 @@ country_event = { #event manager
 	is_triggered_only = yes
 
 	trigger = {
-		capital_scope = {
-			OR = {
-				superregion = western_cannor_superregion
-				superregion = escann_superregion
-			}
-		}
-		any_owned_province = {
-			has_escanni_refugees = yes
+		escanni_refugee_centers = {
+			type = any
+			owned_by = ROOT
 		}
 		NOT = { has_country_modifier = escanni_timer_mod }
 	}
@@ -673,13 +651,8 @@ country_event = { #event manager
 		name = escanni_refugees_settlement.300.a
 		trigger = {
 			OR = {
-				NOT = { is_year = 1489 }
-				AND = {
-					is_year = 1489
-					NOT = {is_year = 1492}
-					NOT = { has_country_flag = escanni_refugees_left }
-				}
-				is_year = 1492
+				NOT = { has_global_flag = new_escanni_adventurer_kingdoms }
+				has_country_flag = escanni_refugees_left
 			}
 		}
 		random_list = {
@@ -698,10 +671,16 @@ country_event = { #event manager
 					OR = {
 						has_country_flag = escanni_robbers_event
 						NOT = { has_country_flag = escanni_refugees_arrived }
+						NOT = {
+							any_owned_province = {
+								has_escanni_refugees = yes
+								unrest = 0
+							}
+						}
 					}
 				}
 				country_event = {
-					id = escanni_refugees_settlement.301
+					id = escanni_refugees_settlement.301 #Infamous robbers
 				}
 			}
 			100 = {
@@ -710,16 +689,11 @@ country_event = { #event manager
 					OR = {
 						has_country_flag = escanni_artisans_event
 						NOT = { has_country_flag = escanni_refugees_arrived }
+						NOT = { has_country_modifier = escanni_refugee_integration }
 					}
 				}
 				country_event = {
-					id = escanni_refugees_settlement.302
-				}
-			}
-			1 = { # ensure there's an empty option first in case none of the others are available
-				modifier = {
-					factor = 0
-					NOT = { has_country_flag = escanni_refugees_arrived }
+					id = escanni_refugees_settlement.302 #Artisans complain
 				}
 			}
 		}
@@ -727,12 +701,11 @@ country_event = { #event manager
 	option = {
 		name = escanni_refugees_settlement.300.b
 		trigger = {
-			is_year = 1489
-			NOT = {is_year = 1492}
+			has_global_flag = new_escanni_adventurer_kingdoms
 			NOT = { has_country_flag = escanni_refugees_left }
 		}
 		country_event = {
-			id = escanni_refugees_settlement.102 #refugees leave en masse to Escann
+			id = escanni_refugees_settlement.102 #The call of Home
 		}
 		set_country_flag = escanni_refugees_left
 	}
@@ -746,10 +719,6 @@ country_event = { #infamous robbers
 	is_triggered_only = yes
 
 	trigger = {
-		any_owned_province = {
-			has_escanni_refugees = yes
-		}
-		NOT = { has_country_flag = escanni_robbers_event }
 	}
 
 	mean_time_to_happen = {
@@ -758,7 +727,7 @@ country_event = { #infamous robbers
 
 	immediate = {
 		set_country_flag = escanni_robbers_event
-		every_owned_province = {
+		random_owned_province = {
 			limit = { has_escanni_refugees = yes }
 			save_event_target_as = escanni_center_target_1
 			random_area_province = {
@@ -783,9 +752,11 @@ country_event = { #infamous robbers
 				save_event_target_as = escanni_effect_target_3
 			}
 		}
-		country_event = {
-			id = escanni_refugees_settlement.103
-			days = 2738
+		hidden_effect = {
+			country_event = {
+				id = escanni_refugees_settlement.103
+				days = 2738
+			}
 		}
 		add_country_modifier = {
 			name = escanni_timer_mod
@@ -800,8 +771,12 @@ country_event = { #infamous robbers
 			factor = 6
 		}
 		add_country_modifier = {
-			name = escanni_unrestn_stabp_mod
+			name = escanni_soothed_the_masses
 			duration = 5475
+		}
+		add_estate_loyalty = {
+			estate = estate_nobles
+			loyalty = -10
 		}
 		event_target:escanni_effect_target_1 = {
 			add_province_modifier = {
@@ -858,7 +833,7 @@ country_event = { #infamous robbers
 			loyalty = -10
 		}
 		add_country_modifier = {
-			name = escanni_unrestp_mod
+			name = escanni_upset_the_masses
 			duration = 5475
 		}
 		event_target:escanni_effect_target_1 = {
@@ -933,7 +908,10 @@ country_event = { #infamous robbers
 		}
 		random_list = {
 			60 = {
-				add_army_tradition = -5
+				add_estate_loyalty = {
+					estate = estate_nobles
+					loyalty = -10
+				}
 				add_prestige = -5
 				create_general = {
 					tradition = 50
@@ -976,7 +954,7 @@ country_event = { #infamous robbers
 				add_army_tradition = 5
 				add_prestige = 5
 				create_general = {
-					tradition = 60
+					tradition = 35
 					culture = ROOT
 				}
 				event_target:escanni_effect_target_1 = {
@@ -1016,12 +994,12 @@ country_event = { #infamous robbers
 		}
 		if = {
 			limit = { event_target:escanni_effect_target_1 = { NOT = { has_province_modifier = escanni_jousting_ground }}}
-			event_target:escanni_effect_target_1 = { add_province_modifier = { name = escanni_jousting_ground duration = 9125 }}
+			event_target:escanni_effect_target_1 = { add_province_modifier = { name = escanni_jousting_ground duration = 3600 }}
 		}
 		else = {
 			random_owned_province = { 
 				limit = { NOT = { has_province_modifier = escanni_jousting_ground } }
-				add_province_modifier = { name = escanni_jousting_ground duration = 9125 }
+				add_province_modifier = { name = escanni_jousting_ground duration = 3600 }
 			}
 		}
 	}
@@ -1039,21 +1017,53 @@ country_event = { #infamous robbers
 						has_escanni_refugees = yes
 					}
 				}
-				area = {
-					limit = {
-						owned_by = ROOT
-					}
+				event_target:escanni_effect_target_1 = {
 					add_province_modifier = {
 						name = escanni_refugee_discriminate_escann
 						duration = 5475
 					}
 				}
+				if = {
+					limit = {
+						event_target:escanni_effect_target_2 = {
+							owned_by = ROOT
+						}
+					}
+					event_target:escanni_effect_target_2 = {
+						add_province_modifier = {
+							name = escanni_refugee_discriminate_escann
+							duration = 5475
+						}
+					}
+				}
+				if = {
+					limit = {
+						event_target:escanni_effect_target_3 = {
+							owned_by = ROOT
+						}
+					}
+					event_target:escanni_effect_target_3 = {
+						add_province_modifier = {
+							name = escanni_refugee_discriminate_escann
+							duration = 5475
+						}
+					}
+				}
 			}
 		}
-		#flagging missing for now
+		random_list = {
+			20 = {
+				set_flags_escanni_refugees_1_2_no_immediate = yes
+				custom_tooltip = escanni_refugees_settlement_102_c_tt
+			}
+			80 = {
+				custom_tooltip = escanni_refugees_settlement_102_b_tt
+			}
+		}
+		decrease_escanni_integration_policy = yes
 	}
 }
-country_event = { #artisans complain
+country_event = { #artisans complain NOT REMADE YET
 	id = escanni_refugees_settlement.302
 	title = "escanni_refugees_settlement.302.t"
 	picture = REFUGEES_ESCAPING_eventPicture
@@ -1241,7 +1251,7 @@ country_event = { #artisans complain
 }
 
 #400+ Events on Escann side
-country_event = {#Escanni event manager
+country_event = {#Escanni event manager NOT REMADE YET
 	id = escanni_refugees_settlement.400
 	title = "escanni_refugees_settlement.400.t"
 	picture = REFUGEES_ESCAPING_eventPicture
@@ -1336,7 +1346,7 @@ country_event = {#Escanni event manager
 		}
 	}
 }
-country_event = {#Former inhabitants return home - repeat
+country_event = {#Former inhabitants return home - repeat NOT REMADE YET
 	id = escanni_refugees_settlement.401
 	title = "escanni_refugees_settlement.401.t"
 	picture = REFUGEES_ESCAPING_eventPicture
@@ -1554,7 +1564,7 @@ country_event = {#Former inhabitants return home - repeat
 		}
 	}
 }
-country_event = {#Human settlers approach our borders
+country_event = {#Human settlers approach our borders NOT REMADE YET
 	id = escanni_refugees_settlement.402
 	title = "escanni_refugees_settlement.402.t"
 	picture = REFUGEES_ESCAPING_eventPicture
@@ -2031,4 +2041,3 @@ country_event = {#Human settlers approach our borders
 		}
 	}
 }
-
