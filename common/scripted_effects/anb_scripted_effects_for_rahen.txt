@@ -938,7 +938,7 @@ raj_calc_max_allowed_senaptia = {
 					country_event = { id = rahenraj.7 days = 1 }	#info event "a senapti rank is available"
 				}
 				else = {
-					event_target:next_ai_senapti = {	#The nï¿½1 ai candidate will become senapti in 150 days if the raja is ai
+					event_target:next_ai_senapti = {	#The n°1 ai candidate will become senapti in 150 days if the raja is ai
 						overlord = { country_event = { id = rahenraj.4 days = 150 } }
 					}
 				}
@@ -1522,6 +1522,60 @@ caste_fluidity_decrease_gargantuan = {
 	else = {
 		# no effect
 		custom_tooltip = caste_fluidity_neutral_reformed_tt
+	}
+}
+
+######################
+### Changing Caste ###
+######################
+
+check_if_caste_is_shared = {
+	if = {
+		limit = {
+			calc_true_if = {
+				amount = 2
+				has_country_flag = centaur_in_$caste$castes
+				has_country_flag = centaur_in_$caste$castes
+				has_country_flag = dwarven_in_$caste$castes
+				has_country_flag = elven_in_$caste$castes
+				has_country_flag = gnoll_in_$caste$castes
+				has_country_flag = gnomish_in_$caste$castes
+				has_country_flag = goblin_in_$caste$castes
+				has_country_flag = half_elven_in_$caste$castes
+				has_country_flag = halfling_in_$caste$castes
+				has_country_flag = half_orcish_in_$caste$castes
+				has_country_flag = harimari_in_$caste$castes
+				has_country_flag = harpy_in_$caste$castes
+				has_country_flag = hobgoblin_in_$caste$castes
+				has_country_flag = human_in_$caste$castes
+				has_country_flag = kobold_in_$caste$castes
+				has_country_flag = lizardfolk_in_$caste$castes
+				has_country_flag = ogre_in_$caste$castes
+				has_country_flag = orcish_in_$caste$castes
+				has_country_flag = ruinborn_in_$caste$castes
+				has_country_flag = troll_in_$caste$castes
+			}
+		}
+		set_country_flag = $caste$castes_is_shared
+	}
+	else = {
+		clr_country_flag = $caste$castes_is_shared
+	}
+}
+
+add_race_to_caste = {
+	set_country_flag = $race$_in_$caste$castes
+	if = {
+		limit = { NOT = { has_country_flag = $caste$castes_is_shared } }
+		check_if_caste_is_shared = { caste = $caste$ }
+	}
+}
+
+remove_race_from_caste = {
+	clr_country_flag = $race$_in_$caste$castes
+	if = {
+		limit = { has_country_flag = $caste$castes_is_shared }
+		check_if_caste_is_shared = { caste = $caste$ }
 	}
 }
 
@@ -2245,23 +2299,25 @@ command_complete_campaign_effect = {
 	clr_country_flag = command_has_active_campaign_flag
 	
 	if = {
-		limit = { has_country_modifier = command_unproven_leadership }
-		remove_country_modifier = command_unproven_leadership
-	}
-	else_if = {
 		limit = { has_country_modifier = command_exemplary_leadership }
-		remove_country_modifier = command_exemplary_leadership
-		add_ruler_modifier = {
-			name = command_respected_leadership
-			duration = -1
+		custom_tooltip = command_upgrade_to_respected_tt
+		hidden_effect = {
+			remove_country_modifier = command_exemplary_leadership
+			add_ruler_modifier = {
+				name = command_respected_leadership
+				duration = -1
+			}
 		}
 	}
 	else_if = {
 		limit = { has_country_modifier = command_respected_leadership }
-		remove_country_modifier = command_respected_leadership
-		add_ruler_modifier = {
-			name = command_legendary_leadership
-			duration = -1
+		custom_tooltip = command_upgrade_to_legendary_tt
+		hidden_effect = {
+			remove_country_modifier = command_respected_leadership
+			add_ruler_modifier = {
+				name = command_legendary_leadership
+				duration = -1
+			}
 		}
 	}
 	else_if = {
@@ -2279,18 +2335,6 @@ command_complete_campaign_effect = {
 		change_variable = {
 			which = command_completed_campaigns
 			value = 1
-		}
-		if = {
-			limit = { ai = yes }
-			set_country_flag = auto_complete_estate_agenda_all
-			every_neighbor_country = {
-				limit = { is_subject = no }
-				add_aggressive_expansion = {
-					who = R62
-					value = 15
-					apply_calc = no
-				}
-			}
 		}
 	}
 	add_legitimacy_or_monarch_power = { VAL = 5 }
@@ -2334,6 +2378,10 @@ command_force_progress_campaign_effect = {
 							who = R62
 							value = 1
 						}
+					}
+					R62 = {
+						is_subject = no
+						is_at_war = no
 					}
 				}
 				R62 = {
