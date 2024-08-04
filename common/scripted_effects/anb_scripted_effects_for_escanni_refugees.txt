@@ -1,5 +1,5 @@
 #Increase size of a refugee settlement
-increase_escanni_refugee_settlement_size = {
+increase_escanni_refugee_settlement_size = { #Debug function for the system, to add in places flags are added to check if things work properly
 	if = {
 		limit = { has_province_modifier = escanni_refugee_settlement_small }
 		remove_province_modifier = escanni_refugee_settlement_small
@@ -27,6 +27,14 @@ decrease_escanni_refugee_settlement_size = {
     if = {
 		limit = { has_province_modifier = escanni_refugee_settlement_small }
 		remove_province_modifier = escanni_refugee_settlement_small
+		hidden_effect = {
+			245 = { #Freecestir, where the counting var is located
+				change_variable = { #This counts the amounts of refugee centers of any size left on the map
+					which = NumberOfRefugeesLeft
+					value = -1
+				}
+			}
+		}
 	}	
 	else_if = {
 		limit = { has_province_modifier = escanni_refugee_settlement_large }
@@ -55,7 +63,7 @@ decrease_escanni_integration_policy = {
 			duration = -1
 		}
 	}
-	if = {
+	else_if = {
 		limit = { has_country_modifier = escanni_refugee_integration }
 		remove_country_modifier = escanni_refugee_integration
 		add_country_modifier = {
@@ -73,7 +81,7 @@ increase_escanni_integration_policy = {
 			duration = -1
 		}
 	}
-	if = {
+	else_if = {
 		limit = { has_country_modifier = escanni_refugee_repatriation }
 		remove_country_modifier = escanni_refugee_repatriation
 		add_country_modifier = {
@@ -81,94 +89,84 @@ increase_escanni_integration_policy = {
 			duration = -1
 		}
 	}
-	else = {}
 }
-set_flags_escanni_refugees_1_2_no_immediate = {
-	europe = {
-		type = random
-		amount = 2
-		limit = {
-			OR = {
-				region = inner_castanor_region
-				region = west_castanor_region
-				region = south_castanor_region
-				area = cursewood_area
-				area = whistlevale_area
-			}
-			NOT = {
-				is_empty = yes
-				has_province_flag = escanni_migration_target
-			}
-			owner = {
-				OR = {
-					NOT = { is_migratory_tribe = yes }
-					num_of_cities = 2
-				}
-				NOT = { has_country_modifier = monstrous_nation }
-			}
-		}
-		if = {
-			limit = { has_saved_event_target = escanni_center_target_1 }
-			set_province_flag = escanni_migration_target
-			increase_escanni_refugee_settlement_size = yes #debug
-		}
-	}
-}
+# set_flags_escanni_refugees_1_2_no_immediate = {
+# 	europe = {
+# 		type = random
+# 		amount = 2
+# 		limit = {
+# 			OR = {
+# 				region = inner_castanor_region
+# 				region = west_castanor_region
+# 				region = south_castanor_region
+# 				area = cursewood_area
+# 				area = whistlevale_area
+# 			}
+# 			NOT = {
+# 				is_empty = yes
+# 				has_province_flag = escanni_migration_target
+# 			}
+# 			owner = {
+# 				OR = {
+# 					NOT = { is_migratory_tribe = yes }
+# 					num_of_cities = 2
+# 				}
+# 				NOT = { has_country_modifier = monstrous_nation }
+# 			}
+# 		}
+# 		if = {
+# 			limit = { has_saved_event_target = escanni_center_target_1 }
+# 			set_province_flag = escanni_migration_target
+# 		}
+# 	}
+# }
 set_flags_escanni_refugees_escann_side = {
 	every_owned_province = {
 		limit = { has_province_flag = escanni_migration_target }
 		if = {#flee
 			limit = {#check availabity of province in Escann
 				ROOT = {
-					any_known_country = {
-						capital_scope = {
-							OR = {
-								region = inner_castanor_region
-								region = west_castanor_region
-								region = south_castanor_region
-								area = cursewood_area
-								area = whistlevale_area
+					calc_true_if = {
+						escann_proper = {
+							type = all
+							NOT = {
+								is_empty = yes
+								has_province_flag = escanni_migration_target
+							}
+							owner = {
+								OR = {
+									NOT = { is_migratory_tribe = yes }
+									num_of_cities = 2
+								}
+								NOT = { has_country_modifier = monstrous_nation }
 							}
 						}
-						any_owned_province = {
-							NOT = { has_province_flag = escanni_migration_target }
-						}
+						amount = 2
+					}
+				}
+			}
+			escann_proper = {#reflag elsewhere
+				type = random
+				amount = 1
+				limit = {
+					NOT = {
+						is_empty = yes
+						has_province_flag = escanni_migration_target
+					}
+					owner = {
+						NOT = { has_country_modifier = monstrous_nation }
 						OR = {
 							NOT = { is_migratory_tribe = yes }
 							num_of_cities = 2
 						}
-						NOT = { has_country_modifier = monstrous_nation }
 					}
+				}
+				if = {
+					limit = { NOT = { has_province_flag = escanni_migration_target } }
+					set_province_flag = escanni_migration_target
 				}
 			}
-			ROOT = { #Move flag to another country
-					random_known_country = {
-						limit = {
-							capital_scope = {
-								OR = {
-									region = inner_castanor_region
-									region = west_castanor_region
-									region = south_castanor_region
-									area = cursewood_area
-									area = whistlevale_area
-								}
-							}
-							any_owned_province = { NOT = { has_province_flag = escanni_migration_target } }
-							OR = {
-								NOT = { is_migratory_tribe = yes }
-								num_of_cities = 2
-							}
-							NOT = { has_country_modifier = monstrous_nation }
-						}
-						random_owned_province = {
-							limit = { NOT = { has_province_flag = escanni_migration_target } }
-							increase_escanni_refugee_settlement_size = yes #debug
-							set_province_flag = escanni_migration_target
-						}
-					}
-				}
 			clr_province_flag = escanni_migration_target
-			decrease_escanni_refugee_settlement_size = yes #debug
 		}
 		else = {#force settle and convert
 			if = {
@@ -193,7 +191,7 @@ set_flags_escanni_refugees_escann_side = {
 				}
 				change_religion = corinite
 			}
-			else_if = { #IC
+			else_if = { #RC
 				limit = {
 					NOT = { is_religion_enabled = corinite }
 					NOT = { religion = regent_court }
@@ -202,7 +200,6 @@ set_flags_escanni_refugees_escann_side = {
 			}
 		}
 		clr_province_flag = escanni_migration_target
-		decrease_escanni_refugee_settlement_size = yes #debug
 	}
 }
 #Scripted effect to for refugee events affecting 1 center and flagging 2 provinces in Escann
@@ -225,18 +222,11 @@ define_event_targets_escanni_refugees_1_center = {
 			save_event_target_as = escanni_effect_target_2
 		}
 	}
-	europe = {
+	escann_proper = {
 		type = random
 		amount = 2
 		limit = {
-			OR = {
-				region = inner_castanor_region
-				region = west_castanor_region
-				region = south_castanor_region
-				area = cursewood_area
-				area = whistlevale_area
-			}
-			NOT = {
+			NOT = { #NOR
 				is_empty = yes
 				has_province_flag = escanni_migration_target
 			}
@@ -270,7 +260,6 @@ define_event_targets_escanni_refugees_1_center = {
 			}
 			save_event_target_as = escanni_migration_target_2
 		}
-		increase_escanni_refugee_settlement_size = yes #debug
 		set_province_flag = escanni_migration_target
 	}
 }
@@ -321,17 +310,10 @@ define_event_targets_escanni_refugees_2_center = {
 			}
 		}
 	}
-	europe = {
+	escann_proper = {
 		type = random
 		amount = 4
 		limit = {
-			OR = {
-				region = inner_castanor_region
-				region = west_castanor_region
-				region = south_castanor_region
-				area = cursewood_area
-				area = whistlevale_area
-			}
 			NOT = { #NOR
 				is_empty = yes
 				has_province_flag = escanni_migration_target
@@ -389,6 +371,5 @@ define_event_targets_escanni_refugees_2_center = {
 			save_event_target_as = escanni_migration_target_4
 		}
 		set_province_flag = escanni_migration_target
-		increase_escanni_refugee_settlement_size = yes #debug
 	}
 }
