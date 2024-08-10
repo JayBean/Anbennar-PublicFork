@@ -96,7 +96,6 @@ reset_racial_military_via_administration = {
 				limit = { 
 					OR = {
 						accepted_culture = tanizu
-						accepted_culture = dakinshi
 						accepted_culture = antmvura
 						accepted_culture = kombedak
 						accepted_culture = umsozidak
@@ -833,6 +832,21 @@ reset_racial_military_via_administration = {
 		}
 		change_unit_type = tech_lizardfolk
 	}
+	else_if = {
+		limit = {
+			has_country_modifier = mechanim_administration
+		}
+		add_country_modifier = {
+			name = restructuring_military
+			duration = 3650
+		}
+		add_country_modifier = {
+			name = mechanim_military
+			duration = -1
+			hidden = yes
+		}
+		change_unit_type = tech_mechanim
+	}
 }
 
 clear_racial_administration = {
@@ -855,6 +869,7 @@ clear_racial_administration = {
 	remove_country_modifier = ogre_administration
 	remove_country_modifier = hobgoblin_administration
 	remove_country_modifier = lizardfolk_administration
+	remove_country_modifier = mechanim_administration
 }
 
 clear_racial_military = {
@@ -878,6 +893,7 @@ clear_racial_military = {
 	remove_country_modifier = ogre_military
 	remove_country_modifier = hobgoblin_military
 	remove_country_modifier = lizardfolk_military
+	remove_country_modifier = mechanim_military
 	
 	#modifiers if no Cradle of Civ dlc
 	remove_country_modifier = hobgoblin_military_no_dlc
@@ -1151,6 +1167,16 @@ startup_minority_count_and_flags = {
 		# add <race>_present and increase race count if minorities are in the prov
 		set_province_flag = lizardfolk_present
 		owner = { increment_racial_pop_count = { race = lizardfolk } }
+	}
+
+	if = {
+		limit = {
+			NOT = { has_province_flag = mechanim_present }
+			has_mechanim_minority_trigger = yes
+		}
+		# add <race>_present and increase race count if minorities are in the prov
+		set_province_flag = mechanim_present
+		owner = { increment_racial_pop_count = { race = mechanim } }
 	}
 			
 }
@@ -2462,6 +2488,47 @@ remove_lizardfolk_minority_size_effect = {
 	generic_remove_race_minority_size_effect = { race = lizardfolk }
 }
 
+# Mechanim
+small_increase_of_mechanim_tolerance_effect = {
+	generic_increase_of_racial_tolerance_effect = { race = mechanim small = yes }
+}
+
+medium_increase_of_mechanim_tolerance_effect = {
+	generic_increase_of_racial_tolerance_effect = { race = mechanim medium = yes }
+}
+
+large_increase_of_mechanim_tolerance_effect = {
+	generic_increase_of_racial_tolerance_effect = { race = mechanim large = yes }
+}
+
+largest_increase_of_mechanim_tolerance_effect = {
+	generic_increase_of_racial_tolerance_effect = { race = mechanim largest = yes }
+}
+
+small_decrease_of_mechanim_tolerance_effect = {
+	generic_decrease_of_racial_tolerance_effect = { race = mechanim small = yes }
+}
+
+medium_decrease_of_mechanim_tolerance_effect = {
+	generic_decrease_of_racial_tolerance_effect = { race = mechanim medium = yes }
+}
+
+large_decrease_of_mechanim_tolerance_effect = {
+	generic_decrease_of_racial_tolerance_effect = { race = mechanim large = yes }
+}
+
+largest_decrease_of_mechanim_tolerance_effect = {
+	generic_decrease_of_racial_tolerance_effect = { race = mechanim largest = yes }
+}
+
+add_mechanim_minority_size_effect = {
+	generic_add_race_minority_size_effect = { race = mechanim }
+}
+
+remove_mechanim_minority_size_effect = {
+	generic_remove_race_minority_size_effect = { race = mechanim }
+}
+
 
 # adds majority of specific race with the correct tolerance
 add_majority_with_correct_tolerance = {
@@ -2720,6 +2787,14 @@ add_majority_of_current_culture = {
 		add_majority_with_correct_tolerance = { race = lizardfolk }
 	}
 
+	#mechanim
+	else_if = {
+		limit = {
+			NOT = { has_mechanim_majority_trigger = yes }
+			culture_is_mechanim = yes
+		}
+		add_majority_with_correct_tolerance = { race = mechanim }
+	}
 }
 
 convert_majority_to_minority = {
@@ -2933,6 +3008,17 @@ convert_majority_to_minority = {
 
 		remove_racial_majority = { race = lizardfolk }
 	}
+
+	#mechanim
+	else_if = {
+		limit = {
+			has_mechanim_majority_trigger = yes
+			NOT = { culture_is_mechanim = yes }
+		}
+		add_minority_with_correct_tolerance = { race = mechanim size = $size$ }
+
+		remove_racial_majority = { race = mechanim }
+	}
 }
 
 
@@ -2997,6 +3083,8 @@ update_racial_province_modifier_tolerance = {
 	#Lizardfolk
 	update_specific_racial_province_modifier_tolerance = { race = lizardfolk }
 
+	#Mechanim
+	update_specific_racial_province_modifier_tolerance = { race = mechanim }
 }
 
 update_racial_province_modifier_tolerance_and_count = {
@@ -3210,6 +3298,15 @@ update_racial_province_modifier_tolerance_and_count = {
 		update_specific_racial_province_modifier_tolerance = { race = lizardfolk }
 	}
 
+	#mechanim
+	if = {
+		limit = { has_province_flag = mechanim_present }
+		# update tolerance counts for previous owner (FROM) and current owner
+		
+		owner = { increment_racial_pop_count = { race = mechanim } }
+		FROM = { decrement_racial_pop_count = { race = mechanim } }
+		update_specific_racial_province_modifier_tolerance = { race = mechanim }
+	}
 }
 
 #This should be use in a province scope
@@ -3927,6 +4024,33 @@ cleanup_racial_province_minority_into_majority = {
 			duration = 3650	#10 years
 		}
 	}
+
+	#mechanim
+	else_if = {
+		limit = {
+			has_mechanim_minority_trigger = yes
+			culture_is_mechanim = yes
+		}
+
+		if = {
+			limit = { owner = { has_country_flag = save_minorities_for_migration } }
+			# save whether it was large or small to restore later - yes this has to be done in a country flag because we have to keep the define to clear province flags on empty
+			if = {
+				limit = { has_small_mechanim_minority_trigger = yes }
+				owner = { set_country_flag = migratory_small_minority }
+			}
+			else = {
+				owner = { set_country_flag = migratory_large_minority }
+			}
+		}
+
+		remove_racial_minority_any_size = { race = mechanim }
+
+		add_province_modifier = {
+			name = minority_into_majority
+			duration = 3650	#10 years
+		}
+	}
 }
 
 make_majority_primary = {
@@ -4197,6 +4321,20 @@ make_majority_primary = {
 			duration = -1
 		}
 	}
+
+	#mechanim
+	else_if = {
+		limit = {
+			has_province_modifier = mechanim_majority_integrated
+			owner = { has_country_modifier = mechanim_administration }
+		}
+		remove_province_modifier = mechanim_majority_integrated
+
+		add_permanent_province_modifier = {
+			name = mechanim_majority_primary
+			duration = -1
+		}
+	}
 }
 
 #Check so tolerance values are not over max
@@ -4310,13 +4448,12 @@ increase_all_existing_tolerances = {
 			}
 			$size$_increase_of_lizardfolk_tolerance_effect = yes
 		}
-		#Uncomment for Insyaa
-		#if = {
-		#	limit = {
-		#		any_owned_province = { has_any_mechanim_pop_trigger = yes }
-		#	}
-		#	$size$_increase_of_mechanim_tolerance_effect = yes
-		#}
+		if = {
+			limit = {
+				any_owned_province = { has_any_mechanim_pop_trigger = yes }
+			}
+			$size$_increase_of_mechanim_tolerance_effect = yes
+		}
 		if = {
 			limit = {
 				any_owned_province = { has_any_ogre_pop_trigger = yes }
@@ -4363,7 +4500,7 @@ increase_all_tolerances = {
 		$size$_increase_of_human_tolerance_effect = yes
 		$size$_increase_of_kobold_tolerance_effect = yes
 		$size$_increase_of_lizardfolk_tolerance_effect = yes
-		#$size$_increase_of_mechanim_tolerance_effect = yes	#Uncomment for Insyaa
+		$size$_increase_of_mechanim_tolerance_effect = yes
 		$size$_increase_of_ogre_tolerance_effect = yes
 		$size$_increase_of_orcish_tolerance_effect = yes
 		$size$_increase_of_ruinborn_tolerance_effect = yes
@@ -4483,6 +4620,13 @@ add_minority_size_if_present = {
 
 	if = {
 		limit = {
+			has_any_mechanim_pop_trigger = yes					
+		}
+		add_mechanim_minority_size_effect = yes
+	}
+
+	if = {
+		limit = {
 			has_any_ogre_pop_trigger = yes					
 		}
 		add_ogre_minority_size_effect = yes
@@ -4588,6 +4732,10 @@ add_primary_race_minority_size_effect = {	#Adding this for ruinborn_tolerance_ev
 		limit = { culture_is_lizardfolk = yes }
 		add_lizardfolk_minority_size_effect = yes
 	}
+	else_if = {
+		limit = { culture_is_mechanim = yes }
+		add_mechanim_minority_size_effect = yes
+	}
 }
 
 #----# Scripted effects for pop menu #----#
@@ -4608,10 +4756,11 @@ pop_menu_main_setup = {
 	set_variable = { which = humanRanking value = 13 }
 	set_variable = { which = koboldRanking value = 14 }
 	set_variable = { which = lizardfolkRanking value = 15 }
-	set_variable = { which = ogreRanking value = 16 }
-	set_variable = { which = orcishRanking value = 17 }
-	set_variable = { which = ruinbornRanking value = 18 }
-	set_variable = { which = trollRanking value = 19 }
+	set_variable = { which = mechanimRanking value = 16 }
+	set_variable = { which = ogreRanking value = 17 }
+	set_variable = { which = orcishRanking value = 18 }
+	set_variable = { which = ruinbornRanking value = 19 }
+	set_variable = { which = trollRanking value = 20 }
 	pop_menu_main_sorting_effect = yes
 }
 
@@ -4661,9 +4810,9 @@ pop_menu_calculations = {
 	set_variable = { which = nblizardfolkMajority value = 0 }
 	set_variable = { which = nblizardfolkMinority value = 0 }
 	set_variable = { which = nblizardfolkDev value = 0 }
-	# set_variable = { which = nbmechanismMajority value = 0 }
-	# set_variable = { which = nbmechanismMinority value = 0 }
-	# set_variable = { which = nbmechanismDev value = 0 }
+	set_variable = { which = nbmechanimMajority value = 0 }
+	set_variable = { which = nbmechanimMinority value = 0 }
+	set_variable = { which = nbmechanimDev value = 0 }
 	set_variable = { which = nbogreMajority value = 0 }
 	set_variable = { which = nbogreMinority value = 0 }
 	set_variable = { which = nbogreDev value = 0 }
@@ -4711,7 +4860,7 @@ pop_menu_calculations = {
 		calculate_province_race_values = { RACE = human }
 		calculate_province_race_values = { RACE = kobold }
 		calculate_province_race_values = { RACE = lizardfolk }
-		# calculate_province_race_values = { RACE = mechanim }
+		calculate_province_race_values = { RACE = mechanim }
 		calculate_province_race_values = { RACE = ogre }
 		calculate_province_race_values = { RACE = orcish }
 		calculate_province_race_values = { RACE = ruinborn }
@@ -4733,7 +4882,7 @@ pop_menu_calculations = {
 	change_variable = { which = nbTotalDev which = nbhumanDev }
 	change_variable = { which = nbTotalDev which = nbkoboldDev }
 	change_variable = { which = nbTotalDev which = nblizardfolkDev }
-	# change_variable = { which = nbTotalDev which = nbmechanimDev }
+	change_variable = { which = nbTotalDev which = nbmechanimDev }
 	change_variable = { which = nbTotalDev which = nbogreDev }
 	change_variable = { which = nbTotalDev which = nborcishDev }
 	change_variable = { which = nbTotalDev which = nbruinbornDev }
@@ -4754,7 +4903,7 @@ pop_menu_calculations = {
 	pop_menu_round_and_percent = { which = nbhumanDev total = nbTotalDev }
 	pop_menu_round_and_percent = { which = nbkoboldDev total = nbTotalDev }
 	pop_menu_round_and_percent = { which = nblizardfolkDev total = nbTotalDev }
-	# pop_menu_round_and_percent = { which = nbmechanimDev total = nbTotalDev }
+	pop_menu_round_and_percent = { which = nbmechanimDev total = nbTotalDev }
 	pop_menu_round_and_percent = { which = nborcishDev total = nbTotalDev }
 	pop_menu_round_and_percent = { which = nbogreDev total = nbTotalDev }
 	pop_menu_round_and_percent = { which = nbruinbornDev total = nbTotalDev }
@@ -4805,21 +4954,22 @@ pop_menu_round_and_percent = {
 }
 
 pop_menu_main_sorting_effect = {
-	19 = { set_variable = { which = nbcentaurDev which = PREV } set_variable = { which = nbRaceDev which = nbcentaurDev } set_province_flag = not_sorted }
-	18 = { set_variable = { which = nbdwarvenDev which = PREV } set_variable = { which = nbRaceDev which = nbdwarvenDev } set_province_flag = not_sorted }
-	17 = { set_variable = { which = nbelvenDev which = PREV } set_variable = { which = nbRaceDev which = nbelvenDev } set_province_flag = not_sorted }
-	16 = { set_variable = { which = nbgnollishDev which = PREV } set_variable = { which = nbRaceDev which = nbgnollishDev } set_province_flag = not_sorted }
-	15 = { set_variable = { which = nbgnomishDev which = PREV } set_variable = { which = nbRaceDev which = nbgnomishDev } set_province_flag = not_sorted }
-	14 = { set_variable = { which = nbgoblinDev which = PREV } set_variable = { which = nbRaceDev which = nbgoblinDev } set_province_flag = not_sorted }
-	13 = { set_variable = { which = nbhalf_elvenDev which = PREV } set_variable = { which = nbRaceDev which = nbhalf_elvenDev } set_province_flag = not_sorted }
-	12 = { set_variable = { which = nbhalf_orcishDev which = PREV } set_variable = { which = nbRaceDev which = nbhalf_orcishDev } set_province_flag = not_sorted }
-	11 = { set_variable = { which = nbhalflingDev which = PREV } set_variable = { which = nbRaceDev which = nbhalflingDev } set_province_flag = not_sorted }
-	10 = { set_variable = { which = nbharimariDev which = PREV } set_variable = { which = nbRaceDev which = nbharimariDev } set_province_flag = not_sorted }
-	9 = { set_variable = { which = nbharpyDev which = PREV } set_variable = { which = nbRaceDev which = nbharpyDev } set_province_flag = not_sorted }
-	8 = { set_variable = { which = nbhobgoblinDev which = PREV } set_variable = { which = nbRaceDev which = nbhobgoblinDev } set_province_flag = not_sorted }
-	7 = { set_variable = { which = nbhumanDev which = PREV } set_variable = { which = nbRaceDev which = nbhumanDev } set_province_flag = not_sorted }
-	6 = { set_variable = { which = nbkoboldDev which = PREV } set_variable = { which = nbRaceDev which = nbkoboldDev } set_province_flag = not_sorted }
-	5 = { set_variable = { which = nblizardfolkDev which = PREV } set_variable = { which = nbRaceDev which = nblizardfolkDev } set_province_flag = not_sorted }
+	20 = { set_variable = { which = nbcentaurDev which = PREV } set_variable = { which = nbRaceDev which = nbcentaurDev } set_province_flag = not_sorted }
+	19 = { set_variable = { which = nbdwarvenDev which = PREV } set_variable = { which = nbRaceDev which = nbdwarvenDev } set_province_flag = not_sorted }
+	18 = { set_variable = { which = nbelvenDev which = PREV } set_variable = { which = nbRaceDev which = nbelvenDev } set_province_flag = not_sorted }
+	17 = { set_variable = { which = nbgnollishDev which = PREV } set_variable = { which = nbRaceDev which = nbgnollishDev } set_province_flag = not_sorted }
+	16 = { set_variable = { which = nbgnomishDev which = PREV } set_variable = { which = nbRaceDev which = nbgnomishDev } set_province_flag = not_sorted }
+	15 = { set_variable = { which = nbgoblinDev which = PREV } set_variable = { which = nbRaceDev which = nbgoblinDev } set_province_flag = not_sorted }
+	14 = { set_variable = { which = nbhalf_elvenDev which = PREV } set_variable = { which = nbRaceDev which = nbhalf_elvenDev } set_province_flag = not_sorted }
+	13 = { set_variable = { which = nbhalf_orcishDev which = PREV } set_variable = { which = nbRaceDev which = nbhalf_orcishDev } set_province_flag = not_sorted }
+	12 = { set_variable = { which = nbhalflingDev which = PREV } set_variable = { which = nbRaceDev which = nbhalflingDev } set_province_flag = not_sorted }
+	11 = { set_variable = { which = nbharimariDev which = PREV } set_variable = { which = nbRaceDev which = nbharimariDev } set_province_flag = not_sorted }
+	10 = { set_variable = { which = nbharpyDev which = PREV } set_variable = { which = nbRaceDev which = nbharpyDev } set_province_flag = not_sorted }
+	9 = { set_variable = { which = nbhobgoblinDev which = PREV } set_variable = { which = nbRaceDev which = nbhobgoblinDev } set_province_flag = not_sorted }
+	8 = { set_variable = { which = nbhumanDev which = PREV } set_variable = { which = nbRaceDev which = nbhumanDev } set_province_flag = not_sorted }
+	7 = { set_variable = { which = nbkoboldDev which = PREV } set_variable = { which = nbRaceDev which = nbkoboldDev } set_province_flag = not_sorted }
+	6 = { set_variable = { which = nblizardfolkDev which = PREV } set_variable = { which = nbRaceDev which = nblizardfolkDev } set_province_flag = not_sorted }
+	5 = { set_variable = { which = nbmechanimDev which = PREV } set_variable = { which = nbRaceDev which = nbmechanimDev } set_province_flag = not_sorted }
 	4 = { set_variable = { which = nbogreDev which = PREV } set_variable = { which = nbRaceDev which = nbogreDev } set_province_flag = not_sorted }
 	3 = { set_variable = { which = nborcishDev which = PREV } set_variable = { which = nbRaceDev which = nborcishDev } set_province_flag = not_sorted }
 	2 = { set_variable = { which = nbruinbornDev which = PREV } set_variable = { which = nbRaceDev which = nbruinbornDev } set_province_flag = not_sorted }
@@ -4828,7 +4978,7 @@ pop_menu_main_sorting_effect = {
 	set_variable = { which = raceRanking value = 0 }
 	2 = { save_event_target_as = most_represented_race }
 
-	while = { limit = { NOT = { check_variable = { which = raceRanking value = 19 } } }	#19 = nb of races
+	while = { limit = { NOT = { check_variable = { which = raceRanking value = 20 } } }	#20 = nb of races
 		change_variable = { which = raceRanking value = 1 }
 		pop_menu_variables = {	#province group that has all the provinces with stored variables
 			limit = {
@@ -4846,21 +4996,22 @@ pop_menu_main_sorting_effect = {
 }
 
 pop_ranking_conversion = {
-	if = { limit = { province_id = 19 } ROOT = { set_variable = { which = centaurRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 18 } ROOT = { set_variable = { which = dwarvenRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 17 } ROOT = { set_variable = { which = elvenRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 16 } ROOT = { set_variable = { which = gnollishRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 15 } ROOT = { set_variable = { which = gnomishRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 14 } ROOT = { set_variable = { which = goblinRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 13 } ROOT = { set_variable = { which = half_elvenRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 12 } ROOT = { set_variable = { which = half_orcishRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 11 } ROOT = { set_variable = { which = halflingRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 10 } ROOT = { set_variable = { which = harimariRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 9 } ROOT = { set_variable = { which = harpyRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 8 } ROOT = { set_variable = { which = hobgoblinRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 7 } ROOT = { set_variable = { which = humanRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 6 } ROOT = { set_variable = { which = koboldRanking which = raceRanking } } }
-	else_if = { limit = { province_id = 5 } ROOT = { set_variable = { which = lizardfolkRanking which = raceRanking } } }
+	if = { limit = { province_id = 20 } ROOT = { set_variable = { which = centaurRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 19 } ROOT = { set_variable = { which = dwarvenRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 18 } ROOT = { set_variable = { which = elvenRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 17 } ROOT = { set_variable = { which = gnollishRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 16 } ROOT = { set_variable = { which = gnomishRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 15 } ROOT = { set_variable = { which = goblinRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 14 } ROOT = { set_variable = { which = half_elvenRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 13 } ROOT = { set_variable = { which = half_orcishRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 12 } ROOT = { set_variable = { which = halflingRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 11 } ROOT = { set_variable = { which = harimariRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 10 } ROOT = { set_variable = { which = harpyRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 9 } ROOT = { set_variable = { which = hobgoblinRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 8 } ROOT = { set_variable = { which = humanRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 7 } ROOT = { set_variable = { which = koboldRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 6 } ROOT = { set_variable = { which = lizardfolkRanking which = raceRanking } } }
+	else_if = { limit = { province_id = 5 } ROOT = { set_variable = { which = mechanimRanking which = raceRanking } } }
 	else_if = { limit = { province_id = 4 } ROOT = { set_variable = { which = ogreRanking which = raceRanking } } }
 	else_if = { limit = { province_id = 3 } ROOT = { set_variable = { which = orcishRanking which = raceRanking } } }
 	else_if = { limit = { province_id = 2 } ROOT = { set_variable = { which = ruinbornRanking which = raceRanking } } }
@@ -4883,7 +5034,7 @@ pop_menu_rank_effect = {
 	pop_menu_race_selected_effect = { RACE = human ORDER = $ORDER$ }
 	pop_menu_race_selected_effect = { RACE = kobold ORDER = $ORDER$ }
 	pop_menu_race_selected_effect = { RACE = lizardfolk ORDER = $ORDER$ }
-	# pop_menu_race_selected_effect = { RACE = mechanim ORDER = $ORDER$ }
+	pop_menu_race_selected_effect = { RACE = mechanim ORDER = $ORDER$ }
 	pop_menu_race_selected_effect = { RACE = ogre ORDER = $ORDER$ }
 	pop_menu_race_selected_effect = { RACE = orcish ORDER = $ORDER$ }
 	pop_menu_race_selected_effect = { RACE = ruinborn ORDER = $ORDER$ }
@@ -5034,12 +5185,12 @@ pop_menu_cored_minorities_calculations = {
 	else_if = { limit = { has_large_lizardfolk_minority_trigger = yes }
 		ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.10 } }
 	}
-	# if = { limit = { has_small_mechanism_minority_trigger = yes }
-		# ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.05 } }
-	# }
-	# else_if = { limit = { has_large_mechanism_minority_trigger = yes }
-		# ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.10 } }
-	# }
+	if = { limit = { has_small_mechanim_minority_trigger = yes }
+		ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.05 } }
+	}
+	else_if = { limit = { has_large_mechanim_minority_trigger = yes }
+		ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.10 } }
+	}
 	if = { limit = { has_small_ogre_minority_trigger = yes }
 		ROOT = { change_variable = { which = nbMinorityCoredDev value = 0.05 } }
 	}
@@ -5085,10 +5236,11 @@ pop_menu_military_setup = {
 	set_variable = { which = humanRanking value = 13 }
 	set_variable = { which = koboldRanking value = 14 }
 	set_variable = { which = lizardfolkRanking value = 15 }
-	set_variable = { which = ogreRanking value = 16 }
-	set_variable = { which = orcishRanking value = 17 }
-	set_variable = { which = ruinbornRanking value = 18 }
-	set_variable = { which = trollRanking value = 19 }
+	set_variable = { which = mechanimRanking value = 16 }
+	set_variable = { which = ogreRanking value = 17 }
+	set_variable = { which = orcishRanking value = 18 }
+	set_variable = { which = ruinbornRanking value = 19 }
+	set_variable = { which = trollRanking value = 20 }
 	pop_menu_military_sorting_effect = yes
 }
 
@@ -5109,26 +5261,27 @@ pop_menu_military_sorting_setup = {
 }
 
 pop_menu_military_sorting_effect = {
-	19 = { pop_menu_military_sorting_setup = { RACE = centaur } }
-	18 = { pop_menu_military_sorting_setup = { RACE = dwarven } }
-	17 = { pop_menu_military_sorting_setup = { RACE = elven } }
-	16 = { pop_menu_military_sorting_setup = { RACE = gnollish } }
-	15 = { pop_menu_military_sorting_setup = { RACE = gnomish } }
-	14 = { pop_menu_military_sorting_setup = { RACE = goblin } }
-	13 = {
+	20 = { pop_menu_military_sorting_setup = { RACE = centaur } }
+	19 = { pop_menu_military_sorting_setup = { RACE = dwarven } }
+	18 = { pop_menu_military_sorting_setup = { RACE = elven } }
+	17 = { pop_menu_military_sorting_setup = { RACE = gnollish } }
+	16 = { pop_menu_military_sorting_setup = { RACE = gnomish } }
+	15 = { pop_menu_military_sorting_setup = { RACE = goblin } }
+	14 = {
 		set_variable = { which = nbRaceDev value = 0 }
-		set_variable = { which = raceRanking value = 19 }
-		ROOT = { set_variable = { which = half_elvenRanking value = 19 } }
+		set_variable = { which = raceRanking value = 20 }
+		ROOT = { set_variable = { which = half_elvenRanking value = 20 } }
 		# pop_menu_military_sorting_setup = { RACE = half_elven }
 	}	#half elven military doesn't exist
-	12 = { pop_menu_military_sorting_setup = { RACE = half_orcish } }
-	11 = { pop_menu_military_sorting_setup = { RACE = halfling } }
-	10 = { pop_menu_military_sorting_setup = { RACE = harimari } }
-	9 = { pop_menu_military_sorting_setup = { RACE = harpy } }
-	8 = { pop_menu_military_sorting_setup = { RACE = hobgoblin } }
-	7 = { pop_menu_military_sorting_setup = { RACE = human } }
-	6 = { pop_menu_military_sorting_setup = { RACE = kobold } }
-	5 = { pop_menu_military_sorting_setup = { RACE = lizardfolk } }
+	13 = { pop_menu_military_sorting_setup = { RACE = half_orcish } }
+	12 = { pop_menu_military_sorting_setup = { RACE = halfling } }
+	11 = { pop_menu_military_sorting_setup = { RACE = harimari } }
+	10 = { pop_menu_military_sorting_setup = { RACE = harpy } }
+	9 = { pop_menu_military_sorting_setup = { RACE = hobgoblin } }
+	8 = { pop_menu_military_sorting_setup = { RACE = human } }
+	7 = { pop_menu_military_sorting_setup = { RACE = kobold } }
+	6 = { pop_menu_military_sorting_setup = { RACE = lizardfolk } }
+	5 = { pop_menu_military_sorting_setup = { RACE = mechanim } }
 	4 = { pop_menu_military_sorting_setup = { RACE = ogre } }
 	3 = { pop_menu_military_sorting_setup = { RACE = orcish } }
 	2 = { pop_menu_military_sorting_setup = { RACE = ruinborn } }
@@ -5182,7 +5335,7 @@ pop_menu_military_change_mil_effects = {
 	pop_menu_military_change_mil_race = { RACE = human ORDER = $ORDER$ }
 	pop_menu_military_change_mil_race = { RACE = kobold ORDER = $ORDER$ }
 	pop_menu_military_change_mil_race = { RACE = lizardfolk ORDER = $ORDER$ }
-	# pop_menu_military_change_mil_race = { RACE = mechanism ORDER = $ORDER$ }
+	pop_menu_military_change_mil_race = { RACE = mechanim ORDER = $ORDER$ }
 	pop_menu_military_change_mil_race = { RACE = ogre ORDER = $ORDER$ }
 	pop_menu_military_change_mil_race = { RACE = orcish ORDER = $ORDER$ }
 	pop_menu_military_change_mil_race = { RACE = ruinborn ORDER = $ORDER$ }
@@ -5462,7 +5615,6 @@ pop_menu_military_change_tech = {
 				limit = { 
 					OR = {
 						accepted_culture = tanizu
-						accepted_culture = dakinshi
 						accepted_culture = antmvura
 						accepted_culture = kombedak
 						accepted_culture = umsozidak
@@ -6212,6 +6364,13 @@ update_unit_sprites_for_racial_mil = {
 		custom_tooltip = swap_to_lizardfolk_sprites_tooltip
 		hidden_effect = { apply_sprite_pack = muslimgfx_sprite_pack }
 	}
+
+	else_if = {
+		limit = { has_country_modifier = mechanim_military }
+		# TODO update if mechanim get unique models
+		custom_tooltip = swap_to_mechanim_sprites_tooltip
+		hidden_effect = { apply_sprite_pack = asiangfx_sprite_pack }
+	}
 }
 
 grant_unlimited_state_action = {
@@ -6518,9 +6677,7 @@ racial_purge_disabled_tt =  {
 	if = {
 		limit = {
 			has_country_flag = has_caste_estates
-			is_race_in_any_caste = {
-				$RACE$ = yes
-			}
+			is_race_in_any_caste = { race = $RACE$ }
 		}
 		custom_tooltip = pop_menu_cannot_purge_castes_tt
 	}
@@ -6555,9 +6712,7 @@ racial_expel_disabled_tt = {
 	if = {
 		limit = {
 			has_country_flag = has_caste_estates
-			is_race_in_any_caste = {
-				$RACE$ = yes
-			}
+			is_race_in_any_caste = { race = $RACE$ }
 		}
 		custom_tooltip = pop_menu_cannot_purge_castes_tt
 	}
@@ -6577,7 +6732,7 @@ racial_expel_disabled_tt = {
 
 racial_focus_disabled_tt = {
 	custom_tooltip = pop_menu_unavailable_tt
-	if = { limit = { NOT = { can_afford_state_action_diplomat_malus = { action = genocide } } }
+	if = { limit = { NOT = { can_afford_state_action_diplomat_malus = { action = focus } } }
 		custom_tooltip = pop_menu_need_a_diplomat_tt
 	}
 	if = { limit = { NOT = { dip_power = 50 } }
@@ -6601,6 +6756,7 @@ remove_all_racial_majority = {
 	remove_racial_majority = { race = human }
 	remove_racial_majority = { race = kobold }
 	remove_racial_majority = { race = lizardfolk }
+	remove_racial_majority = { race = mechanim }
 	remove_racial_majority = { race = ogre }
 	remove_racial_majority = { race = orcish }
 	remove_racial_majority = { race = ruinborn }
@@ -6673,6 +6829,12 @@ update_ruler_racial_flag = {
 			ruler_is_lizardfolk = yes
 		}
 		set_ruler_flag = lizardfolk_ruler
+	}
+	else_if = {
+		limit = {
+			ruler_is_mechanim = yes
+		}
+		set_ruler_flag = mechanim_ruler
 	}
 	else_if = {
 		limit = {
@@ -6793,6 +6955,12 @@ update_heir_racial_flag = {
 	}
 	else_if = {
 		limit = {
+			heir_is_mechanim = yes
+		}
+		set_heir_flag = mechanim_heir
+	}
+	else_if = {
+		limit = {
 			heir_is_halfling = yes
 		}
 		set_heir_flag = halfling_heir
@@ -6907,6 +7075,12 @@ update_consort_racial_flag = {
 			consort_is_lizardfolk = yes
 		}
 		set_consort_flag = lizardfolk_consort
+	}
+	else_if = {
+		limit = {
+			consort_is_mechanim = yes
+		}
+		set_consort_flag = mechanim_consort
 	}
 	else_if = {
 		limit = {
@@ -7587,7 +7761,7 @@ set_all_tolerance_to_coexisting_or_higher = {
 	set_tolerance_to_coexisting_or_higher = { race = centaur }
 	set_tolerance_to_coexisting_or_higher = { race = ogre }
 	set_tolerance_to_coexisting_or_higher = { race = lizardfolk }
-	#set_tolerance_to_coexisting_or_higher = { race = mechanim } When Insyaa comes
+	set_tolerance_to_coexisting_or_higher = { race = mechanim }
 }
 
 set_tolerance_to_integrated_or_higher = {
@@ -7624,7 +7798,7 @@ set_all_tolerance_to_integrated_or_higher = {
     set_tolerance_to_integrated_or_higher = { race = centaur }
     set_tolerance_to_integrated_or_higher = { race = ogre }
     set_tolerance_to_integrated_or_higher = { race = lizardfolk }
-    #set_tolerance_to_integrated_or_higher = { race = mechanim } When Insyaa comes
+    set_tolerance_to_integrated_or_higher = { race = mechanim }
 }
 
 set_tolerance_below_coexisting = {
@@ -7666,7 +7840,7 @@ set_all_tolerance_below_coexisting = {
     set_tolerance_below_coexisting = { race = centaur }
     set_tolerance_below_coexisting = { race = ogre }
     set_tolerance_below_coexisting = { race = lizardfolk }
-    #set_tolerance_below_coexisting = { race = mechanim } When Insyaa comes
+    set_tolerance_below_coexisting = { race = mechanim }
 }
 
 set_tolerance_below_integrated = {
@@ -7705,5 +7879,5 @@ set_all_tolerance_below_integrated = {
     set_tolerance_below_integrated = { race = centaur }
     set_tolerance_below_integrated = { race = ogre }
     set_tolerance_below_integrated = { race = lizardfolk }
-    #set_tolerance_below_integrated = { race = mechanim } When Insyaa comes
+    set_tolerance_below_integrated = { race = mechanim }
 }
