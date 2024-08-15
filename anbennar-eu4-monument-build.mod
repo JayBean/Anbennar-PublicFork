@@ -1,4 +1,4 @@
-name="Anbennar-PublicFork"
+name="anbennar-eu4-monument-build"
 tags={
 	"Alternative History"
 	"Total Conversion"
@@ -28,5 +28,5 @@ replace_path="history/advisors"
 replace_path="gfx/loadingscreens"
 replace_path="tutorial"
 picture="anbennar.jpg"
-supported_version="v1.37.1.0"
-path="mod/Anbennar-PublicFork"
+supported_version="v1.37.2.0"
+path="C:/Users/andre/Documents/Paradox Interactive/Europa Universalis IV/mod/anbennar-eu4-monument-build"
