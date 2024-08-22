@@ -1,10 +1,11 @@
 ### For Design Questions Ask @werdna881
+### For Loc Questions Ask @werdna881
 ### For System Questions Ask @Balgar's Apprentice
 ### For UI Questions Ask @elefante_
 
 # File Organization:
 # 0-99: System Events
-#	0-9: 		System Background Events and on_actions
+#	0-9: 		System Background Events
 #	10-19: 		Getting to the Gateway
 #	20-29: 		Learning About the Gateway
 #	30-39: 		Powering the Gateway
@@ -45,26 +46,37 @@ country_event = {
 	is_triggered_only = yes
 
 	hidden = yes
-	
-	option = { 
-		name = nomsyulhan_gateway.0.a
-	}
-}
-
-# This event should be called at the start of every expedition
-# As a result, you can put expedition-start "on_actions" here
-country_event = {
-	id = nomsyulhan_gateway.1
-	title = nomsyulhan_gateway.0.t
-	desc = nomsyulhan_gateway.0.d
-	picture = COURT_eventPicture
-	
-	is_triggered_only = yes
-
-	hidden = yes
 
 	immediate = {
-		set_country_flag = nomsyulhan_on_expedition
+		if = {
+			limit = { 6838 = { owned_by = ROOT } }
+			if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_active_gateway } }
+				country_event = { id = nomsyulhan_gateway.40 } # Test Event
+				# country_event = { id = nomsyulhan_gateway.70 } # Expedition UI Event
+			}
+			else_if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_unpowered_gateway } }
+				country_event = { id = nomsyulhan_gateway.30 } # Powering the Gateway
+			}
+			else_if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_unpowered_gateway } }
+				country_event = { id = nomsyulhan_gateway.20 } # Learning About the Gateway
+			}
+			else = {
+				# This case should never happen
+				# Add Error Event
+			}
+		}
+		else_if = {
+			limit = { is_city = no }
+			country_event = { id = nomsyulhan_gateway.10 } # Getting to the Gateway
+		}
+		else = {
+			# Someone else owns the gateway
+			# Add something for this case
+			# Maybe fire an event that gives the player a claim to 6838 at a small cost of ADM and DIP mana
+		}
 	}
 	
 	option = { 
@@ -72,29 +84,7 @@ country_event = {
 	}
 }
 
-# This event should be called at the end of every expedition
-# As a result, you can put expedition-end "on_actions" here
-country_event = {
-	id = nomsyulhan_gateway.9
-	title = nomsyulhan_gateway.0.t
-	desc = nomsyulhan_gateway.0.d
-	picture = COURT_eventPicture
-	
-	is_triggered_only = yes
-
-	hidden = yes
-
-	immediate = {
-		clr_country_flag = nomsyulhan_on_expedition
-		# add check for gateway power status
-	}
-	
-	option = { 
-		name = nomsyulhan_gateway.0.a
-	}
-}
-
-# access_nomsyulhan_gateway
+# Getting to the Gateway
 country_event = {
 	id = nomsyulhan_gateway.10
 	title = nomsyulhan_gateway.10.t
@@ -143,6 +133,7 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			6838 = {
+				create_colony = 1000
 				add_province_modifier = {
 					name = nomsyulhan_incomplete_gateway
 					duration = -1
@@ -156,7 +147,9 @@ country_event = {
 	}
 }
 
-# unpowered_nomsyulhan_gateway
+# Learning About the Gateway
+
+# Triage Event to check if the player has the tutorial keystone
 country_event = {
 	id = nomsyulhan_gateway.20
 	title = nomsyulhan_gateway.20.t
@@ -164,6 +157,25 @@ country_event = {
 	picture = COURT_eventPicture
 	
 	is_triggered_only = yes
+
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = { has_country_flag = tutorial_agradent_expedition }
+			# Fire event that shows Agradent but requires power
+			country_event = { id = nomsyulhan_gateway.21 }
+		}
+		else_if = {
+			limit = { has_nomsyulhan_gateway_keystone = yes }
+			# Fire event that says gateway isn't calibrated
+			country_event = { id = nomsyulhan_gateway.22 }
+		}
+		else = {
+			# Fire event that starts the big hunt for a keystone
+			country_event = { id = nomsyulhan_gateway.23 }
+		}
+	}
 	
 	option = { 
 		name = nomsyulhan_gateway.20.a
@@ -171,6 +183,7 @@ country_event = {
 	}
 }
 
+# Show Agradent but Require Power
 country_event = {
 	id = nomsyulhan_gateway.21
 	title = nomsyulhan_gateway.21.t
@@ -182,6 +195,7 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			6838 = {
+				remove_province_modifier = nomsyulhan_incomplete_gateway
 				add_province_modifier = {
 					name = nomsyulhan_unpowered_gateway
 					duration = -1
@@ -195,7 +209,37 @@ country_event = {
 	}
 }
 
-# active_nomsyulhan_gateway
+# Keystone Isn't Calibrated
+country_event = {
+	id = nomsyulhan_gateway.22
+	title = nomsyulhan_gateway.22.t
+	desc = nomsyulhan_gateway.22.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.22.a
+		# Fire event that starts the big hunt for a keystone
+		country_event = { id = nomsyulhan_gateway.23 }
+	}
+}
+
+# Start Big Hunt for Keystone Event Chain
+country_event = {
+	id = nomsyulhan_gateway.23
+	title = nomsyulhan_gateway.23.t
+	desc = nomsyulhan_gateway.23.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.23.a
+	}
+}
+
+# Powering the Gateway
 country_event = {
 	id = nomsyulhan_gateway.30
 	title = nomsyulhan_gateway.30.t
@@ -221,6 +265,7 @@ country_event = {
 	immediate = {
 		hidden_effect = {
 			6838 = {
+				remove_province_modifier = nomsyulhan_unpowered_gateway
 				add_province_modifier = {
 					name = nomsyulhan_active_gateway
 					duration = -1
@@ -250,6 +295,7 @@ country_event = {
 }
 
 # Test Expedition: Events 41-45 (Should not be seen by regular players)
+# Test Expedition is WIP
 country_event = {
 	id = nomsyulhan_gateway.41		# Test Expedition Start Desc
 	title = nomsyulhan_gateway.41.t
@@ -260,7 +306,7 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
-			country_event = { id = nomsyulhan_gateway.1 } # Must be called at the start of every expedition
+			nomsyulhan_expedition_start = yes # Must be called at the start of every expedition
 		}
 	}
 	
@@ -339,7 +385,7 @@ country_event = {
 
 	immediate = {
 		hidden_effect = {
-			country_event = { id = nomsyulhan_gateway.9 } # Must be called at the end of every expedition
+			nomsyulhan_expedition_end = yes # Must be called at the end of every expedition
 		}
 	}
 	
