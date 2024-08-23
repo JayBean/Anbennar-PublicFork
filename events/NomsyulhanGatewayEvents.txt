@@ -1,0 +1,410 @@
+### For Design Questions Ask @werdna881
+### For Loc Questions Ask @werdna881
+### For System Questions Ask @Balgar's Apprentice
+### For UI Questions Ask @elefante_
+
+# File Organization:
+# 0-99: System Events
+#	0-9: 		System Background Events
+#	10-19: 		Getting to the Gateway
+#	20-29: 		Learning About the Gateway
+#	30-39: 		Powering the Gateway
+#	40-69: 		System Test Events
+#	70-99: 		System UI Events
+
+# 100-349: Expedition Events
+#	100-119: 	Generic Expedition Events
+#	120-129: 	Agradent Expedition
+#	130-139: 	2 Expedition
+#	140-149: 	3 Expedition
+#	150-159: 	4 Expedition
+#	160-169: 	5 Expedition
+#	170-179: 	6 Expedition
+#	180-189: 	7 Expedition
+#	190-199: 	8 Expedition
+#	200-209: 	9 Expedition
+#	210-219: 	10 Expedition
+#	220-229: 	11 Expedition
+#	230-239: 	12 Expedition
+#	240-249: 	MT Unique 1 Expedition
+#	250-259: 	MT Unique 2 Expedition
+#	260-269: 	MT Unique 3 Expedition
+#	270-349: 	Saved for Future Proposals
+
+# 350-399: Disaster Events
+# 	WIP
+
+namespace = nomsyulhan_gateway
+
+# Nomsyulhan Decision Triage Event
+country_event = {
+	id = nomsyulhan_gateway.0
+	title = nomsyulhan_gateway.0.t
+	desc = nomsyulhan_gateway.0.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = { 6838 = { owned_by = ROOT } }
+			if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_active_gateway } }
+				country_event = { id = nomsyulhan_gateway.40 } # Test Event
+				# country_event = { id = nomsyulhan_gateway.70 } # Expedition UI Event
+			}
+			else_if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_unpowered_gateway } }
+				country_event = { id = nomsyulhan_gateway.30 } # Powering the Gateway
+			}
+			else_if = {
+				limit = { 6838 = { has_province_modifier = nomsyulhan_unpowered_gateway } }
+				country_event = { id = nomsyulhan_gateway.20 } # Learning About the Gateway
+			}
+			else = {
+				# This case should never happen
+				# Add Error Event
+			}
+		}
+		else_if = {
+			limit = { is_city = no }
+			country_event = { id = nomsyulhan_gateway.10 } # Getting to the Gateway
+		}
+		else = {
+			# Someone else owns the gateway
+			# Add something for this case
+			# Maybe fire an event that gives the player a claim to 6838 at a small cost of ADM and DIP mana
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.0.a
+	}
+}
+
+# Getting to the Gateway
+country_event = {
+	id = nomsyulhan_gateway.10
+	title = nomsyulhan_gateway.10.t
+	desc = nomsyulhan_gateway.10.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { # hire adventurers
+		name = nomsyulhan_gateway.10.a
+		country_event = { id = nomsyulhan_gateway.11 days = 10 }
+	}
+	
+	option = { # use the army
+		name = nomsyulhan_gateway.10.b
+		country_event = { id = nomsyulhan_gateway.11 days = 10 }
+	}
+	
+	option = { # use spirit guides
+		name = nomsyulhan_gateway.10.c
+		highlight = yes
+		trigger = {
+			primary_culture = soulseeker_ogre
+		}
+		country_event = { id = nomsyulhan_gateway.11 days = 10 }
+	}
+	
+	option = { # use shamans
+		name = nomsyulhan_gateway.10.e
+		highlight = yes
+		trigger = {
+			primary_culture = eagle_command
+		}
+		country_event = { id = nomsyulhan_gateway.11 days = 10 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.11
+	title = nomsyulhan_gateway.11.t
+	desc = nomsyulhan_gateway.11.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			6838 = {
+				create_colony = 1000
+				add_province_modifier = {
+					name = nomsyulhan_incomplete_gateway
+					duration = -1
+				}
+			}
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.11.a
+	}
+}
+
+# Learning About the Gateway
+
+# Triage Event to check if the player has the tutorial keystone
+country_event = {
+	id = nomsyulhan_gateway.20
+	title = nomsyulhan_gateway.20.t
+	desc = nomsyulhan_gateway.20.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = { has_country_flag = tutorial_agradent_expedition }
+			# Fire event that shows Agradent but requires power
+			country_event = { id = nomsyulhan_gateway.21 }
+		}
+		else_if = {
+			limit = { has_nomsyulhan_gateway_keystone = yes }
+			# Fire event that says gateway isn't calibrated
+			country_event = { id = nomsyulhan_gateway.22 }
+		}
+		else = {
+			# Fire event that starts the big hunt for a keystone
+			country_event = { id = nomsyulhan_gateway.23 }
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.20.a
+		country_event = { id = nomsyulhan_gateway.21 days = 10 }
+	}
+}
+
+# Show Agradent but Require Power
+country_event = {
+	id = nomsyulhan_gateway.21
+	title = nomsyulhan_gateway.21.t
+	desc = nomsyulhan_gateway.21.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			6838 = {
+				remove_province_modifier = nomsyulhan_incomplete_gateway
+				add_province_modifier = {
+					name = nomsyulhan_unpowered_gateway
+					duration = -1
+				}
+			}
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.21.a
+	}
+}
+
+# Gateway isn't Calibrated
+country_event = {
+	id = nomsyulhan_gateway.22
+	title = nomsyulhan_gateway.22.t
+	desc = nomsyulhan_gateway.22.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.22.a
+		# Fire event that starts the big hunt for a keystone
+		country_event = { id = nomsyulhan_gateway.23 }
+	}
+}
+
+# Start Big Hunt for Keystone Event Chain
+country_event = {
+	id = nomsyulhan_gateway.23
+	title = nomsyulhan_gateway.23.t
+	desc = nomsyulhan_gateway.23.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.23.a
+	}
+}
+
+# Powering the Gateway
+country_event = {
+	id = nomsyulhan_gateway.30
+	title = nomsyulhan_gateway.30.t
+	desc = nomsyulhan_gateway.30.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.30.a
+		country_event = { id = nomsyulhan_gateway.31 days = 10 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.31
+	title = nomsyulhan_gateway.31.t
+	desc = nomsyulhan_gateway.31.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			6838 = {
+				remove_province_modifier = nomsyulhan_unpowered_gateway
+				add_province_modifier = {
+					name = nomsyulhan_active_gateway
+					duration = -1
+				}
+			}
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.31.a
+	}
+}
+
+# Expedition Test "UI" (Use to circumvent the normal Expedition UI)
+country_event = {
+	id = nomsyulhan_gateway.40
+	title = nomsyulhan_gateway.40.t
+	desc = nomsyulhan_gateway.40.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.40.a
+		country_event = { id = nomsyulhan_gateway.100 }
+	}
+}
+
+# Test Expedition: Events 41-45 (Should not be seen by regular players)
+# Test Expedition is WIP
+country_event = {
+	id = nomsyulhan_gateway.41		# Test Expedition Start Desc
+	title = nomsyulhan_gateway.41.t
+	desc = nomsyulhan_gateway.41.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			nomsyulhan_expedition_start = yes # Must be called at the start of every expedition
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.41.a
+		country_event = { id = nomsyulhan_gateway.42 days = 10 random = 2 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.42		# Choice Event
+	title = nomsyulhan_gateway.42.t
+	desc = nomsyulhan_gateway.42.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.42.a
+		country_event = { id = nomsyulhan_gateway.43 days = 10 random = 2 }
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.42.b
+		country_event = { id = nomsyulhan_gateway.44 days = 10 random = 2 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.43		# Consequenses of Event 42.a
+	title = nomsyulhan_gateway.43.t
+	desc = nomsyulhan_gateway.43.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.43.a
+		country_event = { id = nomsyulhan_gateway.45 days = 10 random = 2 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.44		# Consequenses of Event 42.b
+	title = nomsyulhan_gateway.44.t
+	desc = nomsyulhan_gateway.44.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.44.a
+		country_event = { id = nomsyulhan_gateway.45 days = 10 random = 2 }
+	}
+}
+
+country_event = {
+	id = nomsyulhan_gateway.45		# Test Expedition End Desc
+	title = nomsyulhan_gateway.45.t
+	desc = nomsyulhan_gateway.45.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			nomsyulhan_expedition_end = yes # Must be called at the end of every expedition
+		}
+	}
+	
+	option = { 
+		name = nomsyulhan_gateway.45.a
+	}
+}
+
+# Expedition UI Base
+country_event = {
+	id = nomsyulhan_gateway.70
+	title = nomsyulhan_gateway.70.t
+	desc = nomsyulhan_gateway.70.d
+	picture = COURT_eventPicture
+	
+	is_triggered_only = yes
+	
+	option = { 
+		name = nomsyulhan_gateway.70.a
+		country_event = { id = nomsyulhan_gateway.100 }
+	}
+}
