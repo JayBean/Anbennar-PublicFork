@@ -140,12 +140,38 @@ avhavubhiya_3_missions = {
 		}
 
 		provinces_to_highlight = {
+			OR = {
+				AND = {
+					province_id = 4362 #Avhavubhiya
+					NOT = { province_has_center_of_trade_of_level = 2 }
+				}
+				AND = {
+					province_id = 4367 #Sarkhashabid
+					owner = { navy_size = ROOT }
+				}
+				AND = {
+					province_id = 1361 #Gulf of Rahen
+					NOT = {
+						has_privateer_share_in_trade_node = {
+							who = ROOT
+							share = 1
+						}
+					}
+				}
+			}
 		}
 
 		trigger = {
+			4362 = { province_has_center_of_trade_of_level = 2 }
+			naval_strength = { who = R02 value = 1.01 }
+			if = {
+				limit = { ai = no }
+				1361 = { privateer_power = { share = 1 } }
+			}
 		}
 
 		effect = {
+			add_country_modifier = { name = avhavubhiya_rivaled_sarkhashabid_traders duration = 9125 }
 		}
 	}
 }
@@ -393,12 +419,28 @@ sarkhashabid_3_missions = {
 		}
 
 		provinces_to_highlight = {
+			OR = {
+				is_capital_of = ROOT
+				province_id = 4367 #Sarkhashabid
+			}
 		}
 
 		trigger = {
+			if = {
+				limit = { ai = no }
+				num_of_light_ship = 15
+				capital_scope = {
+					has_trade_building_trigger = yes
+					has_dock_building_trigger = yes
+				}
+				has_estate_privilege = estate_middlecastes_free_enterprise
+			}
+			4367 = { province_has_center_of_trade_of_level = 2 }
 		}
 
 		effect = {
+			add_mercantilism = 3
+			add_yearly_sailors = 3
 		}
 	}
 }
@@ -698,12 +740,24 @@ davharral_3_missions = {
 		}
 
 		provinces_to_highlight = {
+			province_id = 2913 #Davharral
 		}
 
 		trigger = {
+			treasury = 50
+			2913 = { num_of_units_in_province = { who = ROOT type = infantry amount = 3 } }
+			if = {
+				limit = { ai = no }
+				has_estate_privilege = estate_lowercastes_maintained_infrastructure
+			}
 		}
 
 		effect = {
+			add_treasury = -50
+			2913 = {
+				kill_units = { who = ROOT type = infantry amount = 3 }
+				province_event = { id = sanghariyar.2 }
+			}
 		}
 	}
 }
@@ -937,17 +991,14 @@ iyarhashar_3_missions = {
 		}
 
 		trigger = {
-			ascension_cape_area = {
-				has_state_edict = defensive_edict
-			}
-			ROOT = { 
-				AND = {
-					manpower_percentage = 0.80
-					army_size_percentage = 1
+			manpower_percentage = 0.80
+			if = {
+				limit = { ai = no }
+				army_size_percentage = 1
+				4380 = {
+					has_state_edict = defensive_edict
+					has_ward_province_modifier = yes
 				}
-			}
-			4380 = {
-				has_no_ward_province_modifiers = yes 
 			}
 		}
 
@@ -1184,12 +1235,24 @@ shenral_3_missions = {
 		}
 
 		provinces_to_highlight = {
+			province_id = 4368 #Shenral
 		}
 
 		trigger = {
+			treasury = 100
+			4368 = { development = 15 }
+			has_country_modifier = racial_focus_dwarven
+			NOT = {
+				has_country_modifier = racial_pop_dwarven_expulsion
+				has_country_modifier = racial_pop_dwarven_purge
+			}
 		}
 
 		effect = {
+			add_treasury = -100
+			4365 = { generic_add_race_minority_size_effect = { race = dwarven } }
+			4378 = { generic_add_race_minority_size_effect = { race = dwarven } }
+			generic_increase_of_racial_tolerance_effect = { race = dwarven largest = yes }
 		}
 	}
 }
@@ -2100,28 +2163,57 @@ sanghariyar_3_missions = {
 				province_id = 4367
 				province_id = 2913
 			}
-			NOT = { country_or_non_sovereign_subject_holds = ROOT }
+			OR = {
+				NOT = { country_or_non_sovereign_subject_holds = ROOT }
+				owner = {
+					is_subject_of = ROOT
+					culture = raghamidesh
+					OR = {
+						liberty_desire = 40
+						NOT = {
+							has_opinion = {
+								who = ROOT
+								value = 150
+							}
+						}
+					}
+				}
+			}
 		}
 
 		trigger = {
-			owns_or_non_sovereign_subject_of = 4380
-			owns_or_non_sovereign_subject_of = 4362
-			owns_or_non_sovereign_subject_of = 4367
-			OR = {
-				owns_or_non_sovereign_subject_of = 4368
-				owns_or_non_sovereign_subject_of = 2913	
-			}
-			all_subject_country = {
+			custom_trigger_tooltip = {
+				tooltip = sanghariyar_homeland_united_trigger_tt
 				OR = {
-					AND = {
-						primary_culture = raghamidesh
-						NOT = { liberty_desire = 40 }
-						has_opinion = {
-							who = ROOT
-							value = 150
+					mission_completed = iyarhashar_defensive_preparations
+					mission_completed = avhavubhiya_rival_sarkhashabidi_traders
+					mission_completed = davharral_digging_wells
+					mission_completed = sarkhashabid_trade_investments
+					mission_completed = shenral_encourage_dwarven_settlements
+				}
+			}
+			calc_true_if = {
+				amount = 4
+				owns_or_non_sovereign_subject_of = 4380 #Sardika (Iyarhashar)
+				owns_or_non_sovereign_subject_of = 4362 #Avhavubhiya (Avhavubhiya)
+				owns_or_non_sovereign_subject_of = 4367 #Sarkhashabid (Sarkhashabid)
+				owns_or_non_sovereign_subject_of = 4368 #Shenral (Shenral)
+				owns_or_non_sovereign_subject_of = 2913	#Davharral (Davharral)
+			}
+			if = {
+				limit = { ai = no }
+				custom_trigger_tooltip = {
+					tooltip = sanghariyar_homeland_united_trigger_2_tt
+					all_subject_country = {
+						OR = {
+							NOT = { primary_culture = raghamidesh }
+							NOT = { liberty_desire = 40 }
+							has_opinion = {
+								who = ROOT
+								value = 150
+							}
 						}
 					}
-					NOT = { primary_culture = raghamidesh }
 				}
 			}
 		}
@@ -2129,25 +2221,24 @@ sanghariyar_3_missions = {
 		effect = {
 			change_tag = R98
 			on_change_tag_effect = yes
-			country_event = {
-				id = flavour_sanghariyar.01 #City of Cities
-				days = 30
-			}
 			add_mercantilism = 5
-			every_subject_country = {
-				every_owned_province = {
-					limit = {
-						area = avhavubhiya_area
-						area = sarkhashabid_area
-						area = shenral_area
-						area = ascension_cape_area
-						province_id = 2913
+			custom_tooltip = sanghariyar_homeland_united_effect_tt
+			hidden_effect = {
+				set_variable = { which = temp_dev_check value = 0 }
+				every_subject_country = {
+					every_owned_province = {
+						limit = { superregion = rahen_superregion }
+						cede_province = R98
+						add_core = R98
+						remove_core = PREV
+						export_to_variable = { which = temp_dev_check value = development }
+						ROOT = { change_variable = { which = temp_dev_check which = PREV } }
 					}
-					cede_province = R98
-					add_core = R98
-					remove_core = PREV
 				}
+				multiply_variable = { which = temp_dev_check value = 3 }
+				var_effect = { var = temp_dev_check effect = add_dip_power sign = - }
 			}
+			country_event = { id = sanghariyar.1 }
 		}
 	}
 
