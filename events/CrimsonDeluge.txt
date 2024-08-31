@@ -3,8 +3,579 @@ namespace = deluge
 
 # Random events to happen during the Crimson Deluge
 
-# Hard Rain on palace, lose or gain legitimacy
-country_event = {
+country_event = { #Crimson Deluge Event Pulse
+	id = deluge.0
+	title = deluge.0.t
+	desc = delute.0.d
+	picture = COUNTRY_COLLAPSE_eventPicture
+
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		has_global_flag = crimson_deluge_is_actively_happening
+		OR = {
+			has_country_flag = crimson_deluge_repeat
+			any_owned_province = { province_group = crimson_deluge_provinces }
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = { capital_scope = { province_group = crimson_deluge_core_provinces } }
+				set_country_flag = capital_in_crimson_core
+				set_country_flag = province_in_crimson_core
+			}
+			else_if = {
+				limit = { any_owned_province = { province_group = crimson_deluge_core_provinces } }
+				set_country_flag = province_in_crimson_core
+			}
+
+			if = { #The event rate works out better if we can get 2 events a yearly pulse
+				limit = { has_country_flag = crimson_deluge_repeat }
+				clr_country_flag = crimson_deluge_repeat
+			}
+			else = {
+				set_country_flag = crimson_deluge_repeat
+				country_event = { id = deluge.0 days = 180 }
+			}
+
+			if = { #deluge.4 is a special case, previously being a province event not MTTH scaled to size
+				limit = { #Anbenncost owner will fire the conversion event 1 day later
+					owns = 8
+				}
+				crimson_deluge_provinces = {
+					limit = {
+						NOT = { religion = corinite } #most restrictive check
+						OR = {
+							religion = regent_court
+							religion = goblinic_shamanism
+							religion = great_dookan
+							religion = infernal_court
+						}
+						NOT = { has_province_modifier = adenica_heart_of_chivalry_mod }
+					}
+					random_list = {
+						1 = {
+							set_province_flag = convert_to_corinite
+							province_event = { id = deluge.4 days = 1 }
+						}
+						60 = { #empty option = chance to do nothing
+							modifier = {
+								factor = 0.8
+								province_group = crimson_deluge_core_provinces
+							}
+							modifier = { #They already have an event converting their land to corinite
+								factor = 4
+								region = alenic_frontier_region
+							}
+							modifier = { #Resistant to Corin's charms
+								factor = 3
+								OR = {
+									NOT = { religion_group = cannorian }
+									owner = { tag = B58 }
+									religion = dalcabba
+								}
+							}
+							modifier = {
+								factor = 4
+								OR = {
+									culture_group = elven
+									culture_group = gnomish
+								}
+							}
+							modifier = {
+								factor = 2
+								OR = {
+									culture_group = lencori
+									culture = crownsman
+									culture = esmari
+								}
+							}
+							modifier = { #Heroic cultures
+								factor = 0.77
+								OR = {
+									culture = vernman
+									culture = derannic
+									culture = arbarani
+									culture_group = alenic
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	after = {
+		clr_country_flag = capital_in_crimson_core
+		clr_country_flag = province_in_crimson_core
+	}
+
+	option = { #Empty option for RNG (MTTH scaled to size is a harsh mistress)
+		name = deluge.0.a
+		ai_chance = { factor = 1 }
+	}
+
+	option = { #Every pulse you should get 0.5 of these events
+		name = deluge.0.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				has_country_flag = capital_in_crimson_core
+			}
+		}
+		trigger = { capital_scope = { province_group = crimson_deluge_provinces } }
+
+		random_list = {
+			1 = {} #empty option
+			200 = { #Hard Rain on palace, lose or gain legitimacy
+				trigger = {
+					religion_group = cannorian
+					NOT = {
+						religion = dalcabba
+						government = native
+					}
+				}
+				country_event = { id = deluge.1 }
+			}
+			100 = { #Heir converts to Corinite
+				trigger = {
+					is_lesser_in_union = no
+					has_heir = yes
+					NOT = {
+						heir_religion = corinite
+						tag = B58
+					}
+					OR = {
+						religion = infernal_court
+						religion = regent_court
+						religion = goblinic_shamanism
+						religion = great_dookan
+					}
+					heir_age = 10
+				}
+				modifier = {
+					factor = 0.33
+					OR = {
+						NOT = { religion_group = cannorian }
+						religion = dalcabba
+					}
+				}
+				modifier = {
+					factor = 0.25
+					OR = {
+						heir_culture = moon_elf
+						heir_culture = wood_elf
+						heir_culture = sun_elf
+						heir_culture = imperial_gnome
+					}
+				}
+				modifier = {
+					factor = 0.5
+					OR = {
+						heir_culture = high_lorentish
+						heir_culture = low_lorentish
+						heir_culture = sorncosti
+						heir_culture = roilsardi
+						heir_culture = crownsman
+						heir_culture = esmari
+					}
+				}
+				modifier = {
+					factor = 2
+					has_personal_deity = corin
+				}
+				modifier = {
+					factor = 0.1
+					has_personal_deity = adean
+				}
+				modifier = {
+					factor = 0.2
+					has_personal_deity = ara
+				}
+				modifier = { #Heroic cultures
+					factor = 1.5
+					OR = {
+						heir_culture = vernman
+						heir_culture = arbarani
+					}
+				}
+				country_event = { id = deluge.5 }
+			}
+			100 = { #Consort converts to Corinite
+				trigger = {
+					is_lesser_in_union = no
+					has_consort = yes
+					NOT = {
+						consort_religion = corinite
+						tag = B58
+					}
+					OR = {
+						religion = infernal_court
+						religion = regent_court
+						religion = goblinic_shamanism
+						religion = great_dookan
+					}
+				}
+				modifier = {
+					factor = 0.33
+					OR = {
+						NOT = { religion_group = cannorian }
+						religion = dalcabba
+					}
+				}
+				modifier = {
+					factor = 0.25
+					OR = {
+						consort_culture = moon_elf
+						consort_culture = wood_elf
+						consort_culture = sun_elf
+						consort_culture = imperial_gnome
+					}
+				}
+				modifier = {
+					factor = 0.5
+					OR = {
+						consort_culture = high_lorentish
+						consort_culture = low_lorentish
+						consort_culture = sorncosti
+						consort_culture = roilsardi
+						consort_culture = crownsman
+						consort_culture = esmari
+					}
+				}
+				modifier = {
+					factor = 2
+					has_personal_deity = corin
+				}
+				modifier = {
+					factor = 0.1
+					has_personal_deity = adean
+				}
+				modifier = {
+					factor = 0.2
+					has_personal_deity = ara
+				}
+				modifier = {
+					factor = 1.5
+					OR = { #Heroic cultures
+						consort_culture = vernman
+						consort_culture = arbarani
+					}
+				}
+				country_event = { id = deluge.6 }
+			}
+			100 = { #Ruler converts to Corinite
+				trigger = {
+					is_lesser_in_union = no
+					has_regency = no
+					NOT = {
+						ruler_religion = corinite
+						tag = B58
+					}
+					OR = {
+						religion = regent_court
+						religion = goblinic_shamanism
+						religion = great_dookan
+					}
+				}
+				modifier = {
+					factor = 0.33
+					OR = {
+						NOT = { religion_group = cannorian }
+						religion = dalcabba
+					}
+				}
+				modifier = {
+					factor = 0.25
+					OR = {
+						ruler_culture = moon_elf
+						ruler_culture = wood_elf
+						ruler_culture = sun_elf
+						ruler_culture = imperial_gnome
+					}
+				}
+				modifier = {
+					factor = 0.5
+					OR = {
+						ruler_culture = high_lorentish
+						ruler_culture = low_lorentish
+						ruler_culture = sorncosti
+						ruler_culture = roilsardi
+						ruler_culture = crownsman
+						ruler_culture = esmari
+					}
+				}
+				modifier = {
+					factor = 2
+					has_personal_deity = corin
+				}
+				modifier = {
+					factor = 0.1
+					has_personal_deity = adean
+				}
+				modifier = {
+					factor = 0.2
+					has_personal_deity = ara
+				}
+				modifier = {
+					factor = 0.33
+					ruler_has_personality = zealot_personality
+				}
+				modifier = {
+					factor = 1.5
+					OR = {
+						ruler_culture = vernman	#Heroic cultures
+						ruler_culture = arbarani
+					}
+				}
+				country_event = { id = deluge.7 }
+			}
+			150 = {
+				trigger = {
+					religion_group = cannorian
+					NOT = {
+						religion = dalcabba
+						has_country_modifier = icon_of_corin_good
+						has_country_modifier = icon_of_corin_bad
+					}
+				}
+				country_event = { id = deluge.9 }
+			}
+		}
+	}
+
+	option = { #Every pulse you should get <1.5 of these events
+		name = deluge.0.a
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 2
+				has_country_flag = province_in_crimson_core
+			}
+		}
+
+		random_list = {
+			5 = {} #Empty option for RNG
+			10 = { #Particularly strong rain causes devastation
+				random_owned_province = {
+					limit = { province_group = crimson_deluge_provinces }
+					province_event = { id = deluge.2 }
+				}
+			}
+			10 = { #Flagellants cause unrest
+				trigger = {
+					any_owned_province = {
+						province_group = crimson_deluge_provinces
+						NOT = { has_province_flag = flagellants_flag }
+					}
+				}
+				modifier = {
+					factor = 0.5
+					OR = {
+						NOT = { religion_group = cannorian }
+						owner = { tag = B58 }
+						religion = dalcabba
+					}
+				}
+				random_owned_province = {
+					limit = {
+						province_group = crimson_deluge_provinces
+						NOT = { has_province_flag = flagellants_flag }
+					}
+					province_event = { id = deluge.3 }
+				}
+			}
+			4 = { #Temple ransacked, -clergy loyalty or -money
+				trigger = {
+					has_estate = estate_church
+				}
+				modifier = {
+					factor = 0.5
+					tag = B58
+				}
+				country_event = { id = deluge.8 }
+			}
+			10 = { #Corinite Firebrand
+				trigger = {
+					any_owned_province = {
+						province_group = crimson_deluge_provinces
+						NOT = { has_province_flag = corinite_firebrand_flag }
+					}
+				}
+				modifier = {
+					factor = 0.5
+					OR = {
+						NOT = { religion_group = cannorian }
+						tag = B58
+						religion = dalcabba
+					}
+				}
+				modifier = {
+					factor = 1.5
+					religion = corinite
+				}
+				random_list = {
+					2 = {
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_provinces
+								NOT = { has_province_flag = corinite_firebrand_flag }
+							}
+							province_event = { id = deluge.10 }
+						}
+					}
+					1 = {
+						trigger = {
+							any_owned_province = {
+								province_group = crimson_deluge_core_provinces
+								NOT = { has_province_flag = corinite_firebrand_flag }
+							}
+						}
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_core_provinces
+								NOT = { has_province_flag = corinite_firebrand_flag }
+							}
+							province_event = { id = deluge.10 }
+						}
+					}
+				}
+			}
+			3 = { #Peasants can't farm
+				trigger = {
+					any_owned_province = {
+						province_group = crimson_deluge_provinces
+						province_with_farm_goods = yes
+						NOT = { has_province_modifier = constant_rains }
+					}
+				}
+				random_list = {
+					2 = {
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_provinces
+								province_with_farm_goods = yes
+								NOT = { has_province_modifier = constant_rains }
+							}
+							province_event = { id = deluge.11 }
+						}
+					}
+					1 = {
+						trigger = {
+							any_owned_province = {
+								province_group = crimson_deluge_core_provinces
+								province_with_farm_goods = yes
+								NOT = { has_province_modifier = constant_rains }
+							}
+						}
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_core_provinces
+								province_with_farm_goods = yes
+								NOT = { has_province_modifier = constant_rains }
+							}
+							province_event = { id = deluge.11 }
+						}
+					}
+				}
+			}
+			1 = { #Corinite Crusaders
+				trigger = {
+					NOT = {
+						stability = 1
+						has_spawned_rebels = corinite_rebels
+					}
+					any_owned_province = {
+						province_group = crimson_deluge_provinces
+						can_spawn_rebels = corinite_rebels
+						religion = regent_court
+					}
+				}
+				modifier = {
+					factor = 0.5
+					ruler_religion = corinite
+				}
+				modifier = {
+					factor = 2
+					OR = {
+						ruler_has_personality = cruel_personality
+						ruler_has_personality = malevolent_personality
+						ruler_has_personality = sinner_personality
+						ruler_has_personality = greedy_personality
+						ruler_has_personality = drunkard_personality
+					}
+				}
+				modifier = {
+					factor = 1.5
+					tag = B58
+				}
+				random_list = {
+					2 = {
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_provinces
+								can_spawn_rebels = corinite_rebels
+								religion = regent_court
+							}
+							province_event = { id = deluge.12 }
+						}
+					}
+					1 = {
+						trigger = {
+							any_owned_province = {
+								province_group = crimson_deluge_core_provinces
+								can_spawn_rebels = corinite_rebels
+								religion = regent_court
+							}
+						}
+						random_owned_province = {
+							limit = {
+								province_group = crimson_deluge_core_provinces
+								can_spawn_rebels = corinite_rebels
+								religion = regent_court
+							}
+							province_event = { id = deluge.12 }
+						}
+					}
+				}
+			}
+			2 = { #Mage burned as a witch
+				trigger = {
+					has_estate = estate_mages
+					NOT = {
+						has_estate_influence_modifier = {
+							estate = estate_mages
+							modifier = EST_VAL_CORINITE_WITCH_BURNINGS
+						}
+					}
+					estate_influence = {
+						estate = estate_mages
+						influence = 25
+					}
+				}
+				modifier = {
+					factor = 1.5
+					estate_influence = {
+						estate = estate_mages
+						influence = 50
+					}
+				}
+				modifier = {
+					factor = 1.5
+					NOT = { stability = 1 }
+				}
+				country_event = { id = deluge.13 }
+			}
+		}
+	}
+}
+
+country_event = { #Hard Rain on palace, lose or gain legitimacy
 	id = deluge.1
 	title = deluge.1.t
 	desc = {
@@ -17,42 +588,7 @@ country_event = {
 	}
 	picture = COUNTRY_COLLAPSE_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		religion_group = cannorian
-		NOT = { religion = dalcabba }
-		capital_scope = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		OR = {
-			government = monarchy
-			government = theocracy
-			government = tribal
-			government = republic
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 70
-		modifier = {
-			factor = 0.8
-			capital_scope = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	#Adeanic
 	option = {
@@ -90,38 +626,13 @@ country_event = {
 	}
 }
 
-# Particularly strong rain causes devastation
-province_event = {
+province_event = { #Particularly strong rain causes devastation
 	id = deluge.2
 	title = deluge.2.t
 	desc = deluge.2.d
 	picture = COUNTRY_COLLAPSE_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 30
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	immediate = {
 		hidden_effect = {
@@ -163,47 +674,13 @@ province_event = {
 	}
 }
 
-# Flagellants cause unrest
-province_event = {
+province_event = { #Flagellants cause unrest
 	id = deluge.3
 	title = deluge.3.t
 	desc = deluge.3.d
 	picture = FAMINE_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		NOT = { has_province_flag = flagellants_flag }
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 30
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				NOT = { religion_group = cannorian }
-				owner = { tag = B58 }
-				religion = dalcabba
-			}
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	immediate = {
 		hidden_effect = {
@@ -257,211 +734,68 @@ province_event = {
 	}
 }
 
-# Province converts to corinite
-province_event = {
+province_event = { #Provinces convert to Corinite
 	id = deluge.4
 	title = deluge.4.t
 	desc = deluge.4.d
 	picture = RELIGIOUS_TURMOIL_eventPicture
+	goto = root
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-		OR = {
-			religion = regent_court
-			religion = goblinic_shamanism
-			religion = great_dookan
-			religion = infernal_court
-		}
-		NOT = { has_province_modifier = adenica_heart_of_chivalry_mod }
-	}
-	
-	mean_time_to_happen = {
-		months = 360
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-		modifier = {
-			factor = 4 #they already have an event converting their land to corinite
-			region = alenic_frontier_region
-		}
-		modifier = {
-			factor = 3
-			OR = {
-				NOT = { religion_group = cannorian }
-				owner = { tag = B58 }
-				religion = dalcabba
-			}
-		}
-		modifier = {
-			factor = 4
-			OR = {
-				culture_group = elven
-				culture_group = gnomish
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				culture_group = lencori
-				culture = crownsman
-				culture = esmari
-			}
-		}
-		modifier = {
-			factor = 0.77
-			OR = {
-				culture = vernman	#Heroic cultures
-				culture = derannic
-				culture = arbarani
-				culture_group = alenic
-			}
-		}
-	}
-
-	immediate = {
-		hidden_effect = {
-			save_event_target_as = converted_to_corinite
-		}
-	}
-	
-	goto = converted_to_corinite
+	is_triggered_only = yes
 
 	#Adeanic
 	option = {
 		name = "deluge.4.a"
-		trigger = {
-			owner = { religion = regent_court }
+		trigger = { owner = { religion = regent_court } }
+		owner = {
+			every_owned_province = {
+				limit = { has_province_flag = convert_to_corinite }
+				change_religion = corinite
+				clr_province_flag = convert_to_corinite
+			}
 		}
-		change_religion = corinite
 	}
 	#Corinite
 	option = {
 		name = "deluge.4.b"
-		trigger = {
-			owner = { religion = corinite }
+		trigger = { owner = { religion = corinite } }
+		owner = {
+			every_owned_province = {
+				limit = { has_province_flag = convert_to_corinite }
+				change_religion = corinite
+				clr_province_flag = convert_to_corinite
+			}
 		}
-		change_religion = corinite
 	}
 	#Other
 	option = {
 		name = "deluge.4.c"
 		trigger = {
-			OR = {
-				owner = { religion = infernal_court }
-				owner = { religion = dalcabba }
-				NOT = { owner = { religion_group = cannorian } }
+			owner = {
+				OR = {
+					religion = infernal_court
+					religion = dalcabba
+					NOT = { religion_group = cannorian }
+				}
 			}
 		}
-		change_religion = corinite
+		owner = {
+			every_owned_province = {
+				limit = { has_province_flag = convert_to_corinite }
+				change_religion = corinite
+				clr_province_flag = convert_to_corinite
+			}
+		}
 	}
 }
 
-# heir converts to corinite
-country_event = {
+country_event = { #Heir converts to Corinite
 	id = deluge.5
 	title = deluge.5.t
 	desc = deluge.5.d
 	picture = PRAYING_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		is_lesser_in_union = no
-		capital_scope = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		has_heir = yes
-		NOT = { heir_religion = corinite }
-		NOT = { tag = B58 }
-		OR = {
-			religion = infernal_court
-			religion = regent_court
-			religion = goblinic_shamanism
-			religion = great_dookan
-		}
-		heir_age = 10
-	}
-	
-	mean_time_to_happen = {
-		months = 150
-		modifier = {
-			factor = 0.8
-			capital_scope = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-		modifier = {
-			factor = 3
-			OR = {
-				NOT = { religion_group = cannorian }
-				religion = dalcabba
-			}
-		}
-		modifier = {
-			factor = 4
-			OR = {
-				heir_culture = moon_elf
-				heir_culture = wood_elf
-				heir_culture = sun_elf
-				heir_culture = imperial_gnome
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				heir_culture = high_lorentish
-				heir_culture = low_lorentish
-				heir_culture = sorncosti
-				heir_culture = roilsardi
-				heir_culture = crownsman
-				heir_culture = esmari
-			}
-		}
-		modifier = {
-			factor = 0.5
-			has_personal_deity = corin
-		}
-		modifier = {
-			factor = 10
-			has_personal_deity = adean
-		}
-		modifier = {
-			factor = 5
-			has_personal_deity = ara
-		}
-		modifier = {
-			factor = 0.77
-			OR = {
-				heir_culture = vernman	#Heroic cultures
-				heir_culture = arbarani
-			}
-		}
-	}
+	is_triggered_only = yes
 	
 	#Adeanic
 	option = {
@@ -515,97 +849,13 @@ country_event = {
 	}
 }
 
-# consort converts to corinite
-country_event = {
+country_event = { #Consort converts to Corinite
 	id = deluge.6
 	title = deluge.6.t
 	desc = deluge.6.d
 	picture = PRAYING_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		is_lesser_in_union = no
-		capital_scope = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		has_consort = yes
-		NOT = { consort_religion = corinite }
-		NOT = { tag = B58 }
-		OR = {
-			religion = infernal_court
-			religion = regent_court
-			religion = goblinic_shamanism
-			religion = great_dookan
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 150
-		modifier = {
-			factor = 0.8
-			capital_scope = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-		modifier = {
-			factor = 3
-			OR = {
-				NOT = { religion_group = cannorian }
-				religion = dalcabba
-			}
-		}
-		modifier = {
-			factor = 4
-			OR = {
-				consort_culture = moon_elf
-				consort_culture = wood_elf
-				consort_culture = sun_elf
-				consort_culture = imperial_gnome
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				consort_culture = high_lorentish
-				consort_culture = low_lorentish
-				consort_culture = sorncosti
-				consort_culture = roilsardi
-				consort_culture = crownsman
-				consort_culture = esmari
-			}
-		}
-		modifier = {
-			factor = 0.5
-			has_personal_deity = corin
-		}
-		modifier = {
-			factor = 10
-			has_personal_deity = adean
-		}
-		modifier = {
-			factor = 5
-			has_personal_deity = ara
-		}
-		modifier = {
-			factor = 0.77
-			OR = {
-				consort_culture = vernman	#Heroic cultures
-				consort_culture = arbarani
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	#Adeanic
 	option = {
@@ -666,8 +916,7 @@ country_event = {
 	}
 }
 
-# ruler converts to corinite
-country_event = {
+country_event = { #Ruler converts to Corinite
 	id = deluge.7
 	title = deluge.7.t
 	desc = {
@@ -686,93 +935,7 @@ country_event = {
 	}
 	picture = PRAYING_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		is_lesser_in_union = no
-		capital_scope = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		has_regency = no
-		NOT = { ruler_religion = corinite }
-		NOT = { tag = B58 }
-		OR = {
-			religion = regent_court
-			religion = goblinic_shamanism
-			religion = great_dookan
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 150
-		modifier = {
-			factor = 0.8
-			capital_scope = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-		modifier = {
-			factor = 4
-			OR = {
-				NOT = { religion_group = cannorian }
-				religion = dalcabba
-			}
-		}
-		modifier = {
-			factor = 4
-			OR = {
-				ruler_culture = moon_elf
-				ruler_culture = wood_elf
-				ruler_culture = sun_elf
-				ruler_culture = imperial_gnome
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				ruler_culture = high_lorentish
-				ruler_culture = low_lorentish
-				ruler_culture = sorncosti
-				ruler_culture = roilsardi
-				ruler_culture = crownsman
-				ruler_culture = esmari
-			}
-		}
-		modifier = {
-			factor = 0.5
-			has_personal_deity = corin
-		}
-		modifier = {
-			factor = 10
-			has_personal_deity = adean
-		}
-		modifier = {
-			factor = 5
-			has_personal_deity = ara
-		}
-		modifier = {
-			factor = 3
-			ruler_has_personality = zealot_personality
-		}
-		modifier = {
-			factor = 0.77
-			OR = {
-				ruler_culture = vernman	#Heroic cultures
-				ruler_culture = arbarani
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	#Adeanic
 	option = {
@@ -1005,46 +1168,13 @@ country_event = {
 	}
 }
 
-# temple ransacked, -clergy loyalty or -money
-country_event = {
+country_event = { #Temple ransacked, -clergy loyalty or -money
 	id = deluge.8
 	title = deluge.8.t
 	desc = deluge.8.d
 	picture = COUNTRY_COLLAPSE_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		any_owned_province = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		has_estate = estate_church
-	}
-	
-	mean_time_to_happen = {
-		months = 75
-		modifier = {
-			factor = 0.8
-			any_owned_province = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-		modifier = {
-			factor = 2
-			tag = B58
-		}
-	}
+	is_triggered_only = yes
 
 	#Leave it
 	option = {
@@ -1065,45 +1195,13 @@ country_event = {
 	}
 }
 
-#image of Corin found in blood :corin:
-country_event = {
+country_event = { #image of Corin found in blood :corin:
 	id = deluge.9
 	title = deluge.9.t
 	desc = deluge.9.d
 	picture = END_OF_TIME_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		religion_group = cannorian
-		NOT = { religion = dalcabba }
-		capital_scope = {
-			OR = {
-				region = alenic_frontier_region
-				region = forlorn_vale_region
-				region = esmaria_region
-				region = east_dameshead_region
-				region = the_borders_region
-				superregion = escann_superregion
-			}
-		}
-		NOT = { has_country_modifier = icon_of_corin_good }
-		NOT = { has_country_modifier = icon_of_corin_bad }
-	}
-	
-	mean_time_to_happen = {
-		months = 100
-		modifier = {
-			factor = 0.8
-			capital_scope = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	#Adeanic
 	option = {
@@ -1142,51 +1240,13 @@ country_event = {
 	}
 }
 
-# Corinite Firebrand
-province_event = {
+province_event = { #Corinite Firebrand
 	id = deluge.10
 	title = deluge.10.t
 	desc = deluge.10.d
 	picture = PROTESTANT_GREAT_REFORMER_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		NOT = { has_province_flag = corinite_firebrand_flag } #prevents excessive stacking in small countries
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 30
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-		modifier = {
-			factor = 2
-			OR = {
-				NOT = { religion_group = cannorian }
-				owner = { tag = B58 }
-				religion = dalcabba
-			}
-		}
-		modifier = {
-			factor = 0.8
-			religion = corinite
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	immediate = {
 		hidden_effect = {
@@ -1261,42 +1321,13 @@ province_event = {
 #Choice 2: Help them through the tought times (Money)
 #Choice 3: They should be happy they are so luck (Tax Income and Production Loss in province, Dev Cost Increase for 5 years)"
 
-# Peasants can't farm
-province_event = {
+province_event = { #Peasants can't farm
 	id = deluge.11
 	title = deluge.11.t
 	desc = deluge.11.d
 	picture = FARMING_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-		province_with_farm_goods = yes
-		NOT = {
-			has_province_modifier = constant_rains
-		}
-	}
-	
-	mean_time_to_happen = {
-		months = 100
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 	
 	immediate = {
 		hidden_effect = {
@@ -1336,74 +1367,13 @@ province_event = {
 	}
 }
 
-
-# Corinite Crusaders
-province_event = {
+province_event = { #Corinite Crusaders
 	id = deluge.12
 	title = deluge.12.t
 	desc = deluge.12.d
 	picture = CORINITE_WAR_eventPicture
 	
-	trigger = {
-		has_global_flag = crimson_deluge_is_actively_happening
-		OR = {
-			region = alenic_frontier_region
-			region = forlorn_vale_region
-			region = esmaria_region
-			region = east_dameshead_region
-			region = the_borders_region
-			superregion = escann_superregion
-		}
-		can_spawn_rebels = corinite_rebels
-		religion = regent_court
-		owner = {
-			NOT = { stability = 1 }
-			NOT = { has_spawned_rebels = corinite_rebels }
-		}
-
-	}
-	
-	mean_time_to_happen = {
-		months = 500
-		modifier = {
-			factor = 0.8
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-		modifier = {
-			factor = 2
-			owner = { ruler_religion = corinite }
-		}
-		modifier = {
-			factor = 0.5
-			OR = {
-				owner = { 
-					ruler_has_personality = cruel_personality 
-				}
-				owner = { 
-					ruler_has_personality = malevolent_personality 
-				}
-				owner = { 
-					ruler_has_personality = sinner_personality 
-				}
-				owner = { 
-					ruler_has_personality = greedy_personality 
-				}
-				owner = { 
-					ruler_has_personality = drunkard_personality 
-				}
-			}
-		}
-		modifier = {
-			factor = 0.8
-			owner = { tag = B58 }
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 	
 	immediate = {
 		hidden_effect = {
@@ -1422,67 +1392,15 @@ province_event = {
 			type = corinite_rebels
 		}
 	}
-
 }
 
-# mage burned as a witch
-country_event = {
+country_event = { #Mage burned as a witch
 	id = deluge.13
 	title = deluge.13.t
 	desc = deluge.13.d
 	picture = WITCHBURNING_eventPicture
 	
-	trigger = {
-		NOT = {
-			has_estate_influence_modifier = {
-				estate = estate_mages
-				modifier = EST_VAL_CORINITE_WITCH_BURNINGS
-			}
-		}
-		estate_influence = {
-			estate = estate_mages
-			influence = 25
-		}
-
-		any_owned_province = {
-			OR = {
-				region = west_castanor_region
-				region = inner_castanor_region
-				region = south_castanor_region
-				region = the_borders_region
-			}
-		}
-
-		has_global_flag = crimson_deluge_is_actively_happening
-	
-		has_estate = estate_mages
-	}
-	
-	mean_time_to_happen = {
-		months = 120
-		modifier = {
-			factor = 0.8
-			estate_influence = {
-				estate = estate_mages
-				influence = 50
-			}
-		}
-		modifier = {
-			factor = 0.8
-			NOT = { stability = 1 }
-		}
-		modifier = {
-			factor = 0.8
-			any_owned_province = {
-				OR = {
-					region = west_castanor_region
-					region = inner_castanor_region
-					region = south_castanor_region
-					region = the_borders_region
-				}
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	#We cannot stop the people
 	option = {
