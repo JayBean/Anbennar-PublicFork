@@ -1,39 +1,77 @@
 namespace = orc_slavery
 
-province_event = { # Orcish slaves grow in Aelantir
-	id = orc_slavery.1
+country_event = { #Orcish slavery handler
+	id = orc_slavery.0
 	title = orc_slavery.1.t
 	desc = orc_slavery.1.d
 	picture = COLONIZATION_eventPicture
-	goto = root
-	
+
+	hidden = yes
+	is_triggered_only = yes
+
 	trigger = {
-		owner = {
+		OR = {
 			has_country_modifier = orcish_slaves_in_colonies
+			AND = {
+				has_global_flag = green_slave_demand
+				NOT = { has_global_flag = escann_slave_events_ended }
+				any_owned_province = { superregion = escann_superregion }
+			}
 		}
-		has_orcish_minority_trigger = no
-		has_orcish_majority_trigger = no
-		
-		OR = {
-			continent = south_america
-			continent = north_america
+		NOT = {
+			has_country_modifier = the_abolish_slavery_act
+			has_country_flag = mountainshark_abolished_slavery
 		}
-		
-		OR = {
-			province_with_farm_goods = yes
-			province_with_mineable_goods = yes
-		}
-		
-		is_city = yes
 	}
 
-	mean_time_to_happen = {
-		years = 5
-		
-		modifier = {
-			factor = 2
-			owner = {
-				OR = {	#these guys didnt do it as much
+	immediate = {
+		if = {
+			limit = {
+				has_global_flag = green_slave_demand
+				NOT = { has_global_flag = escann_slave_events_ended }
+				any_owned_province = { superregion = escann_superregion }
+			}
+			set_country_flag = eligible_for_escann_slave_events
+		}
+	}
+
+	after = { #Stuffing the slave-related purge/expulsion stuff here
+		clr_country_flag = eligible_for_escann_slave_events
+		if = {
+			limit = {
+				slaves = 1
+				OR = {
+					has_country_modifier = racial_pop_orcish_purge
+					has_country_modifier = racial_pop_orcish_expulsion
+				}
+			}
+			random_owned_province = {
+				limit = {
+					trade_goods = slaves
+					fast_has_pop_of_race = { race = orcish }
+					is_city = yes
+					OR = {
+						superregion = escann_superregion
+						continent = north_america
+						continent = south_america
+					}
+				}
+				if = {
+					limit = { ROOT = { has_country_modifier = racial_pop_orcish_expulsion } }
+					province_event = { id = orc_slavery.71 days = 90 random = 180 }
+				}
+				else = { province_event = { id = orc_slavery.72 days = 90 random = 180 } }
+			}
+		}
+	}
+
+	option = { #empty option for failstate and RNG
+		name = orc_slavery.1.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				OR = { #these guys didnt do as much slavery
 					technology_group = tech_salahadesi
 					technology_group = tech_bulwari
 					technology_group = tech_elven
@@ -41,53 +79,267 @@ province_event = { # Orcish slaves grow in Aelantir
 				}
 			}
 		}
-		
-		modifier = {
-			factor = 0.9
-			current_age = age_of_reformation
-		}
-		modifier = {
-			factor = 0.75
-			is_prosperous = yes
-		}
-		modifier = {
-			factor = 0.75
-			development = 10
-		}
-		
-		modifier = {
-			factor = 2
-			has_large_orcish_minority_trigger = yes
-		}
-		
-		modifier = {
-			factor = 2
-			unrest = 2
-		}
-		modifier = {
-			factor = 2
-			unrest = 4
-		}
-		modifier = {
-			factor = 2
-			unrest = 6
-		}
-		modifier = {
-			factor = 2
-			unrest = 8
-		}
-		modifier = {
-			factor = 5
-			unrest = 10
-		}
 	}
-	is_mtth_scaled_to_size = 1
 
-	option = { # Add slave pops
+	option = { #Shared slavery event—justifies one handler
 		name = orc_slavery.1.a
 		ai_chance = {
 			factor = 1
+			modifier = {
+				factor = 2
+				tag = B34
+				has_country_flag = B34_slave_economy
+			}
 		}
+		trigger = {
+			OR = {
+				slaves = 1
+				has_country_modifier = orcish_slaves_in_colonies
+			}
+		}
+
+		random_owned_province = {
+			limit = {
+				fast_has_pop_of_race = { race = orcish }
+				NOT = { culture_group = orcish } #these two triggers in conjunction are equivalent to a minority check, but faster
+				OR = {
+					AND = {
+						ROOT = { has_country_modifier = orcish_slaves_in_colonies }
+						OR = {
+							continent = south_america
+							continent = north_america
+						}
+					}
+					AND = {
+						superregion = escann_superregion
+						trade_goods = slaves
+					}
+				}
+				NOT = { has_province_modifier = orcish_slave_boom }
+			}
+			province_event = { id = orc_slavery.2 } #dev increase
+		}
+
+		if = {
+			limit = { tag = B34 has_country_flag = B34_slave_economy }
+			random_owned_province = {
+				limit = {
+					fast_has_pop_of_race = { race = orcish }
+					NOT = { culture_group = orcish } #these two triggers in conjunction are equivalent to a minority check, but faster
+					superregion = escann_superregion
+					trade_goods = slaves
+					NOT = { has_province_modifier = orcish_slave_boom }
+				}
+				province_event = { id = orc_slavery.2 days = 730 random = 1825 } #dev increase
+			}
+		}
+	}
+
+	option = { #Escann slave boom--unlocks with anb_price.4
+		name = orc_slavery.1.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				current_age = age_of_reformation
+			}
+			modifier = {
+				factor = 2
+				tag = B34
+				has_country_flag = B34_slave_economy
+			}
+		}
+		trigger = {
+			NOT = { has_global_flag = orcish_slave_trade_banned_in_cannor }
+			has_country_flag = eligible_for_escann_slave_events
+			REB = {
+				NOT = {
+					check_variable = {
+						which = num_orc_slaves
+						value = 20
+					}
+				}
+			}
+		}
+
+		random_owned_province = {
+			limit = {
+				fast_has_pop_of_race = { race = orcish }
+				is_city = yes
+				superregion = escann_superregion
+				NOT = { trade_goods = slaves }
+				province_with_urban_goods = no
+			}
+			if = {
+				limit = {
+					ROOT = {
+						OR = {
+							has_country_modifier = orcish_administration
+							has_country_modifier = goblin_administration
+						}
+					}
+				}
+				province_event = { id = orc_slavery.6 } #change Escanni trade goods to slaves
+			}
+			else = { province_event = { id = orc_slavery.5 } } #change Escanni trade goods to slaves
+		}
+	}
+
+	option = { #Escann slave dwindling--unlocks with anb_price.49
+		name = orc_slavery.1.a
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				religion = corinite
+			}
+			modifier = {
+				factor = 2
+				slaves = 10
+			}
+			modifier = {
+				factor = 2
+				is_year = 1650
+			}
+		}
+		trigger = {
+			has_global_flag = orcish_slave_trade_banned_in_cannor
+			has_country_flag = eligible_for_escann_slave_events
+			slaves = 1
+		}
+		random_owned_province = {
+			limit = {
+				superregion = escann_superregion
+				trade_goods = slaves
+				is_city = yes
+			}
+			province_event = { id = orc_slavery.7 } #Punishes slavers in Escann/change trade goods to unknown
+		}
+	}
+
+	option = { #Aelantiri slave stuff--unlocks with anb_price.4
+		name = orc_slavery.1.a
+		ai_chance = { factor = 3 }
+		trigger = {
+			has_country_modifier = orcish_slaves_in_colonies
+		}
+
+		random_list = {
+			3 = {
+				random_owned_province = {
+					limit = {
+						NOT = { fast_has_pop_of_race = { race = orcish } }
+						OR = {
+							continent = south_america
+							continent = north_america
+						}
+						OR = {
+							province_with_farm_goods = yes
+							province_with_mineable_goods = yes
+						}
+						is_city = yes
+					}
+					province_event = { id = orc_slavery.1 } #adds orcish minorities to Aelantir
+				}
+			}
+			2 = {
+				trigger = {
+					fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				}
+				random_owned_province = {
+					limit = {
+						fast_has_pop_of_race = { race = orcish }
+						NOT = { culture_group = orcish }
+						OR = {
+							continent = south_america
+							continent = north_america
+						}
+					}
+					province_event = { id = orc_slavery.3 } #unrest in orcish provinces in Aelantir
+				}
+			}
+			1 = {
+				trigger = {
+					REB = {
+						NOT = {
+							check_variable = {
+								which = num_orc_slaves
+								value = 30
+							}
+						}
+					}
+					fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				}
+				modifier = {
+					factor = 2
+					has_global_flag = orcish_slave_trade_banned_in_cannor
+				}
+				random_owned_province = {
+					limit = {
+						fast_has_pop_of_race = { race = orcish }
+						NOT = { culture_group = orcish }
+						development = 10
+						
+						NOT = { trade_goods = slaves }
+						OR = {
+							continent = south_america
+							continent = north_america
+						}
+					}
+					province_event = { id = orc_slavery.4 } #flip trade goods to slaves in Aelantir
+				}
+			}
+			3 = {
+				trigger = {
+					fast_owns_num_pops_of_race = { race = orcish amount = 1 }
+				}
+				random_owned_province = {
+					limit = {
+						fast_has_pop_of_race = { race = orcish }
+						NOT = { culture_group = orcish }
+						OR = {
+							continent = south_america
+							continent = north_america
+						}
+						is_capital = no
+						NOT = { #Trollsbayer coast is urban, not enough plantations to get overtaken by orcs
+							AND = {
+								region = trollsbay_region
+								has_port = yes
+							}
+						}
+						is_city = yes
+						OR = { #restricted to cash crops
+							trade_goods = spices
+							trade_goods = tea
+							trade_goods = coffee
+							trade_goods = cocoa
+							trade_goods = cotton
+							trade_goods = sugar
+							trade_goods = tobacco
+							trade_goods = silk
+						}
+					}
+					province_event = { id = orc_slavery.14 } #growth of orcs in plantations
+				}
+			}
+		}
+	}
+}
+
+province_event = { # Orcish slaves grow in Aelantir
+	id = orc_slavery.1
+	title = orc_slavery.1.t
+	desc = orc_slavery.1.d
+	picture = COLONIZATION_eventPicture
+	goto = root
+
+	is_triggered_only = yes
+
+	option = { # Add slave pops
+		name = orc_slavery.1.a
+		ai_chance = { factor = 1 }
+
 		add_permanent_province_modifier = {
 			name = orcish_slave_boom
 			duration = 9125
@@ -112,45 +364,7 @@ province_event = { # Province dev boost due to slaves
 	picture = FARMING_eventPicture
 	goto = root
 	
-	trigger = {
-		#Either its a aelantir prov with orc minority OR its a escann prov with slaves
-		OR = {
-			AND = {
-				owner = {
-					has_country_modifier = orcish_slaves_in_colonies
-				}
-				OR = {
-					continent = south_america
-					continent = north_america
-				}
-			}
-			AND = {
-				superregion = escann_superregion
-				trade_goods = slaves
-			}
-		}
-		
-		has_orcish_minority_trigger = yes
-		NOT = {
-			has_province_modifier = orcish_slave_boom
-		}
-
-	}
-
-	mean_time_to_happen = {
-		years = 10
-		
-		modifier = {
-			factor = 0.8
-			is_prosperous = yes
-		}
-		modifier = {
-			factor = 0.5
-			owned_by = B34
-			owner = { has_country_flag = B34_slave_economy }
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { #Great
 		name = orc_slavery.2.a
@@ -173,46 +387,7 @@ province_event = { # Orcish Turmoil
 	picture = NATIVES_eventPicture
 	goto = root
 	
-	trigger = {
-		OR = {
-			continent = south_america
-			continent = north_america
-		}
-		owner = {
-			has_country_modifier = orcish_slaves_in_colonies
-		}
-		has_orcish_minority_trigger = yes
-	}
-
-	mean_time_to_happen = {
-		years = 10
-		
-		modifier = {
-			factor = 0.75
-			has_large_orcish_minority_trigger = yes
-		}
-		modifier = {
-			factor = 0.9
-			unrest = 2
-		}
-		modifier = {
-			factor = 0.9
-			unrest = 4
-		}
-		modifier = {
-			factor = 0.9
-			unrest = 6
-		}
-		modifier = {
-			factor = 0.9
-			unrest = 8
-		}
-		modifier = {
-			factor = 0.5
-			unrest = 10
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { # 
 		name = orc_slavery.3.a
@@ -257,65 +432,9 @@ province_event = { #Orc Slave Trade Good
 	picture = STREET_SPEECH_eventPicture
 	goto = root
 	
-	trigger = {
-		REB = {
-			NOT = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 30
-				}
-			}
-		}
-		owner = {
-			has_country_modifier = orcish_slaves_in_colonies
-		}
-		development = 10
-		
-		NOT = { trade_goods = slaves }
-		OR = {
-			continent = south_america
-			continent = north_america
-		}
-		has_orcish_minority_trigger = yes
+	is_triggered_only = yes
 
-	}
-
-	mean_time_to_happen = {
-		years = 25
-		modifier = {
-			factor = 0.5
-			has_global_flag = orcish_slave_trade_banned_in_cannor
-		}
-		modifier = {
-			factor = 0.8
-			is_prosperous = yes
-		}
-		modifier = {
-			factor = 0.75
-			development = 20
-		}
-		modifier = {
-			factor = 1.5
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 1
-					trade_goods = slaves
-				}
-			}
-		}
-		modifier = {
-			factor = 10
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 5
-					trade_goods = slaves
-				}
-			}
-		}
-	}
-	is_mtth_scaled_to_size = 1
-
-	option = { # 
+	option = {
 		name = orc_slavery.4.a
 		ai_chance = {
 			factor = 5
@@ -357,74 +476,7 @@ province_event = {
 	picture = STREET_SPEECH_eventPicture
 	goto = root
 	
-	trigger = {
-		has_global_flag = green_slave_demand
-		REB = {
-			NOT = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 20
-				}
-			}
-		}
-		
-		is_city = yes
-		
-		owner = {
-			NOT = { has_country_modifier = orcish_administration }
-			NOT = { has_country_modifier = goblin_administration }
-		}
-		
-		superregion = escann_superregion
-		
-		NOT = { trade_goods = slaves }
-		
-		OR = {
-			has_orcish_minority_trigger = yes
-			has_orcish_majority_trigger = yes
-		}
-		
-		province_with_urban_goods = no
-		
-		NOT = { has_global_flag = orcish_slave_trade_banned_in_cannor }
-		owner = { NOT = { has_country_modifier = the_abolish_slavery_act } }
-	}
-
-	mean_time_to_happen = {
-		months = 120
-		
-		modifier = {
-			factor = 0.75
-			current_age = age_of_reformation
-		}
-		
-		modifier = {
-			factor = 2
-			REB = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 5
-				}
-			}
-		}
-	
-		modifier = {
-			factor = 5
-			REB = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 10
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.25
-			owned_by = B34
-			owner = { has_country_flag = B34_slave_economy }
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { # Justice and Profit
 		name = orc_slavery.5.a
@@ -470,86 +522,15 @@ province_event = {
 }
 
 
-#Escann: Chains For The Vanquished - create orc slave trade good for non orcs
+#Escann: Chains For The Vanquished - create orc slave trade good for orcs and goblins
 province_event = {
 	id = orc_slavery.6
 	title = orc_slavery.6.t
 	desc = orc_slavery.6.d
 	picture = NATIVES_eventPicture
 	goto = root
-	
-	trigger = {
-		has_global_flag = green_slave_demand
-		REB = {
-			NOT = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 20
-				}
-			}
-		}
-		
-		is_city = yes
-		owner = {
-			OR = {
-				has_country_modifier = orcish_administration
-				has_country_modifier = goblin_administration
-			}
 
-		}
-		
-		superregion = escann_superregion
-		
-		NOT = { trade_goods = slaves }
-		
-		OR = {
-			has_orcish_minority_trigger = yes
-			has_orcish_majority_trigger = yes
-		}
-		
-		province_with_urban_goods = no
-		
-		NOT = { has_global_flag = orcish_slave_trade_banned_in_cannor }
-		owner = { 
-			NOT = { has_country_modifier = the_abolish_slavery_act } 
-			NOT = { has_country_flag = mountainshark_abolished_slavery } 
-		}
-	}
-
-	mean_time_to_happen = {
-		months = 120
-		
-		modifier = {
-			factor = 0.75
-			current_age = age_of_reformation
-		}
-	
-		modifier = {
-			factor = 2
-			REB = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 5
-				}
-			}
-		}
-	
-		modifier = {
-			factor = 5
-			REB = {
-				check_variable = {
-					which = num_orc_slaves
-					value = 10
-				}
-			}
-		}
-		modifier = {
-			factor = 0.8
-			owned_by = B34
-			owner = { has_country_flag = B34_slave_economy }
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { # The Weak Deserve Nothing Less
 		name = orc_slavery.6.a
@@ -585,53 +566,7 @@ province_event = {
 	picture = STREET_SPEECH_eventPicture
 	goto = root
 	
-	trigger = {
-		has_global_flag = orcish_slave_trade_banned_in_cannor
-		superregion = escann_superregion
-		trade_goods = slaves
-		is_city = yes
-
-	}
-
-	mean_time_to_happen = {
-		months = 240
-		
-		modifier = {
-			factor = 0.75
-			religion = corinite
-		}
-	
-		modifier = {
-			factor = 0.75
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 10
-					trade_goods = slaves
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.25
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 20
-					trade_goods = slaves
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.5
-			is_year = 1650
-		}
-		
-		modifier = {
-			factor = 0.33
-			is_year = 1680
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { # Help them out
 		name = orc_slavery.7.a
@@ -680,9 +615,19 @@ province_event = {
 					value = 1
 				}
 			}
+			if = {
+				limit = {
+					NOT = {
+						451 = { trade_goods = slaves } #Check Nathalaire first
+						escann_superregion = {
+							trade_goods = slaves
+						}
+					}
+				}
+				set_global_flag = escann_slave_events_ended
+			}
 		}
 	}
-	
 }
 
 
@@ -694,40 +639,7 @@ province_event = {
 	picture = OVEREXTENSION_eventPicture
 	goto = root
 	
-	trigger = {
-		trade_goods = slaves
-		owner = { has_country_modifier = racial_pop_orcish_expulsion }
-		OR = {
-			has_orcish_minority_trigger = yes
-			has_orcish_majority_trigger = yes
-		}
-		is_city = yes
-		
-	}
-
-	mean_time_to_happen = {
-		months = 6
-	
-		modifier = {
-			factor = 0.75
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 10
-					trade_goods = slaves
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.25
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 20
-					trade_goods = slaves
-				}
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	option = {
 		name = orc_slavery.71.a
@@ -774,6 +686,17 @@ province_event = {
 					value = 1
 				}
 			}
+			if = {
+				limit = {
+					NOT = {
+						451 = { trade_goods = slaves } #Check Nathalaire first
+						escann_superregion = {
+							trade_goods = slaves
+						}
+					}
+				}
+				set_global_flag = escann_slave_events_ended
+			}
 		}
 	}
 }
@@ -786,40 +709,7 @@ province_event = {
 	picture = PLAGUE_eventPicture
 	goto = root
 	
-	trigger = {
-		trade_goods = slaves
-		owner = { has_country_modifier = racial_pop_orcish_purge }
-		OR = {
-			has_orcish_minority_trigger = yes
-			has_orcish_majority_trigger = yes
-		}
-		is_city = yes
-
-	}
-
-	mean_time_to_happen = {
-		months = 3
-	
-		modifier = {
-			factor = 0.75
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 10
-					trade_goods = slaves
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.25
-			owner = {
-				num_of_owned_provinces_with = {
-					value = 20
-					trade_goods = slaves
-				}
-			}
-		}
-	}
+	is_triggered_only = yes
 
 	option = { 
 		name = orc_slavery.71.a
@@ -868,6 +758,17 @@ province_event = {
 					value = 1
 				}
 			}
+			if = {
+				limit = {
+					NOT = {
+						451 = { trade_goods = slaves } #Check Nathalaire first
+						escann_superregion = {
+							trade_goods = slaves
+						}
+					}
+				}
+				set_global_flag = escann_slave_events_ended
+			}
 		}
 	}
 }
@@ -880,24 +781,15 @@ province_event = {
 	picture = TRADE_GOODS_PLANTATION_GOODS_IN_WAREHOUSE_eventPicture
 	goto = root
 	
-	fire_only_once = yes
+	is_triggered_only = yes
 	
 	trigger = {
-		province_id = 216
-		
-		has_global_flag = green_slave_demand
-		
-		NOT = { trade_goods = slaves }
-		owner = { 
-			NOT = { 
+		owner = {
+			NOT = {
 				has_country_modifier = the_abolish_slavery_act
 				has_reform = war_against_the_world_doctrine_reform
-			} 
+			}
 		}
-	}
-
-	mean_time_to_happen = {
-		months = 24
 	}
 
 	option = { # Justice for Escann, and Profit for Us
@@ -936,24 +828,15 @@ province_event = {
 	picture = TRADE_GOODS_PLANTATION_GOODS_IN_WAREHOUSE_eventPicture
 	goto = root
 	
-	fire_only_once = yes
+	is_triggered_only = yes
 	
 	trigger = {
-		province_id = 451
-		
-		NOT = { trade_goods = slaves }
-		
-		has_global_flag = green_slave_demand
 		owner = { 
 			NOT = { 
 				has_country_modifier = the_abolish_slavery_act 
 				has_reform = war_against_the_world_doctrine_reform
 			}
 		}
-	}
-
-	mean_time_to_happen = {
-		months = 24
 	}
 
 	option = { # Justice for Escann, and Profit for Us
@@ -993,50 +876,14 @@ country_event = {
 	desc = orc_slavery.10.d
 	picture = COLONIZATION_eventPicture
 	
-	fire_only_once = yes
+	is_triggered_only = yes
 	
 	trigger = {
-		has_global_flag = green_slave_demand
-		
-		NOT = { has_country_modifier = orcish_slaves_in_colonies }
-		NOT = { has_country_modifier = the_abolish_slavery_act }
-		NOT = { has_reform = war_against_the_world_doctrine_reform }
-
-		ai = no 
-		
-		OR = {
-			any_subject_country = {
-				is_colonial_nation = yes
-				capital_scope = {
-					OR = {
-						continent = north_america
-						continent = south_america
-					}
-				}
-			}
-			any_owned_province = {
-				OR = {
-					continent = north_america
-					continent = south_america
-				}
-			}
+		NOT = {
+			has_country_modifier = orcish_slaves_in_colonies
+			has_country_modifier = the_abolish_slavery_act
+			has_reform = war_against_the_world_doctrine_reform
 		}
-		
-		#cannorian and bulwari origin as they do the slave trade
-		OR = {
-			has_cannorian_tech_group = yes #scripted trigger so that new groups aren't forgotten
-			technology_group = tech_east_elven
-			technology_group = tech_salahadesi
-			technology_group = tech_bulwari
-			technology_group = tech_gnollish
-			technology_group = tech_goblin
-			technology_group = tech_east_dwarven
-		}
-	}
-
-	mean_time_to_happen = {
-		months = 3
-	
 	}
 
 	option = { # Ye lets import
@@ -1108,19 +955,9 @@ province_event = {
 	picture = TRADE_GOODS_PLANTATION_GOODS_IN_WAREHOUSE_eventPicture
 	goto = root
 	
-	fire_only_once = yes
+	is_triggered_only = yes
 	
-	trigger = {
-		province_id = 216
-		
-		trade_goods = slaves
-		
-		has_global_flag = orcish_slave_trade_banned_in_cannor
-	}
-
-	mean_time_to_happen = {
-		months = 24
-	}
+	trigger = { trade_goods = slaves }
 
 	option = { # Go Cloth (cheapest and no penalty)
 		name = orc_slavery.11.a
@@ -1178,19 +1015,9 @@ province_event = {
 	picture = TRADE_GOODS_PLANTATION_GOODS_IN_WAREHOUSE_eventPicture
 	goto = root
 	
-	fire_only_once = yes
+	is_triggered_only = yes
 	
-	trigger = {
-		province_id = 451
-		
-		trade_goods = slaves
-		
-		has_global_flag = orcish_slave_trade_banned_in_cannor
-	}
-
-	mean_time_to_happen = {
-		months = 120
-	}
+	trigger = { trade_goods = slaves }
 
 	option = { # We are a city of thieves and smugglers, so we can profit even more
 		name = orc_slavery.12.a
@@ -1240,9 +1067,6 @@ country_event = {
 		}			
 	}
 	
-	trigger = {
-	}
-	
 	option = {
 		name = orc_slavery.13.a
 		ai_chance = {
@@ -1283,100 +1107,7 @@ province_event = { # Aelantiri plantations keep getting more orcs
 	picture = ENCOMIENDA_eventPicture
 	goto = root
 	
-	trigger = {
-		owner = {
-			has_country_modifier = orcish_slaves_in_colonies
-		}
-		has_orcish_minority_trigger = yes
-		has_orcish_majority_trigger = no
-		
-		OR = {
-			continent = south_america
-			continent = north_america
-		}
-
-		NOT = {
-			is_capital = yes
-		}
-		
-		OR = {
-			#restricted to cash crops
-			trade_goods = spices
-			trade_goods = tea
-			trade_goods = coffee
-			trade_goods = cocoa
-			trade_goods = cotton
-			trade_goods = sugar
-			trade_goods = tobacco
-			trade_goods = silk
-		}
-
-		NOT = {
-			#Trollsbayer coast is urban, not enough plantations to get overtaken by orcs
-			AND = {
-				region = trollsbay_region
-				has_port = yes
-			}
-		}
-		
-		is_city = yes
-	}
-
-	mean_time_to_happen = {
-		years = 5
-		
-		modifier = {
-			factor = 2
-			owner = {
-				OR = {	#these guys didnt do it as much
-					technology_group = tech_salahadesi
-					technology_group = tech_bulwari
-					technology_group = tech_elven
-					technology_group = tech_east_elven
-				}
-			}
-		}
-		
-		modifier = {
-			factor = 0.9
-			current_age = age_of_reformation
-		}
-		modifier = {
-			factor = 0.75
-			is_prosperous = yes
-		}
-		modifier = {
-			factor = 0.75
-			development = 10
-		}
-		
-		modifier = {
-			factor = 2
-			has_large_orcish_minority_trigger = yes
-		}
-		
-		modifier = {
-			factor = 2
-			unrest = 2
-		}
-		modifier = {
-			factor = 2
-			unrest = 4
-		}
-		modifier = {
-			factor = 2
-			unrest = 6
-		}
-		modifier = {
-			factor = 2
-			unrest = 8
-		}
-		modifier = {
-			factor = 5
-			unrest = 10
-		}
-	}
-	is_mtth_scaled_to_size = 1
+	is_triggered_only = yes
 
 	option = { # Make minority grow
 		name = orc_slavery.14.a
