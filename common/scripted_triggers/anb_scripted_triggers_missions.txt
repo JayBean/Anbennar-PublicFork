@@ -1314,6 +1314,203 @@ mission_faction_trigger = {
     }
 }
 
+# Ovdal Tungr
+F23_owned_by_friendly_nation = { # Province scope
+	custom_trigger_tooltip = {
+		tooltip = F23_coop_owned
+		OR = {
+			owned_by = F23
+			owned_by_subject_of = F23
+			AND = {
+				OR = {
+					owned_by = U17
+					owned_by_subject_of = U17
+				}
+				U17 = { alliance_with = F23 }
+			}
+		}
+	}
+}
+F23_extending_our_reach_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = F23_extending_our_reach_trigger_tt
+		any_trade_node_member_province = { 
+			has_terrain = coastline
+			F23_owned_by_friendly_nation = yes
+			has_shipyard_building_trigger = yes
+			num_free_building_slots = 1
+			NOT = { province_id = 452 }
+		}
+	}
+}
+F23_trade_node_requirements = {
+	custom_trigger_tooltip = {
+		tooltip = F23_trade_node_requirements_trigger_tt_$expand_infra_req$
+		calc_true_if = {
+			all_trade_node_member_province = {
+				owned_by = ROOT
+				if = {
+					limit = { has_dlc = "Leviathan" } 
+					num_of_times_expanded_infrastructure = $expand_infra_req$
+				}
+				else = {
+					development = 30
+				}
+				if = {
+					limit = { has_dlc = "Dharma" } 
+					province_has_center_of_trade_of_level = 3
+				}
+				else = {
+					province_has_center_of_trade_of_level = 1
+				}
+				heavy_ships_in_province = $heavy_ship_num$
+			}
+			amount = 1
+		}
+	}
+}
+F23_bulwar_province_triggers = {
+	OR = {
+		owner = {
+			if = {
+				limit = { is_subject = yes }
+				overlord = { has_spy_network_from = { who = ROOT value = 30 } }
+			}
+			else = { has_spy_network_from = { who = ROOT value = 30 } }
+		}
+		owner = {
+			if = {
+				limit = { is_subject = yes }
+				overlord = { has_opinion = { who = ROOT value = 100 } }
+			}
+			else = { has_opinion = { who = ROOT value = 100 } }
+		}
+		F23_owned_by_friendly_nation = yes
+	}
+}
+F23_encouraging_excess_trigger = {
+	OR = {
+		artist = 3
+		philosopher = 3
+	}
+	OR = {
+		diplomatic_reputation = 4
+		custom_trigger_tooltip = {
+			tooltip = F23_encouraging_excess_magical_feast
+			OR = {
+				has_country_modifier = magic_estate_magnificent_feast_1
+				has_country_modifier = magic_estate_magnificent_feast_2
+				has_country_modifier = magic_estate_magnificent_feast_3
+			}
+		}
+	}
+	custom_trigger_tooltip = {
+		tooltip = F23_encouraging_excess_trigger_tt
+		NOT = {
+			any_known_country = {
+				NOT = { tag = U17 }
+				capital_scope = {
+					superregion = bulwar_superregion
+				}
+				prestige = ROOT
+			}
+		}
+	}
+	treasury = 1000
+}
+F23_copper_offer_subtrigger_already_subject = {
+	AND = {
+		is_subject_of = F23 
+		NOT = { is_subject_of_type = trade_protectorate } 
+		has_opinion_modifier = {
+			who = F23
+			modifier = getting_subsidies
+			value = 14
+		}
+		NOT = { liberty_desire = 50 }
+	}
+}
+F23_copper_offer_subtrigger_willing_to_become_subject = {
+	AND = {
+		is_subject = no 
+		transfers_trade_power_to = F23 
+		NOT = { total_development = 100 }	
+	}
+}
+
+F23_make_the_copper_offer_trigger = {
+	$prov_num$ = {
+		NOT = { has_province_flag = F23_copper_offer_made } # Can't be repeated for provinces.
+		owner = { # Won't work on players, except for OT.
+			if = { limit = { is_subject = no }
+				ai = yes
+			}
+			else = {
+				overlord = { OR = { ai = yes tag = F23 } }
+			}
+		}
+		owner = {
+			OR = {
+				F23_copper_offer_subtrigger_already_subject = yes
+				F23_copper_offer_subtrigger_willing_to_become_subject = yes
+				AND = {
+					is_subject = no
+					has_opinion = { who = F23 value = 125 }	
+					$prov_num$ = { is_capital = no }
+					$appropriate_tag$ = { OR = { exists = no is_subject_of = PREV } }					
+				}
+				if = { limit = { is_subject = yes }
+					AND = {
+						OR = { $appropriate_tag$ = { exists = no } tag = $appropriate_tag$ } 
+						overlord = { has_opinion = { who = F23 value = 125 } }						
+					}
+				}
+				else = {
+					always = no
+				}
+			}
+		}
+	}
+}
+
+F23_upstream_trade_trigger = {
+	if = { limit = { $prov_num$ = { has_province_flag = F23_upstream_trade_flag } }
+		$prov_num$ = { light_ships_in_province = $light_ship_num$ } # Would love to have this require that the ships be from OT, but num_of_units_in_province doesn't seem to work with type = light_ship.
+	}
+}
+
+# Sea Hold design.
+F23_sea_hold_design_modification_trigger = {
+	[[enable]
+		NOT = { has_country_flag = F23_sea_hold_$modification$_enabled }
+		check_variable = { which = sea_hold_var_mods value = 1 }
+		check_variable = { which = sea_hold_var_slots value = 1 }				
+	]
+	[[disable]
+		has_country_flag = F23_sea_hold_$modification$_enabled
+	]	
+	[[maxed]
+		NOT = { has_country_flag = F23_sea_hold_$modification$_enabled }
+		OR = {
+			NOT = { check_variable = { which = sea_hold_var_mods value = 1 } }
+			NOT = { check_variable = { which = sea_hold_var_slots value = 1 }	}
+		}
+	]
+}
+F23_sea_hold_design_module_trigger = {
+	[[enable]
+		NOT = { has_country_flag = F23_sea_hold_$module$_enabled }
+		check_variable = { which = sea_hold_var_slots value = 1 }				
+	]
+	[[disable]
+		has_country_flag = F23_sea_hold_$module$_enabled
+	]	
+	[[maxed]
+		NOT = { has_country_flag = F23_sea_hold_$module$_enabled }
+		NOT = { check_variable = { which = sea_hold_var_slots value = 1 }	}
+	]
+}
+
 argordstun_roughness_100 = {
 	has_government_power = {
 		mechanic_type = argordstun_roughness_mechanic
