@@ -67,7 +67,7 @@ on_startup = {
 		flavor_fadhevych.0		#Fadhevych intro event
 		flavor_stanyrhrada.0	#Stanyrhrada intro event
 		flavor_toarnen.1		#The Whitecliffs burghers uprising of 1356
-		xhazobkult_events.0		#Xhazobkult setup
+		xhazobkult_events.1		#Xhazobkult tributary setup
 		bulwar_flavour.28		#Sets up Surani Refugees in Bulwar
 		azka_evran.1			#Azka-Evran intro event
 		one_xia.9				#Setup for the Xia
@@ -113,7 +113,9 @@ on_startup = {
 		flavour_ordstun.0 #Arg-Ordstun setup
 		flavour_spiderwretch.50 #Spiderwretch Lightland Claimer
 		flavor_orda_aldresia.2 #Orda Aldresia Imperial Bodyguard
+		flavor_orda_aldresia.7 #Orda Aldresia Intro
 		sapchopper.1 # Sapchopper intro
+		silentblade.1 # Silentblade intro
 		flavour_khugra.1 #Shalazar Starup event
 		flavour_shalazar.1 #Shalazar Starup event
 		verne.100 #Verne Startup event
@@ -156,7 +158,7 @@ on_startup = {
 		#khet civil war
 		khet_civil_war.1
 		khet_civil_war.2
-
+		flavour_ekha.0
 		#aakhetist
 		aakhetist.05
 
@@ -173,6 +175,9 @@ on_startup = {
 		
 		#merfolk setup
 		merfolk_events.8
+		
+		#Eordand setup
+		eordellon.5
 		
 		anb_settings.1			#Settings - /!\ keep it at the bottom of the list
 	}
@@ -333,7 +338,10 @@ on_religion_change = {
 
 	#move aakhet if the host converts
 	if = {
-		limit = { has_country_flag = current_aakhet_host }
+		limit = { 
+			has_country_flag = current_aakhet_host 
+			NOT = { religion = aakhetist }
+		}
 		aakhet_movement = yes
 	}
 	#reset approval if you convert away
@@ -859,7 +867,7 @@ on_war_won = {
 		# }
 	}
 	ROOT = { country_event = { id = tributary_events.32 } }
-	ROOT = { country_event = { id = xhazobkult_events.2000 } }
+	ROOT = { country_event = { id = xhazobkult_events.1 } } #Xhazobkult tributaries
 	ROOT = { country_event = { id = anb_miscevents.21 } } #Removing corinite buff during league war
 	ROOT = { country_event = { id = flavour_plumstead.28 } }
 
@@ -891,6 +899,7 @@ on_war_won = {
 	xia_won_war_count = yes
 	G35_won_war_count = yes
 	vf_won_war_count = yes
+	L08_won_war_count = yes
 
 	if = {	#temple plunder reparations
 		limit = {
@@ -912,6 +921,53 @@ on_war_won = {
 			}
 		}
 	}
+
+	if = {
+		limit = {
+			tag = A77
+		}
+		change_variable = {
+			which = orda_war_wins
+			value = 1
+		}
+		if = {
+			limit = { has_country_flag = imperial_ban_goody_rewards}
+			clr_country_flag = imperial_ban_goody_rewards
+			add_adm_power = 150
+			add_mil_power = 150
+			add_dip_power = 150
+		}
+		if = {
+			limit = {
+				is_subject_of_type = imperial_bodyguard
+				OR = {
+					is_in_war = {
+						attacker_leader = emperor
+					}
+					is_in_war = {
+						defender_leader = emperor
+					}
+				}
+			}
+			change_variable = {
+				which = orda_emperor_war
+				value = 1
+			}
+		}
+		if = {
+			limit = {
+				FROM = {
+					is_force_converted = yes
+				}
+				religion = ravelian
+			}
+			change_variable = { 
+				which = orda_conversion_war
+				value =  1 
+			}
+		}
+	}
+	
 
 
 	if = { #Turning prabhia/senaptia into xiakens after vassalizing a country
@@ -1539,7 +1595,7 @@ on_war_lost = {
 	#ROOT = { country_event = { id = flavor_cri.6 } }
 	ROOT = { country_event = { id = tributary_events.32 } }
 	ROOT = { country_event = { id = rahenraj.1000 } }
-	ROOT = { country_event = { id = xhazobkult_events.2000 } }
+	ROOT = { country_event = { id = xhazobkult_events.1 } } #Xhazobkult tributaries
 	ROOT = { country_event = { id = anb_miscevents.21 } } #Removing corinite buff during league war
 
 	if = {
@@ -1805,6 +1861,7 @@ on_battle_won_country = {
 
 		100 = aw_zombies.100
 	}
+	L08_won_battle_count = yes
 }
 
 # #Unit Scope OnAction for Battle Lost
@@ -1949,6 +2006,15 @@ on_siege_won_country = {
 			676 = { controlled_by = root }
 		}
 		country_event = { id = flavour_ayarallen.16 }
+	}
+	if = {
+		limit = {
+			tag = A77
+		}
+		change_variable = {
+			which = orda_siege_assault
+			value = 1
+		}
 	}
 	if = {
 		limit = {
@@ -2097,6 +2163,19 @@ on_siege_won_province = {
 	if = {
 		limit = { owner = { has_disaster = magnate_uprising } }
 		magnate_uprising_siege_won_effects = yes
+	}
+	if = {
+		limit = { 
+			province_id = 441
+			441 = {
+				sieged_by = A77
+			}
+			A77 = { has_country_flag = second_aldresian_crusade }
+		}
+		A77 = { 
+			country_event = { id = flavor_orda_aldresia.24 }
+			set_country_flag = assaulting_city_of_vampires
+		}
 	}
 	#luciande liandiel
 	if = { 
@@ -5408,7 +5487,7 @@ on_bi_yearly_pulse = {
 		jaddari_missions.1003
 		# jaddari_missions.1004
 		bulwar_flavour.0
-		xhazobkult_events.2000
+		xhazobkult_events.1 #Xhazobkult tributaries
 		spirits.500 #Temple Quest pulse
 		spirits.607 #Check to see if any corrupted hearts are ready to drain
 		spirits.011 #Plundering pulse
@@ -5440,7 +5519,6 @@ on_bi_yearly_pulse = {
 		}
 		set_country_flag = bim_lau_mage_entombment
 	}
-	if = { limit = { religion = xhazobkult } country_event = { id = xhazobkult_events.2000 days = 365 } }
 	if = { limit = { tag = H77 has_country_flag = lodhum_tourism_enabled } country_event = { id = flavor_lodhum.100 } }
 	if = { limit = { tag = H78 mission_completed = seghdihr_rely_ourselves } seghdihr_update_flow_modifiers = yes }
 	if = {
@@ -6011,6 +6089,7 @@ on_bi_yearly_pulse_3 = {
 		30 = flavor_bhuvauri.10 #hobgoblin minority growth
 		30 = flavor_bhuvauri.12 #lizardfolk multiply
 		30 = flavor_bhuvauri.15 #orc slaves spread
+		30 = flavor_bhuvauri.40 #half-orcs spread
 		50 = flavor_bhuvauri.35 #polygamy
 		50 = flavor_bhuvauri.36 #cleanliness
 		50 = flavor_bhuvauri.37 #mysterious magics
@@ -6641,11 +6720,7 @@ on_bi_yearly_pulse_5 = {
 		# 100 = corinite.214
 		# 100 = corinite.215
 
-		100 = xhazobkult_events.10
-		100 = xhazobkult_events.11
-		100 = xhazobkult_events.12
-		100 = xhazobkult_events.13
-		100 = xhazobkult_events.14
+		100 = xhazobkult_events.100
 
 
 		# # Japanese Daimyos
@@ -8867,6 +8942,9 @@ on_four_year_pulse_3 = {
 		100 = diggy.596 #bnunin horde
 		100 = diggy.597 #bugbears approaching colonists
 		100 = diggy.598 #ancient frozen army
+		100 = diggy.601 #Norkers Encamped on Rail
+		100 = diggy.602 #Norkers Sabotage Rail
+		10 = diggy.603 #Noble Norker
 
 		100 = ancestor_worship.1	#Discover Krummul
 		100 = ancestor_worship.2	#Discover Balgar
@@ -8955,6 +9033,9 @@ on_four_year_pulse_3 = {
 		100 = kvangahga_events.20
 		100 = kvangahga_events.21
 		100 = kvangahga_events.22
+		100 = fangaulan_pantheon.3
+		25 = fangaulan_pantheon.4
+		50 = fangaulan_pantheon.5
 	}
 	
 	
@@ -9077,6 +9158,9 @@ on_four_year_pulse_4 = {
 		harpy_events.115
 		rinta_seeker_events.0
 		escanni_refugees_settlement.400 #Escanni refugees event manager, Escann side
+		rahen.16 #Rahen advisor
+		rahen.17 #Rahen advisor
+		rahen.19 #Cannorian discovery of Rahen
 	}
 	random_events = {
 		80 = bulwar_flavour.9
@@ -9108,6 +9192,15 @@ on_four_year_pulse_4 = {
 		100 = bulwar_flavour.127
 		100 = bulwar_flavour.128
 		1000 = 0
+	}
+	
+	#Rahen Flavor events
+	random_events = {
+		100 = rahen.18
+		100 = rahen.20
+		50 = rahen.22
+		50 = rahen.23
+		25 = rahen.24
 	}
 
 	#cardesti flavour events
@@ -10340,12 +10433,24 @@ on_five_year_pulse_3 = {
 		
 	}
 
+	random_events = {
+		200 = mengi_flavor_events.1 #hidden shadow worshippers
+		200 = mengi_flavor_events.2 #lions and tigers and hyeans oh my
+		200 = mengi_flavor_events.3 #slave rember rabbel revolt 
+		200 = mengi_flavor_events.4 #slave found damestar scale 
+		200 = mengi_flavor_events.5 #a right to rule 
+		200 = mengi_flavor_events.6 #shadow silt
+		200 = mengi_flavor_events.7 #bad deal event chain (more common as requires loans, and negstab/income)
+		50 = mengi_flavor_events.10 #play event chain
+	}
+
 	#Feast of the Gods events
 	random_events = {
 		100 = feast_gods_events.0
 		200 = feast_gods_events.1
 		100 = feast_gods_events.2
 	}
+
 }
 
 on_five_year_pulse_4 = {
@@ -10990,6 +11095,12 @@ on_province_religion_changed = {
 				}
 			}
 		}
+	}
+	if = {
+		limit = {
+			has_province_modifier = L08_protected_minority
+		}
+		remove_province_modifier = L08_protected_minority
 	}
 }
 
@@ -12348,6 +12459,23 @@ on_culture_promoted = {
 			remove_province_modifier = weak_clan_bosses
 		}
 	}
+	if = {
+		limit = { 
+			OR = {
+				religion = eordellon
+				religion = spring_court
+				religion = summer_court
+				religion = autumn_court
+				religion = winter_court
+			}
+			has_kobold_accepted_culture = yes
+		}
+		country_event = {
+			id = eordellon.6
+			days = 27375
+			random = 9125
+		}
+	}
 }
 
 # ROOT = country
@@ -13284,331 +13412,6 @@ on_create_vassal = {
 # ROOT = Country establishing it
 # First province in state is set
 on_holy_order_established = {
-	if = {
-		limit = {
-			religion = runefather_worship
-		}
-		if = {
-			limit = {
-				has_personal_deity = clan_shadowhammer_4
-				check_variable = {
-					which = ClanShadowhammerAllegienceVar
-					value = 150
-				}
-			}
-			change_personal_deity = clan_shadowhammer_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_shadowhammer_3
-				check_variable = {
-					which = ClanShadowhammerAllegienceVar
-					value = 90
-				}
-			}
-			change_personal_deity = clan_shadowhammer_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_shadowhammer_2
-				check_variable = {
-					which = ClanShadowhammerAllegienceVar
-					value = 45
-				}
-			}
-			change_personal_deity = clan_shadowhammer_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_shadowhammer_1
-				check_variable = {
-					which = ClanShadowhammerAllegienceVar
-					value = 15
-				}
-			}
-			change_personal_deity = clan_shadowhammer_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = clan_darkstone_4
-				check_variable = {
-					which = ClanDarkstoneAllegienceVar
-					value = 150
-				}
-			}
-			change_personal_deity = clan_darkstone_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_darkstone_3
-				check_variable = {
-					which = ClanDarkstoneAllegienceVar
-					value = 90
-				}
-			}
-			change_personal_deity = clan_darkstone_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_darkstone_2
-				check_variable = {
-					which = ClanDarkstoneAllegienceVar
-					value = 45
-				}
-			}
-			change_personal_deity = clan_darkstone_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = clan_darkstone_1
-				check_variable = {
-					which = ClanDarkstoneAllegienceVar
-					value = 15
-				}
-			}
-			change_personal_deity = clan_darkstone_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = groedi_az_an_4
-				check_variable = {
-					which = GroediAzAnAllegienceVar
-					value = 150
-				}
-			}
-			change_personal_deity = groedi_az_an_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = groedi_az_an_3
-				check_variable = {
-					which = GroediAzAnAllegienceVar
-					value = 90
-				}
-			}
-			change_personal_deity = groedi_az_an_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = groedi_az_an_2
-				check_variable = {
-					which = GroediAzAnAllegienceVar
-					value = 45
-				}
-			}
-			change_personal_deity = groedi_az_an_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = groedi_az_an_1
-				check_variable = {
-					which = GroediAzAnAllegienceVar
-					value = 15
-				}
-			}
-			change_personal_deity = groedi_az_an_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = amlruzskappa_4
-				check_variable = {
-					which = AmlruzskappaAllegienceVar
-					value = 150
-				}
-			}
-			change_personal_deity = amlruzskappa_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = amlruzskappa_3
-				check_variable = {
-					which = AmlruzskappaAllegienceVar
-					value = 90
-				}
-			}
-			change_personal_deity = amlruzskappa_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = amlruzskappa_2
-				check_variable = {
-					which = AmlruzskappaAllegienceVar
-					value = 45
-				}
-			}
-			change_personal_deity = amlruzskappa_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = amlruzskappa_1
-				check_variable = {
-					which = AmlruzskappaAllegienceVar
-					value = 15
-				}
-			}
-			change_personal_deity = amlruzskappa_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = furdanhund_4
-				check_variable = {
-					which = FurdanhundAllegienceVar
-					value = 150
-				}
-			}
-			change_personal_deity = furdanhund_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = furdanhund_3
-				check_variable = {
-					which = FurdanhundAllegienceVar
-					value = 90
-				}
-			}
-			change_personal_deity = furdanhund_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = furdanhund_2
-				check_variable = {
-					which = FurdanhundAllegienceVar
-					value = 45
-				}
-			}
-			change_personal_deity = furdanhund_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = furdanhund_1
-				check_variable = {
-					which = FurdanhundAllegienceVar
-					value = 15
-				}
-			}
-			change_personal_deity = furdanhund_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = runefathers_might_4
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 750
-				}
-			}
-			change_personal_deity = runefathers_might_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_might_3
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 400
-				}
-			}
-			change_personal_deity = runefathers_might_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_might_2
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 250
-				}
-			}
-			change_personal_deity = runefathers_might_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_might_1
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 100
-				}
-			}
-			change_personal_deity = runefathers_might_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = runefathers_mercy_4
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 750
-				}
-			}
-			change_personal_deity = runefathers_mercy_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_mercy_3
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 400
-				}
-			}
-			change_personal_deity = runefathers_mercy_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_mercy_2
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 250
-				}
-			}
-			change_personal_deity = runefathers_mercy_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_mercy_1
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 100
-				}
-			}
-			change_personal_deity = runefathers_mercy_2
-		}
-		if = {
-			limit = {
-				has_personal_deity = runefathers_majesty_4
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 750
-				}
-			}
-			change_personal_deity = runefathers_majesty_5
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_majesty_3
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 400
-				}
-			}
-			change_personal_deity = runefathers_majesty_4
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_majesty_2
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 250
-				}
-			}
-			change_personal_deity = runefathers_majesty_3
-		}
-		else_if = {
-			limit = {
-				has_personal_deity = runefathers_majesty_1
-				check_variable = {
-					which = RunefatherAllegienceVar
-					value = 100
-				}
-			}
-			change_personal_deity = runefathers_majesty_2
-		}
-	}
 }
 
 # When a minority is expelled to a colony
@@ -13995,6 +13798,25 @@ on_country_released = {
 		}
 		change_government = republic
 		add_government_reform = peasants_republic
+	}
+	if = {
+		limit = {
+			OR = {
+				religion = eordellon
+				religion = spring_court
+				religion = summer_court
+				religion = autumn_court
+				religion = winter_court
+			}
+			NOT = { has_country_modifier = seasonal_court_level_zero }
+			NOT = { has_country_modifier = seasonal_court_level_one }
+			NOT = { has_country_modifier = seasonal_court_level_two }
+			NOT = { has_country_modifier = seasonal_court_level_three }
+			NOT = { has_country_modifier = seasonal_court_level_four }
+		}
+		country_event = {
+			id = eordellon.5
+		}
 	}
 }
 
@@ -15282,6 +15104,16 @@ on_colony_established = {
 			duration = 7300
 		}
 	}
+	if = {
+		limit = {
+			owner = { has_country_flag = U08_cleared_coast }
+			area = coastal_krahway_area
+		}
+		add_province_modifier = {
+			name = ekha_coastal_krahway_cleared
+			duration = -1
+		}
+	}
 }
 
 #scope = new country, FROM = parent country 1.35
@@ -15947,6 +15779,19 @@ on_adm_exploited = {
 			add_base_tax = 1
 		}
 	}
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					religion = summer_court
+					religion = winter_court
+				}				
+			}
+		}
+		owner = {
+			add_church_power = -4
+		}
+	}
 }
 
 on_dip_exploited = {
@@ -15981,6 +15826,19 @@ on_dip_exploited = {
 		random = {
 			chance = 50
 			add_base_production = 1
+		}
+	}
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					religion = summer_court
+					religion = spring_court
+				}				
+			}
+		}
+		owner = {
+			add_church_power = -4
 		}
 	}
 }
@@ -16019,6 +15877,19 @@ on_mil_exploited = {
 			add_base_manpower = 1
 		}
 	}
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					religion = summer_court
+					religion = autumn_court
+				}				
+			}
+		}
+		owner = {
+			add_church_power = -4
+		}
+	}
 }
 
 on_raze = {
@@ -16026,48 +15897,7 @@ on_raze = {
 		name = province_razed
 		duration = 7300
 	}
-	if = {
-		limit = {
-			OR = {
-				has_terrain = city_terrain
-				has_terrain = dwarven_hold
-			}	
-		}
-		owner = { add_patriarch_authority = 0.05 }
-	}
-	else_if = {
-		limit = {
-			has_terrain = farmlands
-		}
-		owner = { add_patriarch_authority = 0.03 }
-	}
-	else_if = {
-		limit = {
-			OR = {
-				has_terrain = grasslands
-				has_terrain = hills
-				has_terrain = woods
-				has_terrain = drylands
-			}	
-		}
-		owner = { add_patriarch_authority = 0.025 }
-	}
-	else_if = {
-		limit = {
-			OR = {
-				has_terrain = mountain
-				has_terrain = highlands
-				has_terrain = steppe
-				has_terrain = forest
-				has_terrain = ancient_forest
-				has_terrain = jungle
-			}	
-		}
-		owner = { add_patriarch_authority = 0.02 }
-	}
-	else = {
-		owner = { add_patriarch_authority = 0.01 }
-	}
+	xhazobkult_terrain_razing = yes
 	owner = {
 		if = {
 			limit = {
@@ -16173,6 +16003,15 @@ on_colony_finished = { #ROOT - Province
 			region = veykoda_region
 		}
 		change_culture = sarda
+	}
+	if = {
+		limit = {
+			owner = { has_country_flag = U08_cleared_coast }
+			area = coastal_krahway_area
+		}
+		ROOT = {
+		remove_province_modifier = ekha_coastal_krahway_cleared
+		}
 	}
 }
 
@@ -16299,7 +16138,12 @@ on_core = { #ROOT - Province, #FROM - Country that gets the core
 }
 
 on_tech_taken = { #ROOT - Country
-
+	if = {
+		limit = {
+			religion = spring_court
+		}
+		add_church_power = 50
+	}
 }
 
 on_adm_tech_taken = { #ROOT - Country, executed after on_tech_taken!
