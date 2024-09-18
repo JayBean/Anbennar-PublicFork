@@ -2561,7 +2561,7 @@ NReligion = {
 
 	CONSECRATE_PATRIACH_AUTHORITY_BOOST = 0.05, --5% or so
 	CONSECRATE_PATRIARCH_THRESHOLD = 10, -- (Anbennar) pdx: 30, (gnolls) in development
-	ORTHODOX_ICON_DURATION_MONTHS = 240,
+	ORTHODOX_ICON_DURATION_MONTHS = 120, -- (Anbennar) pdx: 240, (gnolls)
 	ORTHODOX_ICON_AUTHORITY_COST = 0.1,
 
 	MAYA_COLLAPSE_PROVINCES = 15,	-- Maya collapses to this size on reform
