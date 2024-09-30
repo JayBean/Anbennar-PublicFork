@@ -265,46 +265,56 @@ country_event = { #Local gnolls do their own ritual
 ###   Great Xhaz    ###
 ###########################
 
-#xhaz dies
+#initial event
 country_event = {
 	id = xhazobkult_events.3000
 	title = xhazobkult_events.3000.t
 	desc = xhazobkult_events.3000.d
-	picture = LOOMING_DEATH_eventPicture
+	picture = WITCHBURNING_eventPicture
 	
 	is_triggered_only = yes
 	
 	trigger = {
-		has_country_flag = is_great_xhaz
+		religion = xhazobkult
 	}
-	
+
 	immediate = {
 		hidden_effect = {
-			clr_country_flag = is_great_xhaz
-			clr_global_flag = xhaz_active 
+			set_ruler_flag = undergoing_xhazob_ritual
 		}
 	}
-	
-	option = {
-		name = xhazobkult_events.3000.a	
-		add_stability = -3
-		add_patriarch_authority = -1
 
-		hidden_effect = {
-			restore_country_color = yes
-			restore_country_name = yes
-			every_owned_province = {
-				limit = { NOT = { religion = xhazobkult } }
-				add_unrest = 10
-			}
-			for = {
-				amount = 10
-				effect = "random_owned_province = { limit = { NOT = { religion = xhazobkult } } spawn_rebels = { type = nationalist_rebels size = 2 win = yes } }"
-			}
+	option = {
+		name = xhazobkult_events.3000.a
+		if = {
+			limit = { ai = no }
+			add_patriarch_authority = -0.6
 		}
-		custom_tooltip = xhazobkult_xhazobine_dies_tt
+		custom_tooltip = xhazobkult_events.3000.tooltip
+		add_ruler_modifier = { name = xhazobkult_great_xhaz_ritual duration = 3650 }
+		
+		
+
+		#Ai
+		if = {
+			limit = { ai = yes }
+			set_ai_personality = { personality = ai_militarist locked = no }
+			add_treasury = 200
+			add_adm_power = 100
+			add_dip_power = 100
+			add_mil_power = 100
+			add_manpower = 10
+			add_patriarch_authority = 0.4
+		}
+
+		hidden_effect = { country_event = { id = xhazobkult_events.3001 days = 3650 } } #10 year timer
 	}
 }
+
+
+
+
+
 
 #xhaz success
 country_event = {
@@ -351,16 +361,17 @@ country_event = {
 			force_add_ruler_personality = { personality = mage_personality }
 			force_add_ruler_personality = { personality = xhazobs_chosen_personality }
 		}
-		custom_tooltip = "Gain Xhazob's Chosen Ruler Personality"
-		
 		hidden_effect = {
 			country_event = { id = magic_ruler.102 } #magic schools
 			country_event = { id = magic_ruler.100 } #make them a mage general
 			change_country_color = { color = { 181 230 29 } }
 			set_global_flag = xhaz_active
 		}
+		country_event = { id = patrons_events.6 } #get xhazob patron
 	}
 }
+
+
 
 #xhaz failed
 country_event = {
@@ -377,24 +388,29 @@ country_event = {
 	
 	option = {
 		name = xhazobkult_events.3002.a
-		kill_heir = { allow_new_heir = no }
+		custom_tooltip = xhazobkult_events.3002.tooltip
+
+		if = {
+			limit = { has_heir = yes }
+			kill_heir = { allow_new_heir = no }
+		}
 		kill_ruler = yes
-		add_stability = -3
+		add_stability = -2
 		add_patriarch_authority = -1
 
 		hidden_effect = {
 			every_owned_province = {
-				add_devastation = 40
-				add_local_autonomy = 20
-			}
-			for = {
-				amount = 7
-				effect = "random_owned_province = { limit = { NOT = { religion = xhazobkult } } spawn_rebels = { type = nationalist_rebels size = 1.5 } }"
+				add_devastation = 25
+				add_unrest = 2
 			}
 		}
 		custom_tooltip = xhazobkult_fail_effects_tt
 	}
 }
+
+
+
+
 
 #xhaz too late
 country_event = {
@@ -418,7 +434,47 @@ country_event = {
 	}
 }
 
-#ai point boost
+
+#xhaz dies
+country_event = {
+	id = xhazobkult_events.3004
+	title = xhazobkult_events.3004.t
+	desc = xhazobkult_events.3004.d
+	picture = LOOMING_DEATH_eventPicture
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = is_great_xhaz
+	}
+	
+	immediate = {
+		hidden_effect = {
+			clr_country_flag = is_great_xhaz
+			clr_global_flag = xhaz_active 
+		}
+	}
+	
+	option = {
+		name = xhazobkult_events.3004.a	
+		add_stability = -3
+		add_patriarch_authority = -1
+
+		hidden_effect = {
+			restore_country_color = yes
+			restore_country_name = yes
+			every_owned_province = {
+				limit = { NOT = { religion = xhazobkult } }
+				add_unrest = 10
+			}
+		}
+		custom_tooltip = xhazobkult_xhazobine_dies_tt
+	}
+}
+
+
+
+#xhaz demonic power checker. maybe turn into PTM later, would be very annoying to maintain though.
 country_event = {
 	id = xhazobkult_events.3010
 	title = xhazobkult_events.3003.t
@@ -426,54 +482,22 @@ country_event = {
 	picture = THE_COVENANT_eventPicture
 	
 	trigger = {
+		religion = xhazobkult
 		has_ruler_flag = undergoing_xhazob_ritual
-		ai = yes
 	}
 	
-	is_triggered_only = yes
+	hidden = yes
+	mean_time_to_happen = {
+		days = 1
+	}
 	
 	option = {
 		name = xhazobkult_events.3003.a
-		
-		random_list = {
-			30 = {
-				modifier = {
-					factor = 0.9
-					mil = 4
-				}
-				modifier = {
-					factor = 0.9
-					mil = 5
-				}
-				modifier = {
-					factor = 0.9
-					mil = 6
-				}
-				modifier = {
-					factor = 0.8
-					ruler_has_personality = mage_personality
-				}
-				modifier = {
-					factor = 0.8
-					num_of_subjects = 3
-				}
-				modifier = {
-					factor = 0.8
-					num_of_subjects = 6
-				}
+		if = {
+			limit = {
+				NOT = { patriarch_authority = 0.05 }
 			}
-
-			25 = { 
-				change_variable = { provincesrazed = 4 }
-			}
-
-			25 = { 
-				change_variable = { provincesrazed = 8 }
-			}
-
-			20 = {
-				change_variable = { provincesrazed = 12 }
-			}
+			country_event = { id = xhazobkult_events.3002 }
 		}
 	}
 }
