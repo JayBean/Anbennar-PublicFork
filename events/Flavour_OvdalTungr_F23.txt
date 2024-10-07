@@ -42,12 +42,10 @@ country_event = {
 				variable_name = OT_grun_arrival
 				value = trigger_value:is_year
 			}
-			#log = "OT year check: [Root.OT_grun_arrival.GetValue]"
 			export_to_variable = { 
 				variable_name = OT_current_innovativeness
 				value = trigger_value:innovativeness
 			}
-			#log = "OT inno: [Root.OT_current_innovativeness.GetValue]"
 			multiply_variable = { # Multiplying OT_grun_arrival by 2 instead of dividing current inno by 2, since division is more computationally intensive.
 				which = OT_grun_arrival
 				value = 2
@@ -57,12 +55,12 @@ country_event = {
 				which = OT_current_innovativeness
 			}
 			if = { limit = { check_variable = { which = OT_grun_arrival value = 3000 } }
-				country_event = { id = flavour_ovdal_tungr.7 days = 0 random = 180 }
+				country_event = { id = flavour_ovdal_tungr.7 days = 1 random = 180 }
 			}
 		}
 		else = {
 			if = { limit = { is_year = 1589 NOT = { has_country_flag = F23_grun_death_delayed } NOT = { has_country_flag = F23_grun_strongbellow_dead } }
-				country_event = { id = flavour_ovdal_tungr.10 days = 0 random = 180 }
+				country_event = { id = flavour_ovdal_tungr.10 days = 1 random = 180 }
 			}
 		}
 	}
@@ -2196,64 +2194,24 @@ country_event = {
 						}
 					}
 				}
-				#log = "Current scope: [This.GetName]"
-				#log = "Prev scope: [Prev.GetName]"
 				set_variable = { which = party_var_prestige_val value = 0 }
-				#log = "Initializing party_var_prestige_val: [This.party_var_prestige_val.GetValue]"
 				change_variable = { which = party_var_prestige_val which = PREV }
-				#log = "Importing party_var_prestige_val from [Prev.GetName]: [This.party_var_prestige_val.GetValue]"
 				export_to_variable = { variable_name = party_var_own_prestige value = trigger_value:prestige } # Get own prestige.
-				#log = "Own prestige: [This.party_var_own_prestige.GetValue]"
 				subtract_variable = { which = party_var_own_prestige which = party_var_prestige_val } # Subtract prestige impact from own prestige.
-				#log = "Own prestige after impact: [This.party_var_own_prestige.GetValue]"
 				if = { limit = { check_variable = { which = party_var_own_prestige value = -100 } } # Is post-impact prestige greater than -100?
-					#log = "Own prestige after impact is above -100."
 					add_prestige = -200 # If so, bring prestige down to its absolute min possible value, then do calcs to set prestige to its new value.
-					#log = "Setting prestige to -100."
 					set_variable = { which = prestige_increase value = -100 } 
-					#log = "Prestige increase: [This.prestige_increase.GetValue]."
 					subtract_variable = { which = prestige_increase which = party_var_own_prestige }
-					#log = "Prestige increase: [This.prestige_increase.GetValue]."
 					multiply_variable = { which = prestige_increase value = -1 }
-					#log = "Prestige added to -100: [This.prestige_increase.GetValue]."
-					while = { limit = { check_variable = { which = prestige_increase value = 64 } }
-						add_prestige = 64
-						change_variable = { which = prestige_increase value = -64 }
-					}
-					while = { limit = { check_variable = { which = prestige_increase value = 16 } }
-						add_prestige = 16
-						change_variable = { which = prestige_increase value = -16 }
-					}
-					while = { limit = { check_variable = { which = prestige_increase value = 4 } }
-						add_prestige = 4
-						change_variable = { which = prestige_increase value = -4 }
-					}
-					while = { limit = { check_variable = { which = prestige_increase value = 1 } }
-						add_prestige = 1
-						change_variable = { which = prestige_increase value = -1 }
-					}
-					export_to_variable = { variable_name = party_var_own_prestige value = trigger_value:prestige } # Get own prestige.
-					#log = "Prestige added. Final prestige: [This.party_var_own_prestige.GetValue]"
+					var_effect = { effect = add_prestige var = prestige_increase sign = + }
 				}
 				else = {
-					#log = "Prestige should have gone below -100, time for penalties!"
 					add_prestige = -200 # Prestige is brought below -100, time to start taking away money!
-					set_variable = 	{ which = months_of_income_lost which = party_var_own_prestige }
-					#log = "Uncapped after-impact prestige: [This.months_of_income_lost.GetValue]"
-					change_variable = { which = months_of_income_lost value = 100 }
-					multiply_variable = { which = months_of_income_lost value = -1 }
-					#log = "Months of income lost: [This.months_of_income_lost.GetValue]"
-					while = { limit = { check_variable = { which = months_of_income_lost value = 12 } }
-						#log = "Removing 1 year of income."
-						add_years_of_income	= -1
-						change_variable = { which = months_of_income_lost value = -12 }
-					}
-					while = { limit = { check_variable = { which = months_of_income_lost value = 1 } }
-						#log = "Removing 1 month of income."
-						add_years_of_income	= -0.083
-						change_variable = { which = months_of_income_lost value = -1 }
-					}
-					#log = "Money subtracted."
+					set_variable = 	{ which = years_of_income_lost which = party_var_own_prestige }
+					change_variable = { which = years_of_income_lost value = 100 }
+					multiply_variable = { which = years_of_income_lost value = -1 }
+					divide_variable = { which = years_of_income_lost value = 12 }
+					var_effect = { effect = add_years_of_income var = years_of_income_lost sign = - }
 				}
 			}
 		}
@@ -2328,17 +2286,13 @@ country_event = {
 		hidden_effect = {
 			export_to_variable = { which = F23_party_var_prestige_base value = trigger_value:prestige who = ROOT }
 			set_variable = { which = party_var_prestige_val which = F23_party_var_prestige_base }
-			#log = "Base prestige: [Root.party_var_prestige_val.GetValue]"
 			export_to_variable = { variable_name = F23_party_var_extra_trading_bonus value = trigger_value:num_of_trading_bonuses }
 			multiply_variable = { which = F23_party_var_extra_trading_bonus value = 2 }
 			change_variable = { which = party_var_prestige_val which = F23_party_var_extra_trading_bonus }
-			#log = "After trading goods bonus has been added: [Root.party_var_prestige_val.GetValue]"
 			divide_variable = { which = party_var_prestige_val value = 4 }
-			#log = "After dividing by 4: [Root.party_var_prestige_val.GetValue]"
 			if = { limit = { mission_completed = F23_the_cloves_monopoly }
 				change_variable = { which = party_var_prestige_val value = 10 }
 			}
-			#log = "Adding cloves bonus: [Root.party_var_prestige_val.GetValue]"
 			if = { limit = { mission_completed = F23_custodian_of_the_temples }
 				set_variable = { which = F23_party_var_extra_custodian_bonus value = -90 }
 				601 = { ROOT = { export_to_variable = { variable_name = F23_party_var_extra_custodian_bonus_add value = trigger_value:development } } }
@@ -2350,7 +2304,6 @@ country_event = {
 				divide_variable = { which = F23_party_var_extra_custodian_bonus value = 2 }
 				change_variable = { which = party_var_prestige_val which = F23_party_var_extra_custodian_bonus }
 			}
-			#log = "Adding custodian bonus: [Root.party_var_prestige_val.GetValue]"
 
 			trigger_switch = {
 				on_trigger = has_country_flag
@@ -2359,7 +2312,6 @@ country_event = {
 				F23_party_quality_lavish 		= { multiply_variable = { which = party_var_prestige_val value = 2.0 } }
 				F23_party_quality_regular 		= { multiply_variable = { which = party_var_prestige_val value = 1.5 } }
 			}
-			#log = "Party expenditure: [Root.party_var_prestige_val.GetValue]"
 
 			trigger_switch = {
 				on_trigger = has_country_flag
@@ -2367,10 +2319,8 @@ country_event = {
 				F23_party_location_ovdal_uthoj 	= { multiply_variable = { which = party_var_prestige_val value = 2.0 } }
 				F23_party_location_uthojbrog 	= { multiply_variable = { which = party_var_prestige_val value = 1.5 } }
 			}
-			#log = "Host location: [Root.party_var_prestige_val.GetValue]"
 
 			round_variable = { which = party_var_prestige_val value = 0 }
-			#log = "Rounding: [Root.party_var_prestige_val.GetValue]"
 		}
 	}
 
