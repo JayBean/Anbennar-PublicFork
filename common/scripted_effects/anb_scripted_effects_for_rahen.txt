@@ -232,7 +232,7 @@ rahen_calc_reform_ministry_of_foreign_relations = {
 		}
 		
 		if = {
-			limit = { has_won_war_against = { who = R62 max_years_since = 20 } }
+			limit = { OR = { has_won_war_against = { who = R62 max_years_since = 20 } NOT = { exists = R62 } } }
 			change_variable = { which = reformMinistryForeignRelationsScore value = 20 }
 		}
 	}
@@ -2351,6 +2351,10 @@ command_complete_campaign_effect = {
 			which = command_completed_campaigns
 			value = 1
 		}
+		if = {
+			limit = { ai = yes }
+			set_country_flag = auto_complete_estate_agenda_all
+		}
 	}
 	add_legitimacy_or_monarch_power = { VAL = 5 }
 }
@@ -2361,6 +2365,32 @@ command_force_progress_campaign_effect = {
 		owner = {
 			if = {
 				limit = {
+					R62 = {
+						is_at_war = no
+						is_subject = no
+					}
+					NOT = {
+						truce_with = R62
+						is_subject_of = R62
+						alliance_with = R62
+						army_strength = {
+							who = R62
+							value = 1
+						}
+						AND = {
+							is_subject = yes
+							overlord = {
+								OR = {
+									truce_with = R62
+									alliance_with = R62
+									army_strength = {
+										who = R62
+										value = 1
+									}
+								}
+							}
+						}
+					}
 					OR = {
 						any_neighbor_country = {
 							OR = {
@@ -2384,19 +2414,6 @@ command_force_progress_campaign_effect = {
 								}
 							}
 						}
-					}
-					NOT = {
-						truce_with = R62
-						is_subject_of = R62
-						alliance_with = R62
-						army_strength = {
-							who = R62
-							value = 1
-						}
-					}
-					R62 = {
-						is_subject = no
-						is_at_war = no
 					}
 				}
 				R62 = {
@@ -2440,13 +2457,12 @@ command_force_progress_campaign_multiple_effect = {
 			command_force_progress_campaign_effect = { province = 4482 }
 		}
 		command_dhujat_campaign_activated_flag = {
-			command_force_progress_campaign_effect = { province = 4527 }
+			command_force_progress_campaign_effect = { province = 4504 }
 			command_force_progress_campaign_effect = { province = 4500 }
 			command_force_progress_campaign_effect = { province = 4499 }
 			command_force_progress_campaign_effect = { province = 4493 }
 			command_force_progress_campaign_effect = { province = 4492 }
 			command_force_progress_campaign_effect = { province = 4409 }
-			command_force_progress_campaign_effect = { province = 4504 }
 		}
 		command_bhuvauri_campaign_activated_flag = {
 			command_force_progress_campaign_effect = { province = 4561 }
@@ -3212,92 +3228,6 @@ command_slave_state_cede_surrounding = {
 	#perhaps because e.g. the list of border provinces is decreased in size by adding a new province to the tag
 }
 
-
-command_change_korashi_supply = {
-	[[increase]
-		custom_tooltip = command_change_korashi_supply_increase_tt
-		hidden_effect = {
-			if = {
-				limit = { has_country_modifier = command_korashi_supply_4 }
-				remove_country_modifier = command_korashi_supply_4
-				add_country_modifier = {
-					name = command_korashi_supply_5
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_3 }
-				remove_country_modifier = command_korashi_supply_3
-				add_country_modifier = {
-					name = command_korashi_supply_4
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_2 }
-				remove_country_modifier = command_korashi_supply_2
-				add_country_modifier = {
-					name = command_korashi_supply_3
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_1 }
-				remove_country_modifier = command_korashi_supply_1
-				add_country_modifier = {
-					name = command_korashi_supply_2
-					duration = -1
-				}
-			}
-			else = {
-				add_country_modifier = {
-					name = command_korashi_supply_1
-					duration = -1
-				}
-			}
-		}
-	]
-	[[decrease]
-		custom_tooltip = command_change_korashi_supply_decrease_tt
-		hidden_effect = {
-			if = {
-				limit = { has_country_modifier = command_korashi_supply_5 }
-				remove_country_modifier = command_korashi_supply_5
-				add_country_modifier = {
-					name = command_korashi_supply_4
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_4 }
-				remove_country_modifier = command_korashi_supply_4
-				add_country_modifier = {
-					name = command_korashi_supply_3
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_3 }
-				remove_country_modifier = command_korashi_supply_3
-				add_country_modifier = {
-					name = command_korashi_supply_2
-					duration = -1
-				}
-			}
-			else_if = {
-				limit = { has_country_modifier = command_korashi_supply_2 }
-				remove_country_modifier = command_korashi_supply_2
-				add_country_modifier = {
-					name = command_korashi_supply_1
-					duration = -1
-				}
-			}
-			else = {
-				remove_country_modifier = command_korashi_supply_1
-			}
-		}
-	]
-}
 command_migration_randomization_effect = {
 	random_list = {
 		7 = {
@@ -4000,15 +3930,15 @@ command_siege_won_effect = {
 	if = {
 		limit = { R62 = { has_country_flag = insubordination_active_flag } }
 		if = {
-			limit = { R67 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
+			limit = { R62 = { NOT = { has_country_flag = R62_tiger_subdued } } R67 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1994 } }
 		}
 		if = {
-			limit = { R68 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
+			limit = { R62 = { NOT = { has_country_flag = R62_elephant_subdued } } R68 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1995 } }
 		}
 		if = {
-			limit = { R69 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
+			limit = { R62 = { NOT = { has_country_flag = R62_dragon_subdued } } R69 = { capital_scope = { controller = { is_in_war = { participants = R62 } NOT = { defensive_war_with = R62 offensive_war_with = R62 } } } } }
 			R62 = { country_event = { id = the_command.1996 } }
 		}
 	}
@@ -4033,7 +3963,7 @@ command_siege_won_effect = {
 	}
 	if = {
 		limit = { #Command artillery mission req
-			NOT = { mission_completed = R62_the_evolution_of_warfare }
+			R62 = { NOT = { mission_completed = R62_the_evolution_of_warfare } }
 			FROM = {
 				is_capital = yes
 				artillery_in_province = R62
@@ -4088,23 +4018,26 @@ command_siege_lost_effect = {
 		limit = {
 			has_country_flag = insubordination_active_flag
 			OR = {
-				event_target:tiger_command_capital = {
-					has_province_flag = command_encircled_flag
-					any_neighbor_province = {
-						province_id = FROM
+				AND = {
+					event_target:tiger_command_capital = {
+						has_province_flag = command_encircled_flag
+						any_neighbor_province = { province_id = FROM }
 					}
+					NOT = { has_country_flag = R62_tiger_subdued }
 				}
-				event_target:elephant_command_capital = {
-					has_province_flag = command_encircled_flag
-					any_neighbor_province = {
-						province_id = FROM
+				AND = {
+					event_target:elephant_command_capital = {
+						has_province_flag = command_encircled_flag
+						any_neighbor_province = { province_id = FROM }
 					}
+					NOT = { has_country_flag = R62_elephant_subdued }
 				}
-				event_target:dragon_command_capital = {
-					has_province_flag = command_encircled_flag
-					any_neighbor_province = {
-						province_id = FROM
+				AND = {
+					event_target:dragon_command_capital = {
+						has_province_flag = command_encircled_flag
+						any_neighbor_province = { province_id = FROM }
 					}
+					NOT = { has_country_flag = R62_dragon_subdued }
 				}
 			}
 		}
@@ -4120,6 +4053,24 @@ command_siege_lost_effect = {
 			limit = { FROM = { province_id = 4630 } }
 			country_event = { id = the_command.2004 } #Fall of Sarilavhan
 		}
+	}
+	if = {
+		limit = {
+			FROM = {
+				has_province_modifier = command_chain_workshop
+				NOT = { has_province_modifier = command_broken_chains }
+			}
+		}
+		FROM = { province_event = { id = the_command.158 } }
+	}
+	if = {
+		limit = {
+			FROM = {
+				has_province_modifier = command_rpu_hq
+				NOT = { has_province_modifier = command_broken_chains }
+			}
+		}
+		FROM = { province_event = { id = the_command.159 } }
 	}
 }
 
