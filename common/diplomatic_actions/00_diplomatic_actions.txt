@@ -693,7 +693,17 @@ declarewar = {
 			has_global_flag = kamrayakvals_war_end
 		}
 	}
-
+	
+	condition = {
+		tooltip = EKHA_NO_WAR
+		potential = {
+			has_country_flag = ekhasi_plotting
+		}
+		allow = {
+			always = no
+		}
+	}
+	
 	effect = {
 		on_war_declaration_effect = yes #1.35
 
@@ -1242,14 +1252,12 @@ declarewar = {
 		}
 
 		if = {
-			limit = {
-				FROM = {
-					tag = R62
-					has_country_flag = command_sir_revolt_started
-				}
+			limit = { FROM = { tag = R62 } }
+			if = {
+				limit = { FROM = { has_country_flag = command_sir_revolt_started } }
+				4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
+				4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 			}
-			4352 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
-			4345 = { remove_building = fort_15th remove_province_modifier = command_fake_fort }
 		}
 		if = {
 			limit = {
@@ -1262,6 +1270,82 @@ declarewar = {
 		if = {
 			limit = { has_country_flag = nekhei_granted_war_rights_flag }
 			clr_country_flag = nekhei_granted_war_rights_flag
+		}
+		#Ashentree Pact
+		if = {
+			limit = {
+				OR = {
+					religion = ashentree_pact
+					FROM = { religion = ashentree_pact }
+				}
+			}
+			country_event = { id = ashtreepact.1 }
+			FROM = { country_event = { id = ashtreepact.1 } }
+		}
+
+		if = {
+            limit = {
+                OR = { tag = G64 was_tag = G64 } #Larankar
+                FROM = {
+					OR = { #The Nakar Trio
+                        tag = G68
+                        tag = G69
+                        tag = G70
+						is_subject_of = G68
+						is_subject_of = G69
+						is_subject_of = G70
+                    }
+                }
+            }
+            country_event = {
+                id = larankar_events.4 #Brother's Unite!
+            }
+        }
+		#Khugra War of Colours
+		if = {
+			limit = {
+				tag = L70
+				has_estate_privilege = estate_church_war_of_colours_imperial_green
+				FROM = {
+					tag = L95
+				}
+			}
+			country_event = {
+				id = flavour_khugra.7
+			}
+		}
+		if = {
+			limit = {
+				tag = L70
+				has_estate_privilege = estate_burghers_war_of_colours_treacherous_gold
+				FROM = {
+					tag = L71
+				}
+			}
+			country_event = {
+				id = flavour_khugra.8
+			}
+		}
+		if = {
+			limit = {
+				tag = L70
+				has_estate_privilege = estate_nobility_war_of_colours_defeated_red
+				FROM = {
+					OR = {
+						AND = {
+							tag = L96
+							ROOT = { NOT = { has_country_flag = khugra_war_of_colours_karassk_rules_red_party } }
+						}
+						AND = {
+							tag = L68
+							ROOT = { has_country_flag = khugra_war_of_colours_karassk_rules_red_party }
+						}
+					}
+				}
+			}
+			country_event = {
+				id = flavour_khugra.6
+			}
 		}
 	}
 }
@@ -2536,6 +2620,34 @@ annexationaction = {
 			}
 		}
 	}
+	condition = {
+        tooltip = EKHA_CANT_INTEGRATE
+        potential = {
+			tag = U08
+			has_country_flag = ekha_cant_integrate
+			FROM = {
+				OR = {
+					tag = U06
+					tag = F57
+				} 
+			}
+		}
+        allow = {
+            always = no
+        }
+    }
+	
+	condition = {
+        tooltip = BAGCATIR_CANT_INTEGRATE
+        potential = {
+			tag = H07
+			has_country_modifier = bagcatir_trade_league
+		}
+        allow = {
+            always = no
+        }
+    }	
+	
 }
 
 integrationaction = {
@@ -2974,6 +3086,16 @@ callaction = {
 		}
 		FROM = { capital_scope = { remove_province_modifier = command_defensiveness_for_ai } }
 	}
+	
+	effect = {
+		if = {
+			limit = {
+				FROM = { religion = ashentree_pact }
+			}
+			country_event = { id = ashtreepact.1 }
+			FROM = { country_event = { id = ashtreepact.1 } }
+		}
+	}
 
 	condition = {	#Bosancovac can't call allies against the Boats' revolt
 		potential = {
@@ -3221,6 +3343,22 @@ requestpeace = {
         }
     }
 	condition = {
+        tooltip = the_umbra_king_rises
+        potential = {
+			FROM = {
+				tag = A77
+				has_country_flag = second_aldresian_crusade
+				is_in_war = {
+					attacker_leader = A77
+					defender_leader = A59
+				}
+			}
+		}
+		allow = {
+			always = no
+        }
+    }
+	condition = {
         tooltip = emperors_legitimacy
         potential = {
 			FROM = {
@@ -3269,10 +3407,32 @@ requestpeace = {
 	}
 	condition = {
 		tooltip = kamrayakvals_war_no_seperate_peace
-		potential = {
-			OR = {
-				has_country_flag = kamrayakvals_war_joined
-				FROM = { has_country_flag = kamrayakvals_war_joined }
+		potential = { #Blocks seperate peace in the Kamrayakval's War
+			is_in_war = { casus_belli = cb_kamrayakvals_war }
+			FROM = { is_in_war = { casus_belli = cb_kamrayakvals_war } }
+			NOT = {
+				AND = {
+					OR = {
+						is_in_war = { 
+							casus_belli = cb_kamrayakvals_war 
+							attacker_leader = ROOT 
+						}
+						is_in_war = { 
+							casus_belli = cb_kamrayakvals_war 
+							attacker_leader = FROM 
+						}
+					}
+					OR = {
+						is_in_war = { 
+							casus_belli = cb_kamrayakvals_war 
+							defender_leader = ROOT 
+						}
+						is_in_war = { 
+							casus_belli = cb_kamrayakvals_war 
+							defender_leader = FROM 
+						}
+					}
+				}
 			}
 		}
 		allow = {
@@ -3280,14 +3440,35 @@ requestpeace = {
 		}
 	}
 	condition = {
-		tooltip = COMMAND_ACTIVE_SIR_REVOLT
+		tooltip = COMMAND_ACTIVE_DISASTER_WAR
 		potential = {
 			OR = {
-				has_country_flag = command_sir_revolt_started
-				FROM = { has_country_flag = command_sir_revolt_started }
+				tag = R62
+				FROM = { tag = R62 }
 			}
 		}
-		allow = { always = no }
+		allow = {
+			if = {
+				limit = { R62 = { has_country_flag = command_sir_revolt_started } }
+				NOT = {
+					has_country_flag = command_sir_revolt_started
+					FROM = { has_country_flag = command_sir_revolt_started }
+				}
+			}
+			else_if = {
+				limit = { R62 = { has_country_flag = insubordination_active_flag } }
+				NOT = {
+					AND = {
+						tag = R62
+						FROM = { is_in_war = { casus_belli = cb_insubordination } }
+					}
+					AND = {
+						is_in_war = { casus_belli = cb_insubordination }
+						FROM = { tag = R62 }
+					}
+				}
+			}
+		}
 	}
 	condition = { #Besolaki Independence War
 		tooltip = G54_NO_PEACE_OUT_TT
