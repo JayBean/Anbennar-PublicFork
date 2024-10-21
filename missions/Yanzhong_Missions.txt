@@ -1,11 +1,17 @@
 
-yanzhong_1 = {
+yanzhong_2 = {
 	slot = 2
 	generic = no
 	ai = yes
 	has_country_shield = yes
 	potential = {
-		tag = Y08
+		OR = {
+			tag = Y08
+			AND = {
+				tag = V19
+				was_tag = Y08
+			}
+		}
 	}
 
 	yanzhong_wicked_coins = {
@@ -18,10 +24,32 @@ yanzhong_1 = {
 		}
 
 		trigger = {
-			trade_embargoing = Y02
-			army_strength = {
-				who = Y02
-				value = 1
+			if = {
+				limit = { exists = Y02 }
+				if = {
+					limit = { ai = no }
+					trade_embargoing = Y02
+				}
+				army_strength = {
+					who = Y02
+					value = 1
+				}
+			}
+			else_if = {
+				limit = { owns = 4851 }
+				owns = 4851
+			}
+			else = {
+				4851 = {
+					owner = {
+						NOT = {
+							army_strength = {
+								who = ROOT
+								value = 1
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -29,6 +57,48 @@ yanzhong_1 = {
 			4851 = { add_permanent_claim = ROOT }
 			4852 = { add_permanent_claim = ROOT }
 			4975 = { add_permanent_claim = ROOT }
+			if = {
+				limit = { ai = yes }
+				4851 = {
+					owner = {
+						if = {
+							limit = {
+								NOT = {
+									is_subject_of = ROOT
+									alliance_with = ROOT
+									truce_with = ROOT
+									AND = {
+										is_subject = yes
+										overlord = {
+											OR = {
+												truce_with = ROOT
+												alliance_with = ROOT
+												army_strength = {
+													who = ROOT
+													value = 1
+												}
+											}
+										}
+									}
+								}
+							}
+							ROOT = {
+								if = {
+									limit = {
+										is_at_war = no
+										is_subject = no
+									}
+									declare_war_with_cb = {
+										who = PREV
+										casus_belli = cb_conquest
+										war_goal_province = 4851
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -55,6 +125,7 @@ yanzhong_1 = {
 		effect = {
 			balrijin_area = { add_permanent_claim = ROOT }
 		}
+		ai_weight = { factor = 500 }
 	}
 
 	yanzhong_mollify = {
@@ -70,33 +141,69 @@ yanzhong_1 = {
 		}
 
 		trigger = {
-			balrijin_area = {
-				type = all
-				owned_by = ROOT
-				has_tax_building_trigger = yes
-				has_trade_building_trigger = yes
-				num_of_times_improved = 5
+			if = {
+				limit = { ai = yes }
+				balrijin_area = { type = all owned_by = ROOT }
+				adm_power = 200
+				dip_power = 200
+				mil_power = 200
+				treasury = 500
 			}
-
+			else = {
+				balrijin_area = {
+					type = all
+					owned_by = ROOT
+					has_tax_building_trigger = yes
+					has_trade_building_trigger = yes
+					num_of_times_improved = 5
+				}
+			}
 		}
 
 		effect = {
+			if = {
+				limit = { ai = yes }
+				add_adm_power = -200
+				add_dip_power = -200
+				add_mil_power = -200
+				add_treasury = -500
+				balrijin_area = {
+					if = {
+						limit = { NOT = { has_construction = marketplace } }
+						add_building = marketplace
+					}
+					if = {
+						limit = { NOT = { has_construction = temple } }
+						add_building = temple
+					}
+					add_base_tax = 2
+					add_base_production = 1
+					add_base_manpower = 2
+				}
+			}
 			add_country_modifier = {
 				name = yanzhong_mollify_mod
 				duration = 1825
 			}
 			medium_increase_of_kobold_tolerance_effect = yes
 		}
+		ai_weight = { factor = 500 }
 	}
 }
 
-yanzhong_2 = {
+yanzhong_3 = {
 	slot = 3
 	generic = no
 	ai = yes
 	has_country_shield = yes
 	potential = {
-		tag = Y08
+		OR = {
+			tag = Y08
+			AND = {
+				tag = V19
+				was_tag = Y08
+			}
+		}
 	}
 	
 	yanzhong_patrol = {
@@ -126,6 +233,13 @@ yanzhong_2 = {
 		
 		trigger = {
 			OR = {
+				hidden_trigger = {
+					AND = {
+						ai = yes
+						Y06 = { ai = yes }
+						treasury = 150
+					}
+				}
 				AND = {
 					reverse_has_opinion = {
 						who = Y06
@@ -145,7 +259,9 @@ yanzhong_2 = {
 			else = {
 				add_treasury = -150
 				custom_tooltip = yanzhong_yangcheng_tt
-				set_country_flag = yanzhong_yangcheng_allow
+				set_country_flag = yanzhong_yangcheng_econ
+				set_country_flag = yanzhong_econ
+				hidden_effect = { set_variable = { yanzhong_yangcheng = 0 } }
 			}
 		}
 	}
@@ -170,6 +286,13 @@ yanzhong_2 = {
 		trigger = {
 			4859 = { owned_by = ROOT }
 			OR = {
+				hidden_trigger = {
+					AND = {
+						ai = yes
+						Y07 = { ai = yes }
+						treasury = 200
+					}
+				}
 				AND = {
 					reverse_has_opinion = {
 						who = Y07
@@ -189,7 +312,9 @@ yanzhong_2 = {
 			else = {
 				add_treasury = -200
 				custom_tooltip = yanzhong_guhe_tt
-				set_country_flag = yanzhong_guhe_allow
+				set_country_flag = yanzhong_guhe_econ
+				set_country_flag = yanzhong_econ
+				hidden_effect = { set_variable = { yanzhong_guhe = 0 } }
 			}
 		}
 	}
@@ -275,18 +400,25 @@ yanzhong_2 = {
 				duration = 3650
 			}
 			set_country_flag = yanzhong_pulse
+			set_country_flag = yanszin_cities_pulse
 			custom_tooltip = yanzhong_pulse_tt
 		}
 	}
 }
 
-yanzhong_3 = {
+yanzhong_4 = {
 	slot = 4
 	generic = no
 	ai = yes
 	has_country_shield = yes
 	potential = {
-		tag = Y08
+		OR = {
+			tag = Y08
+			AND = {
+				tag = V19
+				was_tag = Y08
+			}
+		}
 	}
 	
 	yanzhong_contract = {
@@ -300,6 +432,12 @@ yanzhong_3 = {
 		
 		trigger = {
 			OR = {
+				hidden_trigger = {
+					AND = {
+						ai = yes
+						Y10 = { ai = yes }
+					}
+				}
 				reverse_has_opinion = {
 					who = Y10
 					value = 130
@@ -348,6 +486,13 @@ yanzhong_3 = {
 		trigger = {
 			4859 = { owned_by = ROOT }
 			OR = {
+				hidden_trigger = {
+					AND = {
+						ai = yes
+						Y10 = { ai = yes }
+						treasury = 300
+					}
+				}
 				AND = {
 					reverse_has_opinion = {
 						who = Y10
@@ -367,19 +512,10 @@ yanzhong_3 = {
 			else = {
 				add_treasury = -300
 				custom_tooltip = yanzhong_yingzhen_tt
-				set_country_flag = yanzhong_yingzhen_allow
+				set_country_flag = yanzhong_yingzhen_econ
+				set_country_flag = yanzhong_econ
+				hidden_effect = { set_variable = { yanzhong_yingzhen = 0 } }
 			}
 		}
 	}
-}
-
-yanzhong_5_blank = {
-	slot = 5
-	generic = no
-	ai = yes
-	has_country_shield = yes
-	potential = {
-		tag = Y08
-	}
-
 }
