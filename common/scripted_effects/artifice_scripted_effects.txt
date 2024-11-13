@@ -247,6 +247,15 @@ update_artifice_points = {
 				which = MaxArtificePoints
 				which = StaticArtificePoints
 			}
+			#"temporary" sources from event modifiers
+			export_to_variable = {
+				which = ModifierArtificePoints
+				value = modifier:artificers_capacity
+			}
+			change_variable = {
+				which = MaxArtificePoints
+				which = ModifierArtificePoints
+			}
 
 			# Feiten's mercs cost artificer cap
 			if = {
@@ -533,6 +542,16 @@ update_artifice_points = {
 			else = {
 				remove_country_modifier = artificers_over_artifice_capacity
 			}
+
+			# also update max inventions
+			export_to_variable = {
+				variable_name = ArtificeMaxInventions
+				value = modifier:artificers_invention_slots
+			}
+			change_variable = {
+				which = ArtificeMaxInventions
+				which = artificers_invention_slots_base
+			}
 		}
 	}
 }
@@ -582,15 +601,33 @@ research_speed = {
 			}
 		}
 
-		#all researchspeed bonuses go here for 5 year resarches 20% (0.8) is allowed (10% would not change anything), for longer ones 10/20/30% (0.9/0.8/0.7) are allowed
-		if = {
+		# new_years = base_years * (1-x)
+		# example: -20% research time -> 10 years * (1-0.20) = 8 years
+		export_to_variable = {
+			which = ResearchSpeedMultiplier
+			value = modifier:artificers_research_time
+		}
+		change_variable = {
+			which = ResearchSpeedMultiplier
+			value = 1
+		}
+		if = { # clamp to 0.20 to avoid negative research time
 			limit = {
-				has_estate_privilege = estate_artificers_relic_fueled_artificery
+				NOT = {
+					check_variable = {
+						which = ResearchSpeedMultiplier
+						value = 0.20
+					}
+				}
 			}
-			multiply_variable = {
-				which = ResearchSpeed
-				value = 0.8
+			set_variable = {
+				which = ResearchSpeedMultiplier
+				value = 0.20
 			}
+		}
+		multiply_variable = {
+			which = ResearchSpeed
+			which = ResearchSpeedMultiplier
 		}
 	}
 }
@@ -625,9 +662,9 @@ set_up_artifice_system = {
 			value = 0
 		}
 
-			#sets up the maximum allowed simultainious active inventions
+		#sets up the maximum allowed simultainious active inventions
 		set_variable = {
-			which = artifice_max_invention_slots
+			which = artificers_invention_slots_base
 			value = 7
 		}
 		set_country_flag = artifice_set_up
@@ -854,6 +891,17 @@ mission_reward_artifice_points_5 = {
 		change_variable = {
 			which = StaticArtificePoints
 			value = 5
+		}
+	}
+	update_artifice_points = yes
+}
+
+mission_reward_artifice_points_10 = {
+	custom_tooltip = permanently_increases_our_artifice_points_by_10_tt
+	hidden_effect = {
+		change_variable = {
+			which = StaticArtificePoints
+			value = 10
 		}
 	}
 	update_artifice_points = yes
@@ -3362,7 +3410,8 @@ artifice_tiering_update = {
 		if = {
 			limit = {
 				is_year = 1500
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 2
@@ -3378,7 +3427,8 @@ artifice_tiering_update = {
 		else_if = {
 			limit = {
 				NOT = { is_year = 1500 }
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 4
@@ -3395,6 +3445,7 @@ artifice_tiering_update = {
 			limit = { 
 				is_year = 1550
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 2
@@ -3411,6 +3462,7 @@ artifice_tiering_update = {
 			limit = { 
 				NOT = { is_year = 1550 }
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 4
@@ -3434,7 +3486,8 @@ artifice_tiering_update = {
 		if = {
 			limit = {
 				is_year = 1500
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 3
@@ -3450,7 +3503,8 @@ artifice_tiering_update = {
 		else_if = {
 			limit = {
 				NOT = { is_year = 1500 }
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 6
@@ -3467,6 +3521,7 @@ artifice_tiering_update = {
 			limit = { 
 				is_year = 1550
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 3
@@ -3483,6 +3538,7 @@ artifice_tiering_update = {
 			limit = { 
 				NOT = { is_year = 1550 }
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 6
@@ -3506,7 +3562,8 @@ artifice_tiering_update = {
 		if = {
 			limit = {
 				is_year = 1500
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 6
@@ -3522,7 +3579,8 @@ artifice_tiering_update = {
 		else_if = {
 			limit = {
 				NOT = { is_year = 1500 }
-				has_country_flag = artifice_unlocked_basic 
+				has_country_flag = artifice_unlocked_basic
+				NOT = { has_country_flag = artifice_limited_to_tier_1 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 12
@@ -3539,6 +3597,7 @@ artifice_tiering_update = {
 			limit = { 
 				is_year = 1550
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 6
@@ -3555,6 +3614,7 @@ artifice_tiering_update = {
 			limit = { 
 				NOT = { is_year = 1550 }
 				has_country_flag = artifice_unlocked_advanced
+				NOT = { has_country_flag = artifice_limited_to_tier_2 }
 				check_variable = {
 					which = artifice_level_progress
 					value = 12
@@ -4912,5 +4972,20 @@ artifice_unlock_random_invention_effect = {
 				}
 			}
 		}
+	}
+}
+
+
+display_research_limit_tt = {
+	if = {
+		limit = { has_country_flag = artifice_limited_to_tier_1 }
+		custom_tooltip = artifice_limited_to_tier_1_tt
+	}
+	else_if = {
+		limit = { has_country_flag = artifice_limited_to_tier_2 }
+		custom_tooltip = artifice_limited_to_tier_2_tt
+	}
+	else = {
+		custom_tooltip = artifice_limited_to_tier_3_tt
 	}
 }

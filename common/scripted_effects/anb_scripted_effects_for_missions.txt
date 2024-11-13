@@ -17778,3 +17778,639 @@ gronstunad_building_authority_effect = {
 		}
 	}
 }
+
+#Maghargma
+increase_occupation_counter = {
+	change_variable = {
+		which = I90_mission_counter
+		value = 1
+	}
+	change_variable = {
+		which = I90_occupation_counter
+		value = 1
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = I90_mission_counter
+				value = 4
+			}
+		}
+		country_event = { id = flavor_maghargma.25 }
+	}
+}
+
+increase_collaboration_counter = {
+	change_variable = {
+		which = I90_mission_counter
+		value = 1
+	}
+	change_variable = {
+		which = I90_collaboration_counter
+		value = 1
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = I90_mission_counter
+				value = 4
+			}
+		}
+		country_event = { id = flavor_maghargma.25 }
+	}
+}
+
+maghargama_vassalize_centaur_tributary = {
+	hidden_effect = {
+		#Every tributary and their vassals becomes our vassal
+		every_known_country = { 
+			limit = {
+				OR = {
+					AND = {
+						is_subject_of_type_with_overlord = {
+							who = ROOT
+							type = tributary_state_anb
+						}
+						[[check_capital] capital_scope = { region = $region$ } ]
+					}
+					overlord = {
+						[[check_capital] capital_scope = { region = $region$ } ]
+						is_subject_of_type_with_overlord = {
+							who = ROOT
+							type = tributary_state_anb
+						}	
+					}
+				}
+				culture_group = centaur
+			}
+			ROOT = { vassalize = PREV }
+			[[move_capital]
+			if = {
+				limit = {
+					NOT = {
+						capital_scope = { region = $region$ }
+					}
+				}
+				random_owned_province = {
+					limit = {
+						region = $region$ 
+					}
+					owner = { set_capital = PREV }
+				}
+			}
+			]
+		}
+		#Every tributary inside the region should've been your vassal, if any other tribs outside owns it its ceded to you
+		every_subject_country = { 
+			limit = {
+				is_subject_of_type = tributary_state_anb
+				any_owned_province = {
+					region = $region$
+				}
+			}
+			every_owned_province = {
+				limit = {
+					region = $region$
+				}
+				cede_province = ROOT
+			}
+		}
+	}
+}
+
+
+maghargma_consolidate_centaur_vassal = {
+	random_subject_country = {
+		limit = {
+			is_subject_of_type = vassal
+			has_50_opinion_improved_relation = { target = ROOT }
+			capital_scope = { region = $region$ }
+			culture_group = centaur
+		}
+		set_country_flag = I90_centaur_vassal_$horse$
+		add_country_modifier = {
+			name = I90_favored_horse
+			duration = -1
+		}
+		every_country = {
+			limit = {
+				is_subject_of_type_with_overlord = {
+					who = ROOT
+					type = vassal
+				}
+				NOT = { has_country_flag = I90_centaur_vassal_$horse$ }
+				capital_scope = { region = $region$ }
+				culture_group = centaur
+			}
+			PREV = { inherit = PREV }
+		}
+	}
+}
+
+#Kherka
+kherka_set_ruler = {
+	[[stalwarts]
+		random_list = {
+            1 = { set_ruler = irenthegenea_candidate }
+            1 = { set_ruler = varagenea_candidate }
+            1 = { set_ruler = elethogenea_candidate }
+		}
+		add_ruler_modifier = {
+			name = G48_stalwarts_in_power
+            duration = -1
+		}
+	]
+    [[militants]
+		random_list = {
+            1 = { set_ruler = artogenea_candidate  }
+            1 = { set_ruler = nestegenea_candidate }
+		}
+		add_ruler_modifier = {
+			name = G48_militants_in_power
+            duration = -1
+		}
+	]
+	[[colonists]
+		random_list = {
+            1 = { set_ruler = galengenea_candidate }
+            1 = { set_ruler = taelagenea_candidate }
+        }
+		add_ruler_modifier = {
+			name = G48_colonists_in_power
+            duration = -1
+		}
+	]
+	[[schemers]
+		random_list = {
+			1 = { set_ruler = serogenea_candidate }
+            1 = { set_ruler = darasgenea_candidate }
+            1 = { set_ruler = kelasgenea_candidate }
+        }
+		add_ruler_modifier = {
+			name = G48_schemers_in_power
+            duration = -1
+		}
+	]
+}
+
+kherka_remove_faction_flags = {
+	clr_country_flag = stalwarts_in_power
+    clr_country_flag = militants_in_power
+    clr_country_flag = colonists_in_power
+    clr_country_flag = schemers_in_power
+}
+
+
+
+#Rakkaz
+rakkaz_add_fighting_pit_modifier = {
+	if = {
+		limit = { owner = { has_country_flag = rakkaz_fighting_pit_more_cav_unlocked } }
+		add_permanent_province_modifier = {
+			name = rakkaz_fighting_pit_more_cav
+			duration = -1
+			hidden = yes
+		}
+	}
+	else_if = {
+		limit = { owner = { has_country_flag = rakkaz_fighting_pit_more_cav_upgrade_unlocked } }
+		add_permanent_province_modifier = {
+			name = rakkaz_fighting_pit_more_cav_upgrade
+			duration = -1
+			hidden = yes
+		}
+	}
+	add_permanent_province_modifier = {
+		name = rakkaz_fighting_pit
+		duration = -1
+	}
+}
+
+rakkaz_fighting_pit_mazu_makhara_interactions = {
+	hidden_effect = {
+		if = {
+			limit = { religion = xhazobkult }
+			if = {
+				limit = { has_country_flag = rakkaz_manpower_when_interaction }
+				if = {
+					limit = { has_country_flag = rakkaz_mazu_makhara_light_the_pyres }
+					5466 = {
+						hidden_effect = { remove_province_modifier = rakkaz_surge_of_suffering_upgrade }
+						add_province_modifier = {
+							name = rakkaz_surge_of_suffering_upgrade
+							duration = 3650
+						}
+					}
+				}
+				if = {
+					limit = { has_country_flag = rakkaz_fighting_pit_light_the_pyres }
+					every_owned_province = {
+						limit = { has_province_modifier = rakkaz_fighting_pit }
+						hidden_effect = { remove_province_modifier = rakkaz_channeling_suffering_upgrade }
+						add_province_modifier = {
+							name = rakkaz_channeling_suffering_upgrade
+							duration = 3650
+						}
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = { has_country_flag = rakkaz_mazu_makhara_light_the_pyres }
+					5466 = {
+						hidden_effect = { remove_province_modifier = rakkaz_surge_of_suffering }
+						add_province_modifier = {
+							name = rakkaz_surge_of_suffering
+							duration = 3650
+						}
+					}
+				}
+				if = {
+					limit = { has_country_flag = rakkaz_fighting_pit_light_the_pyres }
+					every_owned_province = {
+						limit = { has_province_modifier = rakkaz_fighting_pit }
+						hidden_effect = { remove_province_modifier = rakkaz_channeling_suffering }
+						add_province_modifier = {
+							name = rakkaz_channeling_suffering
+							duration = 3650
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = { religion = shadow_pact }
+			if = {
+				limit = { has_country_flag = rakkaz_manpower_when_interaction }
+				if = {
+					limit = { has_country_flag = rakkaz_mazu_makhara_light_the_pyres }
+					5466 = {
+						hidden_effect = { remove_province_modifier = rakkaz_surge_of_suffering_upgrade }
+						add_province_modifier = {
+							name = rakkaz_surge_of_suffering_upgrade
+							duration = 7300
+						}
+					}
+				}
+				if = {
+					limit = { has_country_flag = rakkaz_fighting_pit_light_the_pyres }
+					every_owned_province = {
+						limit = { has_province_modifier = rakkaz_fighting_pit }
+						hidden_effect = { remove_province_modifier = rakkaz_channeling_suffering_upgrade }
+						add_province_modifier = {
+							name = rakkaz_channeling_suffering_upgrade
+							duration = 7300
+						}
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = { has_country_flag = rakkaz_mazu_makhara_light_the_pyres }
+					5466 = {
+						hidden_effect = { remove_province_modifier = rakkaz_surge_of_suffering }
+						add_province_modifier = {
+							name = rakkaz_surge_of_suffering
+							duration = 7300
+						}
+					}
+				}
+				if = {
+					limit = { has_country_flag = rakkaz_fighting_pit_light_the_pyres }
+					every_owned_province = {
+						limit = { has_province_modifier = rakkaz_fighting_pit }
+						hidden_effect = { remove_province_modifier = rakkaz_channeling_suffering }
+						add_province_modifier = {
+							name = rakkaz_channeling_suffering
+							duration = 7300
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+rakkaz_soldier_household_buffs = {
+	if = {
+		limit = { has_province_modifier = rakkaz_fighting_pit }
+		add_province_modifier = {
+			name = rakkaz_soldier_households_3
+			duration = -1
+			hidden = yes
+		}
+	}
+	else_if = {
+		limit = { 
+			OR = {
+				trade_goods = grain
+				trade_goods = fish
+				trade_goods = livestock
+				trade_goods = wine
+				trade_goods = fungi
+				trade_goods = serpentbloom
+				trade_goods = slaves
+			}
+			NOT = { has_province_modifier = rakkaz_fighting_pit }
+		}
+		add_province_modifier = {
+			name = rakkaz_soldier_households_2
+			duration = -1
+			hidden = yes
+		}
+	}
+	else = {
+		add_province_modifier = {
+			name = rakkaz_soldier_households_1
+			duration = -1
+			hidden = yes
+		}
+	}
+}
+
+rakkaz_soldier_household_buffs_remove = {
+	if = {
+		limit = { has_province_modifier = rakkaz_soldier_households_3 }
+		remove_province_modifier = rakkaz_soldier_households_3
+	}
+	if = {
+		limit = { has_province_modifier = rakkaz_soldier_households_2 }
+		remove_province_modifier = rakkaz_soldier_households_2
+	}
+	if = {
+		limit = { has_province_modifier = rakkaz_soldier_households_1 }
+		remove_province_modifier = rakkaz_soldier_households_1
+	}
+}
+
+rakkaz_warlock_advisor_management = {
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_demon
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_hag
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_autonomy
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_churchpower
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_demonpower
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_loot
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_loyalty
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_missionary
+	clr_country_flag = rakkaz_rule_of_warlocks_advisor_unrest
+	clr_country_flag = rakkaz_already_choosen_third_modifier
+	country_event = { id = flavour_rakkaz.6 days = 1 }
+}
+
+rakkaz_more_bonuses_for_kult_of_the_packmother = {
+	if = {
+		limit = { has_country_flag = rakkaz_improved_kult_of_the_packmother }
+		if = {
+			limit = { patriarch_authority = 0.4 }
+			random_owned_province = {
+				limit = { culture = fieldstalker_gnoll }
+				add_base_manpower = 2
+			}
+		}
+		else = {
+			random_owned_province = {
+				limit = { culture = fieldstalker_gnoll }
+				add_base_manpower = 1
+			}
+		}
+		if = {
+			limit = { patriarch_authority = 0.8 }
+			add_yearly_manpower = 0.5
+		}
+		else_if = {
+			limit = { patriarch_authority = 0.6 }
+			add_yearly_manpower = 0.4
+		}
+		else_if = {
+			limit = { patriarch_authority = 0.4 }
+			add_yearly_manpower = 0.3
+		}
+		else_if = {
+			limit = { patriarch_authority = 0.2 }
+			add_yearly_manpower = 0.2
+		}
+		else = { add_yearly_manpower = 0.1 }
+	}
+}
+
+rakkaz_make_warlock_pact_avaliables = {
+	clr_country_flag = revoke_warlock_pact_power
+	clr_country_flag = revoke_warlock_pact_exploitation
+	clr_country_flag = revoke_warlock_pact_domination
+	clr_country_flag = revoke_warlock_pact_overcharge
+	clr_country_flag = revoke_warlock_pact_overcharge
+	clr_country_flag = revoke_warlock_pact_overcharge
+	clr_country_flag = revoke_warlock_pact_unrestricted_savagery
+	clr_country_flag = revoke_warlock_pact_battlefield_domination
+}
+
+gophira_var_effect_add = {
+	custom_tooltip = gophira_change_tt
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 12
+			}
+			NOT = { has_country_modifier = gophira_stance_5 }
+		}
+		remove_country_modifier = gophira_stance_4
+		add_country_modifier = {
+			name = gophira_stance_5
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 9
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_4
+				check_variable = {
+					which = gophira_court
+					value = 12
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_3
+		add_country_modifier = {
+			name = gophira_stance_4
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 6
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_3
+				check_variable = {
+					which = gophira_court
+					value = 9
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_2
+		add_country_modifier = {
+			name = gophira_stance_3
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 3
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_2
+				check_variable = {
+					which = gophira_court
+					value = 6
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_1
+		add_country_modifier = {
+			name = gophira_stance_2
+			duration = -1
+		}
+	}
+	hidden_effect = {
+		change_variable = {
+			which = gophira_court
+			value = 1
+		}	
+	}
+}
+
+gophira_var_effect_subtract = {
+	custom_tooltip = gophira_subtract_tt
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 11
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_4
+				check_variable = {
+					which = gophira_court
+					value = 14
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_5
+		add_country_modifier = {
+			name = gophira_stance_4
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 8
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_3
+				check_variable = {
+					which = gophira_court
+					value = 11
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_4
+		add_country_modifier = {
+			name = gophira_stance_3
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = gophira_court
+				value = 5
+			}
+			NOT = {
+				has_country_modifier = gophira_stance_2
+				check_variable = {
+					which = gophira_court
+					value = 8
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_3
+		add_country_modifier = {
+			name = gophira_stance_2
+			duration = -1
+		}
+	}
+	if = {
+		limit = {
+			NOT = {
+				has_country_modifier = gophira_stance_1
+				check_variable = {
+					which = gophira_court
+					value = 5
+				}
+			}
+		}
+		remove_country_modifier = gophira_stance_2
+		add_country_modifier = {
+			name = gophira_stance_1
+			duration = -1
+		}
+	}
+	hidden_effect = {
+		change_variable = {
+			which = gophira_court
+			value = -1
+		}
+	}
+}
+
+gophira_heir_effect = {
+	if = {
+		limit = { has_heir_flag = gophira_heir }
+		if = {
+			limit = { 
+				NOT = { heir_$pow$ = 6 }
+			}
+			change_heir_$pow$ = $amount$
+		}
+		else = { add_$pow$_power = $amount$00 }
+	}
+}
+
+add_racial_minority_and_dev_preferred_terrain = {
+	if = {
+		limit = {
+			any_owned_province = {
+				preferred_terrain = { $race$ = yes }
+				NOT = { culture_is_$race$ = yes }
+			}
+		}
+		random_owned_province = {
+			limit = {
+				preferred_terrain = { $race$ = yes }
+				NOT = { culture_is_$race$ = yes }
+			}
+			add_$race$_minority_size_effect = yes
+			add_random_development = $dev_amount$
+		}
+	}
+	else = {
+		random_owned_province = {
+			limit = {
+				NOT = { culture_is_$race$ = yes }
+			}
+			add_$race$_minority_size_effect = yes
+			add_random_development = $dev_amount$
+		}
+	}
+}
